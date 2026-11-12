@@ -43,7 +43,7 @@ export function SingleLine({ diagram, steps, current, words }: { diagram: Diagra
     const span = source ? [centre(flow!.from), ...reached.map(centre)] : [];
 
     return (
-        <div dir="ltr" className="overflow-x-auto">
+        <div dir="ltr" className="overflow-x-auto" tabIndex={0} role="region" aria-label={words.singleLine("title")}>
             <svg viewBox="0 0 880 500" className="block h-auto w-full min-w-[620px]" role="img" aria-label={words.singleLine("title")}>
                 <defs>
                     <marker id="sld-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">

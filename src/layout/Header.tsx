@@ -3,7 +3,7 @@ import { useI18n } from "@/i18n/i18n";
 import { Link } from "@/router";
 import { LanguageMenu } from "./LanguageMenu";
 import { Logo } from "./Logo";
-import { Search } from "./Search";
+import { SearchButton, SearchDialog } from "./Search";
 import { ThemeMenu } from "./ThemeMenu";
 
 export const REPOSITORY = "https://github.com/araminix/gridlingo";
@@ -30,7 +30,7 @@ export function Header({ search = true }: { search?: boolean }) {
                     </span>
                 </Link>
                 <div className="ms-auto flex items-center gap-2">
-                    {search && <Search />}
+                    {search && <SearchButton />}
                     <LanguageMenu />
                     <ThemeMenu />
                     <Button variant="outline" size="icon" className="size-10 max-[380px]:hidden" asChild>
@@ -40,6 +40,7 @@ export function Header({ search = true }: { search?: boolean }) {
                     </Button>
                 </div>
             </div>
+            <SearchDialog />
         </header>
     );
 }

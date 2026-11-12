@@ -14,7 +14,7 @@ export function TimingChart({ timing, words }: { timing: Timing; words: Words })
     const x = (t: number) => LEFT + (timing.scale === "log" ? (Math.log2(1 + t) / Math.log2(1 + timing.end)) * span : (t / timing.end) * span);
     const height = timing.tracks.length * TRACK + 34;
     return (
-        <div dir="ltr" className="overflow-x-auto">
+        <div dir="ltr" className="overflow-x-auto" tabIndex={0} role="region" aria-label={words.timing("title")}>
             <svg viewBox={`0 0 ${WIDTH} ${height}`} className="block h-auto w-full min-w-[560px]" role="img" aria-label={timing.tracks.map((track) => words.timing(track.id)).join(", ")}>
                 {timing.tracks.map((track, i) => {
                     const base = 14 + i * TRACK + TRACK - 14;

@@ -179,7 +179,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                             <StepStrip steps={lesson.steps} current={current} onGo={(index) => (setPlaying(false), go(index))} words={words} />
                         </div>
                         <TabsContent value="site" className="bg-[var(--viz-ground)]">
-                            <div className="overflow-x-auto">
+                            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={t("view.site")}>
                                 <div className="min-w-[520px] px-2 pt-2">
                                     <SiteScene scene={lesson.scene} frame={selected} words={words} />
                                 </div>
@@ -202,7 +202,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                 <div className="xl:hidden">{devices}</div>
 
                 <Section title={t("frames.title")}>
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={t("frames.title")}>
                         <FrameList frames={shownFrames} selected={selected?.id} onSelect={setChosen} words={words} />
                     </div>
                 </Section>

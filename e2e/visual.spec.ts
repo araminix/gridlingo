@@ -13,6 +13,8 @@ async function open(page: Page, path: string, { lang = "en", theme = "light" } =
         [lang, theme],
     );
     await page.goto(path);
+    // The sticky header would cover the top of an element taller than the window
+    await page.addStyleTag({ content: "header { position: static !important; }" });
     await page.evaluate(() => document.fonts.ready);
 }
 
@@ -40,6 +42,7 @@ test.describe("the other views", () => {
     for (const meta of CATALOG.filter((item) => ["substation"].includes(item.group)))
         test(`${meta.id} single-line, if it has one`, async ({ page }) => {
             await open(page, `/p/${meta.id}`);
+            await expect(page.getByTestId("stage")).toBeVisible();
             const tab = page.getByRole("tab", { name: "Single-line" });
             test.skip(!(await tab.count()), "no single-line view");
             await lastStep(page);

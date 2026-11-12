@@ -1,7 +1,7 @@
 import { CircleCheck } from "lucide-react";
 import { useState } from "react";
 import { useI18n, type MessageKey } from "@/i18n/i18n";
-import { Search } from "@/layout/Search";
+import { SearchButton } from "@/layout/Search";
 import { CATALOG, GROUPS } from "@/lessons/catalog";
 import type { DeviceKind } from "@/lessons/types";
 import { cn } from "@/lib/utils";
@@ -23,7 +23,7 @@ export function Home() {
             <section className="max-w-3xl space-y-5">
                 <h1 className="text-4xl leading-tight font-bold tracking-tight sm:text-5xl">{t("home.title")}</h1>
                 <p className="text-lg text-muted-foreground">{t("home.lead")}</p>
-                <Search wide />
+                <SearchButton wide />
                 <p className="flex flex-wrap items-center gap-2 text-sm">
                     <span className="text-muted-foreground">{t("home.start")}</span>
                     {START.map((id) => (

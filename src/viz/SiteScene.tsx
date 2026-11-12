@@ -90,7 +90,7 @@ export function SiteScene({ scene, frame, words }: { scene: Scene; frame: Frame 
     return (
         <svg
             viewBox={`${round(view.minX)} ${round(view.minY)} ${round(view.width)} ${round(view.height)}`}
-            className="block h-auto w-full"
+            className="block h-auto max-h-[34rem] w-full"
             role="img"
             aria-label={scene.devices.map((device) => words.device(device.id)).join(", ")}
         >
