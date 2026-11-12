@@ -1,11 +1,12 @@
 {
-    "intro": "A língua da automação predial: aquecimento, refrigeração, iluminação e medidores. Cada equipamento guarda objetos (uma entrada analógica, uma saída binária, uma agenda), e cada objeto tem propriedades, como o valor atual. Numa rede IP, o BACnet trafega em datagramas UDP para a porta 47808, e os equipamentos se encontram por broadcast.",
+    "intro": "O BACnet (Building Automation and Control Networks: redes de automação e controle predial) é a língua comum da automação predial: aquecimento, refrigeração, iluminação e medidores. Cada equipamento guarda objetos, como uma entrada analógica (um número medido), uma saída binária (um comando de liga/desliga) ou uma agenda. Cada objeto tem propriedades, como o valor atual. Numa rede IP, o BACnet trafega em datagramas UDP, pacotes avulsos enviados sem conexão, para a porta 47808. Os equipamentos se encontram por broadcast: uma mensagem que todo equipamento da rede recebe.",
+    "plain": "Esta é a língua comum que as máquinas de um prédio usam para conversar entre si: aquecimento, ar-condicionado, luzes e medidores de energia. Cada equipamento é descrito como um conjunto de caixas com etiqueta, como \"temperatura da sala\" ou \"ventilador ligado ou desligado\". Outros equipamentos podem ler ou mudar o que há nessas caixas. Um computador de controle pode perguntar ao prédio inteiro quem está aí, ler um medidor, definir um limite e pedir para ser avisado quando um valor mudar.",
     "steps": {
-        "discover": { "title": "Achar o equipamento", "text": "O BMS conhece o controlador pelo número de equipamento, 2001, mas não pelo endereço IP. Ele envia um Who-Is em broadcast. Só o equipamento 2001 responde, com I-Am. O BMS tira o endereço IP dele do pacote." },
-        "read": { "title": "Ler o medidor", "text": "O BMS lê o present-value do analog-input 1: a potência do edifício no medidor geral. A resposta é um REAL: 268.5 kW." },
-        "write": { "title": "Definir um limite", "text": "O operador reduz o limite de demanda para 250 kW. A escrita leva prioridade 8, então o valor vai para a posição 8 do priority array." },
-        "subscribe": { "title": "Assinar", "text": "Em vez de ler de novo e de novo, o BMS pede ao controlador que informe cada mudança no valor do medidor, durante uma hora." },
-        "cov": { "title": "A carga cai", "text": "O edifício está acima do limite, então o controlador alivia carga: desliga um estágio do chiller. A potência cai para 243.5 kW. Essa mudança é maior que o incremento de COV de 5 kW, então o controlador avisa o BMS." }
+        "discover": { "title": "Achar o equipamento", "text": "O BMS (building management system: o sistema de gestão predial, o computador dos operadores) conhece o controlador pelo número de equipamento, 2001, mas não pelo endereço IP. Ele envia em broadcast um Who-Is, uma pergunta a todos os equipamentos: o equipamento 2001 está aí? Só o equipamento 2001 responde, com I-Am. O BMS tira desse pacote o endereço IP do controlador." },
+        "read": { "title": "Ler o medidor", "text": "O BMS lê o present-value do analog-input 1: a potência do edifício no medidor geral. A resposta é um REAL, um número decimal em 4 bytes: 268.5 kW." },
+        "write": { "title": "Definir um limite", "text": "O operador reduz o limite de demanda, a maior potência que o edifício pode consumir, para 250 kW. Um valor que pode ser comandado tem um priority array: 16 posições, sendo a posição 1 a mais importante. Vence a posição mais importante que tiver um valor. Esta escrita leva prioridade 8, então o valor vai para a posição 8." },
+        "subscribe": { "title": "Assinar as mudanças", "text": "Em vez de ler de novo e de novo, o BMS assina o COV (change of value: mudança de valor). Ele pede ao controlador que informe cada mudança no valor do medidor, durante uma hora." },
+        "cov": { "title": "A potência cai", "text": "O edifício está acima do limite, então o controlador alivia carga: desliga um estágio do chiller, parte da central de refrigeração. A potência cai para 243.5 kW. O incremento de COV é a menor mudança que vale a pena informar, aqui 5 kW. Esta mudança é maior, então o controlador avisa o BMS." }
     },
     "frames": {
         "who-is": "O equipamento 2001 está por aí?",
@@ -36,11 +37,11 @@
         "unconfirmed": { "name": "Unconfirmed-Request", "note": "0x10: tipo de PDU 1, nos 4 bits mais altos. Ninguém a confirma." },
         "who-is": { "name": "Who-Is", "note": "Serviço 8." },
         "low-limit": { "name": "Limite inferior", "note": "Context tag 0, 2 bytes: 0x07D1 = 2001, o menor número de equipamento que deve responder." },
-        "high-limit": { "name": "Limite superior", "note": "Context tag 1: 2001 de novo. Só o equipamento 2001 responde. O controlador da UTA, equipamento 2002, fica em silêncio." },
+        "high-limit": { "name": "Limite superior", "note": "Context tag 1: 2001 de novo. Só o equipamento 2001 responde. O controlador da unidade de tratamento de ar (AHU), equipamento 2002, fica em silêncio." },
         "i-am": { "name": "I-Am", "note": "Serviço 0." },
         "device-id": { "name": "Equipamento", "note": "Application tag 12 (um identificador de objeto), 4 bytes: equipamento 2001. A anatomia abaixo o desmonta." },
         "max-apdu": { "name": "Max APDU", "note": "Sem sinal, 2 bytes: ele aceita mensagens de até 1476 bytes." },
-        "segmentation": { "name": "Segmentação", "note": "Enumerado, 1 byte: 3 = nenhuma. Toda mensagem precisa caber num datagrama." },
+        "segmentation": { "name": "Segmentação", "note": "Enumerado, 1 byte: 3 = sem segmentação. Uma mensagem não pode ser cortada em pedaços, então precisa caber num datagrama." },
         "vendor": { "name": "Vendor ID", "note": "Sem sinal: fabricante 4000. A ASHRAE dá um número a cada fabricante; este é inventado." },
         "confirmed": { "name": "Confirmed-Request", "note": "0x00: tipo de PDU 0, numa peça só. Ela precisa ser respondida." },
         "max-resp": { "name": "Resposta máxima", "note": "Código 5: o BMS aceita respostas de até 1476 bytes." },
@@ -58,7 +59,7 @@
         "invoke2-ack": { "name": "Invoke ID 2", "note": "A resposta à requisição 2." },
         "write-property": { "name": "WriteProperty", "note": "Serviço 15 (0x0F)." },
         "write-property-ack": { "name": "WriteProperty", "note": "Serviço 15: a escrita foi feita." },
-        "obj-av1": { "name": "Objeto", "note": "Context tag 0: analog-value, instância 1, o setpoint do limite de demanda. 0x00800001: tipo de objeto 2 nos 10 bits mais altos." },
+        "obj-av1": { "name": "Objeto", "note": "Context tag 0: analog-value, instância 1, o ajuste do limite de demanda. 0x00800001: tipo de objeto 2 nos 10 bits mais altos." },
         "real-250": { "name": "REAL", "note": "250.0: o novo limite, em kW." },
         "priority8": { "name": "Prioridade 8", "note": "Context tag 4: escrever na posição 8 de 16, a posição do operador. Vence a posição de menor número que tiver um valor." },
         "simple-ack": { "name": "SimpleACK", "note": "0x20: tipo de PDU 2. Feito, sem dados." },
@@ -90,7 +91,7 @@
         "bms": "Estação do BMS",
         "switch": "Switch do edifício",
         "controller": "Controlador de energia",
-        "ahu": "Controlador da UTA",
+        "ahu": "Controlador da unidade de tratamento de ar",
         "meter": "Medidor geral"
     },
     "facts": {

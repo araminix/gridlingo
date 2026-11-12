@@ -1,11 +1,12 @@
 {
-    "intro": "Le langage de l'automatisation des bâtiments : chauffage, climatisation, éclairage et compteurs. Chaque équipement contient des objets (une entrée analogique, une sortie binaire, un calendrier), et chaque objet a des propriétés, comme sa valeur actuelle. Sur un réseau IP, BACnet voyage dans des datagrammes UDP vers le port 47808, et les équipements se trouvent par diffusion (broadcast).",
+    "intro": "BACnet (Building Automation and Control Networks) est le langage commun de l'automatisation des bâtiments : chauffage, climatisation, éclairage et compteurs. Chaque équipement contient des objets, comme une entrée analogique (un nombre mesuré), une sortie binaire (une commande marche/arrêt) ou un calendrier. Chaque objet a des propriétés, comme sa valeur actuelle. Sur un réseau IP, BACnet voyage dans des datagrammes UDP, des paquets isolés envoyés sans connexion, vers le port 47808. Les équipements se trouvent par diffusion (broadcast) : un seul message que tous les équipements du réseau entendent.",
+    "plain": "C'est le langage commun que les machines d'un bâtiment utilisent pour se parler : chauffage, climatisation, éclairage et compteurs d'électricité. Chaque appareil est décrit comme un ensemble de boîtes étiquetées, par exemple « température de la pièce » ou « ventilateur en marche ou à l'arrêt ». Les autres appareils peuvent lire ou modifier le contenu de ces boîtes. Un ordinateur de pilotage peut demander à tout le bâtiment qui est là, relever un compteur, fixer une limite et demander à être prévenu quand une valeur change.",
     "steps": {
-        "discover": { "title": "Trouver l'équipement", "text": "La GTB connaît l'automate par son numéro d'équipement, 2001, mais pas par son adresse IP. Elle diffuse un Who-Is. Seul l'équipement 2001 répond, par un I-Am. La GTB tire son adresse IP du paquet." },
-        "read": { "title": "Lire le compteur", "text": "La GTB lit la present-value de l'analog-input 1 : la puissance du bâtiment au compteur général. La réponse est un REAL : 268.5 kW." },
-        "write": { "title": "Fixer une limite", "text": "L'opérateur abaisse la limite de puissance à 250 kW. L'écriture porte la priorité 8 : la valeur va donc dans la case 8 du tableau de priorités." },
-        "subscribe": { "title": "S'abonner", "text": "Au lieu de relire sans cesse, la GTB demande à l'automate de signaler chaque changement de la valeur du compteur, pendant une heure." },
-        "cov": { "title": "La charge baisse", "text": "Le bâtiment dépasse la limite : l'automate déleste en arrêtant un étage du groupe froid. La puissance tombe à 243.5 kW. Ce changement dépasse l'incrément COV de 5 kW : l'automate prévient donc la GTB." }
+        "discover": { "title": "Trouver l'équipement", "text": "La GTB (gestion technique du bâtiment, l'ordinateur des opérateurs) connaît l'automate par son numéro d'équipement, 2001, mais pas par son adresse IP. Elle diffuse un Who-Is, une question à tous les équipements : l'équipement 2001 est-il là ? Seul l'équipement 2001 répond, par un I-Am. La GTB tire l'adresse IP de l'automate de ce paquet." },
+        "read": { "title": "Lire le compteur", "text": "La GTB lit la present-value de l'analog-input 1 : la puissance du bâtiment au compteur général. La réponse est un REAL, un nombre décimal sur 4 octets : 268.5 kW." },
+        "write": { "title": "Fixer une limite", "text": "L'opérateur abaisse la limite de puissance, la puissance maximale que le bâtiment peut appeler, à 250 kW. Une valeur commandable a un tableau de priorités : 16 cases, la case 1 étant la plus importante. La case la plus importante qui contient une valeur l'emporte. Cette écriture porte la priorité 8 : la valeur va donc dans la case 8." },
+        "subscribe": { "title": "S'abonner aux changements", "text": "Au lieu de relire sans cesse, la GTB s'abonne au COV (change of value, changement de valeur). Elle demande à l'automate de signaler chaque changement de la valeur du compteur, pendant une heure." },
+        "cov": { "title": "La puissance baisse", "text": "Le bâtiment dépasse la limite : l'automate déleste en arrêtant un étage du groupe froid, une partie de la production de froid. La puissance tombe à 243.5 kW. L'incrément COV est le plus petit changement qui mérite d'être signalé, ici 5 kW. Ce changement est plus grand : l'automate prévient donc la GTB." }
     },
     "frames": {
         "who-is": "L'équipement 2001 est-il là ?",
@@ -36,11 +37,11 @@
         "unconfirmed": { "name": "Unconfirmed-Request", "note": "0x10 : PDU de type 1, dans les 4 bits de poids fort. Personne ne l'acquitte." },
         "who-is": { "name": "Who-Is", "note": "Service 8." },
         "low-limit": { "name": "Limite basse", "note": "Tag de contexte 0, 2 octets : 0x07D1 = 2001, le plus petit numéro d'équipement qui doit répondre." },
-        "high-limit": { "name": "Limite haute", "note": "Tag de contexte 1 : de nouveau 2001. Seul l'équipement 2001 répond. L'automate de CTA, l'équipement 2002, reste muet." },
+        "high-limit": { "name": "Limite haute", "note": "Tag de contexte 1 : de nouveau 2001. Seul l'équipement 2001 répond. L'automate de la centrale de traitement d'air (CTA), l'équipement 2002, reste muet." },
         "i-am": { "name": "I-Am", "note": "Service 0." },
         "device-id": { "name": "Équipement", "note": "Tag d'application 12 (un identifiant d'objet), 4 octets : l'équipement 2001. La décomposition plus bas le détaille." },
         "max-apdu": { "name": "Max APDU", "note": "Non signé, 2 octets : il accepte des messages jusqu'à 1476 octets." },
-        "segmentation": { "name": "Segmentation", "note": "Énuméré, 1 octet : 3 = aucune. Chaque message doit tenir dans un seul datagramme." },
+        "segmentation": { "name": "Segmentation", "note": "Énuméré, 1 octet : 3 = pas de segmentation. Un message ne peut pas être découpé en morceaux : il doit donc tenir dans un seul datagramme." },
         "vendor": { "name": "Vendor ID", "note": "Non signé : fabricant 4000. L'ASHRAE attribue un numéro à chaque fabricant ; celui-ci est inventé." },
         "confirmed": { "name": "Confirmed-Request", "note": "0x00 : PDU de type 0, d'un seul tenant. Elle doit recevoir une réponse." },
         "max-resp": { "name": "Réponse max.", "note": "Code 5 : la GTB accepte des réponses jusqu'à 1476 octets." },
@@ -58,7 +59,7 @@
         "invoke2-ack": { "name": "Invoke ID 2", "note": "La réponse à la requête 2." },
         "write-property": { "name": "WriteProperty", "note": "Service 15 (0x0F)." },
         "write-property-ack": { "name": "WriteProperty", "note": "Service 15 : l'écriture est faite." },
-        "obj-av1": { "name": "Objet", "note": "Tag de contexte 0 : analog-value, instance 1, la consigne de limite de puissance. 0x00800001 : type d'objet 2 dans les 10 bits de poids fort." },
+        "obj-av1": { "name": "Objet", "note": "Tag de contexte 0 : analog-value, instance 1, le réglage de la limite de puissance. 0x00800001 : type d'objet 2 dans les 10 bits de poids fort." },
         "real-250": { "name": "REAL", "note": "250.0 : la nouvelle limite, en kW." },
         "priority8": { "name": "Priorité 8", "note": "Tag de contexte 4 : écrire dans la case 8 sur 16, celle de l'opérateur. La case de plus petit numéro qui contient une valeur l'emporte." },
         "simple-ack": { "name": "SimpleACK", "note": "0x20 : PDU de type 2. C'est fait, sans données." },
@@ -90,7 +91,7 @@
         "bms": "Poste GTB",
         "switch": "Switch du bâtiment",
         "controller": "Automate d'énergie",
-        "ahu": "Automate de CTA",
+        "ahu": "Automate de traitement d'air",
         "meter": "Compteur général"
     },
     "facts": {

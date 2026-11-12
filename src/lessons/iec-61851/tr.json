@@ -1,11 +1,12 @@
 {
-    "intro": "Kontrol pilot (CP), her şarj kablosundaki tek bir teldir. Şarj cihazı ona bir gerilim uygular, araç da bu gerilimi dirençlerle aşağı çeker. Bu seviyeden iki taraf da bir aracın bağlı olup olmadığını ve güç isteyip istemediğini bilir. Aynı teldeki 1 kHz'lik bir kare dalga, araca ne kadar akım çekebileceğini söyler.",
+    "intro": "Kontrol pilot (CP), elektrikli araçların her şarj kablosundaki ince bir sinyal telidir. Şarj cihazı ona bir gerilim uygular, araç da bu gerilimi dirençlerle (gerilimi düşüren basit parçalar) aşağı çeker. Bu seviyeden iki taraf da bir aracın bağlı olup olmadığını ve güç isteyip istemediğini bilir. Şarj cihazı ayrıca gerilimi saniyede 1000 kez yukarı aşağı sıçratır: 1 kHz'lik bir kare dalga. Gerilimin her çevrimde ne kadar süre yüksekte kaldığı, araca ne kadar akım çekebileceğini söyler.",
+    "plain": "Elektrikli bir araç ile şarj noktası, şarj konusunda kablodaki tek bir ince tel üzerinden anlaşır; arada hiçbir bilgisayar mesajı yoktur. Araç, bir düğmeyi çevirir gibi bu teldeki gerilimi değiştirerek \"takıldım\" ve \"hazırım\" der. Şarj cihazı da tele darbeler göndererek yanıt verir; her darbenin uzunluğu araca ne kadar güç çekebileceğini söyler. İki taraf anlaşana kadar kablodan güç akmaz.",
     "steps": {
-        "plug": { "title": "Tak", "text": "Fiş takılmadan önce şarj cihazı CP'yi +12 V'ta tutar: A durumu. Aracın direnci onu +9 V'a çeker: B durumu. Şarj cihazı kablonun anma akımını da PP pininden okur." },
-        "offer": { "title": "Akım sun", "text": "Şarj cihazı CP'de 1 kHz'lik bir kare dalga başlatır. Dalganın yüksekte kaldığı zamanın payı, yani doluluk oranı (duty cycle), aracın çekebileceği akımdır. Ev 24 A'e izin veriyor, bu yüzden 32 A'lik şarj cihazı 24 A sunar: %40." },
-        "charge": { "title": "Şarj et", "text": "Araç ikinci bir direnci devreye alır: CP +6 V'a düşer, C durumu. Şarj cihazı kontaktörünü ancak şimdi kapatır. Araç her fazdan en fazla 24 A çeker." },
-        "reduce": { "title": "Daha az akım", "text": "Evin gücüne başka yerde ihtiyacı var. Enerji yöneticisi şarj cihazına haber verir, şarj cihazı da doluluk oranını %10'a düşürür: 6 A. Aracın uymak için 5 s'si var." },
-        "stop": { "title": "Durdur", "text": "Batarya dolu. Araç anahtarını açar: CP yeniden +9 V'a, B durumuna döner. Şarj cihazı kontaktörü açar." },
+        "plug": { "title": "Tak", "text": "Fiş takılmadan önce şarj cihazı CP'yi +12 V'ta tutar: A durumu, araç yok. Aracın direnci onu +9 V'a çeker: B durumu, bir araç bağlı. Şarj cihazı kablonun anma akımını (taşıyabileceği en yüksek akımı) da PP pininden okur: proximity pilot, fişteki ikinci küçük pin." },
+        "offer": { "title": "Akım sun", "text": "Şarj cihazı CP'de 1 kHz'lik bir kare dalga başlatır. Sinyalin her çevrimde yüksekte kaldığı pay, doluluk oranıdır (duty cycle). Araca ne kadar akım çekebileceğini söyler. Ev 24 A'e izin veriyor, bu yüzden 32 A'lik şarj cihazı 24 A sunar: %40'lık bir doluluk oranı." },
+        "charge": { "title": "Güç veriliyor", "text": "Araç ikinci bir direnci devreye alır: CP +6 V'a düşer; bu C durumudur, araç güce hazır. Şarj cihazı kontaktörünü (ağır bir güç anahtarı) ancak şimdi kapatır. Araç her fazdan, yani gerilim taşıyan üç telin her birinden en fazla 24 A çeker." },
+        "reduce": { "title": "Akımı düşür", "text": "Evin gücüne başka yerde ihtiyacı var. Evin enerji yöneticisi, yani evin gücünü cihazlar arasında paylaştıran kutu, şarj cihazına haber verir. Şarj cihazı doluluk oranını %10'a düşürür: 6 A. Aracın uymak için 5 s'si var." },
+        "stop": { "title": "Şarj duruyor", "text": "Batarya dolu. Araç anahtarını açar: CP yeniden +9 V'a, B durumuna döner. Şarj cihazı kontaktörü açar ve güç kesilir." },
         "unplug": { "title": "Fişi çek", "text": "Fiş çekilir. CP +12 V'a, A durumuna döner ve şarj cihazı kare dalgayı durdurur." }
     },
     "frames": {
@@ -21,14 +22,14 @@
         "a": "Araç gitti"
     },
     "notes": {
-        "b1": "Şarj cihazı +12 V'u 1 kΩ'luk bir direnç üzerinden besler. Araç, bir diyotun arkasından CP ile koruma toprağı (PE) arasına 2.74 kΩ bağlar ve gerilim +9 V'a düşer. B1, sabit gerilimli B durumu demektir; B2 ise kare dalgalı aynı durumdur.",
-        "pp": "Proximity pilot (PP) bir sinyal değildir. Kablonun fişinde, PP ile PE arasında bir dirençtir ve değeri kablonun anma akımını verir: 1.5 kΩ 13 A, 680 Ω 20 A, 220 Ω 32 A, 100 Ω 63 A'dir.",
+        "b1": "Şarj cihazı +12 V'u 1 kΩ'luk bir direnç üzerinden besler. Araç, bir diyotun (akımı yalnızca tek yönde geçiren bir parça) arkasından CP ile koruma toprağı (PE) arasına 2.74 kΩ bağlar. Gerilim +9 V'a düşer. B1, sabit gerilimli B durumu demektir. B2 ise kare dalgalı aynı durumdur.",
+        "pp": "Proximity pilot (PP) bir sinyal değildir. Kablonun fişinde, PP ile PE arasında bir dirençtir. Değeri kablonun anma akımını söyler: 1.5 kΩ 13 A, 680 Ω 20 A, 220 Ω 32 A, 100 Ω 63 A'dir.",
         "pwm": "Bir periyot 1 ms sürer. CP, bunun %40'ında (0.4 ms) +9 V'ta, geri kalanında −12 V'tadır. %10 ile %85 arasında akım, doluluk oranı × 0.6 A'dir: 40 × 0.6 = 24 A.",
-        "c": "Araç S2 anahtarını kapatır ve 2.74 kΩ'un yanına 1.3 kΩ ekler. Kare dalganın yüksek seviyesi +6 V'a düşer. Bunun yerine 270 Ω olsaydı +3 V'a düşerdi: havalandırma isteyen D durumu.",
-        "contactor": "CP üzerinde bir sinyal değil. Şarj cihazının kontaktörü L1, L2, L3 ve N'yi araca bağlar; aracın dahili şarj cihazı da AC'yi batarya için DC'ye çevirir.",
-        "limit": "IEC 61851 değil: bir enerji yöneticisi Modbus ya da OCPP konuşur veya bir kontağı kapatır. Araç bu mesajı hiç görmez, yalnızca yeni doluluk oranını görür.",
+        "c": "Araç S2 anahtarını kapatır ve 2.74 kΩ'a paralel 1.3 kΩ ekler. Kare dalganın yüksek seviyesi +6 V'a düşer. Bunun yerine 270 Ω olsaydı +3 V'a düşerdi: D durumu. Bu durum, şarj olurken gaz çıkaran bataryalar için havalandırma ister.",
+        "contactor": "Bu, CP üzerinde bir sinyal değildir. Şarj cihazının kontaktörü üç fazı (L1, L2, L3) ve nötrü (N) araca bağlar. Aracın dahili şarj cihazı AC'yi batarya için DC'ye çevirir.",
+        "limit": "Bu kısım IEC 61851 değildir. Bir enerji yöneticisi şarj cihazına Modbus ya da OCPP üzerinden haber verir veya yalnızca bir kontağı kapatır. Araç bu mesajı hiç görmez, yalnızca yeni doluluk oranını görür.",
         "pwm-10": "10 × 0.6 = 6 A, bir doluluk oranının sunabileceği en düşük akım. Araç akımını 5 s içinde düşürmelidir.",
-        "b2": "Araç S2'yi açar ve yüksek seviye +9 V'a geri döner. İyi bir araç önce akımını düşürür; böylece kontaktör yük altında açılmaz.",
+        "b2": "Araç S2'yi açar ve yüksek seviye +9 V'a geri döner. İyi bir araç önce akımını düşürür; böylece kontaktör yük altında (akım akarken) açılmaz.",
         "open": "B durumunda şarj cihazı güç vermemelidir, bu yüzden kontaktörü açar. Kare dalga devam eder: araç yeniden güç isteyebilir.",
         "a": "Artık hiçbir şey CP'yi aşağı çekmiyor: +12 V, A durumu. Şarj cihazı kare dalgayı durdurur (A1) ve bir sonraki aracı bekler."
     },
@@ -50,7 +51,7 @@
         "Düşük seviyeyi de kontrol edin. −12 V'a inmeyen bir kare dalga, aracın diyotunun eksik ya da kısa devre olduğu anlamına gelir; şarj cihazı devreye girmemelidir.",
         "%5 bir akım değildir. \"Önce dijital konuş\" (ISO 15118) demektir: sınır o zaman doluluk oranından değil, mesajlardan gelir.",
         "Kablo da akımı sınırlar. 20 A'lik bir kabloyla (680 Ω), 32 A'lik bir şarj cihazı en fazla 20 A sunar: %33.3 doluluk oranı.",
-        "D durumu (+3 V) havalandırma ister. Ortam için fanı olmayan bir şarj cihazı D durumunda şarj etmemelidir. E (0 V) kısa devre ya da enerji yok demektir; F (−12 V), şarj cihazının kullanılamadığı anlamına gelir."
+        "D durumu (+3 V) havalandırma ister. Ortam için fanı olmayan bir şarj cihazı D durumunda şarj etmemelidir. E durumu (0 V) kısa devre ya da enerji yok demektir. F durumu (−12 V), şarj cihazının kullanılamadığı anlamına gelir."
     ],
     "points": {
         "state": "CP durumu",
@@ -60,7 +61,7 @@
     },
     "timing": {
         "title": "Kontrol pilot, her durumdan 3 ms",
-        "note": "Her çizgi CP gerilimidir: altta −12 V, üstte +12 V (seviye = (V + 12) / 24). Kare dalga her 1 ms'de tekrarlanır. Doluluk oranı akımdır: %40, 24 A; %10, 6 A eder. %85'in üzerinde akım (doluluk − 64) × 2.5 A'dir, %96'da 80 A'e kadar. %5 dijital iletişim ister. Düşük seviye −12 V'ta kalır, çünkü aracın diyotu bu yönde akım geçirmez.",
+        "note": "Her çizgi CP gerilimidir: altta −12 V, üstte +12 V (seviye = (V + 12) / 24). Kare dalga her 1 ms'de tekrarlanır. Doluluk oranı akımdır: %40, 24 A; %10, 6 A eder. %85'in üzerinde akım (doluluk − 64) × 2.5 A'dir, %96'da 80 A'e kadar. %5 dijital iletişim ister. Düşük seviye her durumda −12 V'ta kalır, çünkü araçtaki diyot o yönde akım geçirmez.",
         "a": "A · araç yok",
         "b1": "B1 · araç",
         "b2": "B2 · %40",

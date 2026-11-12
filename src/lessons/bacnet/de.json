@@ -1,11 +1,12 @@
 {
-    "intro": "Die Sprache der Gebäudeautomation: Heizung, Kühlung, Beleuchtung und Zähler. Jedes Gerät enthält Objekte (einen Analogeingang, einen Binärausgang, einen Zeitplan), und jedes Objekt hat Eigenschaften, etwa seinen aktuellen Wert. In einem IP-Netz reist BACnet in UDP-Datagrammen an Port 47808, und Geräte finden sich per Broadcast.",
+    "intro": "BACnet (Building Automation and Control Networks) ist die gemeinsame Sprache der Gebäudeautomation: Heizung, Kühlung, Beleuchtung und Zähler. Jedes Gerät enthält Objekte, etwa einen Analogeingang (eine gemessene Zahl), einen Binärausgang (einen Ein/Aus-Befehl) oder einen Zeitplan. Jedes Objekt hat Eigenschaften, etwa seinen aktuellen Wert. In einem IP-Netz reist BACnet in UDP-Datagrammen, einzelnen Paketen, die ohne Verbindung gesendet werden, an Port 47808. Geräte finden sich per Broadcast: eine Nachricht, die jedes Gerät im Netz hört.",
+    "plain": "Das ist die gemeinsame Sprache, in der die Technik eines Gebäudes miteinander redet: Heizung, Klimaanlage, Licht und Stromzähler. Jedes Gerät wird als eine Reihe beschrifteter Fächer beschrieben, etwa „Raumtemperatur“ oder „Lüfter an oder aus“. Andere Geräte können lesen oder ändern, was in diesen Fächern liegt. Ein Leitrechner kann ins ganze Gebäude rufen, wer da ist, einen Zähler ablesen, eine Grenze setzen und darum bitten, Bescheid zu bekommen, sobald sich ein Wert ändert.",
     "steps": {
-        "discover": { "title": "Gerät finden", "text": "Die Gebäudeleittechnik kennt den Controller über seine Gerätenummer, 2001, aber nicht über seine IP-Adresse. Sie sendet ein Who-Is als Broadcast. Nur Gerät 2001 antwortet, mit I-Am. Die Gebäudeleittechnik entnimmt seine IP-Adresse dem Paket." },
-        "read": { "title": "Zähler lesen", "text": "Die Gebäudeleittechnik liest den present-value von analog-input 1: die Leistung des Gebäudes am Hauptzähler. Die Antwort ist ein REAL: 268.5 kW." },
-        "write": { "title": "Grenze setzen", "text": "Der Bediener senkt die Lastgrenze auf 250 kW. Der Schreibbefehl trägt Priorität 8, also landet der Wert in Platz 8 des Priority Array." },
-        "subscribe": { "title": "Abonnieren", "text": "Statt immer wieder zu lesen, bittet die Gebäudeleittechnik den Controller, eine Stunde lang jede Änderung des Zählerwerts zu melden." },
-        "cov": { "title": "Last sinkt", "text": "Das Gebäude liegt über der Grenze, also wirft der Controller Last ab: Er schaltet eine Stufe der Kältemaschine aus. Die Leistung fällt auf 243.5 kW. Diese Änderung ist größer als das COV-Inkrement von 5 kW, also meldet der Controller sie der Gebäudeleittechnik." }
+        "discover": { "title": "Gerät finden", "text": "Die Gebäudeleittechnik (GLT, der Rechner der Bediener) kennt den Controller über seine Gerätenummer, 2001, aber nicht über seine IP-Adresse. Sie sendet ein Who-Is als Broadcast, eine Frage an jedes Gerät: Ist Gerät 2001 da? Nur Gerät 2001 antwortet, mit I-Am. Die Gebäudeleittechnik entnimmt die IP-Adresse des Controllers diesem Paket." },
+        "read": { "title": "Zähler lesen", "text": "Die Gebäudeleittechnik liest den present-value von analog-input 1: die Leistung des Gebäudes am Hauptzähler. Die Antwort ist ein REAL, eine Dezimalzahl in 4 Bytes: 268.5 kW." },
+        "write": { "title": "Grenze setzen", "text": "Der Bediener senkt die Lastgrenze, die höchste Leistung, die das Gebäude beziehen darf, auf 250 kW. Ein Wert, der sich befehlen lässt, hat ein Priority Array: 16 Plätze, Platz 1 ist der wichtigste. Es gewinnt der wichtigste Platz, der einen Wert enthält. Dieser Schreibbefehl trägt Priorität 8, also landet der Wert in Platz 8." },
+        "subscribe": { "title": "Änderungen abonnieren", "text": "Statt immer wieder zu lesen, abonniert die Gebäudeleittechnik COV (Change of Value, Wertänderung). Sie bittet den Controller, eine Stunde lang jede Änderung des Zählerwerts zu melden." },
+        "cov": { "title": "Leistung sinkt", "text": "Das Gebäude liegt über der Grenze, also wirft der Controller Last ab: Er schaltet eine Stufe der Kältemaschine aus, eines Teils der Kälteanlage. Die Leistung fällt auf 243.5 kW. Das COV-Inkrement ist die kleinste Änderung, die eine Meldung wert ist, hier 5 kW. Diese Änderung ist größer, also meldet der Controller sie der Gebäudeleittechnik." }
     },
     "frames": {
         "who-is": "Ist Gerät 2001 da draußen?",
@@ -36,11 +37,11 @@
         "unconfirmed": { "name": "Unconfirmed-Request", "note": "0x10: PDU-Typ 1, in den oberen 4 Bits. Niemand bestätigt ihn." },
         "who-is": { "name": "Who-Is", "note": "Dienst 8." },
         "low-limit": { "name": "Untergrenze", "note": "Context Tag 0, 2 Bytes: 0x07D1 = 2001, die niedrigste Gerätenummer, die antworten soll." },
-        "high-limit": { "name": "Obergrenze", "note": "Context Tag 1: wieder 2001. Nur Gerät 2001 antwortet. Der Controller der Lüftungsanlage, Gerät 2002, schweigt." },
+        "high-limit": { "name": "Obergrenze", "note": "Context Tag 1: wieder 2001. Nur Gerät 2001 antwortet. Der Controller der Lüftungsanlage (AHU), Gerät 2002, schweigt." },
         "i-am": { "name": "I-Am", "note": "Dienst 0." },
         "device-id": { "name": "Gerät", "note": "Application Tag 12 (ein Object Identifier), 4 Bytes: Gerät 2001. Die Zerlegung unten nimmt ihn auseinander." },
         "max-apdu": { "name": "Max. APDU", "note": "Unsigned, 2 Bytes: Es nimmt Nachrichten bis 1476 Bytes an." },
-        "segmentation": { "name": "Segmentierung", "note": "Enumerated, 1 Byte: 3 = keine. Jede Nachricht muss in ein Datagramm passen." },
+        "segmentation": { "name": "Segmentierung", "note": "Enumerated, 1 Byte: 3 = keine Segmentierung. Eine Nachricht lässt sich nicht in Stücke teilen, sie muss also in ein Datagramm passen." },
         "vendor": { "name": "Vendor ID", "note": "Unsigned: Hersteller 4000. ASHRAE vergibt jedem Hersteller eine Nummer; diese ist erfunden." },
         "confirmed": { "name": "Confirmed-Request", "note": "0x00: PDU-Typ 0, in einem Stück. Er muss beantwortet werden." },
         "max-resp": { "name": "Max. Antwort", "note": "Code 5: Die Gebäudeleittechnik nimmt Antworten bis 1476 Bytes an." },
@@ -58,7 +59,7 @@
         "invoke2-ack": { "name": "Invoke ID 2", "note": "Die Antwort auf Anfrage 2." },
         "write-property": { "name": "WriteProperty", "note": "Dienst 15 (0x0F)." },
         "write-property-ack": { "name": "WriteProperty", "note": "Dienst 15: Der Schreibvorgang ist erledigt." },
-        "obj-av1": { "name": "Objekt", "note": "Context Tag 0: analog-value, Instanz 1, der Sollwert der Lastgrenze. 0x00800001: Objekttyp 2 in den oberen 10 Bits." },
+        "obj-av1": { "name": "Objekt", "note": "Context Tag 0: analog-value, Instanz 1, die Einstellung der Lastgrenze. 0x00800001: Objekttyp 2 in den oberen 10 Bits." },
         "real-250": { "name": "REAL", "note": "250.0: die neue Grenze, in kW." },
         "priority8": { "name": "Priorität 8", "note": "Context Tag 4: in Platz 8 von 16 schreiben, den Platz des Bedieners. Der Platz mit der niedrigsten Nummer, der einen Wert enthält, gewinnt." },
         "simple-ack": { "name": "SimpleACK", "note": "0x20: PDU-Typ 2. Erledigt, keine Daten." },

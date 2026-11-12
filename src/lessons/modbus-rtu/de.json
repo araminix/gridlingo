@@ -1,11 +1,12 @@
 {
-    "intro": "Modbus auf einem seriellen Kabel. Ein Master und bis zu 247 Slaves teilen sich eine zweiadrige RS-485-Leitung. Nur der Master beginnt ein Gespräch: Er ruft einen Slave über seine Adresse auf, und nur dieser Slave antwortet. Ein CRC am Ende jedes Telegramms erkennt beschädigte Bytes.",
+    "intro": "Modbus auf einem seriellen Kabel. Ein Master, das Gerät, das fragt, und bis zu 247 Slaves, die Geräte, die antworten, teilen sich eine zweiadrige RS-485-Leitung. Nur der Master beginnt ein Gespräch: Er ruft einen Slave über seine Adresse auf, und nur dieser Slave antwortet. Jedes Telegramm (eine Nachricht auf der Leitung) endet mit einem CRC: zwei Prüfbytes, aus dem Rest berechnet, damit beschädigte Bytes auffallen.",
+    "plain": "Mit Modbus RTU sammelt ein Gerät Messwerte von mehreren Maschinen, die alle am selben Kabel hängen. Es funktioniert wie ein Lehrer, der die Anwesenheit prüft: Der Lehrer ruft einen Namen auf, nur dieser Schüler antwortet, dann ruft der Lehrer den nächsten. Niemand spricht, ohne gefragt zu werden. Jede Nachricht endet mit einem kurzen Prüfcode, damit eine unterwegs verstümmelte Nachricht auffällt und ignoriert wird.",
     "steps": {
-        "poll": { "title": "Slave 1 fragen", "text": "Der Datenlogger ist der Master. Er fragt Slave 1, den Wechselrichter, nach zwei Input Registern. Jedes Gerät an der Leitung hört das Telegramm, aber nur Slave 1 antwortet." },
-        "meter": { "title": "Slave 2 fragen", "text": "Als Nächstes der Zähler mit Adresse 2. Seine Leistung ist eine 32-Bit-Gleitkommazahl in zwei Registern, höherwertiges Wort zuerst." },
-        "silent": { "title": "Keine Antwort", "text": "Slave 3 antwortet nicht. Der Logger wartet 1 Sekunde, fragt noch einmal, markiert ihn dann als offline und macht weiter. Warum, kann er nicht erkennen: Keine Spannung, ein gebrochener Draht und eine falsche Einstellung sehen gleich aus." },
-        "broadcast": { "title": "Broadcast", "text": "Der Logger sendet eine Leistungsbegrenzung an Adresse 0, einen Broadcast. Jeder Slave führt sie aus, und keiner antwortet, also weiß der Logger nicht, wer sie erhalten hat. Der Zähler hat kein Register 40201 und tut nichts." },
-        "confirm": { "title": "Zurücklesen", "text": "Der Logger gibt den Slaves 200 ms Zeit zum Handeln und liest dann die Grenze von Slave 1 zurück: 60 %. Slave 3 ist weiterhin offline, seine Grenze ist also unbekannt." }
+        "poll": { "title": "Slave 1 fragen", "text": "Der Datenlogger, ein kleines Gerät, das Messwerte sammelt, ist der Master. Er fragt Slave 1, einen Wechselrichter, der Leistung ins Netz einspeist, nach zwei Input Registern. Register sind nummerierte 16-Bit-Fächer; Input Register enthalten Werte, die das Gerät misst. Jedes Gerät an der Leitung hört das Telegramm, aber nur Slave 1 antwortet." },
+        "meter": { "title": "Slave 2 fragen", "text": "Als Nächstes der Energiezähler mit Adresse 2. Seine Leistung ist eine 32-Bit-Gleitkommazahl (eine Zahl mit Dezimalpunkt), die zwei Register füllt. Das höherwertige Wort, die obere 16-Bit-Hälfte, kommt zuerst." },
+        "silent": { "title": "Keine Antwort", "text": "Slave 3, der zweite Wechselrichter, antwortet nicht. Der Logger wartet 1 Sekunde, fragt noch einmal, markiert ihn dann als offline und macht weiter. Warum, kann er nicht erkennen: Keine Spannung, ein gebrochener Draht und eine falsche Einstellung sehen gleich aus." },
+        "broadcast": { "title": "An alle auf einmal", "text": "Der Logger sendet eine Leistungsbegrenzung an Adresse 0. Adresse 0 ist ein Broadcast: eine Nachricht an alle Slaves auf einmal. Jeder Slave führt sie aus, und keiner antwortet, also weiß der Logger nicht, wer sie erhalten hat. Der Zähler hat kein Register 40201, die Leistungsbegrenzung, also tut er nichts." },
+        "confirm": { "title": "Zurücklesen", "text": "Der Logger gibt den Slaves 200 ms Zeit zum Handeln. Dann liest er die Grenze von Slave 1 zurück: 60 %. Slave 3 ist weiterhin offline, seine Grenze ist also unbekannt." }
     },
     "frames": {
         "inv1-req": "Slave 1: Schick mir die Input Register 0 und 1",
@@ -26,7 +27,7 @@
         "fc03": { "name": "Funktion 03", "note": "0x03: Holding Register lesen, in denen die Einstellungen liegen." },
         "fc04": { "name": "Funktion 04", "note": "0x04: Input Register lesen, die Werte, die ein Gerät misst. Sie lassen sich nicht beschreiben." },
         "fc06": { "name": "Funktion 06", "note": "0x06: ein Register schreiben." },
-        "addr-0": { "name": "Adresse 0", "note": "0x0000: Register 30001 im Handbuch. Die Leitung zählt ab 0." },
+        "addr-0": { "name": "Adresse 0", "note": "0x0000: Register 30001 im Handbuch. Die führende 3 bedeutet Input Register, und die Leitung zählt ab 0." },
         "addr-12": { "name": "Adresse 12", "note": "0x000C = 12: Register 30013, die Leistung am Netzanschlusspunkt." },
         "addr-200": { "name": "Adresse 200", "note": "0x00C8 = 200: Register 40201, die Leistungsbegrenzung der Wechselrichter." },
         "qty-1": { "name": "Anzahl", "note": "1 Register." },
@@ -36,8 +37,8 @@
         "power": { "name": "Register 30001", "note": "0x0CB2 = 3250: AC-Leistung in W." },
         "voltage": { "name": "Register 30002", "note": "0x0900 = 2304: Netzspannung in Schritten von 0.1 V, also 230.4 V." },
         "meter-power": { "name": "Register 30013–30014", "note": "0x45337800: eine 32-Bit-Gleitkommazahl, höherwertiges Wort zuerst (ABCD). Das ergibt 2871.5 (W)." },
-        "limit-60": { "name": "Wert", "note": "0x003C = 60: 60 % der Nennleistung." },
-        "crc": { "name": "CRC", "note": "CRC-16 über alle Bytes davor, niederwertiges Byte zuerst gesendet. Ein Slave verwirft ein Telegramm mit falschem CRC und schweigt." }
+        "limit-60": { "name": "Wert", "note": "0x003C = 60: 60 % der Nennleistung, des Höchsten, was der Wechselrichter liefern kann." },
+        "crc": { "name": "CRC", "note": "Ein CRC-16-Prüfwert, berechnet aus allen Bytes davor, niederwertiges Byte zuerst gesendet. Der Empfänger berechnet ihn erneut. Ein Slave verwirft ein Telegramm, dessen CRC nicht passt, und schweigt." }
     },
     "devices": {
         "logger": "Datenlogger",
@@ -50,11 +51,11 @@
         "between": "Ein Master (Logger, Regler) → bis zu 247 Slaves",
         "transport": "RS-485: zwei Datenadern und eine Masse, bis etwa 1200 m",
         "frames": "Adresse, Funktionscode, Daten, CRC-16. Kein Startbyte: Pausen trennen die Telegramme.",
-        "speed": "Bei 9600 Baud dauert eine Anfrage mit 8 Bytes 9.2 ms"
+        "speed": "Bei 9600 Baud (Bit pro Sekunde) dauert eine Anfrage mit 8 Bytes 9.2 ms"
     },
     "tips": [
         "Jedes Gerät an der Leitung muss dieselbe Geschwindigkeit, Parität und Stoppbit-Anzahl verwenden. Eine falsche Einstellung sieht genauso aus wie ein toter Slave.",
-        "An jedes Ende der Leitung einen Widerstand mit 120 Ω setzen, nicht an jedes Gerät. Fehlende oder zusätzliche Widerstände verursachen CRC-Fehler, die kommen und gehen.",
+        "An jedes Ende der Leitung einen Widerstand mit 120 Ω setzen, nicht an jedes Gerät. Fehlende oder zusätzliche Widerstände verzerren das Signal und verursachen CRC-Fehler, die kommen und gehen.",
         "Zwei Geräte mit derselben Adresse antworten gleichzeitig und stören sich gegenseitig. Jede Adresse einstellen, bevor das Gerät angeschlossen wird.",
         "Antwortet gar nichts, die beiden Datenadern tauschen. Die Hersteller sind sich nicht einig, welche A und welche B ist."
     ],
@@ -68,7 +69,7 @@
     },
     "timing": {
         "title": "Telegramme und Pausen auf der Leitung, bei 9600 Baud",
-        "note": "Modbus RTU hat kein Start- und kein Endbyte. Ein Telegramm ist zu Ende, wenn die Leitung 3.5 Zeichen lang ruhig bleibt: 4.0 ms bei 9600 Baud, mit 11 Bits pro Zeichen. Über 19200 Baud ist die Pause fest 1.75 ms lang. Innerhalb eines Telegramms zerreißt eine Pause von mehr als 1.5 Zeichen das Telegramm.",
+        "note": "Modbus RTU hat kein Start- und kein Endbyte. Ein Telegramm ist zu Ende, wenn die Leitung 3.5 Zeichen lang ruhig bleibt: 4.0 ms bei 9600 Baud. Ein Zeichen ist ein Byte mit Start-, Paritäts- und Stoppbit: 11 Bits. Über 19200 Baud ist die Pause fest 1.75 ms lang. Innerhalb eines Telegramms zerreißt eine Pause von mehr als 1.5 Zeichen das Telegramm.",
         "logger": "Logger sendet",
         "inv1": "Wechselrichter 1 antwortet",
         "idle": "Leitung ruhig",
@@ -77,7 +78,7 @@
     "playground": {
         "file": "Die Einstellungen des Loggers für diese Leitung. Jeder Slave daran muss dieselbe Geschwindigkeit und Parität verwenden.",
         "baud": "9600 Bit pro Sekunde. Jedes Gerät an der Leitung muss dieselbe Geschwindigkeit verwenden.",
-        "parity": "8E1: 8 Datenbits, gerade Parität, 1 Stoppbit. Das Paritätsbit erkennt einzelne Bitfehler. 8E1 ist der Standard von Modbus; viele Geräte sind ab Werk auf 8N1 eingestellt.",
+        "parity": "8E1: 8 Datenbits, gerade Parität, 1 Stoppbit. Das Paritätsbit ist ein zusätzliches Bit, das die Anzahl der Einsen gerade macht, damit ein einzelnes gekipptes Bit auffällt. 8E1 ist der Standard von Modbus. Ohne Parität verlangt die Norm 2 Stoppbits (8N2), aber viele Geräte sind ab Werk auf 8N1 eingestellt: Jedes Gerät an der Leitung muss passen.",
         "timeout": "Wie lange der Logger auf eine Antwort wartet, bevor er aufgibt: 1 Sekunde.",
         "retries": "Noch einmal fragen, bevor ein Slave als offline markiert wird.",
         "after-broadcast": "Auf einen Broadcast antwortet niemand, deshalb wartet der Logger so lange vor dem nächsten Telegramm.",

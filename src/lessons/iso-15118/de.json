@@ -1,12 +1,13 @@
 {
-    "intro": "So sprechen ein Elektroauto und eine DC-Schnellladestation während eines Ladevorgangs. Die Nachrichten laufen als Powerline-Signal über die Control-Pilot-Leitung des Ladekabels, mit IPv6 und TCP darüber. Das Auto führt: Es fragt jeden Schritt und den gewünschten Strom an, und die Ladestation antwortet mit dem, was sie liefern kann.",
+    "intro": "So sprechen ein Elektroauto und eine DC-Schnellladestation während eines Ladevorgangs. Eine DC-Ladestation speist Gleichstrom direkt in die Batterie. Die Nachrichten reisen als Powerline-Signal, wie ein Heimnetz über die Steckdosen, auf dem Control Pilot: einer dünnen Signalader im Ladekabel. Darüber laufen IPv6 und TCP, wie im Internet. Das Auto führt: Es fragt jeden Schritt und den gewünschten Strom an, und die Ladestation antwortet mit dem, was sie liefern kann.",
+    "plain": "Wer ein Elektroauto an eine Schnellladestation steckt, verbindet zwei Geräte, die über das Kabel miteinander reden. Bevor Strom fließt, klären sie, wie bezahlt wird, prüfen, ob das Kabel sicher ist, und nennen einander ihre Grenzen. Danach sagt das Auto der Ladestation immer wieder, wie viel Strom seine Batterie will, so wie man jemandem beim Einschenken sagt: mehr, langsamer, stopp.",
     "steps": {
-        "plug": { "title": "Anstecken und koppeln", "text": "Ein Tastverhältnis von 5 % auf dem Control Pilot verlangt digitale Kommunikation. Die Powerline-Modems von Auto und Ladestation finden einander (SLAC). Dann fragt das Auto alle auf der Verbindung, ff02::1 auf UDP-Port 15118, nach IP-Adresse und Port der Ladestation (SDP)." },
-        "session": { "title": "Sitzung öffnen", "text": "TCP, dann TLS. Beide einigen sich auf eine Protokollversion, und die Ladestation eröffnet eine Sitzung." },
+        "plug": { "title": "Anstecken und koppeln", "text": "Die Ladestation sendet ein Rechtecksignal auf dem Control Pilot. Sein Tastverhältnis (der Anteil jeder Periode, in dem das Signal oben bleibt) beträgt 5 %, das bedeutet: Lass uns digital sprechen. Dann finden die Powerline-Modems von Auto und Ladestation einander. Das ist SLAC (Signal Level Attenuation Characterization): Das Auto wählt die Ladestation, die es am besten hört. Danach fragt das Auto alle auf der Verbindung (Adresse ff02::1, UDP-Port 15118) nach IP-Adresse und Port der Ladestation. Das ist SDP, das Protokoll zum Auffinden." },
+        "session": { "title": "Sitzung öffnen", "text": "Das Auto baut eine TCP-Verbindung zur Ladestation auf, dann TLS, das sie verschlüsselt. Beide einigen sich auf eine Protokollversion, und die Ladestation eröffnet eine Sitzung." },
         "limits": { "title": "Bezahlung und Grenzen", "text": "Der Fahrer bezahlt mit einer Karte an der Ladestation. Auto und Ladestation teilen sich ihre Grenzen mit: Spannung, Strom und Leistung." },
-        "prepare": { "title": "Prüfen und vorladen", "text": "Bevor Strom fließt, prüft die Ladestation die Isolation des Kabels. Dann hebt sie ihre Spannung auf die der Batterie an." },
-        "charge": { "title": "Laden", "text": "Das Auto schließt seine Schütze und fordert Strom an. Es fragt immer wieder, und die Ladestation folgt." },
-        "stop": { "title": "Stopp", "text": "Bei 80 % beendet das Auto den Ladevorgang und dann die Sitzung." }
+        "prepare": { "title": "Prüfen und Spannung angleichen", "text": "Bevor Strom fließt, prüft die Ladestation die Isolation des Kabels: Es darf kein Strom gegen Erde abfließen. Dann hebt sie ihre Spannung auf die der Batterie an. Das ist die Vorladung (Pre-Charge)." },
+        "charge": { "title": "Auto fordert Strom an", "text": "Das Auto schließt seine Schütze (die kräftigen Schalter zwischen Batterie und Kabel) und fordert Strom an. Es fragt immer wieder, und die Ladestation folgt." },
+        "stop": { "title": "Laden endet", "text": "Ist die Batterie zu 80 % voll, beendet das Auto den Ladevorgang und dann die Sitzung." }
     },
     "frames": {
         "cp": "Sprich digital mit mir",
@@ -15,7 +16,7 @@
         "sdp-res": "Hier: fe80::ff:fe00:a1, Port 54321, mit TLS",
         "tls": "Beweise, wer du bist, dann verschlüsseln",
         "app": "Ich spreche ISO 15118-2 oder DIN 70121",
-        "setup": "Neue Sitzung 4A1F09C27B3E8D15",
+        "setup": "Deine neue Sitzung ist 4A1F09C27B3E8D15",
         "payment": "Ich bezahle außerhalb des Autos: ExternalPayment",
         "params": "Ich kann 500 V, 125 A, 50 kW liefern",
         "cable-check": "Die Isolation ist in Ordnung",
@@ -25,30 +26,30 @@
         "stop": "Fertig: Sitzung beenden"
     },
     "notes": {
-        "cp": "Das ist noch IEC 61851: ein Rechtecksignal mit 1 kHz und einem Tastverhältnis von 5 %. 5 % bietet keinen Strom an, sondern bedeutet „digitale Kommunikation verwenden“. Das Powerline-Modem des Autos wacht auf.",
-        "slac": "SLAC (ISO 15118-3) findet die Ladestation am anderen Ende dieses Kabels. Auf einem Parkplatz koppeln Signale zwischen den Kabeln über, deshalb sendet das Auto eine Folge von Sounding-Nachrichten, und jede Ladestation, die sie hört, meldet, wie stark sie ankamen. Das Auto wählt mit CM_SLAC_MATCH.REQ die stärkste. Diese Ladestation antwortet mit CM_SLAC_MATCH.CNF und dem Schlüssel eines privaten Powerline-Netzes für die beiden.",
-        "tls": "Das Auto baut eine TCP-Verbindung zu [fe80::ff:fe00:a1]:54321 auf, dann TLS 1.2. Die Ladestation zeigt ihr Zertifikat, und das Auto prüft es gegen die V2G-Root-Zertifikate, die es hat. Ab hier ist alles verschlüsselt.",
+        "cp": "Dieser Teil ist noch IEC 61851: ein Rechtecksignal mit 1 kHz und einem Tastverhältnis von 5 %. 5 % bietet keinen Strom an. Es bedeutet „digitale Kommunikation verwenden“. Das Powerline-Modem des Autos wacht auf.",
+        "slac": "SLAC (ISO 15118-3) findet die Ladestation am anderen Ende dieses Kabels. Auf einem Parkplatz koppeln Signale von einem Kabel auf das nächste über. Deshalb sendet das Auto eine Folge von Sounding-Nachrichten, und jede Ladestation, die sie hört, meldet, wie stark sie ankamen. Das Auto wählt mit CM_SLAC_MATCH.REQ die stärkste. Diese Ladestation antwortet mit CM_SLAC_MATCH.CNF und dem Schlüssel eines privaten Powerline-Netzes für die beiden.",
+        "tls": "Das Auto baut eine TCP-Verbindung zu [fe80::ff:fe00:a1]:54321 auf, dann TLS 1.2. Die Ladestation zeigt ihr Zertifikat. Das Auto prüft es gegen die V2G-Root-Zertifikate, die es hat: die vertrauenswürdigen Aussteller von Ladestationszertifikaten. Ab hier ist alles verschlüsselt.",
         "app": "Die erste Nachricht der Sitzung listet die Protokolle auf, die das Auto spricht, jedes mit Version und Priorität. Die Ladestation antwortet mit supportedAppProtocolRes, OK_SuccessfulNegotiation und der gewählten SchemaID: 1, ISO 15118-2. Unter „Ausprobieren“ steht die Nachricht als XML.",
-        "setup": "Das Auto hat SessionSetupReq mit seiner EVCCID gesendet, der MAC-Adresse seines Modems: 02-00-00-00-00-E1. Die Ladestation antwortet mit einer neuen SessionID mit 8 Bytes, ihrer EVSEID und der Uhrzeit. Jede weitere Nachricht trägt die SessionID in ihrem Header.",
-        "payment": "Davor kam ServiceDiscovery: Die Ladestation hat DC-Laden und zwei Zahlungsarten angeboten, Contract (Plug & Charge) und ExternalPayment. Das Auto wählt ExternalPayment: Der Fahrer bezahlt mit Karte oder App. Dann wiederholt es AuthorizationReq, bis die Ladestation Finished antwortet.",
-        "params": "Das Auto hat seine Grenzen und seinen Ladezustand gesendet, 54 %. Die Ladestation antwortet mit ihren eigenen: höchstens 500 V, 125 A und 50 kW. Jeder Wert ist eine 16-Bit-Ganzzahl, eine Zehnerpotenz und eine Einheit, also reist 50 kW als 5000 × 10^1 W.",
-        "cable-check": "Das Auto hat den Control Pilot auf Zustand C gesetzt. Die Ladestation legt eine Prüfspannung an das DC-Kabel und misst die Isolation gegen Erde. Bis sie fertig ist, antwortet sie Ongoing, dann Finished, mit EVSEIsolationStatus Valid.",
+        "setup": "Das Auto hat SessionSetupReq mit seiner EVCCID gesendet: der MAC-Adresse (Hardware-Adresse) seines Modems, 02-00-00-00-00-E1. Die Ladestation antwortet mit einer neuen SessionID mit 8 Bytes, ihrer EVSEID und der Uhrzeit. Jede weitere Nachricht trägt die SessionID in ihrem Header.",
+        "payment": "Davor kam ServiceDiscovery. Die Ladestation hat DC-Laden und zwei Zahlungsarten angeboten: Contract (Plug & Charge, bei dem das Auto selbst bezahlt) und ExternalPayment. Das Auto wählt ExternalPayment: Der Fahrer bezahlt mit Karte oder App. Dann wiederholt das Auto AuthorizationReq, bis die Ladestation Finished antwortet.",
+        "params": "Das Auto hat seine Grenzen und seinen Ladezustand (wie voll die Batterie ist) gesendet, 54 %. Die Ladestation antwortet mit ihren eigenen: höchstens 500 V, 125 A und 50 kW. Jeder Wert ist eine 16-Bit-Ganzzahl, eine Zehnerpotenz und eine Einheit. Also reist 50 kW als 5000 × 10^1 W.",
+        "cable-check": "Das Auto hat den Control Pilot auf Zustand C gesetzt: bereit zum Laden. Die Ladestation legt eine Prüfspannung an das DC-Kabel und misst die Isolation gegen Erde. Bis sie fertig ist, antwortet sie Ongoing, dann Finished, mit EVSEIsolationStatus Valid.",
         "pre-charge": "Die Batterie liegt bei 396 V, hinter den offenen Schützen des Autos. Das Auto bittet die Ladestation, ihre Ausgangsspannung auf denselben Wert anzuheben, mit höchstens 2 A. Die Ladestation antwortet mit ihrer aktuellen Spannung, 395 V: nah genug, um die Schütze ohne Funken zu schließen.",
         "power-on": "Das Auto hat seine Schütze geschlossen. ChargeProgress Start: Ab jetzt darf die Ladestation Strom liefern.",
-        "current-demand": "Das Auto fordert 120 A an, mit seinem Ladezustand, und sendet die nächste Anfrage, sobald die Antwort da ist. Die Ladestation beantwortet jede mit dem, was sie liefert: 398 V, 120 A. Das Auto hat die Kontrolle: Es ändert den Strom, während sich die Batterie füllt.",
-        "stop": "Zuerst PowerDeliveryReq mit ChargeProgress Stop: Der Strom fällt auf 0, und das Auto öffnet seine Schütze. WeldingDetection prüft, dass sie wirklich geöffnet haben. Dann beendet SessionStopReq mit ChargingSession Terminate die Sitzung."
+        "current-demand": "Das Auto fordert 120 A an, mit seinem Ladezustand. Es sendet die nächste Anfrage, sobald die Antwort da ist. Die Ladestation beantwortet jede mit dem, was sie liefert: 398 V, 120 A. Das Auto hat die Kontrolle: Es ändert den Strom, während sich die Batterie füllt.",
+        "stop": "Zuerst kommt PowerDeliveryReq mit ChargeProgress Stop: Der Strom fällt auf 0, und das Auto öffnet seine Schütze. WeldingDetection prüft, dass sie wirklich geöffnet haben und nicht verschweißt sind. Dann beendet SessionStopReq mit ChargingSession Terminate die Sitzung."
     },
     "fields": {
-        "version": { "name": "V2GTP-Version", "note": "Version 0x01, dann dasselbe Byte invertiert, 0xFE. Ein Empfänger verwirft eine Nachricht mit etwas anderem." },
-        "sdp-req": { "name": "Payload-Typ", "note": "0x9000: eine SDP-Anfrage." },
-        "sdp-res": { "name": "Payload-Typ", "note": "0x9001: eine SDP-Antwort." },
+        "version": { "name": "V2GTP-Version", "note": "Version 0x01, dann dasselbe Byte mit jedem Bit invertiert, 0xFE. Ein Empfänger verwirft eine Nachricht, in der hier etwas anderes steht." },
+        "sdp-req": { "name": "Payload-Typ", "note": "0x9000: eine SDP-Anfrage, die fragt, wo die Ladestation ist." },
+        "sdp-res": { "name": "Payload-Typ", "note": "0x9001: eine SDP-Antwort, die sagt, wo die Ladestation ist." },
         "len-2": { "name": "Länge", "note": "Es folgen 2 Bytes Payload. Der Header selbst hat immer 8 Bytes." },
         "len-20": { "name": "Länge", "note": "Es folgen 0x14 = 20 Bytes: Adresse, Port, Sicherheit und Transport." },
-        "tls-req": { "name": "Sicherheit", "note": "0x00: Das Auto will TLS. 0x10 hieße ohne TLS." },
+        "tls-req": { "name": "Sicherheit", "note": "0x00: Das Auto will TLS, eine verschlüsselte Verbindung. 0x10 hieße ohne TLS." },
         "tls-res": { "name": "Sicherheit", "note": "0x00: Die Ladestation stimmt TLS zu." },
         "tcp": { "name": "Transport", "note": "0x00: TCP." },
-        "ip-prefix": { "name": "IPv6-Präfix", "note": "fe80::/64: eine Link-Local-Adresse, nur auf dieser Verbindung gültig." },
-        "ip-id": { "name": "Interface-ID", "note": "Gebildet aus der MAC-Adresse der Ladestation, 02-00-00-00-00-A1: FF FE in der Mitte und das Bit 0x02 umgedreht. Die ganze Adresse lautet fe80::ff:fe00:a1." },
+        "ip-prefix": { "name": "IPv6-Präfix", "note": "fe80::/64: eine Link-Local-Adresse. Sie gilt nur auf dieser Verbindung, dem privaten Powerline-Netz von Auto und Ladestation." },
+        "ip-id": { "name": "Interface-ID", "note": "Gebildet aus der MAC-Adresse der Ladestation, 02-00-00-00-00-A1: FF FE kommt in die Mitte, und das Bit 0x02 wird umgedreht. Die ganze Adresse lautet fe80::ff:fe00:a1." },
         "port": { "name": "TCP-Port", "note": "0xD431 = 54321: wo die Ladestation auf dieses Auto wartet." },
         "a-urn": { "name": "URN", "note": "Ein Uniform Resource Name: ein festes Etikett, keine Adresse zum Öffnen." },
         "a-body": { "name": "Organisation", "note": "iso: die Organisation, der der Name gehört." },
@@ -64,15 +65,15 @@
     },
     "facts": {
         "standard": "ISO 15118-2 (2014) für die Nachrichten, ISO 15118-3 für die Powerline. ISO 15118-20 ist die nächste Generation.",
-        "between": "Das Steuergerät des Autos (EVCC) → das der Ladestation (SECC). Das Auto fragt, die Ladestation antwortet.",
+        "between": "Der Kommunikationscontroller des Autos (EVCC) → der der Ladestation (SECC). Das Auto fragt, die Ladestation antwortet.",
         "transport": "HomePlug Green PHY auf dem Control Pilot, IPv6, SDP auf UDP 15118, dann TCP",
-        "security": "TLS 1.2: Die Ladestation weist sich mit einem Zertifikat aus. Plug & Charge ergänzt ein Vertragszertifikat im Auto.",
+        "security": "TLS 1.2: Die Ladestation weist sich mit einem Zertifikat aus. Plug & Charge ergänzt ein Vertragszertifikat im Auto, damit das Auto selbst bezahlen kann.",
         "frames": "EXI (in Bits gepacktes XML) in einem V2GTP-Header mit 8 Bytes"
     },
     "tips": [
         "Viele gescheiterte Ladevorgänge kommen nie über SLAC hinaus. Modem, Verdrahtung des Control Pilot und die von der Ladestation gemeldete Signalstärke prüfen, bevor man sich die Nachrichten ansieht.",
         "Jeder physikalische Wert ist eine Ganzzahl, eine Zehnerpotenz und eine Einheit. Den Multiplier lesen: 5000 mit Multiplier 1 sind 50 kW, nicht 5 kW.",
-        "Langsame Arbeiten wie CableCheck oder Authorization werden sofort mit EVSEProcessing Ongoing beantwortet. Das Auto fragt erneut; eine Ladestation, die es auf eine Antwort warten lässt, bringt es zum Aufgeben.",
+        "Langsame Arbeiten wie CableCheck oder Authorization werden sofort mit EVSEProcessing Ongoing beantwortet, und das Auto fragt erneut. Eine Ladestation, die stattdessen ihre Antwort zurückhält, bringt das Auto zum Aufgeben.",
         "Viele Ladestationen wählen aus der Liste des Autos noch DIN 70121. Ein Mitschnitt, in dem urn:din:70121:2012:MsgDef gewählt wird, erklärt, warum Plug & Charge nie startet."
     ],
     "points": {
@@ -86,7 +87,7 @@
     },
     "playground": {
         "file": "Die erste Nachricht des Autos in der Sitzung, als XML geschrieben. Auf der Leitung reist sie als EXI, das denselben Inhalt in ein paar Dutzend Bytes packt.",
-        "root": "Das Wurzelelement. Sein eigener Namespace, von 2010, ist in jeder Version gleich, damit jede Ladestation diese erste Nachricht lesen kann.",
+        "root": "Das Wurzelelement, das alle anderen enthält. Sein eigener Namespace, von 2010, ist in jeder Version gleich, damit jede Ladestation diese erste Nachricht lesen kann.",
         "iso": "Erster Eintrag: ISO 15118-2.",
         "version": "Version 2.0. Eine Ladestation mit einer anderen Minor-Version kann mit OK_SuccessfulNegotiationWithMinorDeviation antworten.",
         "schema-id": "Eine Nummer, die das Auto diesem Eintrag gibt. Die Ladestation benennt ihre Wahl damit.",

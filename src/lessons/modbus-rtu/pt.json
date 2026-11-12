@@ -1,11 +1,12 @@
 {
-    "intro": "O Modbus num cabo serial. Um mestre e até 247 escravos dividem uma linha RS-485 de dois fios. Só o mestre inicia uma conversa: ele chama um escravo pelo endereço, e só esse escravo responde. Um CRC no fim de cada quadro detecta bytes corrompidos.",
+    "intro": "O Modbus num cabo serial. Um mestre, o equipamento que pergunta, e até 247 escravos, os equipamentos que respondem, dividem uma única linha RS-485 de dois fios. Só o mestre inicia uma conversa: ele chama um escravo pelo endereço, e só esse escravo responde. Cada quadro (uma mensagem na linha) termina com um CRC: dois bytes de verificação calculados a partir do resto, que detectam bytes corrompidos.",
+    "plain": "O Modbus RTU permite que uma caixa colete leituras de várias máquinas penduradas no mesmo cabo. Funciona como um professor fazendo a chamada: o professor chama um nome, só aquele aluno responde, e depois o professor chama o próximo. Ninguém fala sem ser chamado. Cada mensagem termina com um código de verificação curto, então uma mensagem embaralhada no caminho é percebida e ignorada.",
     "steps": {
-        "poll": { "title": "Perguntar ao escravo 1", "text": "O datalogger é o mestre. Ele pede ao escravo 1, o inversor, dois input registers. Todo equipamento na linha ouve o quadro, mas só o escravo 1 responde." },
-        "meter": { "title": "Perguntar ao escravo 2", "text": "Em seguida, o medidor no endereço 2. A potência dele é um float de 32 bits em dois registradores, com a palavra alta primeiro." },
-        "silent": { "title": "Sem resposta", "text": "O escravo 3 não responde. O datalogger espera 1 segundo, pergunta mais uma vez, depois o marca como offline e segue em frente. Ele não tem como saber o motivo: falta de energia, fio rompido e configuração errada parecem iguais." },
-        "broadcast": { "title": "Broadcast", "text": "O datalogger envia um limite de potência para o endereço 0, um broadcast. Todos os escravos o executam e nenhum responde, então o datalogger não sabe quem recebeu. O medidor não tem o registrador 40201 e não faz nada." },
-        "confirm": { "title": "Ler de volta", "text": "O datalogger dá 200 ms para os escravos agirem e depois lê o limite de volta no escravo 1: 60 %. O escravo 3 continua offline, então o limite dele é desconhecido." }
+        "poll": { "title": "Perguntar ao escravo 1", "text": "O datalogger, uma caixinha que coleta leituras, é o mestre. Ele pede ao escravo 1, um inversor que injeta energia na rede, dois input registers. Os registradores são caixas numeradas de 16 bits; os input registers guardam valores que o equipamento mede. Todo equipamento na linha ouve o quadro, mas só o escravo 1 responde." },
+        "meter": { "title": "Perguntar ao escravo 2", "text": "Em seguida, o medidor de energia no endereço 2. A potência dele é um float de 32 bits (um número com casas decimais) que ocupa dois registradores. A palavra alta, a metade superior de 16 bits, vem primeiro." },
+        "silent": { "title": "Sem resposta", "text": "O escravo 3, o segundo inversor, não responde. O datalogger espera 1 segundo, pergunta mais uma vez, depois o marca como offline e segue em frente. Ele não tem como saber o motivo: falta de energia, fio rompido e configuração errada parecem iguais." },
+        "broadcast": { "title": "Avisar todos de uma vez", "text": "O datalogger envia um limite de potência para o endereço 0. O endereço 0 é um broadcast: uma mensagem para todos os escravos ao mesmo tempo. Todos os escravos a executam e nenhum responde, então o datalogger não sabe quem recebeu. O medidor não tem o registrador 40201, o limite de potência, então não faz nada." },
+        "confirm": { "title": "Ler de volta", "text": "O datalogger dá 200 ms para os escravos agirem. Depois lê o limite de volta no escravo 1: 60 %. O escravo 3 continua offline, então o limite dele é desconhecido." }
     },
     "frames": {
         "inv1-req": "Escravo 1: mande os input registers 0 e 1",
@@ -26,7 +27,7 @@
         "fc03": { "name": "Função 03", "note": "0x03: ler holding registers, onde ficam as configurações." },
         "fc04": { "name": "Função 04", "note": "0x04: ler input registers, os valores que um equipamento mede. Eles não podem ser escritos." },
         "fc06": { "name": "Função 06", "note": "0x06: escrever um registrador." },
-        "addr-0": { "name": "Endereço 0", "note": "0x0000: o registrador 30001 do manual. A linha conta a partir de 0." },
+        "addr-0": { "name": "Endereço 0", "note": "0x0000: o registrador 30001 do manual. O 3 inicial indica um input register, e a linha conta a partir de 0." },
         "addr-12": { "name": "Endereço 12", "note": "0x000C = 12: o registrador 30013, a potência no ponto de conexão." },
         "addr-200": { "name": "Endereço 200", "note": "0x00C8 = 200: o registrador 40201, o limite de potência dos inversores." },
         "qty-1": { "name": "Quantidade", "note": "1 registrador." },
@@ -36,8 +37,8 @@
         "power": { "name": "Registrador 30001", "note": "0x0CB2 = 3250: potência CA, em W." },
         "voltage": { "name": "Registrador 30002", "note": "0x0900 = 2304: tensão da rede em passos de 0.1 V, portanto 230.4 V." },
         "meter-power": { "name": "Registradores 30013–30014", "note": "0x45337800: um float de 32 bits, palavra alta primeiro (ABCD). Vale 2871.5 (W)." },
-        "limit-60": { "name": "Valor", "note": "0x003C = 60: 60 % da potência nominal." },
-        "crc": { "name": "CRC", "note": "CRC-16 sobre todos os bytes anteriores, enviado com o byte menos significativo primeiro. Um escravo descarta um quadro com CRC errado e fica em silêncio." }
+        "limit-60": { "name": "Valor", "note": "0x003C = 60: 60 % da potência nominal, o máximo que o inversor consegue fornecer." },
+        "crc": { "name": "CRC", "note": "Um valor de verificação CRC-16 calculado a partir de todos os bytes anteriores, enviado com o byte menos significativo primeiro. O receptor o calcula de novo. Um escravo descarta um quadro cujo CRC não bate e fica em silêncio." }
     },
     "devices": {
         "logger": "Datalogger",
@@ -50,11 +51,11 @@
         "between": "Um mestre (datalogger, controlador) → até 247 escravos",
         "transport": "RS-485: dois fios de dados e um terra, até cerca de 1200 m",
         "frames": "Endereço, código de função, dados, CRC-16. Sem byte de início: o silêncio separa os quadros.",
-        "speed": "A 9600 baud, uma requisição de 8 bytes leva 9.2 ms"
+        "speed": "A 9600 baud (bits por segundo), uma requisição de 8 bytes leva 9.2 ms"
     },
     "tips": [
         "Todo equipamento na linha precisa usar a mesma velocidade, paridade e stop bits. Uma configuração errada parece exatamente um escravo morto.",
-        "Coloque um resistor de 120 Ω em cada ponta da linha, não em cada equipamento. Resistores faltando ou sobrando causam erros de CRC que vão e voltam.",
+        "Coloque um resistor de 120 Ω em cada ponta da linha, não em cada equipamento. Resistores faltando ou sobrando distorcem o sinal e causam erros de CRC que vão e voltam.",
         "Dois equipamentos com o mesmo endereço respondem ao mesmo tempo e embaralham um ao outro. Configure cada endereço antes de ligar o equipamento na linha.",
         "Se nada responder, inverta os dois fios de dados. Os fabricantes não concordam sobre qual é o A e qual é o B."
     ],
@@ -68,7 +69,7 @@
     },
     "timing": {
         "title": "Quadros e silêncios na linha, a 9600 baud",
-        "note": "O Modbus RTU não tem byte de início nem de fim. Um quadro termina quando a linha fica em silêncio por 3.5 caracteres: 4.0 ms a 9600 baud, com 11 bits por caractere. Acima de 19200 baud, o intervalo é fixo em 1.75 ms. Dentro de um quadro, uma pausa maior que 1.5 caractere quebra o quadro.",
+        "note": "O Modbus RTU não tem byte de início nem de fim. Um quadro termina quando a linha fica em silêncio por 3.5 caracteres: 4.0 ms a 9600 baud. Um caractere é um byte com os seus bits de início, paridade e parada: 11 bits. Acima de 19200 baud, o intervalo é fixo em 1.75 ms. Dentro de um quadro, uma pausa maior que 1.5 caractere quebra o quadro.",
         "logger": "Datalogger envia",
         "inv1": "Inversor 1 responde",
         "idle": "Linha em silêncio",
@@ -77,7 +78,7 @@
     "playground": {
         "file": "A configuração do datalogger para esta linha. Todo escravo nela precisa usar a mesma velocidade e a mesma paridade.",
         "baud": "9600 bits por segundo. Todo equipamento na linha precisa usar a mesma velocidade.",
-        "parity": "8E1: 8 bits de dados, paridade par, 1 stop bit. O bit de paridade detecta erros de um único bit. O 8E1 é o padrão do Modbus; muitos equipamentos vêm configurados em 8N1.",
+        "parity": "8E1: 8 bits de dados, paridade par, 1 stop bit. O bit de paridade é um bit a mais que deixa par o número de 1s, então um único bit trocado é detectado. O 8E1 é o padrão do Modbus. Sem paridade, a norma pede 2 stop bits (8N2), mas muitos equipamentos vêm configurados em 8N1: todos os equipamentos da linha precisam coincidir.",
         "timeout": "Quanto tempo o datalogger espera por uma resposta antes de desistir: 1 segundo.",
         "retries": "Perguntar mais uma vez antes de marcar um escravo como offline.",
         "after-broadcast": "Ninguém responde a um broadcast, então o datalogger espera esse tempo antes do próximo quadro.",

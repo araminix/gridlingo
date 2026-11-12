@@ -1,11 +1,12 @@
 {
-    "intro": "Mit reinem Modbus TCP kann jeder im Netz lesen und schreiben. Modbus/TCP Security packt dieselben Telegramme in TLS, auf Port 802. Beide Seiten weisen sich mit Zertifikaten aus, und das Zertifikat des Clients kann eine Rolle tragen. Die Regeln des Servers entscheiden dann Anfrage für Anfrage, was diese Rolle darf.",
+    "intro": "Mit reinem Modbus TCP kann jeder im Netz die Werte eines Geräts lesen und schreiben. Modbus/TCP Security packt dieselben Telegramme in TLS (Transport Layer Security, derselbe Schutz wie bei https-Webseiten), auf Port 802. Beide Seiten weisen sich mit Zertifikaten aus: digitalen Ausweisen, signiert von einer Stelle, der beide vertrauen. Das Zertifikat des Clients kann außerdem eine Rolle tragen, etwa \"Viewer\". Die Regeln des Servers entscheiden dann Anfrage für Anfrage, was diese Rolle darf.",
+    "plain": "Gewöhnliches Modbus ist wie ein Gebäude, in das jeder Besucher hineingehen und jeden Schalter umlegen kann. Die sichere Variante ergänzt einen bewachten Eingang: Beide Seiten zeigen einen Ausweis, und alles, was sie danach sagen, wird so verschlüsselt, dass Außenstehende es nicht lesen können. Auf dem Ausweis des Besuchers steht auch seine Aufgabe, etwa „Betrachter“. Das Gerät prüft diese Aufgabe vor jeder Anfrage, ein Betrachter darf also schauen, aber nichts ändern.",
     "steps": {
-        "connect": { "title": "Verbinden", "text": "Der Monitoring-Server baut eine TCP-Verbindung zum Wechselrichter auf Port 802 auf, dem Port für Modbus/TCP Security. Port 502 kann geschlossen bleiben." },
-        "hello": { "title": "Hallo", "text": "Der Client bietet TLS 1.2 und eine Cipher Suite an. Der Wechselrichter antwortet mit seinem Zertifikat und verlangt das des Clients. Beide Seiten müssen sich ausweisen: Die Spezifikation verlangt es." },
-        "prove": { "title": "Rolle zeigen", "text": "Der Client sendet sein Zertifikat. Darin steht eine Rolle, \"Viewer\", in einer Extension, die die Modbus Organization definiert hat. Der Wechselrichter prüft das Zertifikat gegen die CA, der er vertraut, und merkt sich die Rolle für diese Verbindung." },
-        "read": { "title": "Lesen: erlaubt", "text": "Jetzt reisen gewöhnliche Modbus-TCP-Telegramme in verschlüsselten TLS-Records. Der Wechselrichter prüft jede Anfrage gegen seine Regeln: Ein Viewer darf lesen. Er antwortet mit 4820.5 kW." },
-        "write": { "title": "Schreiben: abgewiesen", "text": "Der Client versucht, eine Leistungsbegrenzung zu setzen. Ein Viewer darf nicht schreiben, also weist der Wechselrichter die Anfrage mit Exception 01 ab, dem Code, den die Spezifikation dafür vorsieht. Die Grenze bleibt bei 5000 kW." }
+        "connect": { "title": "Verbindung öffnen", "text": "Der Monitoring-Server, ein Rechner, der die Daten der Anlage sammelt, baut eine TCP-Verbindung zum Wechselrichter auf Port 802 auf, dem Port für Modbus/TCP Security. Port 502, der Port für reines Modbus, kann geschlossen bleiben." },
+        "hello": { "title": "Verschlüsselung vereinbaren", "text": "Der Client bietet TLS 1.2 und eine Cipher Suite an: einen Satz von Verfahren für Schlüsselaustausch, Verschlüsselung und Prüfung. Der Wechselrichter antwortet mit seinem Zertifikat und verlangt das des Clients. Beide Seiten müssen sich ausweisen: Die Spezifikation verlangt es." },
+        "prove": { "title": "Ausweis und Rolle zeigen", "text": "Der Client sendet sein Zertifikat. Darin steht eine Rolle, \"Viewer\", in einer Extension (einem Zusatzfeld), die die Modbus Organization definiert hat. Der Wechselrichter prüft, ob das Zertifikat von der CA signiert wurde, der er vertraut: der Zertifizierungsstelle, die die Zertifikate der Anlage ausstellt. Er merkt sich die Rolle für diese Verbindung." },
+        "read": { "title": "Lesen: erlaubt", "text": "Jetzt reisen gewöhnliche Modbus-TCP-Telegramme in TLS-Records, versiegelt und verschlüsselt. Der Wechselrichter prüft jede Anfrage gegen seine Regeln: Ein Viewer darf lesen. Er antwortet mit 4820.5 kW." },
+        "write": { "title": "Schreiben: abgewiesen", "text": "Der Client versucht, eine Leistungsbegrenzung zu setzen. Ein Viewer darf nicht schreiben, also weist der Wechselrichter die Anfrage mit Exception 01 ab, dem Fehlercode, den die Spezifikation dafür vorsieht. Die Grenze bleibt bei 5000 kW." }
     },
     "frames": {
         "tcp": "TCP-Verbindung zu Port 802 aufbauen",
@@ -19,10 +20,10 @@
         "write-refused": "(verschlüsselt) Abgewiesen: Exception 01"
     },
     "notes": {
-        "tcp": "Reines TCP zu Port 802, nicht 502. Im Klartext folgt nur noch der TLS-Handshake.",
-        "server-hello": "Fünf Handshake-Nachrichten. ServerHello wählt TLS 1.2 und 0xC02F. Certificate trägt das Zertifikat des Wechselrichters und das seiner CA. ServerKeyExchange enthält die Hälfte des Wechselrichters am Schlüsselaustausch, signiert mit seinem Schlüssel. CertificateRequest verlangt das Zertifikat des Clients: Ein Server für Modbus/TCP Security muss immer danach fragen. ServerHelloDone beendet seinen Teil.",
+        "tcp": "Reines TCP zu Port 802, nicht 502. Im Klartext folgt nur noch der TLS-Handshake, der Austausch zur Eröffnung.",
+        "server-hello": "Fünf Handshake-Nachrichten. ServerHello wählt TLS 1.2 und 0xC02F. Certificate trägt das Zertifikat des Wechselrichters und das seiner CA. ServerKeyExchange enthält die Hälfte des Wechselrichters am Schlüsselaustausch, signiert mit seinem privaten Schlüssel. Aus den beiden Hälften berechnen beide Seiten dieselben geheimen Schlüssel. CertificateRequest verlangt das Zertifikat des Clients: Ein Server für Modbus/TCP Security muss immer danach fragen. ServerHelloDone beendet seinen Teil.",
         "client-cert": "Certificate trägt das Zertifikat des Clients, mit der Rolle. ClientKeyExchange enthält die Hälfte des Clients am Schlüsselaustausch. CertificateVerify signiert den bisherigen Handshake: der Beweis, dass der Client den privaten Schlüssel des Zertifikats hat. ChangeCipherSpec und Finished schalten die Verschlüsselung ein. Bei TLS 1.2 reisen die Zertifikate im Klartext, also kann jeder im Netz die Rolle lesen.",
-        "server-finished": "Auch der Wechselrichter schaltet die Verschlüsselung ein. Hätte der Client kein Zertifikat gesendet oder eines von einer unbekannten CA, hätte der Wechselrichter die Verbindung mit einem Alert beendet."
+        "server-finished": "Auch der Wechselrichter schaltet die Verschlüsselung ein. Hätte der Client kein Zertifikat gesendet oder eines von einer unbekannten CA, hätte der Wechselrichter die Verbindung mit einem Alert beendet, einer Fehlermeldung von TLS."
     },
     "fields": {
         "rec-handshake": { "name": "Record-Typ 22", "note": "0x16: ein Handshake-Record. Der Handshake reist im Klartext." },
@@ -37,23 +38,23 @@
         "suites": { "name": "Cipher Suites", "note": "2 Bytes, eine Suite: 0xC02F, Schlüsselaustausch mit ECDHE, RSA-Zertifikate, Verschlüsselung mit AES-128-GCM, SHA-256. Die Spezifikation verlangt sie für Geräte mit RSA-Schlüsseln." },
         "compression": { "name": "Kompression", "note": "Ein Verfahren: 0, keine." },
         "ext-len": { "name": "Extensions", "note": "Es folgen 0x0053 = 83 Bytes Extensions." },
-        "ext-reneg": { "name": "renegotiation_info", "note": "0xFF01, leer: Der Client unterstützt sichere Neuverhandlung, wie es die Spezifikation verlangt." },
+        "ext-reneg": { "name": "renegotiation_info", "note": "0xFF01, leer: Der Client unterstützt sichere Neuverhandlung, einen geschützten Weg, den Handshake auf einer offenen Verbindung zu wiederholen. Die Spezifikation verlangt das." },
         "ext-points": { "name": "ec_point_formats", "note": "0x000B: wie Punkte auf elliptischen Kurven geschrieben werden dürfen." },
-        "ext-groups": { "name": "supported_groups", "note": "0x000A, 12 Bytes: Es folgt eine Liste mit 10 Bytes." },
+        "ext-groups": { "name": "supported_groups", "note": "0x000A, 12 Bytes: die Kurven, die der Client für den Schlüsselaustausch nutzen kann. Es folgt eine Liste mit 10 Bytes." },
         "groups": { "name": "Kurven", "note": "Fünf Kurven für den Schlüsselaustausch: x25519 (0x001D), P-256 (0x0017), x448, P-384 und P-521. Jedes Gerät, das elliptische Kurven verwendet, muss P-256 unterstützen." },
-        "ext-flags": { "name": "Zwei Flags", "note": "encrypt_then_mac (0x0016) und extended_master_secret (0x0017), beide leer." },
+        "ext-flags": { "name": "Zwei Flags", "note": "encrypt_then_mac (0x0016) und extended_master_secret (0x0017): zwei Sicherheitsoptionen, die der Client unterstützt. Beide sind leer: Dass sie da sind, ist die Aussage." },
         "ext-sigalgs": { "name": "signature_algorithms", "note": "0x000D: Es folgt eine Liste mit 40 Bytes, 2 für jeden von 20 Algorithmen." },
         "sigalgs": { "name": "Signaturen", "note": "Signaturarten, die der Client akzeptiert, je 2 Bytes. 0x0403 ist ECDSA auf P-256 mit SHA-256; 0x0401, weiter hinten, ist RSA mit SHA-256." },
         "sigalgs-more": { "name": "Signaturen", "note": "Weitere Signaturarten, je 2 Bytes." },
         "rec-app": { "name": "Record-Typ 23", "note": "0x17: Anwendungsdaten. Was folgt, ist verschlüsselt." },
         "rec-v12": { "name": "Version", "note": "0x0303: TLS 1.2." },
-        "len-read-req": { "name": "Länge", "note": "Es folgen 36 Bytes, nicht gezeigt: eine Nonce mit 8 Bytes, die verschlüsselte Anfrage mit 12 Bytes und ein Tag mit 16 Bytes. Darin steckt die reine Modbus-TCP-Anfrage 00 01 00 00 00 06 01 03 00 64 00 02: Register 100 und 101 lesen." },
+        "len-read-req": { "name": "Länge", "note": "Es folgen 36 Bytes, nicht gezeigt: eine Nonce mit 8 Bytes (eine Zahl, die nur einmal verwendet wird), die verschlüsselte Anfrage mit 12 Bytes und ein Tag mit 16 Bytes, das beweist, dass niemand sie verändert hat. Darin steckt die reine Modbus-TCP-Anfrage 00 01 00 00 00 06 01 03 00 64 00 02: Register 100 und 101 lesen." },
         "len-read-resp": { "name": "Länge", "note": "Es folgen 37 Bytes: Nonce, 13 Bytes Antwort, Tag. Darin: 00 01 00 00 00 07 01 03 04 A4 00 45 96, Wirkleistung 4820.5 kW." },
         "len-write-req": { "name": "Länge", "note": "Es folgen 36 Bytes. Darin: 00 02 00 00 00 06 01 06 00 C8 0B B8, 3000 in Register 200 schreiben, die Leistungsbegrenzung." },
         "len-refused": { "name": "Länge", "note": "Es folgen 33 Bytes: Nonce, 9 Bytes Antwort, Tag. Darin: 00 02 00 00 00 03 01 86 01. 0x86 ist 0x06 mit gesetztem Fehlerbit; 01 ist der Exception-Code." },
         "a-extension": { "name": "Extension", "note": "Eine SEQUENCE mit 0x17 = 23 Bytes: eine Extension des Zertifikats." },
-        "a-oid": { "name": "Object ID", "note": "1.3.6.1.4.1.50316.802.1: die Modbus-Rolle. 50316 ist die Nummer, die die IANA der Modbus Organization gegeben hat." },
-        "a-octets": { "name": "Wert", "note": "Ein OCTET STRING mit 8 Bytes, der den Wert der Extension enthält." },
+        "a-oid": { "name": "Object ID", "note": "1.3.6.1.4.1.50316.802.1: die weltweit eindeutige Nummer, die „Modbus-Rolle“ bedeutet. 50316 ist die Nummer, die die IANA der Modbus Organization gegeben hat." },
+        "a-octets": { "name": "Wert", "note": "Ein OCTET STRING (eine Folge von Bytes) mit 8 Bytes, der den Wert der Extension enthält." },
         "a-utf8": { "name": "UTF8String", "note": "0x0C: Text in UTF-8, 6 Bytes lang. Die Spezifikation verlangt diesen Typ." },
         "a-role": { "name": "Rolle", "note": "\"Viewer\". Eine Rolle pro Zertifikat. Die Regeln des Servers sagen, was sie darf." }
     },
@@ -88,7 +89,7 @@
         "role": "Die Rollen-Extension im Zertifikat des Clients, Byte für Byte"
     },
     "playground": {
-        "file": "Das Zertifikat des Monitoring-Servers, wie openssl x509 -text es ausgibt. Die Rolle ist die letzte Extension.",
+        "file": "Das Zertifikat des Monitoring-Servers, wie das Werkzeug openssl es ausgibt (openssl x509 -text). Die Rolle ist die letzte Extension.",
         "issuer": "Die CA, die es signiert hat. Der Wechselrichter akzeptiert nur Zertifikate einer CA, der er vertraut.",
         "expiry": "Nach diesem Datum weist der Wechselrichter das Zertifikat ab.",
         "subject": "Wem das Zertifikat gehört: dem Monitoring-Server.",

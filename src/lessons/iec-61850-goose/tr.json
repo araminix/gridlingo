@@ -1,12 +1,13 @@
 {
-    "intro": "Koruma rölelerinin bakır kablolar yerine trafo merkezi ağı üzerinden, birkaç milisaniyede birbirine açma komutu vermesinin yolu. Bir röle verisini bir multicast adresine yayınlar; ihtiyacı olan her röle abone olur. Kimse yanıt vermez; bu yüzden yayıncı her değişikliği önce hızlı, sonra giderek yavaşlayarak tekrarlar.",
+    "intro": "GOOSE, koruma rölelerinin (bir hatta arıza olduğunda kesiciyi açan cihazların) birbirine birkaç milisaniyede açma komutu vermesinin yoludur. Bakır kablolar yerine trafo merkezi ağı üzerinden çalışır. Bir röle verisini bir multicast adresine yayınlar: ağdaki her cihazın duyduğu tek bir mesaj. Bu veriye ihtiyacı olan her röle ona abone olur. Kimse yanıt vermez; bu yüzden yayıncı her değişikliği önce hızlı, sonra giderek yavaşlayarak tekrarlar.",
+    "plain": "Bir enerji hattı arızalandığında, trafo merkezindeki güvenlik cihazları saniyenin birkaç binde biri içinde tepki vermelidir. Bu mesaj her odanın duyduğu bir yangın alarmı gibi çalışır: bir cihaz haberi bir kez herkese duyurur, ilgilenen cihazlar da buna göre davranır. Kimse yanıt vermez, bu yüzden gönderen, duyulduğundan emin olmak için çağrısını önce hızlı hızlı birkaç kez tekrarlar.",
     "steps": {
-        "heartbeat": { "title": "Kalp atışı", "text": "Bir sorun yok. Röle, her saniye son durumunu dinleyen herkese tekrarlar." },
-        "fault": { "title": "Arıza", "text": "F1 fiderinde kısa devre. Röle 2.8 kA görür ve kesiciye giden açma kontağını kapatır." },
-        "publish": { "title": "Yayınla", "text": "Aynı anda yeni durumu gönderir. Durum numarası bir artar, sıra numarası yeniden 0'dan başlar." },
-        "repeat": { "title": "Hızlı tekrarla", "text": "Hiçbir abone GOOSE'a yanıt vermez; bu yüzden röle aynı mesajı 2 ms sonra yeniden gönderir, sonra 4, 8, 16 … ta ki yeniden saniyede bire inene kadar." },
-        "act": { "title": "Aboneler harekete geçer", "text": "F2 PROT kesici arıza zamanlayıcısını başlatır. Ağ geçidi açmayı SCADA'ya iletir." },
-        "open": { "title": "Kesici açılır", "text": "Arızadan 48 ms sonra Q1 açıktır ve arıza akımı kesilir." }
+        "heartbeat": { "title": "Her şey yolunda", "text": "Bir sorun yok. Röle, her saniye son durumunu dinleyen herkese tekrarlar. Bu kalp atışı, abonelere rölenin ve ağın hâlâ çalıştığını söyler." },
+        "fault": { "title": "Bir kısa devre", "text": "Trafo merkezinden çıkan hatlardan biri olan F1 fiderinde kısa devre. Röle 2.8 kA ölçer. Q1 kesicisini açtıran kablolu bir sinyal olan açma kontağını kapatır." },
+        "publish": { "title": "Açmayı duyur", "text": "Aynı anda röle yeni durumunu her aboneye gönderir. Durum numarası (stNum) bir artar. Bir durumun kopyalarını sayan sıra numarası (sqNum) yeniden 0'dan başlar." },
+        "repeat": { "title": "Hızlı tekrarla", "text": "Hiçbir abone GOOSE'a yanıt vermez; bu yüzden röle aynı mesajı değişiklikten 2 ms sonra yeniden gönderir, sonra 4, 8 ve 16 ms'de ve böyle devam ederek yeniden saniyede bire iner." },
+        "act": { "title": "Aboneler tepki veriyor", "text": "F2 PROT, Q1'in arızalanma ihtimaline karşı Q1 kesicisini izler. Bir zamanlayıcı başlatır: zamanlayıcı dolduğunda Q1 açılmamışsa F2 PROT arızayı besleyen diğer kesicileri açtırır. Ağ geçidi açmayı kontrol merkezinin sistemi olan SCADA'ya iletir." },
+        "open": { "title": "Kesici açılır", "text": "Açmadan 48 ms sonra Q1 açıktır ve arıza akımı kesilir." }
     },
     "frames": {
         "heartbeat": "Hâlâ açma yok (kalp atışı)",
@@ -19,26 +20,26 @@
     "notes": {
         "trip-wire": "Bir ağ mesajı değil, bakır bir kablo: röle bir kontağı kapatır ve kesicinin açma bobinine akım akar.",
         "to-scada": "Bu GOOSE değil, IEC 104'tür: ağ geçidi ikisi arasında çeviri yapar. Bu baytları IEC 104 dersi gösteriyor.",
-        "opened": "Kesicideki bir yardımcı kontak, röleye kesicinin açıldığını bildirir."
+        "opened": "Kesiciyle birlikte hareket eden bir anahtar olan yardımcı kontak, röleye kesicinin açıldığını bildirir."
     },
     "fields": {
         "dst": { "name": "Hedef", "note": "IEC 61850'nin GOOSE için ayırdığı aralıktan bir multicast adresi (01-0C-CD-01-…). Ağdaki her cihaz bunu duyar; yalnızca aboneler alıkoyar." },
         "src": { "name": "Kaynak", "note": "Rölenin kendi MAC adresi." },
         "vlan": { "name": "VLAN etiketi", "note": "0x8100, ardından öncelik 4 ve VLAN 10. Öncelik, ağ anahtarlarının çerçeveyi diğer trafikten önce göndermesini sağlar." },
         "ethertype": { "name": "EtherType", "note": "0x88B8, GOOSE demektir. Bu çerçevede IP de TCP de yoktur." },
-        "appid": { "name": "APPID", "note": "0x0001: abonelerin filtrelediği bir numara." },
+        "appid": { "name": "APPID", "note": "0x0001: bu mesaj akışının kimliği. Aboneler bunu filtreler." },
         "length": { "name": "Uzunluk", "note": "APPID'den sona kadar 115 bayt." },
         "reserved": { "name": "Ayrılmış", "note": "İki ayrılmış alan, burada sıfır. Çerçeve imzalandığında IEC 62351-6 bunları kullanır." },
         "pdu": { "name": "GOOSE mesajı", "note": "0x61 mesajı başlatır; ardından 105 bayt gelir (0x69). Ondan sonraki her alan bir etiket, bir uzunluk ve bir değerdir." },
-        "gocbref": { "name": "gocbRef", "note": "Etiket 0x80, 25 bayt: kontrol bloğunun adı, F1PROTLD0/LLN0$GO$gcbTrip." },
+        "gocbref": { "name": "gocbRef", "note": "Etiket 0x80, 25 bayt: bu mesajı gönderen kontrol bloğunun adı, F1PROTLD0/LLN0$GO$gcbTrip." },
         "tal": { "name": "Yaşam süresi", "note": "2000 ms. Bu süre içinde hiçbir kopya gelmezse aboneler veriyi geçersiz sayar." },
-        "datset": { "name": "datSet", "note": "Mesajın taşıdığı veri seti: F1PROTLD0/LLN0$dsTrip." },
-        "goid": { "name": "goID", "note": "F1PROT_Trip; abonelerin denetleyebileceği bir kimlik." },
+        "datset": { "name": "datSet", "note": "Veri seti: bu mesajın taşıdığı değerlerin listesi, F1PROTLD0/LLN0$dsTrip." },
+        "goid": { "name": "goID", "note": "F1PROT_Trip: abonelerin denetleyebileceği bir kimlik." },
         "t-old": { "name": "t", "note": "Verinin son değiştiği an: bugün 08:00:00, UTC. Kalp atışı son değişikliğin zamanını korur." },
         "t-event": { "name": "t", "note": "Verinin değiştiği an: 10:41:07.232 UTC. 4 bayt saniye, 3 bayt saniyenin kesirleri, 1 bayt saat kalitesi." },
-        "stnum-12": { "name": "stNum 12", "note": "Durum numarası: son değişiklikten beri aynı." },
+        "stnum-12": { "name": "stNum 12", "note": "Durum numarası: hâlâ 12, yani veri değişmedi." },
         "stnum-13": { "name": "stNum 13", "note": "Durum numarası bir arttı: veri değişti." },
-        "sqnum-3": { "name": "sqNum 3", "note": "Sıra numarası: aynı durumun dördüncü kopyası." },
+        "sqnum-3": { "name": "sqNum 3", "note": "Sıra numarası bir durumun kopyalarını 0'dan sayar: bu dördüncü kopya." },
         "sqnum-0": { "name": "sqNum 0", "note": "Yeni durumun ilk kopyası." },
         "sqnum-1": { "name": "sqNum 1", "note": "Aynı durum, yeniden gönderildi." },
         "simulation": { "name": "simulation", "note": "False. True, test mesajlarını işaretler; aboneler test modunda değilse bunları yok sayar." },
@@ -48,10 +49,10 @@
         "data-idle": { "name": "allData", "note": "Değerler: Tr.general = FALSE (açma yok) ve kalitesi: iyi." },
         "data-trip": { "name": "allData", "note": "Değerler: Tr.general = TRUE (açma!) ve kalitesi: iyi." },
         "a-ied": { "name": "IED", "note": "Cihazın SCL dosyasındaki adı." },
-        "a-ld": { "name": "Mantıksal cihaz", "note": "LD0, IED içindeki bir fonksiyon grubu." },
-        "a-ln": { "name": "Mantıksal düğüm", "note": "LLN0, kontrol bloklarının bulunduğu yer." },
-        "a-fc": { "name": "Fonksiyonel kısıt", "note": "GO: bir GOOSE kontrol bloğu." },
-        "a-cb": { "name": "Kontrol bloğu", "note": "gcbTrip, adı." }
+        "a-ld": { "name": "Mantıksal cihaz", "note": "LD0: bir mantıksal cihaz, IED içindeki bir fonksiyon grubu." },
+        "a-ln": { "name": "Mantıksal düğüm", "note": "LLN0: cihazın kendisine ait, kontrol bloklarının bulunduğu mantıksal düğüm." },
+        "a-fc": { "name": "Fonksiyonel kısıt", "note": "GO: ardından bir GOOSE kontrol bloğu gelir." },
+        "a-cb": { "name": "Kontrol bloğu", "note": "gcbTrip: kontrol bloğunun adı." }
     },
     "devices": {
         "q1": "Q1 kesicisi",

@@ -1,76 +1,77 @@
 {
-    "intro": "IEC 61400-25 è IEC 61850 per i parchi eolici. Aggiunge nodi logici per la turbina, il suo rotore, il generatore e il convertitore, il meteo e il controllo dell'intero parco. IEC 61400-25-4 mappa il modello sui protocolli; con la mappatura MMS, una turbina parla come un qualsiasi server IEC 61850.",
+    "intro": "IEC 61400-25 porta IEC 61850, la norma per dati e messaggi nelle sottostazioni, nei parchi eolici. Aggiunge nodi logici: gruppi di dati con un nome, uno per funzione. Coprono la turbina, il suo rotore, il generatore e il convertitore, il meteo e il controllo dell'intero parco. La parte IEC 61400-25-4 dice come questo modello viaggia sui protocolli reali. Con la mappatura MMS (MMS: Manufacturing Message Specification, il protocollo che legge e scrive i dati IEC 61850), una turbina parla come un qualsiasi server IEC 61850.",
+    "plain": "Un parco eolico ha molte turbine e una sala controllo che deve sorvegliarle e dire loro quanta potenza produrre. Questa norma dà a ogni turbina lo stesso insieme di letture con un nome. È come un modulo stampato con le stesse caselle negli stessi posti: la potenza qui, la velocità del rotore lì, la velocità del vento là. Un sistema di controllo che conosce il modulo può leggere una turbina e inviarle un limite senza imparare la lingua di ogni costruttore.",
     "steps": {
-        "associate": { "title": "Associazione", "text": "Il controllore di parco apre la porta TCP 102 della turbina WT01 e crea un'associazione MMS. Con la mappatura MMS, una turbina è un normale server IEC 61850." },
-        "read": { "title": "Leggi la turbina", "text": "Una sola Read chiede tre valori: la potenza attiva in WTUR1, la velocità del rotore in WROT1 e la velocità del vento in WMET1. WTUR contiene anche lo stato di funzionamento della turbina, TurSt." },
-        "subscribe": { "title": "Chiedi i report", "text": "Il controllore abilita il report urcbWTG01. Ora la turbina invia il suo data set quando un valore cambia, e comunque ogni 10 s." },
-        "limit": { "title": "Un limite per il parco", "text": "Lo SCADA del gestore di rete comanda WAPC1, il controllo della potenza attiva del parco: al massimo 5.4 MW per l'intero impianto." },
-        "follow": { "title": "Le turbine si adeguano", "text": "Il controllore di parco assegna a ciascuna delle tre turbine la sua quota: 1800 kW. WT01 regola il passo delle pale, scende di potenza e riporta il nuovo valore." }
+        "associate": { "title": "Collegati a WT01", "text": "Il controllore di parco, il computer che gestisce l'intero parco eolico, apre una connessione di rete (TCP) verso la porta 102 della turbina WT01. Poi crea un'associazione MMS: una sessione in cui le due parti concordano come dialogheranno. Con la mappatura MMS, la turbina è un normale server IEC 61850, un dispositivo che contiene dati e risponde alle richieste." },
+        "read": { "title": "Leggi la turbina", "text": "Una sola richiesta Read chiede tre valori, ciascuno dal proprio nodo logico. La potenza attiva (la potenza elettrica che la turbina eroga) viene da WTUR1, la turbina nel suo insieme. La velocità del rotore viene da WROT1, il rotore. La velocità del vento viene da WMET1, i sensori meteo. WTUR contiene anche lo stato di funzionamento della turbina, TurSt." },
+        "subscribe": { "title": "Chiedi i report", "text": "Il controllore attiva il report control block urcbWTG01: un'impostazione nella turbina che dice cosa inviare e quando. Da ora la turbina invia il suo data set, una lista fissa di valori, ogni volta che uno di essi cambia, e comunque ogni 10 s." },
+        "limit": { "title": "Un limite per il parco", "text": "Lo SCADA del gestore di rete (il sistema di supervisione del suo centro di controllo) invia un comando a WAPC1. Questo nodo logico controlla la potenza attiva dell'intero parco. L'ordine: al massimo 5.4 MW per l'intero impianto." },
+        "follow": { "title": "Le turbine si adeguano", "text": "Il controllore di parco divide il limite e assegna a ciascuna delle tre turbine la sua quota: 1800 kW. WT01 ruota le pale per prendere meno vento (ne regola il passo), abbassa la potenza un passo alla volta e riporta il nuovo valore." }
     },
     "frames": {
-        "initiate-req": "Parliamo MMS: le mie dimensioni e i miei servizi",
+        "initiate-req": "Parliamo MMS: i miei limiti di dimensione e i miei servizi",
         "initiate-resp": "D'accordo: questi sono i miei",
         "read-req": "La tua potenza, la velocità del rotore e quella del vento?",
         "read-resp": "2350.0 kW, 12.75 rpm, 9.5 m/s",
-        "enable-req": "Abilita il report urcbWTG01",
+        "enable-req": "Attiva il report urcbWTG01",
         "enable-resp": "Fatto",
         "oper": "Il parco può immettere al massimo 5.4 MW",
         "share": "Ogni turbina: al massimo 1800 kW",
-        "report": "W ora vale 1800.0 kW"
+        "report": "La mia potenza W ora vale 1800.0 kW"
     },
     "notes": {
-        "initiate-req": "Prima una connessione TCP verso la porta 102 e una connessione COTP, come nella lezione su IEC 61850 MMS. Poi l'MMS Initiate propone dimensioni e servizi.",
-        "initiate-resp": "La turbina risponde con le proprie dimensioni e i propri servizi. Ora il suo modello si può esplorare, oppure leggere dal suo file SCL.",
-        "oper": "Un comando su WAPC, il nodo logico della potenza attiva del parco: un nuovo valore di riferimento per la produzione dell'impianto. Il controllore di parco risponde con una Write response.",
+        "initiate-req": "Prima una connessione TCP verso la porta 102 e una connessione COTP, come nella lezione su IEC 61850 MMS. Poi la richiesta MMS Initiate propone i limiti di dimensione dei messaggi del controllore e i servizi che supporta.",
+        "initiate-resp": "La turbina risponde con i propri limiti di dimensione e i propri servizi. Ora il controllore può esplorare il modello dati della turbina, oppure leggerlo dal suo file SCL.",
+        "oper": "Un Operate su WAPC1, il nodo logico della potenza attiva del parco: un nuovo obiettivo per la produzione dell'impianto. Il controllore di parco risponde con una Write response.",
         "share": "Come il limite arrivi a ogni turbina lo decide il controllore di parco. All'interno del parco, molti usano per questo il protocollo proprietario del costruttore della turbina.",
-        "report": "Un InformationReport spontaneo da urcbWTG01 con W, RotSpd e HorWdSpd. Il suo codice di motivo dice cosa l'ha attivato: una variazione dei dati."
+        "report": "Un InformationReport da urcbWTG01 con W, RotSpd e HorWdSpd. La turbina lo invia da sola, senza una richiesta. Il suo codice di motivo dice cosa l'ha attivato: una variazione dei dati."
     },
     "fields": {
         "tpkt-143": { "name": "TPKT", "note": "Versione 3, poi la lunghezza dell'intero messaggio: 0x008F = 143 byte." },
         "tpkt-50": { "name": "TPKT", "note": "Versione 3, poi la lunghezza: 0x0032 = 50 byte." },
         "tpkt-75": { "name": "TPKT", "note": "Versione 3, poi la lunghezza: 0x004B = 75 byte." },
         "tpkt-29": { "name": "TPKT", "note": "Versione 3, poi la lunghezza: 0x001D = 29 byte." },
-        "cotp-dt": { "name": "COTP", "note": "Un'unità dati (0xF0), l'ultima del suo messaggio (0x80)." },
-        "session": { "name": "Sessione", "note": "Due brevi intestazioni di sessione: give tokens, data transfer." },
-        "presentation": { "name": "Presentazione", "note": "Dati completamente codificati, presentation context 3: quello che segue è MMS." },
-        "presentation-long": { "name": "Presentazione", "note": "Dati completamente codificati, context 3: segue MMS. 81 81 è una lunghezza in forma lunga: 0x81 dice che segue un byte di lunghezza, e quel byte, 0x81, vale 129." },
+        "cotp-dt": { "name": "COTP", "note": "02: seguono due byte di intestazione. 0xF0: un'unità dati. 0x80: l'ultima unità del suo messaggio." },
+        "session": { "name": "Sessione", "note": "Due brevi intestazioni di sessione: Give Tokens, poi Data Transfer. Ciascuna è di 2 byte, senza contenuto." },
+        "presentation": { "name": "Presentazione", "note": "Dati completamente codificati nel presentation context 3. Al momento della connessione si è concordato che il context 3 significa MMS, quindi quello che segue è MMS." },
+        "presentation-long": { "name": "Presentazione", "note": "Dati completamente codificati nel context 3: segue MMS. 81 81 è una lunghezza in forma lunga: 0x81 dice che segue un byte di lunghezza, e quel byte, 0x81, vale 129." },
         "confirmed-req": { "name": "Richiesta confermata", "note": "Tag A0: una richiesta che attende una risposta. Il byte successivo conta i byte al suo interno." },
         "confirmed-resp": { "name": "Risposta confermata", "note": "Tag A1: la risposta a una richiesta." },
         "invoke-3": { "name": "Invoke ID 3", "note": "Un numero scelto dal controllore. La risposta porta lo stesso." },
         "invoke-3-resp": { "name": "Invoke ID 3", "note": "Lo stesso numero della richiesta: questa è la sua risposta." },
         "invoke-4": { "name": "Invoke ID 4", "note": "Una nuova richiesta, un nuovo numero." },
         "invoke-4-resp": { "name": "Invoke ID 4", "note": "Questa risponde alla scrittura di RptEna." },
-        "read": { "name": "Read", "note": "Tag A4: il servizio Read." },
+        "read": { "name": "Read", "note": "Tag A4: il servizio Read, che chiede valori." },
         "spec": { "name": "Lista di variabili", "note": "Una lista di variabili, ciascuna indicata per nome. Qui sono tre." },
         "var": { "name": "Variabile", "note": "Una voce della lista. Segue il suo nome." },
-        "domain-specific": { "name": "Nome specifico di dominio", "note": "Un nome in due parti: il dominio e l'item." },
-        "domain": { "name": "Dominio", "note": "\"WT01WTG\": il dispositivo logico WTG dell'IED WT01." },
+        "domain-specific": { "name": "Nome specifico di dominio", "note": "Un nome in due parti: il dominio (il dispositivo logico) e l'item (i dati al suo interno)." },
+        "domain": { "name": "Dominio", "note": "\"WT01WTG\": il dispositivo logico WTG dell'IED WT01, il controllore della turbina." },
         "item-w": { "name": "Item", "note": "\"WTUR1$MX$W$mag$f\": la potenza attiva prodotta dalla turbina." },
         "item-rotspd": { "name": "Item", "note": "\"WROT1$MX$RotSpd$mag$f\": la velocità del rotore." },
-        "item-wdspd": { "name": "Item", "note": "\"WMET1$MX$HorWdSpd$mag$f\": la velocità orizzontale del vento, dall'anemometro sulla navicella." },
+        "item-wdspd": { "name": "Item", "note": "\"WMET1$MX$HorWdSpd$mag$f\": la velocità orizzontale del vento, dall'anemometro (misuratore del vento) sulla navicella, l'involucro in cima alla torre." },
         "results": { "name": "Risultati", "note": "Tre risultati, nell'ordine in cui sono stati chiesti." },
-        "float-tag": { "name": "Floating point", "note": "Tag 0x87 (un float), 5 byte. 08: segue un float IEEE 754 a singola precisione." },
-        "w": { "name": "W", "note": "2350.0. L'unità, kW, è nell'attributo units (CF)." },
+        "float-tag": { "name": "Floating point", "note": "Tag 0x87 (un float), 5 byte. 08: l'esponente ha 8 bit, quindi segue un float IEEE 754 a singola precisione." },
+        "w": { "name": "W", "note": "2350.0, qui in kW. Il valore viaggia senza unità: l'unità è nell'attributo units (CF)." },
         "rotspd": { "name": "RotSpd", "note": "12.75 (rpm), prima il byte più significativo." },
         "wdspd": { "name": "HorWdSpd", "note": "9.5 (m/s)." },
-        "write": { "name": "Write", "note": "Tag A5: il servizio Write." },
+        "write": { "name": "Write", "note": "Tag A5: il servizio Write, che imposta valori." },
         "write-spec": { "name": "Variabile", "note": "Una lista di una sola variabile, indicata per nome." },
-        "item-rptena": { "name": "Item", "note": "\"LLN0$RP$urcbWTG01$RptEna\": il flag di abilitazione di urcbWTG01, la prima copia del report control block urcbWTG. RP indica un report unbuffered." },
+        "item-rptena": { "name": "Item", "note": "\"LLN0$RP$urcbWTG01$RptEna\": RptEna, l'interruttore acceso/spento di urcbWTG01. urcbWTG01 è la prima istanza del report control block urcbWTG. RP indica un report unbuffered: ciò che cambia mentre nessun client è connesso non viene conservato." },
         "data-list": { "name": "Dati", "note": "I valori da scrivere, uno per variabile." },
         "true": { "name": "TRUE", "note": "Tag 0x83, un booleano, 1 byte: TRUE. I report partono ora." },
         "write-resp": { "name": "Write response", "note": "Tag A5: la risposta a una Write, un risultato per variabile." },
         "success": { "name": "Successo", "note": "Tag 0x81, vuoto: la scrittura è riuscita." },
-        "a-ld": { "name": "Dispositivo logico", "note": "WT01WTG: nome dell'IED WT01 e istanza WTG." },
-        "a-ln": { "name": "Nodo logico", "note": "WMET1: i sensori meteo di questa turbina. Una torre anemometrica ha il proprio WMET." },
+        "a-ld": { "name": "Dispositivo logico", "note": "WT01WTG: nome dell'IED WT01 e istanza del dispositivo logico WTG." },
+        "a-ln": { "name": "Nodo logico", "note": "WMET1: i sensori meteo di questa turbina. Una torre meteo ha il proprio WMET." },
         "a-fc": { "name": "Functional constraint", "note": "MX: valori misurati." },
         "a-hor": { "name": "Orizzontale", "note": "Hor. I nomi dei data object sono composti da parole brevi come questa, unite senza spazi." },
         "a-wd": { "name": "Vento", "note": "Wd. Altre parole brevi: Tmp per temperatura, Dir per direzione." },
         "a-spd": { "name": "Velocità", "note": "Spd. Insieme: HorWdSpd, la velocità orizzontale del vento." },
-        "a-da": { "name": "Data attribute", "note": "mag.f: il modulo, come float." }
+        "a-da": { "name": "Data attribute", "note": "mag.f: il modulo (il valore stesso), come numero in virgola mobile." }
     },
     "devices": {
         "scada": "Centro di controllo",
-        "met": "Torre anemometrica",
+        "met": "Torre meteo",
         "ppc": "Controllore di parco",
         "wt01": "WT01",
         "wt02": "WT02",
@@ -78,14 +79,14 @@
     },
     "facts": {
         "standard": "IEC 61400-25-2 edizione 2 (2015): il modello. IEC 61400-25-4: le mappature",
-        "between": "Controllore di parco, SCADA o proprietario → turbina, torre anemometrica, parco",
+        "between": "Controllore di parco, SCADA o proprietario → turbina, torre meteo, parco",
         "transport": "MMS su TCP 102, come in IEC 61850-8-1. OPC UA in IEC 61400-25-41",
         "security": "Con MMS: TLS (IEC 62351-4), TCP 3782",
         "model": "Nodi logici eolici: WTUR, WROT, WGEN, WCNV, WMET, WAPC …"
     },
     "tips": [
         "L'edizione 2 (2015) ha spostato i sensori di vento e meteo della navicella da WNAC a WMET e ha cambiato diverse abbreviazioni. Un client scritto per l'edizione 1 cerca nel posto sbagliato.",
-        "Un valore non porta l'unità. W può essere in W o in kW: leggi units (CF) una volta dopo la connessione e conservalo.",
+        "Un valore non porta l'unità. La potenza W può essere in watt o in kilowatt: leggi una volta il suo attributo units (CF) dopo la connessione e conservalo.",
         "I costruttori di turbine compilano il modello in modi diversi: data object opzionali, numeri di istanza, data set. Leggi il file SCL di ogni tipo di turbina; non copiare la stessa mappa su tutte.",
         "Molti parchi parlano IEC 61400-25 verso il gestore, ma il protocollo proprietario del costruttore verso le turbine. Chiedi quale interfaccia riceverai."
     ],
@@ -98,7 +99,7 @@
         "dataname": "Un nome di data object, composto da parole brevi"
     },
     "playground": {
-        "scl": "La descrizione configurata della turbina (.cid). Apri WTG: ogni parte della turbina è un nodo logico. WTUR1, WROT1 e WMET1 contengono i tre valori letti qui. Poi apri un tuo file, se ne hai uno.",
+        "scl": "Il file di configurazione della turbina (.cid, scritto in SCL). Apri WTG: ogni parte della turbina è un nodo logico. WTUR1, WROT1 e WMET1 contengono i tre valori letti qui. Poi apri un tuo file, se ne hai uno.",
         "encoder": "MMS invia un float con il byte più significativo per primo (ABCD). 2350.0 viaggia come 45 12 E0 00."
     }
 }

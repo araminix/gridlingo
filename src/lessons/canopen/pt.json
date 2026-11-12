@@ -1,11 +1,12 @@
 {
-    "intro": "Dentro de um sistema de baterias, o sistema de gerenciamento da bateria (BMS) e o sistema de conversão de potência (PCS) muitas vezes dividem um barramento CAN. Um quadro CAN é curto: um identificador e até 8 bytes de dados, sem endereço de quem envia. O CANopen dá significado aos identificadores: qual nó envia e que tipo de mensagem é.",
+    "intro": "Dentro de um sistema de baterias, dois equipamentos conversam o tempo todo: o sistema de gerenciamento da bateria (BMS), o guardião da própria bateria, e o sistema de conversão de potência (PCS), que a carrega e descarrega. Eles muitas vezes dividem um barramento CAN: um único par de fios, criado primeiro para carros, em que cada equipamento ouve todas as mensagens. Um quadro CAN é curto: um identificador e até 8 bytes de dados, sem endereço de quem envia. O CANopen dá significado aos identificadores: qual nó (equipamento no barramento) envia e que tipo de mensagem é.",
+    "plain": "Dentro de uma bateria grande, um pequeno computador vigia cada célula, e um conversor de potência faz a energia entrar e sair. Eles conversam por um único par de fios compartilhado, como pessoas numa sala em que todos ouvem tudo. Cada mensagem começa com uma etiqueta que diz quem a enviou e do que se trata, então cada ouvinte separa o que lhe interessa. A maioria das leituras é enviada num horário fixo, sem ninguém pedir, e os alarmes saem na hora.",
     "steps": {
-        "boot": { "title": "Inicialização", "text": "O BMS (nó 5) liga e envia uma única mensagem de boot-up. Agora ele está pré-operacional: responde a requisições SDO, mas não envia dados de processo." },
-        "identify": { "title": "Conferir a identidade", "text": "O PCS é o mestre NMT: ele inicia e supervisiona os outros nós. Ele lê o número de série do BMS com um SDO: objeto 0x1018, subíndice 4." },
-        "start": { "title": "Iniciar", "text": "O PCS manda o nó 5 passar para operacional. A partir de agora, o BMS envia um heartbeat a cada segundo, e os seus dados de processo." },
-        "data": { "title": "Dados de processo", "text": "O TPDO1 leva a tensão e a corrente do pack, o estado de carga e a célula mais quente, a cada 100 ms. Ninguém pede e ninguém responde: o PCS só escuta. O arquivo EDS do fabricante do BMS diz o que cada byte significa." },
-        "alarm": { "title": "Célula quente demais", "text": "Uma célula do módulo 3 chega a 61 °C. O BMS envia na hora uma mensagem de emergência. O PCS reduz a corrente para 40 A." },
+        "boot": { "title": "O BMS inicia", "text": "O BMS, nó 5 no barramento, liga e envia uma única mensagem de boot-up. Agora ele está pré-operacional, um estado de espera. Ele responde a requisições SDO, perguntas avulsas sobre um único valor, mas não envia dados de processo, as leituras ao vivo." },
+        "identify": { "title": "Conferir a identidade", "text": "O PCS é o mestre NMT (gerenciamento de rede): ele inicia e supervisiona os outros nós. Ele lê o número de série do BMS com um SDO. Cada valor num equipamento CANopen tem um endereço no seu dicionário de objetos, uma lista numerada: o número de série é o objeto 0x1018, subíndice 4." },
+        "start": { "title": "Iniciar o BMS", "text": "O PCS manda o nó 5 passar para operacional, o seu estado de trabalho. A partir de agora, o BMS envia os seus dados de processo e, a cada segundo, um heartbeat: uma mensagem curta de \"estou vivo\"." },
+        "data": { "title": "Leituras ao vivo", "text": "O TPDO1 é o primeiro PDO de transmissão do BMS: um objeto de dados de processo, uma mensagem de valores ao vivo. A cada 100 ms ele leva a tensão do pack, a corrente, o estado de carga (o quanto a bateria está cheia) e a temperatura da célula mais quente. Ninguém pede e ninguém responde: o PCS só escuta. O arquivo EDS do fabricante do BMS, uma folha de dados eletrônica, diz o que cada byte significa." },
+        "alarm": { "title": "Célula quente demais", "text": "Uma célula do módulo 3 chega a 61 °C. O BMS envia na hora uma mensagem de emergência (EMCY). O PCS reduz a corrente para 40 A." },
         "recover": { "title": "Tudo normal", "text": "A célula esfria. O BMS envia uma mensagem de emergência com código de erro 0x0000: o erro sumiu." }
     },
     "frames": {
@@ -23,12 +24,12 @@
         "id-705": { "name": "Identificador 0x705", "note": "0x700 + nó 5: o boot-up e o heartbeat do nó 5. 11 bits na linha, mostrados aqui em 2 bytes." },
         "id-605": { "name": "Identificador 0x605", "note": "0x600 + nó 5: uma requisição SDO para o nó 5. 11 bits na linha." },
         "id-585": { "name": "Identificador 0x585", "note": "0x580 + nó 5: uma resposta SDO do nó 5. 11 bits na linha." },
-        "id-000": { "name": "Identificador 0x000", "note": "NMT: o menor identificador, então ele ganha o barramento de qualquer outro quadro. Só o mestre NMT o envia." },
+        "id-000": { "name": "Identificador 0x000", "note": "NMT. Quando dois nós enviam ao mesmo tempo, o identificador menor passa primeiro, então este ganha de qualquer outro quadro. Só o mestre NMT o envia." },
         "id-185": { "name": "Identificador 0x185", "note": "0x180 + nó 5: TPDO1, o primeiro objeto de dados de processo que o nó 5 envia. 11 bits na linha." },
-        "id-085": { "name": "Identificador 0x085", "note": "0x080 + nó 5: a mensagem de emergência do nó 5. O identificador baixo faz com que ela ganhe o barramento dos PDOs." },
+        "id-085": { "name": "Identificador 0x085", "note": "0x080 + nó 5: a mensagem de emergência do nó 5. O identificador baixo dá a ela prioridade sobre os PDOs, os dados de processo." },
         "dlc-1": { "name": "DLC 1", "note": "Um byte de dados. O código de comprimento de dados tem 4 bits na linha, mostrados aqui em 1 byte." },
         "dlc-2": { "name": "DLC 2", "note": "Dois bytes de dados." },
-        "dlc-6": { "name": "DLC 6", "note": "Seis bytes de dados, organizados como manda o mapeamento de PDO do BMS (objeto 0x1A00)." },
+        "dlc-6": { "name": "DLC 6", "note": "Seis bytes de dados. O mapeamento de PDO do BMS, objeto 0x1A00, diz qual valor vai em quais bytes." },
         "dlc-8": { "name": "DLC 8", "note": "Oito bytes de dados: mensagens SDO e de emergência sempre têm 8." },
         "state-boot": { "name": "Estado 0x00", "note": "Boot-up: o nó 5 iniciou e agora está pré-operacional." },
         "state-op": { "name": "Estado 0x05", "note": "Operacional. 0x7F seria pré-operacional, 0x04 parado." },
@@ -42,20 +43,20 @@
         "nmt-node": { "name": "Nó 5", "note": "O nó que precisa iniciar. 0 iniciaria todos os nós do barramento." },
         "volt": { "name": "Tensão do pack", "note": "0x1FBC = 8124, em passos de 0.1 V: 812.4 V. Byte menos significativo primeiro, como todos os números do CANopen." },
         "amp": { "name": "Corrente do pack", "note": "0x05F3 = 1523, em passos de 0.1 A: 152.3 A. Neste BMS, positivo significa descarga." },
-        "soc": { "name": "Estado de carga", "note": "0x44 = 68 %." },
+        "soc": { "name": "Estado de carga", "note": "0x44 = 68 %: o quanto a bateria está cheia." },
         "tmax": { "name": "Célula mais quente", "note": "0x1F = 31 °C." },
         "volt-low": { "name": "Tensão do pack", "note": "0x1FA2 = 8098: 809.8 V." },
         "amp-low": { "name": "Corrente do pack", "note": "0x0190 = 400: 40.0 A. O PCS reduziu a corrente." },
         "soc-low": { "name": "Estado de carga", "note": "0x43 = 67 %." },
         "tmax-hot": { "name": "Célula mais quente", "note": "0x3A = 58 °C: esfriando, mas ainda quente." },
         "err-4200": { "name": "Código de erro 0x4200", "note": "Byte menos significativo primeiro: temperatura do equipamento, na classe de erros de temperatura (0x4xxx)." },
-        "errreg-09": { "name": "Registro de erro 0x09", "note": "O valor do objeto 0x1001: bit 0 (um erro) e bit 3 (temperatura)." },
+        "errreg-09": { "name": "Registro de erro 0x09", "note": "Um resumo dos erros ativos, também guardado no objeto 0x1001: os bits 0 (algum erro) e 3 (temperatura) estão ativos." },
         "emcy-maker": { "name": "Dados do fabricante", "note": "Cinco bytes que o fabricante do BMS define. Este envia módulo 3, célula 12 (0x0C) e 61 °C (0x3D)." },
         "err-0000": { "name": "Código de erro 0x0000", "note": "Reset de erro: nenhum erro está mais ativo." },
         "errreg-00": { "name": "Registro de erro 0x00", "note": "Nenhum bit de erro ativo." },
         "emcy-maker-0": { "name": "Dados do fabricante", "note": "Tudo zero." },
-        "a-function": { "name": "Código de função", "note": "Os 4 bits mais altos. 0011 = 3: TPDO1, 0x180 no identificador." },
-        "a-node": { "name": "Node ID", "note": "Os 7 bits mais baixos. 0000101 = 5: o BMS. Um barramento comporta os nós de 1 a 127." }
+        "a-function": { "name": "Código de função", "note": "Os 4 bits mais altos: o tipo de mensagem. 0011 = 3: TPDO1, 0x180 no identificador." },
+        "a-node": { "name": "Node ID", "note": "Os 7 bits mais baixos: qual nó. 0000101 = 5: o BMS. Um barramento comporta os nós de 1 a 127." }
     },
     "devices": {
         "rack": "Rack de baterias",
@@ -73,7 +74,7 @@
     "tips": [
         "Muitos fabricantes de baterias usam mensagens CAN próprias, com identificadores e escalas próprios, e não CANopen. O CANopen é uma forma padronizada comum. Peça o arquivo EDS do fabricante ou a lista de mensagens CAN antes de conectar.",
         "Dois nós nunca podem enviar o mesmo identificador. No CANopen, cada node ID no barramento precisa ser único.",
-        "Monitore o heartbeat. Configure o consumer heartbeat time do PCS (objeto 0x1016) um pouco maior que o período de heartbeat do BMS (0x1017), para que um BMS em silêncio pare o PCS.",
+        "Monitore o heartbeat. Configure quanto tempo o PCS espera por ele, o consumer heartbeat time (objeto 0x1016), um pouco maior que o período de heartbeat do BMS (0x1017). Assim, um BMS em silêncio para o PCS.",
         "Coloque um resistor de 120 Ω em cada ponta do barramento, e em nenhum outro lugar. Sem nenhum, ou com um a mais, os quadros se corrompem à medida que o cabo fica mais longo."
     ],
     "points": {
@@ -88,11 +89,11 @@
         "operational": "operacional"
     },
     "anatomy": {
-        "cobid": "Um identificador: um código de função e um node ID"
+        "cobid": "Um identificador (COB-ID): um código de função e um node ID"
     },
     "timing": {
         "title": "O que o barramento leva em dois segundos",
-        "note": "O TPDO1 sai a cada 100 ms (o event timer dele), o heartbeat a cada 1000 ms. Uma mensagem de emergência sai uma vez, quando a falha aparece, e mais uma quando ela some. O chip controlador CAN acrescenta a cada quadro o bit de início, o CRC, o slot de confirmação e os bits de stuffing; os bytes mostrados aqui são o que o software vê.",
+        "note": "O TPDO1 sai a cada 100 ms (o event timer dele), o heartbeat a cada 1000 ms. Uma mensagem de emergência sai uma vez, quando a falha aparece, e mais uma quando ela some. O chip controlador CAN acrescenta a cada quadro o bit de início, o CRC, o slot de confirmação e os bits de stuffing (bits extras que mantêm os receptores sincronizados). Os bytes mostrados aqui são o que o software vê.",
         "tpdo": "TPDO1 · 0x185",
         "heartbeat": "Heartbeat · 0x705",
         "emcy": "EMCY · 0x085",

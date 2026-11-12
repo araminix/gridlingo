@@ -1,12 +1,13 @@
 {
-    "intro": "Bir şarj istasyonu ile onu işleten sunucu, yani CSMS (şarj istasyonu yönetim sistemi) arasındaki dil. Şarj cihazı tek bir WebSocket'i açık tutar ve JSON mesajlar gönderir: kim olduğu, konnektörlerinin durumu, hangi kartın şarj etmek istediği ve her şarj sırasında sayaç değeri. CSMS her mesajı yanıtlar ve aynı bağlantı üzerinden kendi isteklerini de gönderebilir.",
+    "intro": "Bir şarj istasyonu ile onu işleten sunucu arasındaki dil. Bu sunucu CSMS'tir (şarj istasyonu yönetim sistemi, işletmecinin arka ofisi). Şarj cihazı tek bir WebSocket'i açık tutar: kalıcı bir web bağlantısı. Bunun üzerinden kısa JSON mesajlar (yapılandırılmış metin) gönderir: kim olduğu, konnektörlerinin (fişlerinin) durumu, hangi kartın şarj etmek istediği ve her şarj sırasında sayaç değeri. CSMS her mesajı yanıtlar ve aynı bağlantı üzerinden kendi isteklerini de gönderebilir.",
+    "plain": "Elektrikli araçlar için halka açık bir şarj cihazı tek başına çalışmaz. İşletmecisinin bilgisayar sistemine bağlı kalır; tıpkı bir dükkândaki POS cihazının bankayla bağlantıda kalması gibi. Şarj cihazı ne zaman boş olduğunu söyler, kartınızın şarj edip edemeyeceğini sorar ve size fatura kesilebilsin diye ne kadar enerji aldığınızı bildirir.",
     "steps": {
-        "connect": { "title": "Bağlan", "text": "Şarj cihazı CSMS'ine güvenli bir WebSocket açar. Bağlantı açık kalır; böylece iki taraf da istediği zaman gönderebilir." },
-        "boot": { "title": "Açılış", "text": "Enerjilendikten sonraki ilk mesaj, şarj cihazının kim olduğunu söyler. CSMS kabul eder, saati bildirir ve heartbeat aralığını ayarlar. Sonra şarj cihazı her konnektörünü bildirir: konnektör 1 Available." },
-        "authorize": { "title": "Kart okut", "text": "Bir sürücü RFID kartını okuyucuya tutar. Şarj cihazı CSMS'e bu kartın şarj edip edemeyeceğini sorar. Edebilir." },
-        "start": { "title": "Başlat", "text": "Araç takılır ve enerji almaya başlar. Şarj cihazı bir işlem (transaction) açar ve başlangıçtaki sayaç değerini gönderir." },
-        "charge": { "title": "Sayaç değerleri", "text": "Araç şarj olurken şarj cihazı her 15 dakikada bir sayaç değerini gönderir. CSMS enerjinin arttığını görür." },
-        "stop": { "title": "Durdur", "text": "Sürücü kartı yeniden okutur. İşlem bir saat ve 11040 Wh sonra biter. CSMS artık faturalayabilir." }
+        "connect": { "title": "Sunucuya bağlan", "text": "Şarj cihazı CSMS'ine güvenli, şifreli bir WebSocket açar. Bağlantı açık kalır; böylece iki taraf da istediği zaman gönderebilir." },
+        "boot": { "title": "Şarj cihazı açılıyor", "text": "Enerjilendikten sonraki ilk mesaj, şarj cihazının kim olduğunu söyler. CSMS kabul eder, güncel saati gönderir ve heartbeat aralığını ayarlar: şarj cihazının ne sıklıkta \"hâlâ buradayım\" demesi gerektiği. Sonra şarj cihazı her konnektörünü bildirir: konnektör 1 Available." },
+        "authorize": { "title": "Kart okut", "text": "Bir sürücü RFID kartını (bina giriş kartı gibi temassız bir kart) okuyucuya tutar. Şarj cihazı CSMS'e bu kartın şarj edip edemeyeceğini sorar. Yanıt evet." },
+        "start": { "title": "Şarj başlıyor", "text": "Araç takılır ve enerji almaya başlar. Şarj cihazı bir işlem (transaction) açar: bu tek şarjın kaydı. Başlangıçtaki sayaç değerini gönderir." },
+        "charge": { "title": "Sayacı bildir", "text": "Araç şarj olurken şarj cihazı her 15 dakikada bir sayaç değerini gönderir. CSMS enerjinin arttığını görür." },
+        "stop": { "title": "Şarj duruyor", "text": "Sürücü kartı yeniden okutur. İşlem bir saat ve 11040 Wh (yaklaşık 11 kWh) sonra biter. CSMS artık sürücüye fatura kesebilir." }
     },
     "frames": {
         "upgrade": "WebSocket'e geç, subprotocol ocpp2.0.1",
@@ -17,37 +18,37 @@
         "status-conf": "Not edildi",
         "authorize": "04A2B3C4D5E6F7 kartı şarj edebilir mi?",
         "authorize-conf": "Evet: Accepted",
-        "started": "TX-0187 işlemi 12840 Wh'te başladı",
+        "started": "TX-0187 işlemi başladı, sayaç 12840 Wh'te",
         "started-conf": "Not edildi, kart hâlâ Accepted",
-        "updated": "Şimdi 15600 Wh, 11040 W çekiyor",
+        "updated": "Sayaç şimdi 15600 Wh'te, 11040 W çekiyor",
         "updated-conf": "Not edildi",
-        "ended": "TX-0187 23880 Wh'te bitti",
+        "ended": "TX-0187 bitti, sayaç 23880 Wh'te",
         "ended-conf": "Not edildi"
     },
     "notes": {
-        "upgrade": "Şarj cihazı TLS içinde bu HTTP bağlantısının bir WebSocket'e dönüşmesini ister. Adres kimliğiyle, CS-0042 ile biter. Sec-WebSocket-Protocol başlığı ocpp2.0.1 ister; HTTP Basic kimlik doğrulaması da şarj cihazının parolasını taşır.",
+        "upgrade": "Şarj cihazı, şifreli TLS bağlantısının içinde bu HTTP bağlantısının bir WebSocket'e dönüşmesini ister. Web adresi şarj cihazının kimliğiyle, CS-0042 ile biter. Sec-WebSocket-Protocol başlığı ocpp2.0.1 ister. HTTP Basic kimlik doğrulaması şarj cihazının parolasını taşır.",
         "switch": "CSMS kabul eder ve seçtiği subprotocol'ü belirtir: ocpp2.0.1. Bundan sonra iki taraf da her birinde JSON olarak tek bir OCPP mesajı bulunan WebSocket çerçeveleri gönderir.",
-        "status": "timestamp, connectorStatus Available, evseId 1 ve connectorId 1 içeren bir CALL. Bir EVSE tek bir şarj noktasıdır; birkaç konnektörü olabilir.",
-        "status-conf": "Boş payload'lı bir CALLRESULT: [3,\"1002\",{}]. Söylenecek bir şey olmasa bile her CALL bir yanıt alır.",
-        "authorize": "idToken 04A2B3C4D5E6F7, tür ISO14443: RFID kartının 7 baytlık seri numarası. Birçok şarj cihazı, sormadan karar verebilmek için yerel bir kart listesi de tutar.",
+        "status": "timestamp, connectorStatus Available, evseId 1 ve connectorId 1 içeren bir CALL (bir istek). Bir EVSE tek bir şarj noktasıdır: aynı anda tek bir aracı şarj eder. Birkaç konnektörü (fişi) olabilir.",
+        "status-conf": "Boş payload'lı bir CALLRESULT (bir yanıt): [3,\"1002\",{}]. Söylenecek bir şey olmasa bile her CALL bir yanıt alır.",
+        "authorize": "idToken 04A2B3C4D5E6F7, tür ISO14443 (temassız kartların standardı): RFID kartının 7 baytlık seri numarası. Birçok şarj cihazı, CSMS'e sormadan karar verebilmek için yerel bir kart listesi de tutar.",
         "authorize-conf": "Durumu Accepted olan idTokenInfo. Blocked, Expired, Invalid ya da Unknown gibi diğer yanıtlar, şarj cihazının başlatmaması gerektiği anlamına gelir.",
-        "started": "eventType Started, triggerReason ChargingStateChanged, seqNo 0. transactionId'yi (TX-0187) şarj cihazı seçer. Olay, kartın idToken'ını, chargingState Charging'i ve bağlamı Transaction.Begin olan bir sayaç değerini taşır: 12840 Wh.",
+        "started": "eventType Started, triggerReason ChargingStateChanged, seqNo 0: bu işlemin ilk olayı. transactionId'yi (TX-0187) şarj cihazının kendisi seçer. Olay ayrıca kartın idToken'ını, chargingState Charging'i ve başlangıçtaki sayaç değerini (bağlam Transaction.Begin) taşır: 12840 Wh.",
         "started-conf": "Olay kartı taşıdığı için yanıt da kartın durumunu yeniden taşır: idTokenInfo Accepted.",
-        "updated": "eventType Updated, triggerReason MeterValuePeriodic, seqNo 1, iki okumayla: enerji sayacı ve güç. Mesajın tamamını deneme alanı gösteriyor.",
+        "updated": "eventType Updated, triggerReason MeterValuePeriodic (sayaç zamanlayıcısı), seqNo 1. İki okuma taşır: enerji sayacı (sayacın birikimli toplamı) ve güç (enerjinin şu anda ne kadar hızlı aktığı). Mesajın tamamını deneme alanı gösteriyor.",
         "updated-conf": "Boş bir payload: CSMS'in ekleyecek bir şeyi yok.",
-        "ended": "eventType Ended, triggerReason StopAuthorized, seqNo 2, stoppedReason Local, chargingState EVConnected (kablo hâlâ takılı) ve bağlamı Transaction.End olan son sayaç değeri: 23880 Wh.",
+        "ended": "eventType Ended, triggerReason StopAuthorized (durdurmak için bir kart okutuldu), seqNo 2, stoppedReason Local (şarj cihazında durduruldu). chargingState, EVConnected'dır: kablo hâlâ takılı. Son sayaç değeri (bağlam Transaction.End) 23880 Wh'tir.",
         "ended-conf": "Boş bir payload. CSMS, kartın sahibine 23880 − 12840 = 11040 Wh faturalar."
     },
     "fields": {
-        "ws-text": { "name": "FIN · opcode", "note": "0x81: FIN biti (0x80), mesajın tamamının bu çerçevede olduğunu söyler. Opcode 0x1, metin (UTF-8) olduğunu söyler." },
-        "ws-mask-126": { "name": "Maske · uzunluk", "note": "0xFE: maske biti (0x80) kurulu, çünkü bir istemci gönderdiğini maskelemek zorundadır. Geri kalan, 126 (0x7E), uzunluğun ardından 2 baytta geldiğini söyler." },
+        "ws-text": { "name": "FIN · opcode", "note": "0x81. FIN biti (0x80), mesajın tamamının bu tek çerçevede olduğunu söyler. Opcode 0x1, çerçevenin metin (UTF-8) taşıdığını söyler." },
+        "ws-mask-126": { "name": "Maske · uzunluk", "note": "0xFE. Maske biti (0x80) kurulu, çünkü bir istemci gönderdiğini her zaman maskelemek (karıştırmak) zorundadır. Diğer bitler 126'yı (0x7E) tutar; bu şu demektir: gerçek uzunluk ardından 2 baytta gelir." },
         "ws-len-170": { "name": "Uzunluk", "note": "Ardından 0x00AA = 170 bayt JSON gelir. Bunları deneme alanı gösteriyor." },
         "ws-key": { "name": "Maskeleme anahtarı", "note": "4 rastgele bayt. JSON'un her baytı sırayla bunlarla XOR'lanır: \"[\" (0x5B), 0x61 olarak taşınır. Bu şifreleme değildir; o işi TLS yapar." },
-        "ws-len-88": { "name": "Uzunluk", "note": "Ardından 0x58 = 88 bayt JSON gelir. Maske biti 0, çünkü bir sunucu asla maskelemez; bu yüzden ardından maskeleme anahtarı gelmez." },
-        "a-type": { "name": "MessageTypeId", "note": "2 bir CALL, yani bir istektir. Yanıtı 3 (CALLRESULT) ya da 4 (CALLERROR) olur." },
+        "ws-len-88": { "name": "Uzunluk", "note": "Ardından 0x58 = 88 bayt JSON gelir. Maske biti 0, çünkü bir sunucu asla maskelemez. Bu yüzden ardından maskeleme anahtarı gelmez." },
+        "a-type": { "name": "MessageTypeId", "note": "2, CALL demektir: bir istek. Yanıtı 3 (CALLRESULT, başarılı oldu) ya da 4 (CALLERROR, başarısız oldu) olur." },
         "a-id": { "name": "MessageId", "note": "Gönderen seçer, bu bağlantıda benzersizdir. Yanıt da aynı id'yi taşır; ikisini bağlayan başka hiçbir şey yoktur." },
         "a-action": { "name": "Action", "note": "Bunun hangi mesaj olduğu. Yanıtta action yoktur: hangi CALL'u yanıtladığını id'si söyler." },
-        "a-payload": { "name": "Payload", "note": "İsteğin kendisi, bir JSON nesnesi. Alanları BootNotificationRequest'in JSON şemasına göre denetlenir." }
+        "a-payload": { "name": "Payload", "note": "İsteğin kendisi, bir JSON nesnesi. Alıcı, alanlarını BootNotificationRequest'in JSON şemasına (izin verilen alanların resmî listesi) göre denetler." }
     },
     "devices": {
         "car": "Araç",
@@ -59,11 +60,11 @@
         "standard": "OCPP 2.0.1 (Open Charge Alliance, 2020). OCPP 1.6J hâlâ yaygın.",
         "between": "Şarj istasyonu → CSMS (şarj istasyonu yönetim sistemi)",
         "transport": "TLS üzerinden WebSocket (RFC 6455), subprotocol ocpp2.0.1: her metin çerçevesinde bir JSON mesaj",
-        "security": "TLS. Güvenlik profili 2 bir parola (HTTP Basic), profil 3 bir istemci sertifikası ekler.",
+        "security": "TLS şifrelemesi. Güvenlik profili 2 bir parola (HTTP Basic) ekler. Profil 3 bunun yerine bir istemci sertifikası kullanır.",
         "frames": "CALL [2, …] · CALLRESULT [3, …] · CALLERROR [4, …]"
     },
     "tips": [
-        "CSMS, şarj cihazının istediği subprotocol ile yanıt vermezse şarj cihazı bağlantıyı kapatmalıdır. \"Bağlanıyor, sonra kopuyor\" sorununun nedeni çoğu zaman budur.",
+        "CSMS, şarj cihazının istediği subprotocol ile yanıt vermezse şarj cihazı bağlantıyı kapatmalıdır. \"Bağlanıp sonra kopan\" bir şarj cihazının sorunu çoğu zaman budur.",
         "Her seferinde tek bir CALL gönderin ve bir sonrakinden önce yanıtını ya da zaman aşımını bekleyin. Çok erken gönderilen ikinci bir CALL kaybolabilir.",
         "Bir işlemin ne zaman başlayacağı bir ayardır (TxStartPoint): fiş takılınca, yetkilendirmede ya da enerji akmaya başlayınca. Bunu CSMS ekibiyle kararlaştırın; yoksa işlemler olduğundan uzun ya da kısa görünür.",
         "Zaman damgaları UTC'dir. Şarj cihazının saatini BootNotification yanıtındaki currentTime'a göre ayarlayın; yoksa sayaç değerleri yanlış tarife dönemine düşer."
@@ -83,16 +84,16 @@
         "action": "Action: bunun hangi mesaj olduğu. Payload'ı ardından gelir.",
         "reason": "Şarj cihazının neden açıldığı: PowerUp. Diğerleri FirmwareUpdate, RemoteReset, Watchdog ve başkalarıdır.",
         "model": "model ve vendorName, chargingStation'ın yalnızca bu iki alanı zorunludur.",
-        "firmware": "Şu anda çalışan yazılım. CSMS güncellemeleri planlamak için bunu kullanır.",
+        "firmware": "Şu anda çalışan firmware'in (şarj cihazının gömülü yazılımı) sürümü. CSMS güncellemeleri planlamak için bunu kullanır.",
         "event-type": "Started, Updated ya da Ended. Bir işlemde tam olarak bir Started ve bir Ended vardır.",
-        "timestamp": "Z ile UTC. Gönderimin değil, olayın zamanıdır: çevrim dışıyken saklanan bir olay kendi zamanını korur.",
+        "timestamp": "UTC saati; sondaki Z bunu gösterir. Gönderimin değil, olayın zamanıdır: çevrim dışıyken saklanan bir olay kendi zamanını korur.",
         "trigger": "Bu olayın neden gönderildiği: sayaç aralığı (TxUpdatedInterval) doldu.",
         "seq": "seqNo bu işlemin olaylarını 0'dan sayar. Bir boşluk, CSMS'e bir mesajın eksik olduğunu söyler.",
         "transaction-id": "Başlangıçta şarj cihazı seçer. Bu şarjın her olayı onu taşır.",
-        "charging-state": "Charging: enerji akıyor. Diğer durumlar EVConnected, SuspendedEV, SuspendedEVSE ve Idle'dır.",
+        "charging-state": "Charging: enerji akıyor. Diğer durumlar EVConnected, SuspendedEV (araç duraklattı), SuspendedEVSE (şarj cihazı duraklattı) ve Idle'dır.",
         "energy": "Sayacın register'ında 15600 Wh; bir ev sayacının endeksi gibi. Yeni bir işlem için 0'dan yeniden başlamaz.",
         "measurand": "Neyin ölçüldüğü. Measurand yoksa değer Energy.Active.Import.Register demektir.",
-        "unit": "Wh, enerji için varsayılan birim.",
+        "unit": "Wh (watt-saat), enerji için varsayılan birim.",
         "power": "11040 W: 230 V'ta 3 fazın her birinde 16 A."
     }
 }

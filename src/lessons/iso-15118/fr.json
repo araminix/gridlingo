@@ -1,12 +1,13 @@
 {
-    "intro": "La façon dont une voiture électrique et une borne de recharge rapide DC dialoguent pendant une recharge. Les messages passent par le fil pilote du câble de recharge, sous forme de courant porteur, avec IPv6 et TCP par-dessus. C'est la voiture qui mène : elle demande chaque étape et le courant qu'elle veut, et la borne répond avec ce qu'elle peut fournir.",
+    "intro": "La façon dont une voiture électrique et une borne de recharge rapide DC dialoguent pendant une recharge. Une borne DC envoie du courant continu directement dans la batterie. Les messages voyagent sous forme de courant porteur en ligne (CPL), comme un réseau domestique qui passe par les prises électriques, sur le fil pilote : un fin fil de signal dans le câble de recharge. Par-dessus tournent IPv6 et TCP, comme sur Internet. C'est la voiture qui mène : elle demande chaque étape et le courant qu'elle veut, et la borne répond avec ce qu'elle peut fournir.",
+    "plain": "Quand vous branchez une voiture électrique sur une borne rapide, la voiture et la borne se parlent à travers le câble. Avant que la moindre énergie ne circule, elles conviennent du mode de paiement, vérifient que le câble est sûr et s'échangent leurs limites. Ensuite, la voiture ne cesse de dire à la borne combien de courant sa batterie veut, comme on guide quelqu'un qui remplit son verre : encore, moins vite, stop.",
     "steps": {
-        "plug": { "title": "Brancher et associer", "text": "Un rapport cyclique de 5 % sur le fil pilote demande un dialogue numérique. Les modems CPL de la voiture et de la borne se trouvent (SLAC). Puis la voiture demande à tous ceux qui sont sur le lien, ff02::1 sur le port UDP 15118, l'adresse IP et le port de la borne (SDP)." },
-        "session": { "title": "Ouvrir une session", "text": "TCP, puis TLS. Les deux s'accordent sur une version de protocole, et la borne ouvre une session." },
+        "plug": { "title": "Brancher et associer", "text": "La borne envoie un signal carré sur le fil pilote. Son rapport cyclique (la part de chaque cycle où le signal reste haut) est de 5 %, ce qui signifie : parlons en numérique. Ensuite, les modems CPL de la voiture et de la borne se trouvent. C'est le SLAC (signal level attenuation characterization) : la voiture choisit la borne qui l'entend le mieux. Puis la voiture demande à tous ceux qui sont sur le lien (adresse ff02::1, port UDP 15118) l'adresse IP et le port de la borne. C'est le SDP, le protocole de découverte." },
+        "session": { "title": "Ouvrir une session", "text": "La voiture ouvre une connexion TCP vers la borne, puis TLS, qui la chiffre. Les deux s'accordent sur une version de protocole, et la borne ouvre une session." },
         "limits": { "title": "Paiement et limites", "text": "Le conducteur paie par carte à la borne. La voiture et la borne se communiquent leurs limites : tension, courant et puissance." },
-        "prepare": { "title": "Contrôle et précharge", "text": "Avant que le moindre courant ne passe, la borne teste l'isolement du câble. Puis elle monte sa tension jusqu'à celle de la batterie." },
-        "charge": { "title": "Recharge", "text": "La voiture ferme ses contacteurs et demande du courant. Elle continue de demander, et la borne suit." },
-        "stop": { "title": "Arrêt", "text": "À 80 %, la voiture termine la recharge, puis la session." }
+        "prepare": { "title": "Contrôle et égalisation de la tension", "text": "Avant que le moindre courant ne passe, la borne teste l'isolement du câble : aucun courant ne doit fuir vers la terre. Puis elle monte sa tension jusqu'à celle de la batterie. C'est la précharge." },
+        "charge": { "title": "La voiture demande du courant", "text": "La voiture ferme ses contacteurs (les gros interrupteurs entre la batterie et le câble) et demande du courant. Elle continue de demander, et la borne suit." },
+        "stop": { "title": "La recharge s'arrête", "text": "Quand la batterie est pleine à 80 %, la voiture termine la recharge, puis la session." }
     },
     "frames": {
         "cp": "Parle-moi en numérique",
@@ -15,7 +16,7 @@
         "sdp-res": "Ici : fe80::ff:fe00:a1, port 54321, avec TLS",
         "tls": "Prouve qui tu es, puis chiffre",
         "app": "Je parle ISO 15118-2, ou DIN 70121",
-        "setup": "Nouvelle session 4A1F09C27B3E8D15",
+        "setup": "Ta nouvelle session est 4A1F09C27B3E8D15",
         "payment": "Je paierai hors de la voiture : ExternalPayment",
         "params": "Je peux fournir 500 V, 125 A, 50 kW",
         "cable-check": "L'isolement est bon",
@@ -25,30 +26,30 @@
         "stop": "Terminé : fin de la session"
     },
     "notes": {
-        "cp": "C'est encore de l'IEC 61851 : un signal carré à 1 kHz avec un rapport cyclique de 5 %. 5 % n'offre aucun courant ; cela signifie « utilise la communication numérique ». Le modem CPL de la voiture se réveille.",
-        "slac": "SLAC (ISO 15118-3) trouve la borne à l'autre bout de ce câble. Dans un parking, les signaux fuient d'un câble à l'autre : la voiture envoie donc une salve de messages de sondage, et chaque borne qui les entend indique avec quelle force ils sont arrivés. La voiture choisit la plus forte avec CM_SLAC_MATCH.REQ. Cette borne répond CM_SLAC_MATCH.CNF avec la clé d'un réseau CPL privé pour elles deux.",
-        "tls": "La voiture ouvre TCP vers [fe80::ff:fe00:a1]:54321, puis TLS 1.2. La borne présente son certificat, et la voiture le vérifie avec les certificats racines V2G qu'elle détient. À partir d'ici, tout est chiffré.",
+        "cp": "Cette partie est encore de l'IEC 61851 : un signal carré à 1 kHz avec un rapport cyclique de 5 %. 5 % n'offre aucun courant. Cela signifie « utilise la communication numérique ». Le modem CPL de la voiture se réveille.",
+        "slac": "SLAC (ISO 15118-3) trouve la borne à l'autre bout de ce câble. Dans un parking, les signaux fuient d'un câble à l'autre. La voiture envoie donc une salve de messages de sondage, et chaque borne qui les entend indique avec quelle force ils sont arrivés. La voiture choisit la plus forte avec CM_SLAC_MATCH.REQ. Cette borne répond CM_SLAC_MATCH.CNF avec la clé d'un réseau CPL privé pour elles deux.",
+        "tls": "La voiture ouvre TCP vers [fe80::ff:fe00:a1]:54321, puis TLS 1.2. La borne présente son certificat. La voiture le vérifie avec les certificats racines V2G qu'elle détient : les signataires de confiance des certificats de bornes. À partir d'ici, tout est chiffré.",
         "app": "Le premier message de la session liste les protocoles que parle la voiture, chacun avec une version et une priorité. La borne répond supportedAppProtocolRes avec OK_SuccessfulNegotiation et le SchemaID choisi : 1, ISO 15118-2. Le bac à sable montre le message en XML.",
-        "setup": "La voiture a envoyé SessionSetupReq avec son EVCCID, l'adresse MAC de son modem : 02-00-00-00-00-E1. La borne répond avec un nouveau SessionID de 8 octets, son EVSEID et l'heure. Tous les messages suivants portent le SessionID dans leur en-tête.",
-        "payment": "Avant cela, ServiceDiscovery : la borne a proposé la recharge DC et deux moyens de paiement, Contract (Plug & Charge) et ExternalPayment. La voiture choisit ExternalPayment : le conducteur paie par carte ou par une application. Puis elle répète AuthorizationReq jusqu'à ce que la borne réponde Finished.",
-        "params": "La voiture a envoyé ses limites et son état de charge, 54 %. La borne répond avec les siennes : au plus 500 V, 125 A et 50 kW. Chaque valeur est un entier de 16 bits, une puissance de dix et une unité : 50 kW voyage donc sous la forme 5000 × 10^1 W.",
-        "cable-check": "La voiture a mis le fil pilote à l'état C. La borne applique une tension de test sur le câble DC et mesure l'isolement par rapport à la terre. Elle répond Ongoing jusqu'à la fin, puis Finished, avec EVSEIsolationStatus Valid.",
+        "setup": "La voiture a envoyé SessionSetupReq avec son EVCCID : l'adresse MAC (adresse matérielle) de son modem, 02-00-00-00-00-E1. La borne répond avec un nouveau SessionID de 8 octets, son EVSEID et l'heure. Tous les messages suivants portent le SessionID dans leur en-tête.",
+        "payment": "Avant cela est venu ServiceDiscovery. La borne a proposé la recharge DC et deux moyens de paiement : Contract (Plug & Charge, où la voiture paie toute seule) et ExternalPayment. La voiture choisit ExternalPayment : le conducteur paie par carte ou par une application. Puis la voiture répète AuthorizationReq jusqu'à ce que la borne réponde Finished.",
+        "params": "La voiture a envoyé ses limites et son état de charge (le niveau de remplissage de la batterie), 54 %. La borne répond avec les siennes : au plus 500 V, 125 A et 50 kW. Chaque valeur est un nombre entier de 16 bits, une puissance de dix et une unité. 50 kW voyage donc sous la forme 5000 × 10^1 W.",
+        "cable-check": "La voiture a mis le fil pilote à l'état C : prête à recharger. La borne applique une tension de test sur le câble DC et mesure l'isolement par rapport à la terre. Elle répond Ongoing jusqu'à la fin, puis Finished, avec EVSEIsolationStatus Valid.",
         "pre-charge": "La batterie est à 396 V, derrière les contacteurs ouverts de la voiture. La voiture demande à la borne de monter sa sortie à la même tension, avec 2 A au plus. La borne répond avec sa tension actuelle, 395 V : assez proche pour fermer les contacteurs sans étincelle.",
         "power-on": "La voiture a fermé ses contacteurs. ChargeProgress Start : désormais, la borne peut fournir du courant.",
-        "current-demand": "La voiture demande 120 A, avec son état de charge, et envoie la requête suivante dès que la réponse arrive. La borne répond à chacune avec ce qu'elle fournit : 398 V, 120 A. C'est la voiture qui pilote : elle fait varier le courant à mesure que la batterie se remplit.",
-        "stop": "D'abord PowerDeliveryReq avec ChargeProgress Stop : le courant tombe à 0 et la voiture ouvre ses contacteurs. WeldingDetection vérifie qu'ils se sont bien ouverts. Puis SessionStopReq avec ChargingSession Terminate met fin à la session."
+        "current-demand": "La voiture demande 120 A, avec son état de charge. Elle envoie la requête suivante dès que la réponse arrive. La borne répond à chacune avec ce qu'elle fournit : 398 V, 120 A. C'est la voiture qui pilote : elle fait varier le courant à mesure que la batterie se remplit.",
+        "stop": "D'abord vient PowerDeliveryReq avec ChargeProgress Stop : le courant tombe à 0 et la voiture ouvre ses contacteurs. WeldingDetection vérifie qu'ils se sont bien ouverts et ne sont pas restés soudés. Puis SessionStopReq avec ChargingSession Terminate met fin à la session."
     },
     "fields": {
-        "version": { "name": "Version V2GTP", "note": "Version 0x01, puis le même octet inversé, 0xFE. Un récepteur rejette un message qui porte autre chose." },
-        "sdp-req": { "name": "Type de payload", "note": "0x9000 : une requête SDP." },
-        "sdp-res": { "name": "Type de payload", "note": "0x9001 : une réponse SDP." },
+        "version": { "name": "Version V2GTP", "note": "Version 0x01, puis le même octet avec tous ses bits inversés, 0xFE. Un récepteur rejette un message qui porte autre chose ici." },
+        "sdp-req": { "name": "Type de payload", "note": "0x9000 : une requête SDP, qui demande où se trouve la borne." },
+        "sdp-res": { "name": "Type de payload", "note": "0x9001 : une réponse SDP, qui dit où se trouve la borne." },
         "len-2": { "name": "Longueur", "note": "2 octets de payload suivent. L'en-tête lui-même fait toujours 8 octets." },
         "len-20": { "name": "Longueur", "note": "0x14 = 20 octets suivent : adresse, port, sécurité et transport." },
-        "tls-req": { "name": "Sécurité", "note": "0x00 : la voiture veut TLS. 0x10 signifierait sans TLS." },
+        "tls-req": { "name": "Sécurité", "note": "0x00 : la voiture veut TLS, une connexion chiffrée. 0x10 signifierait sans TLS." },
         "tls-res": { "name": "Sécurité", "note": "0x00 : la borne accepte TLS." },
         "tcp": { "name": "Transport", "note": "0x00 : TCP." },
-        "ip-prefix": { "name": "Préfixe IPv6", "note": "fe80::/64 : une adresse link-local, valable seulement sur ce lien." },
-        "ip-id": { "name": "Identifiant d'interface", "note": "Construit à partir de l'adresse MAC de la borne, 02-00-00-00-00-A1 : FF FE au milieu et le bit 0x02 inversé. L'adresse complète est fe80::ff:fe00:a1." },
+        "ip-prefix": { "name": "Préfixe IPv6", "note": "fe80::/64 : une adresse link-local. Elle n'est valable que sur ce lien, le réseau CPL privé de la voiture et de la borne." },
+        "ip-id": { "name": "Identifiant d'interface", "note": "Construit à partir de l'adresse MAC de la borne, 02-00-00-00-00-A1 : FF FE s'insère au milieu, et le bit 0x02 est inversé. L'adresse complète est fe80::ff:fe00:a1." },
         "port": { "name": "Port TCP", "note": "0xD431 = 54321 : là où la borne attend cette voiture." },
         "a-urn": { "name": "URN", "note": "Un uniform resource name : une étiquette fixe, pas une adresse à ouvrir." },
         "a-body": { "name": "Organisme", "note": "iso : l'organisme propriétaire du nom." },
@@ -64,15 +65,15 @@
     },
     "facts": {
         "standard": "ISO 15118-2 (2014) pour les messages, ISO 15118-3 pour le courant porteur. ISO 15118-20 est la génération suivante.",
-        "between": "Le contrôleur de la voiture (EVCC) → celui de la borne (SECC). La voiture demande, la borne répond.",
+        "between": "Le contrôleur de communication de la voiture (EVCC) → celui de la borne (SECC). La voiture demande, la borne répond.",
         "transport": "HomePlug Green PHY sur le fil pilote, IPv6, SDP sur UDP 15118, puis TCP",
-        "security": "TLS 1.2 : la borne prouve son identité par un certificat. Plug & Charge ajoute un certificat de contrat dans la voiture.",
+        "security": "TLS 1.2 : la borne prouve son identité par un certificat. Plug & Charge ajoute un certificat de contrat dans la voiture, pour qu'elle puisse payer toute seule.",
         "frames": "EXI (du XML compressé en bits) dans un en-tête V2GTP de 8 octets"
     },
     "tips": [
         "Beaucoup de recharges ratées ne dépassent jamais SLAC. Vérifiez le modem, le câblage du fil pilote et la force du signal indiquée par la borne avant de regarder les messages.",
         "Chaque grandeur physique est un entier, une puissance de dix et une unité. Lisez le Multiplier : 5000 avec un Multiplier de 1 vaut 50 kW, pas 5 kW.",
-        "Les opérations lentes, comme CableCheck ou Authorization, reçoivent aussitôt une réponse EVSEProcessing Ongoing. La voiture redemande ; une borne qui la fait attendre sa réponse la pousse à abandonner.",
+        "Les opérations lentes, comme CableCheck ou Authorization, reçoivent aussitôt une réponse EVSEProcessing Ongoing, et la voiture redemande. Une borne qui retient sa réponse pousse au contraire la voiture à abandonner.",
         "Beaucoup de bornes choisissent encore DIN 70121 dans la liste de la voiture. Une capture où urn:din:70121:2012:MsgDef est choisi explique pourquoi Plug & Charge ne démarre jamais."
     ],
     "points": {
@@ -86,7 +87,7 @@
     },
     "playground": {
         "file": "Le premier message de la voiture dans la session, écrit en XML. Sur le fil, il voyage en EXI, qui comprime le même contenu en quelques dizaines d'octets.",
-        "root": "L'élément racine. Son propre espace de noms, de 2010, est le même dans toutes les versions : n'importe quelle borne peut donc lire ce premier message.",
+        "root": "L'élément racine, qui contient tous les autres. Son propre espace de noms, de 2010, est le même dans toutes les versions : n'importe quelle borne peut donc lire ce premier message.",
         "iso": "Première entrée : ISO 15118-2.",
         "version": "Version 2.0. Une borne d'une autre version mineure peut répondre OK_SuccessfulNegotiationWithMinorDeviation.",
         "schema-id": "Un numéro que la voiture attribue à cette entrée. La borne désigne son choix par ce numéro.",

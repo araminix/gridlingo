@@ -1,17 +1,18 @@
 {
-    "intro": "L'itinérance permet à un conducteur de recharger avec une seule carte sur les bornes de nombreuses entreprises. OCPI relie l'opérateur de points de recharge (CPO), qui exploite les bornes, et l'opérateur de mobilité (eMSP), qui fournit aux conducteurs leurs cartes et applications. Chaque côté propose une API REST, que l'autre appelle : pour les emplacements, les cartes, les sessions et la facture de chaque recharge.",
+    "intro": "L'itinérance permet à un conducteur de recharger avec une seule carte sur les bornes de nombreuses entreprises, comme un téléphone fonctionne sur d'autres réseaux à l'étranger. OCPI relie l'opérateur de points de recharge (CPO), qui exploite les bornes, et l'opérateur de mobilité (eMSP), qui fournit aux conducteurs leurs cartes et applications. Chaque côté propose une API REST : un ensemble d'adresses web que l'autre côté appelle pour lire ou envoyer des données. Par elles, ils échangent les emplacements des bornes, les cartes, les sessions de recharge et la facture de chaque recharge.",
+    "plain": "Avec une seule carte ou application, vous pouvez recharger votre voiture électrique sur des bornes exploitées par de nombreuses entreprises différentes, un peu comme votre téléphone fonctionne sur d'autres réseaux quand vous voyagez à l'étranger. Pour cela, l'entreprise qui exploite la borne et celle qui vous a fourni votre carte doivent travailler ensemble. Voici le langage que leurs systèmes informatiques utilisent pour indiquer où se trouvent les bornes, vérifier que votre carte est valide et s'envoyer la facture.",
     "steps": {
-        "discover": { "title": "Découverte", "text": "Deux entreprises se connectent une fois, avant qu'aucun conducteur ne soit en itinérance. L'eMSP lit les versions d'OCPI que propose le CPO, et l'emplacement de chaque partie de son API." },
-        "register": { "title": "Échanger les jetons", "text": "L'eMSP s'enregistre avec un jeton temporaire, A. Chaque côté finit avec son propre jeton pour appeler l'autre : l'eMSP appelle le CPO avec le jeton C, et le CPO appelle l'eMSP avec le jeton B." },
-        "location": { "title": "Publier une borne", "text": "Le CPO envoie son emplacement avec un EVSE, un point de recharge, pour que l'application de l'eMSP puisse le montrer aux conducteurs." },
-        "authorize": { "title": "Vérifier une carte", "text": "Un conducteur muni d'une carte de l'eMSP la présente à la borne. Le CPO ne connaît pas cette carte : il interroge l'eMSP." },
-        "session": { "title": "Session", "text": "La recharge commence. Le CPO signale la session, puis envoie des mises à jour pendant que la voiture recharge." },
-        "cdr": { "title": "Facture", "text": "Après la recharge, le CPO envoie le CDR, le relevé détaillé de recharge : ce que l'eMSP doit pour cette recharge." }
+        "discover": { "title": "Premier contact", "text": "Deux entreprises se connectent une fois, avant qu'aucun conducteur ne soit en itinérance. L'eMSP lit les versions d'OCPI que propose le CPO, et l'adresse web de chaque partie (module) de son API." },
+        "register": { "title": "Échanger les jetons d'accès", "text": "Un jeton (token) est une chaîne secrète, comme un mot de passe, envoyée avec chaque requête. L'eMSP s'enregistre avec un jeton temporaire, A. Chaque côté a ensuite son propre jeton pour appeler l'autre : l'eMSP appelle le CPO avec le jeton C, et le CPO appelle l'eMSP avec le jeton B." },
+        "location": { "title": "Publier une borne", "text": "Le CPO envoie un emplacement (un site de recharge) avec un EVSE : un point de recharge. L'application de l'eMSP peut maintenant le montrer aux conducteurs." },
+        "authorize": { "title": "Vérifier une carte", "text": "Un conducteur muni d'une carte de l'eMSP la présente à la borne. Le CPO ne connaît pas cette carte : il demande à l'eMSP si elle est autorisée à recharger." },
+        "session": { "title": "Session de recharge", "text": "La recharge commence. Le CPO signale la session (cette recharge précise), puis envoie des mises à jour pendant que la voiture recharge." },
+        "cdr": { "title": "Envoyer la facture", "text": "Après la recharge, le CPO envoie le CDR (charge detail record, relevé détaillé de recharge) : le relevé définitif de ce que l'eMSP doit pour cette recharge." }
     },
     "frames": {
         "versions": "Quelles versions d'OCPI parles-tu, et où ?",
         "endpoints": "2.2.1, et voici mes endpoints",
-        "post-credentials": "Voici mon jeton B et mon adresse",
+        "post-credentials": "Voici le jeton B pour m'appeler, et mon adresse",
         "check": "Quelles versions parles-tu ? (avec le jeton B)",
         "credentials": "Enregistré. Appelle-moi désormais avec le jeton C",
         "put-location": "Emplacement LOC-0042, avec l'EVSE NL*ABC*E12345*1",
@@ -24,26 +25,26 @@
         "cdr-ok": "Enregistré, à cette adresse"
     },
     "notes": {
-        "versions": "L'eMSP a reçu deux choses du CPO, par e-mail ou par un portail : l'URL de sa liste de versions et le jeton A. Il envoie un GET avec l'en-tête Authorization: Token, suivi du jeton A en Base64. Puis il envoie un GET vers l'URL de la version 2.2.1.",
-        "endpoints": "Toute réponse OCPI a la même enveloppe : data, status_code, status_message et timestamp. Ici, data liste d'abord les versions, puis les endpoints de 2.2.1 : une URL par module, chacune marquée SENDER ou RECEIVER. Le CPO est émetteur des emplacements, des sessions et des CDR, et récepteur des tokens.",
-        "post-credentials": "Toujours avec le jeton A, l'eMSP envoie ses propres identifiants : un nouveau jeton B que le CPO utilisera, l'URL de sa propre liste de versions, et son rôle : EMSP, country_code DE, party_id XYZ.",
+        "versions": "L'eMSP a reçu deux choses du CPO, par e-mail ou par un portail : l'URL de sa liste de versions et le jeton A. Il lit la liste avec un GET. L'en-tête Authorization: Token, suivi du jeton A en Base64, prouve qui demande. Puis il envoie un GET vers l'URL de la version 2.2.1.",
+        "endpoints": "Toute réponse OCPI a la même enveloppe (les mêmes champs extérieurs) : data, status_code, status_message et timestamp. Ici, data liste d'abord les versions, puis les endpoints de 2.2.1 : une URL par module, chacune marquée SENDER (propriétaire des données) ou RECEIVER. Le CPO est émetteur des emplacements, des sessions et des CDR, et récepteur des tokens.",
+        "post-credentials": "Toujours avec le jeton A, l'eMSP envoie ses propres identifiants : un nouveau jeton B que le CPO utilisera, l'URL de sa propre liste de versions, et son rôle : EMSP, country_code DE, party_id XYZ (son code d'entreprise).",
         "check": "Avant de répondre, le CPO vérifie l'eMSP de la même façon : GET de ses versions, puis de ses endpoints 2.2.1, avec le jeton B.",
         "credentials": "Le CPO répond avec ses identifiants : le jeton C, l'URL de ses versions, et son rôle : CPO, country_code NL, party_id ABC. Le jeton A cesse de fonctionner. Désormais, l'eMSP appelle avec le jeton C et le CPO avec le jeton B.",
-        "put-location": "Le CPO dépose l'emplacement sur l'endpoint locations de l'eMSP. L'URL indique son propriétaire et son id ; la décomposition la détaille et le bac à sable montre le corps.",
-        "location-ok": "status_code 1000 signifie succès. Lisez-le, pas seulement le statut HTTP : 2xxx est une erreur client, 3xxx une erreur serveur.",
-        "authorize": "Autorisation en temps réel. La carte appartient à l'eMSP : le CPO envoie donc un POST sur l'endpoint tokens de l'eMSP, avec l'uid de la carte dans l'URL, ?type=RFID, et l'emplacement et l'EVSE dans le corps.",
+        "put-location": "Le CPO enregistre l'emplacement sur l'endpoint locations de l'eMSP avec un PUT (créer ou remplacer). L'URL indique le propriétaire et l'id de l'emplacement. La décomposition la détaille, et le bac à sable montre le corps.",
+        "location-ok": "status_code 1000 signifie succès. Lisez-le, pas seulement le statut HTTP : 2xxx est une erreur client (la requête était incorrecte), 3xxx une erreur serveur.",
+        "authorize": "Autorisation en temps réel : le CPO demande pendant que le conducteur attend. La carte appartient à l'eMSP : le CPO envoie donc un POST sur l'endpoint tokens de l'eMSP, avec l'uid de la carte dans l'URL, ?type=RFID, et l'emplacement et l'EVSE dans le corps.",
         "allowed": "data.allowed vaut ALLOWED, avec l'objet token complet de la carte. Les autres réponses sont BLOCKED, EXPIRED, NO_CREDIT et NOT_ALLOWED. Le CPO demande à sa borne, via OCPP, de démarrer.",
         "put-session": "Le CPO crée la session chez l'eMSP : start_date_time, kwh 0, la carte en cdr_token, auth_method AUTH_REQUEST, l'emplacement, l'EVSE et le connecteur, currency EUR, status ACTIVE.",
-        "patch-session": "Seul ce qui a changé circule : kwh 6.25 et last_updated. L'application de l'eMSP peut maintenant montrer au conducteur l'énergie déjà reçue.",
+        "patch-session": "Avec PATCH, seul ce qui a changé circule : kwh 6.25 et last_updated. L'application de l'eMSP peut maintenant montrer au conducteur l'énergie déjà reçue.",
         "post-cdr": "Le CDR est la facture entre les deux entreprises : quand, où, quelle carte, combien d'énergie et de temps, et le prix. Le bac à sable le montre.",
         "cdr-ok": "L'eMSP enregistre le CDR et renvoie sa propre URL pour celui-ci dans l'en-tête Location. Il peut maintenant facturer le conducteur."
     },
     "fields": {
         "a-country": { "name": "Pays", "note": "NL : le code ISO 3166 à deux lettres du pays de l'opérateur." },
         "a-operator": { "name": "Opérateur", "note": "ABC : l'identifiant de l'opérateur, unique dans son pays. En OCPI, c'est le party_id du CPO." },
-        "a-type": { "name": "Type", "note": "E : cet identifiant désigne un EVSE." },
+        "a-type": { "name": "Type", "note": "E : cet identifiant désigne un EVSE, un point de recharge." },
         "a-evse": { "name": "EVSE", "note": "12345*1 : le numéro propre à l'opérateur pour ce point de recharge." },
-        "u-endpoint": { "name": "Endpoint", "note": "L'endpoint locations de l'eMSP, tiré de sa liste d'endpoints. Jamais construit par le CPO." },
+        "u-endpoint": { "name": "Endpoint", "note": "L'adresse web de l'eMSP pour les emplacements, tirée de sa liste d'endpoints. Le CPO ne la construit jamais lui-même." },
         "u-country": { "name": "country_code", "note": "Le pays de la partie propriétaire de l'objet : le CPO." },
         "u-party": { "name": "party_id", "note": "L'identifiant de partie du CPO. Avec country_code, il désigne une entreprise dans tout objet OCPI." },
         "u-location": { "name": "location_id", "note": "L'id du CPO pour cet emplacement. Ajouter /1 désignerait l'EVSE d'uid 1 qu'il contient." }
@@ -63,9 +64,9 @@
     },
     "tips": [
         "Utilisez les URL que l'autre côté liste dans ses endpoints. Ne les construisez jamais d'après un modèle : chaque plateforme a les siennes.",
-        "Le jeton A ne sert qu'à l'enregistrement. Une cause fréquente d'erreurs 401 après l'enregistrement est la confusion entre les jetons B et C.",
+        "Le jeton A ne sert qu'à l'enregistrement. Une cause fréquente d'erreurs 401 (accès refusé) après l'enregistrement est la confusion entre les jetons B et C.",
         "HTTP 200 ne suffit pas : lisez status_code dans le corps. 1000 signifie succès, 2xxx une erreur client, 3xxx une erreur serveur.",
-        "Un CDR est définitif. Un CDR erroné n'est pas modifié : le CPO envoie un CDR d'avoir, puis un nouveau."
+        "Un CDR est définitif. Un CDR erroné n'est pas modifié : le CPO envoie un CDR d'avoir qui l'annule, puis un nouveau."
     ],
     "points": {
         "to-cpo": "Jeton pour appeler le CPO",
@@ -91,13 +92,13 @@
         "coordinates": "La latitude et la longitude sont des chaînes, pas des nombres, avec 5 à 7 décimales.",
         "evse-uid": "uid : l'id interne de l'EVSE chez le CPO, utilisé dans les URL et dans les sessions.",
         "evse-id": "evse_id : l'identifiant imprimé sur la borne, pour les conducteurs. La décomposition le détaille.",
-        "status": "AVAILABLE. Quand il change, le CPO envoie un PATCH avec le nouveau statut.",
+        "status": "AVAILABLE : libre. Quand il change, le CPO envoie un PATCH avec le nouveau statut.",
         "standard": "IEC_62196_T2 : un socle Type 2. format SOCKET signifie que le conducteur apporte le câble.",
         "max-voltage": "230 V : en triphasé AC, la tension entre une phase et le neutre.",
         "max-power": "22080 W = 3 × 230 V × 32 A.",
-        "tariff": "Le tarif qui s'applique ici. Le CPO le publie dans le module tariffs.",
+        "tariff": "Le tarif (la grille de prix) qui s'applique ici. Le CPO le publie dans le module tariffs.",
         "time-zone": "Le fuseau horaire local. Les heures en OCPI sont en UTC ; ceci indique à l'application ce qu'affiche l'horloge locale.",
-        "last-updated": "La dernière modification de cet objet. Une partie qui a manqué des mises à jour demande tout ce qui a changé depuis sa dernière synchronisation.",
+        "last-updated": "La dernière modification de cet objet. Une partie qui a manqué des mises à jour demande tout ce qui a changé depuis la dernière fois qu'elle était à jour.",
         "cdr-id": "L'id du CPO pour ce CDR.",
         "session-id": "La session que ce CDR clôt : celle que l'eMSP a vue grandir.",
         "cdr-token": "La carte qui a rechargé. Elle appartient à l'eMSP XYZ, en Allemagne (DE).",

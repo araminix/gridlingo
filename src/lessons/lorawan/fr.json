@@ -1,11 +1,12 @@
 {
-    "intro": "LoRaWAN permet à des capteurs sur pile d'envoyer quelques octets sur de nombreux kilomètres. Un capteur émet dans les airs, et chaque passerelle à portée transmet ce qu'elle entend à un même serveur réseau. Le serveur réseau garde une copie et la vérifie ; seul le serveur d'application peut lire le payload. Un capteur n'entend le réseau que pendant un court instant après avoir émis.",
+    "intro": "LoRaWAN permet à des capteurs sur pile d'envoyer quelques octets par radio sur de nombreux kilomètres. Un capteur émet dans les airs. Chaque passerelle à portée, un récepteur radio relié à Internet, transmet ce qu'elle entend à un même serveur réseau. Le serveur réseau garde une copie et la vérifie. Seul le serveur d'application, celui qui exploite les données, peut lire le payload (les données elles-mêmes). Un capteur n'entend le réseau que pendant un court instant après avoir émis.",
+    "plain": "Ce système permet à de petits capteurs sur pile d'envoyer de courts messages par radio à travers une ville ou un grand champ, en consommant très peu d'énergie. C'est comme crier un message d'un versant à l'autre d'une vallée. Chaque poste d'écoute qui l'entend le transmet à un même bureau central, qui n'en garde qu'un exemplaire. Pour économiser sa pile, le capteur n'écoute la réponse qu'un court instant, juste après avoir parlé.",
     "steps": {
-        "join": { "title": "Rattachement", "text": "Le capteur envoie un JoinRequest, et les deux passerelles l'entendent. 5 s plus tard, le réseau répond par un JoinAccept : une adresse courte, et les nombres dont les deux côtés ont besoin pour dériver les mêmes clés de session. Les clés elles-mêmes ne circulent jamais." },
-        "uplink": { "title": "Uplink", "text": "Quelques secondes plus tard, le capteur envoie sa première mesure. Il ne sait pas qui écoute : les deux passerelles la reçoivent." },
-        "dedupe": { "title": "Deux copies", "text": "Chaque passerelle fait suivre ce qu'elle a entendu par IP. Le serveur réseau attend un instant les copies, en garde une, la vérifie, et note quelle passerelle a le mieux entendu." },
-        "decode": { "title": "Décodage", "text": "Le serveur d'application déchiffre le payload et transforme ses quatre octets en valeurs : 46.3 °C et 3.6 V." },
-        "downlink": { "title": "Fenêtre de réception", "text": "Le capteur n'écoute que 1 s et 2 s après avoir émis. Un réglage mis en file d'attente lors du rattachement part dans la première fenêtre, par la passerelle 1, qui l'a le mieux entendu. Puis le capteur dort jusqu'à sa mesure suivante." }
+        "join": { "title": "Rejoindre le réseau", "text": "Le capteur demande à rejoindre le réseau par un JoinRequest, et les deux passerelles l'entendent. 5 s plus tard, le réseau répond par un JoinAccept. Il contient une adresse courte, et les nombres dont les deux côtés ont besoin pour calculer les mêmes clés de session, les clés secrètes de cette session. Les clés elles-mêmes ne circulent jamais. Cette façon de rejoindre le réseau s'appelle OTAA (over-the-air activation)." },
+        "uplink": { "title": "Envoyer une mesure", "text": "Quelques secondes plus tard, le capteur envoie sa première mesure dans un uplink, un message montant du capteur vers le réseau. Il ne sait pas qui écoute : les deux passerelles la reçoivent." },
+        "dedupe": { "title": "Écarter le doublon", "text": "Chaque passerelle fait suivre ce qu'elle a entendu par Internet (IP). Le serveur réseau attend un instant d'autres copies et en garde une. Il vérifie cette copie, et note quelle passerelle a le mieux entendu le capteur." },
+        "decode": { "title": "Lire les valeurs", "text": "Le serveur d'application déchiffre le payload. Son codec, un petit programme écrit pour ce capteur, transforme les quatre octets en valeurs : 46.3 °C et 3.6 V." },
+        "downlink": { "title": "Écouter la réponse", "text": "Le capteur n'écoute que deux fois, brièvement : 1 s et 2 s après avoir émis. Ce sont ses fenêtres de réception. Un réglage attend depuis le rattachement. Il part dans la première fenêtre sous forme de downlink, un message descendant vers le capteur, par la passerelle 1, qui a le mieux entendu le capteur. Puis le capteur dort jusqu'à sa mesure suivante." }
     },
     "frames": {
         "join-request": "Je suis le DevEUI 02-1A-44-00-00-00-07-B3, puis-je me rattacher ?",
@@ -17,13 +18,13 @@
         "downlink": "Désormais, envoie une mesure toutes les 600 s"
     },
     "notes": {
-        "forward-1": "La passerelle ne décode rien. Elle enveloppe les octets radio dans du JSON (base64), ajoute ce qu'elle a mesuré, RSSI -97 dBm et SNR 7.5 dB, ainsi que l'heure, et l'envoie au serveur réseau : ici avec le packet forwarder de Semtech, sur UDP 1700.",
-        "forward-2": "Les mêmes octets venant de la passerelle 2, plus éloignée : RSSI -118 dBm, SNR -6.0 dB.",
-        "to-as": "Le serveur réseau a gardé une copie, vérifié le MIC avec la NwkSKey et vérifié que le FCnt a augmenté. Il fait suivre le payload, toujours chiffré, avec FPort 1 et FCnt 0. Le serveur d'application le déchiffre avec l'AppSKey en 01 CF 0E 10, et son codec le transforme en {\"temperature_c\":46.3,\"battery_v\":3.6}."
+        "forward-1": "La passerelle ne décode rien. Elle enveloppe les octets radio dans du JSON, sous forme de texte base64. Elle ajoute ce qu'elle a mesuré, la force du signal (RSSI) -97 dBm et le rapport signal sur bruit (SNR) 7.5 dB, ainsi que l'heure. Puis elle envoie le tout au serveur réseau, ici avec le packet forwarder de Semtech sur UDP 1700.",
+        "forward-2": "Les mêmes octets venant de la passerelle 2, plus éloignée et plus faible : RSSI -118 dBm, SNR -6.0 dB.",
+        "to-as": "Le serveur réseau a gardé une copie. Il a vérifié le MIC (le code d'intégrité) avec la NwkSKey, et vérifié que ce FCnt (compteur de trames) n'avait pas déjà servi. Il fait suivre le payload, toujours chiffré, avec FPort 1 et FCnt 0. Le serveur d'application le déchiffre avec l'AppSKey en 01 CF 0E 10. Son codec le transforme en {\"temperature_c\":46.3,\"battery_v\":3.6}."
     },
     "fields": {
         "mhdr-join-request": { "name": "MHDR", "note": "Type de message 000 : JoinRequest. Version majeure 00 : LoRaWAN R1." },
-        "join-eui": { "name": "JoinEUI", "note": "02-00-00-00-00-00-00-01, l'identifiant du serveur de rattachement. LoRaWAN envoie les EUI et les adresses octet de poids faible en premier." },
+        "join-eui": { "name": "JoinEUI", "note": "02-00-00-00-00-00-00-01, l'identifiant du serveur de rattachement (join server), qui vérifie les rattachements et fabrique les clés. LoRaWAN envoie les EUI et les adresses octet de poids faible en premier." },
         "dev-eui": { "name": "DevEUI", "note": "02-1A-44-00-00-00-07-B3, l'identifiant 64 bits propre au capteur, octet de poids faible en premier." },
         "devnonce": { "name": "DevNonce", "note": "7, octet de poids faible en premier. Le capteur compte ses demandes de rattachement ; le serveur de rattachement refuse un numéro qu'il a déjà vu." },
         "mic-join": { "name": "MIC", "note": "Un AES-CMAC sur le message avec l'AppKey : il prouve que le capteur connaît la clé. Une valeur d'exemple, calculée avec l'AppKey inventée 2B7E151628AED2A6ABF7158809CF4F3C." },
@@ -31,7 +32,7 @@
         "join-accept": { "name": "Chiffré", "note": "Chiffré avec l'AppKey. Déchiffré : 0C 00 00 (JoinNonce 12), 00 00 00 (NetID 0, un réseau privé), B4 A3 C2 01 (DevAddr 0x01C2A3B4), 00 (RX1 au débit de l'uplink, RX2 en DR0 = SF12), 01 (RX1 s'ouvre 1 s après un uplink), puis le MIC. Valeurs d'exemple, tirées de l'AppKey inventée." },
         "mhdr-up": { "name": "MHDR", "note": "Type de message 010 : un uplink non confirmé, aucun acquittement voulu." },
         "devaddr": { "name": "DevAddr", "note": "0x01C2A3B4, octet de poids faible en premier : l'adresse courte du JoinAccept." },
-        "fctrl-up": { "name": "FCtrl", "note": "0x80 : ADR activé (bit 7), le réseau peut donc modifier le débit et la puissance du capteur. FOptsLen 0 : aucune commande MAC ne suit." },
+        "fctrl-up": { "name": "FCtrl", "note": "0x80 : ADR activé (bit 7), le réseau peut donc modifier le débit et la puissance d'émission du capteur. FOptsLen 0 : aucune commande MAC (réglage du réseau) ne suit." },
         "fcnt-up": { "name": "FCnt", "note": "0 : le premier uplink depuis le rattachement. Il augmente à chaque uplink, et le réseau refuse un ancien numéro." },
         "fport-1": { "name": "FPort", "note": "1 : données applicatives. Le port 0 ne porterait que des commandes MAC." },
         "frm-up": { "name": "FRMPayload", "note": "Chiffré avec l'AppSKey : seul le serveur d'application peut le lire. Déchiffré : 01 CF 0E 10. Une valeur d'exemple, tirée de l'AppKey inventée." },
@@ -39,7 +40,7 @@
         "mhdr-down": { "name": "MHDR", "note": "Type de message 011 : un downlink non confirmé." },
         "fctrl-down": { "name": "FCtrl", "note": "0x80 : ADR activé, pas d'acquittement, rien d'autre en attente, pas de commande MAC." },
         "fcnt-down": { "name": "FCnt", "note": "0 : le premier downlink depuis le rattachement. Les downlinks ont leur propre compteur." },
-        "fport-2": { "name": "FPort", "note": "2 : les réglages, sur ce capteur." },
+        "fport-2": { "name": "FPort", "note": "2 : sur ce capteur, le port 2 transporte les réglages." },
         "frm-down": { "name": "FRMPayload", "note": "Chiffré avec l'AppSKey. Le capteur le déchiffre en 01 02 58 : commande 1, régler l'intervalle, 0x0258 = 600 s. Une valeur d'exemple, tirée de l'AppKey inventée." },
         "mic-down": { "name": "MIC", "note": "Calculé avec la NwkSKey : le capteur sait ainsi que le downlink est authentique. Une valeur d'exemple, tirée de l'AppKey inventée." }
     },
@@ -61,8 +62,8 @@
     "tips": [
         "Un capteur qui oublie son compteur DevNonce après une réinitialisation ne peut plus se rattacher : le serveur de rattachement refuse les numéros déjà vus (\"DevNonce too small\"). Gardez le compteur en mémoire non volatile.",
         "En ABP (clés réglées à la main, sans rattachement), un capteur dont le compteur de trames repart à 0 est ignoré : le réseau prend ses trames pour des rejeux. Préférez le rattachement (OTAA), qui repart avec de nouveaux compteurs et de nouvelles clés.",
-        "En SF12, le même uplink de 17 octets occupe l'air 1.3 s, et le rapport cyclique de 1 % oblige alors le capteur à se taire plus de 2 minutes. Placez les passerelles de sorte que les capteurs puissent utiliser un facteur d'étalement bas.",
-        "Un capteur de classe A n'entend le réseau que juste après avoir émis. Une commande destinée à un capteur qui émet une fois par heure peut attendre une heure."
+        "En SF12, le facteur d'étalement le plus lent, le même uplink de 17 octets occupe l'air 1.3 s. Le rapport cyclique de 1 % oblige alors le capteur à se taire plus de 2 minutes. Placez les passerelles de sorte que les capteurs puissent utiliser un facteur d'étalement bas : plus rapide, et plus bref sur l'air.",
+        "Un capteur de classe A, le type courant qui économise la pile, n'entend le réseau que juste après avoir émis. Une commande destinée à un capteur qui émet une fois par heure peut attendre une heure."
     ],
     "points": {
         "temperature": "Température",

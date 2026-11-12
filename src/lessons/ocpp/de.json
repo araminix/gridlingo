@@ -1,12 +1,13 @@
 {
-    "intro": "Die Sprache zwischen einer Ladestation und dem Server, der sie betreibt, dem CSMS (Charging Station Management System). Die Ladestation hält einen WebSocket offen und sendet JSON-Nachrichten: wer sie ist, den Zustand ihrer Anschlüsse, welche Karte laden will und den Zählerstand während jedes Ladevorgangs. Das CSMS beantwortet jede Nachricht und kann über dieselbe Verbindung eigene Anfragen senden.",
+    "intro": "Die Sprache zwischen einer Ladestation und dem Server, der sie betreibt: dem CSMS (Charging Station Management System, dem Backend des Betreibers). Die Ladestation hält einen WebSocket offen: eine dauerhafte Webverbindung. Darüber sendet sie kurze JSON-Nachrichten (strukturierten Text): wer sie ist, den Zustand ihrer Anschlüsse (Stecker), welche Karte laden will und den Zählerstand während jedes Ladevorgangs. Das CSMS beantwortet jede Nachricht und kann über dieselbe Verbindung eigene Anfragen senden.",
+    "plain": "Eine öffentliche Ladestation für Elektroautos arbeitet nicht allein. Sie bleibt mit dem Computersystem ihres Betreibers verbunden, ganz ähnlich wie ein Kartenterminal im Laden mit der Bank in Kontakt bleibt. Die Ladestation meldet, wann sie frei ist, fragt, ob die Karte laden darf, und berichtet, wie viel Energie geflossen ist, damit abgerechnet werden kann.",
     "steps": {
-        "connect": { "title": "Verbinden", "text": "Die Ladestation öffnet einen sicheren WebSocket zu ihrem CSMS. Die Verbindung bleibt offen, sodass jede Seite jederzeit senden kann." },
-        "boot": { "title": "Boot", "text": "Die erste Nachricht nach dem Einschalten sagt, wer die Ladestation ist. Das CSMS nimmt sie an, gibt die Uhrzeit vor und setzt das Heartbeat-Intervall. Dann meldet die Ladestation jeden Anschluss: Anschluss 1 ist Available." },
-        "authorize": { "title": "Karte vorhalten", "text": "Eine Fahrerin hält eine RFID-Karte an das Lesegerät. Die Ladestation fragt das CSMS, ob diese Karte laden darf. Sie darf." },
-        "start": { "title": "Start", "text": "Das Auto wird angesteckt und beginnt, Energie aufzunehmen. Die Ladestation eröffnet eine Transaktion und sendet den Zählerstand zu Beginn." },
-        "charge": { "title": "Zählerwerte", "text": "Während das Auto lädt, sendet die Ladestation alle 15 Minuten den Zählerstand. Das CSMS sieht die Energie wachsen." },
-        "stop": { "title": "Stopp", "text": "Die Fahrerin hält die Karte noch einmal vor. Die Transaktion endet nach einer Stunde und 11040 Wh. Das CSMS kann sie jetzt abrechnen." }
+        "connect": { "title": "Mit dem Server verbinden", "text": "Die Ladestation öffnet einen sicheren, verschlüsselten WebSocket zu ihrem CSMS. Die Verbindung bleibt offen, sodass jede Seite jederzeit senden kann." },
+        "boot": { "title": "Ladestation startet", "text": "Die erste Nachricht nach dem Einschalten sagt, wer die Ladestation ist. Das CSMS nimmt sie an, sendet die aktuelle Uhrzeit und setzt das Heartbeat-Intervall: wie oft die Ladestation „Ich bin noch da“ sagen muss. Dann meldet die Ladestation jeden Anschluss: Anschluss 1 ist Available." },
+        "authorize": { "title": "Karte vorhalten", "text": "Eine Fahrerin hält eine RFID-Karte (eine kontaktlose Karte, wie ein Hausausweis) an das Lesegerät. Die Ladestation fragt das CSMS, ob diese Karte laden darf. Die Antwort ist ja." },
+        "start": { "title": "Laden beginnt", "text": "Das Auto wird angesteckt und beginnt, Energie aufzunehmen. Die Ladestation eröffnet eine Transaktion: den Datensatz zu diesem einen Ladevorgang. Sie sendet den Zählerstand zu Beginn." },
+        "charge": { "title": "Zählerstand melden", "text": "Während das Auto lädt, sendet die Ladestation alle 15 Minuten ihren Zählerstand. Das CSMS sieht die Energie wachsen." },
+        "stop": { "title": "Laden endet", "text": "Die Fahrerin hält die Karte noch einmal vor. Die Transaktion endet nach einer Stunde und 11040 Wh (etwa 11 kWh). Das CSMS kann der Fahrerin jetzt die Rechnung stellen." }
     },
     "frames": {
         "upgrade": "Wechsel zu WebSocket, Subprotokoll ocpp2.0.1",
@@ -17,37 +18,37 @@
         "status-conf": "Notiert",
         "authorize": "Darf Karte 04A2B3C4D5E6F7 laden?",
         "authorize-conf": "Ja: Accepted",
-        "started": "Transaktion TX-0187 begonnen bei 12840 Wh",
+        "started": "Transaktion TX-0187 begonnen, Zählerstand 12840 Wh",
         "started-conf": "Notiert, die Karte ist weiterhin Accepted",
-        "updated": "Jetzt 15600 Wh, Bezug 11040 W",
+        "updated": "Zählerstand jetzt 15600 Wh, Bezug 11040 W",
         "updated-conf": "Notiert",
-        "ended": "TX-0187 beendet bei 23880 Wh",
+        "ended": "TX-0187 beendet, Zählerstand 23880 Wh",
         "ended-conf": "Notiert"
     },
     "notes": {
-        "upgrade": "Innerhalb von TLS bittet die Ladestation darum, diese HTTP-Verbindung in einen WebSocket umzuwandeln. Die Adresse endet mit ihrer Identität, CS-0042. Der Header Sec-WebSocket-Protocol fordert ocpp2.0.1 an, und HTTP Basic Authentication trägt das Passwort der Ladestation.",
+        "upgrade": "Innerhalb der verschlüsselten TLS-Verbindung bittet die Ladestation darum, diese HTTP-Verbindung in einen WebSocket umzuwandeln. Die Webadresse endet mit der Identität der Ladestation, CS-0042. Der Header Sec-WebSocket-Protocol fordert ocpp2.0.1 an. HTTP Basic Authentication trägt das Passwort der Ladestation.",
         "switch": "Das CSMS stimmt zu und nennt das gewählte Subprotokoll: ocpp2.0.1. Ab jetzt senden beide Seiten WebSocket-Frames, jeden mit einer OCPP-Nachricht in JSON.",
-        "status": "Ein CALL mit timestamp, connectorStatus Available, evseId 1 und connectorId 1. Ein EVSE ist ein Ladepunkt; er kann mehrere Anschlüsse haben.",
-        "status-conf": "Ein CALLRESULT mit leerer Payload: [3,\"1002\",{}]. Jeder CALL bekommt eine Antwort, auch wenn es nichts zu sagen gibt.",
-        "authorize": "idToken 04A2B3C4D5E6F7, Typ ISO14443: die Seriennummer der RFID-Karte mit 7 Bytes. Viele Ladestationen führen zusätzlich eine lokale Kartenliste, um ohne Rückfrage zu entscheiden.",
+        "status": "Ein CALL (eine Anfrage) mit timestamp, connectorStatus Available, evseId 1 und connectorId 1. Ein EVSE ist ein Ladepunkt: Er lädt ein Auto zur selben Zeit. Er kann mehrere Anschlüsse (Stecker) haben.",
+        "status-conf": "Ein CALLRESULT (eine Antwort) mit leerer Payload: [3,\"1002\",{}]. Jeder CALL bekommt eine Antwort, auch wenn es nichts zu sagen gibt.",
+        "authorize": "idToken 04A2B3C4D5E6F7, Typ ISO14443 (die Norm für kontaktlose Karten): die Seriennummer der RFID-Karte mit 7 Bytes. Viele Ladestationen führen zusätzlich eine lokale Kartenliste, damit sie entscheiden können, ohne das CSMS zu fragen.",
         "authorize-conf": "idTokenInfo mit Status Accepted. Andere Antworten wie Blocked, Expired, Invalid oder Unknown bedeuten, dass die Ladestation nicht starten darf.",
-        "started": "eventType Started, triggerReason ChargingStateChanged, seqNo 0. Die Ladestation wählt die transactionId, TX-0187. Das Ereignis trägt den idToken der Karte, chargingState Charging und einen Zählerwert mit dem Kontext Transaction.Begin: 12840 Wh.",
+        "started": "eventType Started, triggerReason ChargingStateChanged, seqNo 0: das erste Ereignis dieser Transaktion. Die Ladestation wählt die transactionId selbst, TX-0187. Das Ereignis trägt außerdem den idToken der Karte, chargingState Charging und den Zählerstand zu Beginn (Kontext Transaction.Begin): 12840 Wh.",
         "started-conf": "Das Ereignis enthielt die Karte, also enthält die Antwort erneut ihren Status: idTokenInfo Accepted.",
-        "updated": "eventType Updated, triggerReason MeterValuePeriodic, seqNo 1, mit zwei Messwerten: dem Energiezählwerk und der Leistung. Unter „Ausprobieren“ steht die ganze Nachricht.",
+        "updated": "eventType Updated, triggerReason MeterValuePeriodic (der Zähler-Timer), seqNo 1. Es trägt zwei Messwerte: das Energiezählwerk (die laufende Summe des Zählers) und die Leistung (wie schnell die Energie gerade fließt). Unter „Ausprobieren“ steht die ganze Nachricht.",
         "updated-conf": "Eine leere Payload: Das CSMS hat nichts hinzuzufügen.",
-        "ended": "eventType Ended, triggerReason StopAuthorized, seqNo 2, stoppedReason Local, chargingState EVConnected (das Kabel steckt noch) und der letzte Zählerwert mit dem Kontext Transaction.End: 23880 Wh.",
+        "ended": "eventType Ended, triggerReason StopAuthorized (eine Karte wurde zum Beenden vorgehalten), seqNo 2, stoppedReason Local (an der Ladestation beendet). chargingState ist EVConnected: Das Kabel steckt noch. Der letzte Zählerstand (Kontext Transaction.End) ist 23880 Wh.",
         "ended-conf": "Eine leere Payload. Das CSMS rechnet 23880 − 12840 = 11040 Wh mit dem Karteninhaber ab."
     },
     "fields": {
-        "ws-text": { "name": "FIN · Opcode", "note": "0x81: Das FIN-Bit (0x80) sagt, dass die ganze Nachricht in diesem Frame steckt. Opcode 0x1 sagt, dass es Text ist, UTF-8." },
-        "ws-mask-126": { "name": "Maske · Länge", "note": "0xFE: Das Masken-Bit (0x80) ist gesetzt, weil ein Client maskieren muss, was er sendet. Der Rest, 126 (0x7E), sagt, dass die Länge in 2 Bytes folgt." },
+        "ws-text": { "name": "FIN · Opcode", "note": "0x81. Das FIN-Bit (0x80) sagt, dass die ganze Nachricht in diesem einen Frame steckt. Opcode 0x1 sagt, dass der Frame Text trägt (UTF-8)." },
+        "ws-mask-126": { "name": "Maske · Länge", "note": "0xFE. Das Masken-Bit (0x80) ist gesetzt, weil ein Client immer maskieren (verwürfeln) muss, was er sendet. Die übrigen Bits enthalten 126 (0x7E), das bedeutet: Die eigentliche Länge folgt in 2 Bytes." },
         "ws-len-170": { "name": "Länge", "note": "Es folgen 0x00AA = 170 Bytes JSON. Unter „Ausprobieren“ sind sie zu sehen." },
         "ws-key": { "name": "Masking Key", "note": "4 Zufallsbytes. Jedes Byte des JSON wird der Reihe nach mit ihnen per XOR verknüpft: \"[\" (0x5B) reist als 0x61. Das ist keine Verschlüsselung; die übernimmt TLS." },
-        "ws-len-88": { "name": "Länge", "note": "Es folgen 0x58 = 88 Bytes JSON. Das Masken-Bit ist 0, weil ein Server nie maskiert, also folgt kein Masking Key." },
-        "a-type": { "name": "MessageTypeId", "note": "2 ist ein CALL, eine Anfrage. Die Antwort darauf ist eine 3 (CALLRESULT) oder eine 4 (CALLERROR)." },
+        "ws-len-88": { "name": "Länge", "note": "Es folgen 0x58 = 88 Bytes JSON. Das Masken-Bit ist 0, weil ein Server nie maskiert. Also folgt kein Masking Key." },
+        "a-type": { "name": "MessageTypeId", "note": "2 bedeutet CALL: eine Anfrage. Die Antwort darauf ist eine 3 (CALLRESULT, es hat geklappt) oder eine 4 (CALLERROR, es ist fehlgeschlagen)." },
         "a-id": { "name": "MessageId", "note": "Vom Sender gewählt, eindeutig auf dieser Verbindung. Die Antwort trägt dieselbe ID; nichts anderes verbindet die beiden." },
         "a-action": { "name": "Action", "note": "Welche Nachricht das ist. Eine Antwort hat keine Action: Ihre ID sagt, welchen CALL sie beantwortet." },
-        "a-payload": { "name": "Payload", "note": "Die Anfrage selbst, ein JSON-Objekt. Ihre Felder werden gegen das JSON-Schema von BootNotificationRequest geprüft." }
+        "a-payload": { "name": "Payload", "note": "Die Anfrage selbst, ein JSON-Objekt. Der Empfänger prüft ihre Felder gegen das JSON-Schema (die offizielle Liste der erlaubten Felder) von BootNotificationRequest." }
     },
     "devices": {
         "car": "Auto",
@@ -59,11 +60,11 @@
         "standard": "OCPP 2.0.1 (Open Charge Alliance, 2020). OCPP 1.6J ist noch verbreitet.",
         "between": "Ladestation → CSMS (Charging Station Management System)",
         "transport": "WebSocket (RFC 6455) über TLS, Subprotokoll ocpp2.0.1: eine JSON-Nachricht pro Text-Frame",
-        "security": "TLS. Security Profile 2 ergänzt ein Passwort (HTTP Basic), Profile 3 ein Client-Zertifikat.",
+        "security": "TLS-Verschlüsselung. Security Profile 2 ergänzt ein Passwort (HTTP Basic). Profile 3 nutzt stattdessen ein Client-Zertifikat.",
         "frames": "CALL [2, …] · CALLRESULT [3, …] · CALLERROR [4, …]"
     },
     "tips": [
-        "Antwortet das CSMS nicht mit dem Subprotokoll, das die Ladestation angefragt hat, muss die Ladestation die Verbindung schließen. „Sie verbindet sich und fällt dann wieder raus“ ist oft genau das.",
+        "Antwortet das CSMS nicht mit dem Subprotokoll, das die Ladestation angefragt hat, muss die Ladestation die Verbindung schließen. Eine Ladestation, die „sich verbindet und dann wieder rausfällt“, hat oft genau dieses Problem.",
         "Immer nur einen CALL senden und vor dem nächsten auf seine Antwort oder ein Timeout warten. Ein zu früh gesendeter zweiter CALL kann verloren gehen.",
         "Wann eine Transaktion beginnt, ist eine Einstellung (TxStartPoint): beim Anstecken, bei der Autorisierung oder wenn Energie fließt. Mit dem CSMS-Team abstimmen, sonst wirken Transaktionen zu lang oder zu kurz.",
         "Zeitstempel sind in UTC. Die Uhr der Ladestation aus currentTime in der Antwort auf die BootNotification stellen, sonst landen Zählerwerte im falschen Tarifzeitraum."
@@ -83,16 +84,16 @@
         "action": "Die Action: welche Nachricht das ist. Ihre Payload folgt.",
         "reason": "Warum die Ladestation gebootet hat: PowerUp. Andere Gründe sind FirmwareUpdate, RemoteReset, Watchdog und weitere.",
         "model": "model und vendorName sind die einzigen Pflichtfelder von chargingStation.",
-        "firmware": "Die Firmware, die gerade läuft. Das CSMS plant damit Updates.",
+        "firmware": "Die Version der Firmware (der eingebauten Software der Ladestation), die gerade läuft. Das CSMS plant damit Updates.",
         "event-type": "Started, Updated oder Ended. Eine Transaktion hat genau ein Started und ein Ended.",
-        "timestamp": "UTC, mit Z. Es ist die Zeit des Ereignisses, nicht des Sendens: Ein offline gespeichertes Ereignis behält seine Zeit.",
+        "timestamp": "UTC-Zeit, erkennbar am Z am Ende. Es ist die Zeit des Ereignisses, nicht des Sendens: Ein offline gespeichertes Ereignis behält seine eigene Zeit.",
         "trigger": "Warum dieses Ereignis gesendet wurde: Das Zählerintervall (TxUpdatedInterval) ist abgelaufen.",
         "seq": "seqNo zählt die Ereignisse dieser Transaktion ab 0. Eine Lücke sagt dem CSMS, dass eine Nachricht fehlt.",
         "transaction-id": "Von der Ladestation beim Start gewählt. Jedes Ereignis dieses Ladevorgangs trägt sie.",
-        "charging-state": "Charging: Energie fließt. Andere Zustände sind EVConnected, SuspendedEV, SuspendedEVSE und Idle.",
+        "charging-state": "Charging: Energie fließt. Andere Zustände sind EVConnected, SuspendedEV (das Auto pausiert), SuspendedEVSE (die Ladestation pausiert) und Idle.",
         "energy": "15600 Wh im Zählwerk des Zählers, wie beim Zählwerk eines Haushaltszählers. Es beginnt bei einer neuen Transaktion nicht wieder bei 0.",
         "measurand": "Was gemessen wurde. Ohne measurand bedeutet ein Wert Energy.Active.Import.Register.",
-        "unit": "Wh, die Standardeinheit für Energie.",
+        "unit": "Wh (Wattstunden), die Standardeinheit für Energie.",
         "power": "11040 W: 16 A auf jeder der 3 Phasen bei 230 V."
     }
 }

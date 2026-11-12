@@ -1,11 +1,12 @@
 {
-    "intro": "Modbus su un cavo seriale. Un master e fino a 247 slave condividono una linea RS-485 a due fili. Solo il master avvia una conversazione: chiama uno slave con il suo indirizzo, e risponde solo quello slave. Un CRC alla fine di ogni frame scopre i byte danneggiati.",
+    "intro": "Modbus su un cavo seriale. Un master, il dispositivo che chiede, e fino a 247 slave, i dispositivi che rispondono, condividono un'unica linea RS-485 a due fili. Solo il master avvia una conversazione: chiama uno slave con il suo indirizzo, e risponde solo quello slave. Ogni frame (un messaggio sulla linea) termina con un CRC: due byte di controllo calcolati dal resto, che permettono di scoprire i byte danneggiati.",
+    "plain": "Modbus RTU permette a una scatola di raccogliere le letture di più macchine collegate tutte allo stesso cavo. Funziona come un insegnante che fa l'appello: chiama un nome, risponde solo quell'alunno, poi chiama il successivo. Nessuno parla senza essere interpellato. Ogni messaggio termina con un breve codice di controllo, così un messaggio rovinato lungo il percorso viene riconosciuto e ignorato.",
     "steps": {
-        "poll": { "title": "Interroga lo slave 1", "text": "Il datalogger è il master. Chiede allo slave 1, l'inverter, due input register. Ogni dispositivo sulla linea sente il frame, ma risponde solo lo slave 1." },
-        "meter": { "title": "Interroga lo slave 2", "text": "Poi il contatore all'indirizzo 2. La sua potenza è un float a 32 bit in due registri, prima la word alta." },
-        "silent": { "title": "Nessuna risposta", "text": "Lo slave 3 non risponde. Il datalogger aspetta 1 secondo, chiede un'altra volta, poi lo segna offline e passa oltre. Non può sapere perché: mancanza di alimentazione, un filo rotto e un'impostazione sbagliata sembrano identici." },
-        "broadcast": { "title": "Broadcast", "text": "Il datalogger invia un limite di potenza all'indirizzo 0, un broadcast. Ogni slave lo applica e nessuno risponde, quindi il datalogger non sa chi l'ha ricevuto. Il contatore non ha il registro 40201 e non fa nulla." },
-        "confirm": { "title": "Rileggilo", "text": "Il datalogger dà agli slave 200 ms per agire, poi rilegge il limite dallo slave 1: 60 %. Lo slave 3 è ancora offline, quindi il suo limite è sconosciuto." }
+        "poll": { "title": "Interroga lo slave 1", "text": "Il datalogger, una piccola scatola che raccoglie le letture, è il master. Chiede allo slave 1, un inverter che immette energia in rete, due input register. I registri sono caselle numerate da 16 bit; gli input register contengono i valori che il dispositivo misura. Ogni dispositivo sulla linea sente il frame, ma risponde solo lo slave 1." },
+        "meter": { "title": "Interroga lo slave 2", "text": "Poi il contatore di energia all'indirizzo 2. La sua potenza è un float a 32 bit (un numero con la virgola) che occupa due registri. La word alta, cioè la metà superiore da 16 bit, arriva per prima." },
+        "silent": { "title": "Nessuna risposta", "text": "Lo slave 3, il secondo inverter, non risponde. Il datalogger aspetta 1 secondo, chiede un'altra volta, poi lo segna offline e passa oltre. Non può sapere perché: mancanza di alimentazione, un filo rotto e un'impostazione sbagliata sembrano identici." },
+        "broadcast": { "title": "Dillo a tutti insieme", "text": "Il datalogger invia un limite di potenza all'indirizzo 0. L'indirizzo 0 è un broadcast: un messaggio per tutti gli slave insieme. Ogni slave lo applica e nessuno risponde, quindi il datalogger non sa chi l'ha ricevuto. Il contatore non ha il registro 40201, il limite di potenza, quindi non fa nulla." },
+        "confirm": { "title": "Rileggilo", "text": "Il datalogger dà agli slave 200 ms per agire. Poi rilegge il limite dallo slave 1: 60 %. Lo slave 3 è ancora offline, quindi il suo limite è sconosciuto." }
     },
     "frames": {
         "inv1-req": "Slave 1: mandami gli input register 0 e 1",
@@ -26,7 +27,7 @@
         "fc03": { "name": "Funzione 03", "note": "0x03: lettura degli holding register, dove stanno le impostazioni." },
         "fc04": { "name": "Funzione 04", "note": "0x04: lettura degli input register, i valori che un dispositivo misura. Non si possono scrivere." },
         "fc06": { "name": "Funzione 06", "note": "0x06: scrittura di un registro." },
-        "addr-0": { "name": "Indirizzo 0", "note": "0x0000: il registro 30001 del manuale. Sulla linea si conta da 0." },
+        "addr-0": { "name": "Indirizzo 0", "note": "0x0000: il registro 30001 del manuale. Il 3 iniziale indica un input register, e sulla linea si conta da 0." },
         "addr-12": { "name": "Indirizzo 12", "note": "0x000C = 12: il registro 30013, la potenza al punto di connessione." },
         "addr-200": { "name": "Indirizzo 200", "note": "0x00C8 = 200: il registro 40201, il limite di potenza degli inverter." },
         "qty-1": { "name": "Quantità", "note": "1 registro." },
@@ -36,8 +37,8 @@
         "power": { "name": "Registro 30001", "note": "0x0CB2 = 3250: potenza AC, in W." },
         "voltage": { "name": "Registro 30002", "note": "0x0900 = 2304: tensione di rete a passi di 0.1 V, quindi 230.4 V." },
         "meter-power": { "name": "Registri 30013–30014", "note": "0x45337800: un float a 32 bit, prima la word alta (ABCD). Vale 2871.5 (W)." },
-        "limit-60": { "name": "Valore", "note": "0x003C = 60: 60 % della potenza nominale." },
-        "crc": { "name": "CRC", "note": "CRC-16 su tutti i byte precedenti, inviato con il byte meno significativo per primo. Uno slave scarta un frame con il CRC sbagliato e resta in silenzio." }
+        "limit-60": { "name": "Valore", "note": "0x003C = 60: 60 % della potenza nominale, il massimo che l'inverter può dare." },
+        "crc": { "name": "CRC", "note": "Un valore di controllo CRC-16 calcolato su tutti i byte precedenti, inviato con il byte meno significativo per primo. Chi riceve lo ricalcola. Uno slave scarta un frame il cui CRC non coincide e resta in silenzio." }
     },
     "devices": {
         "logger": "Datalogger",
@@ -50,11 +51,11 @@
         "between": "Un master (datalogger, controllore) → fino a 247 slave",
         "transport": "RS-485: due fili dati e una massa, fino a circa 1200 m",
         "frames": "Indirizzo, codice funzione, dati, CRC-16. Nessun byte di inizio: i frame sono separati dal silenzio.",
-        "speed": "A 9600 baud una richiesta di 8 byte impiega 9.2 ms"
+        "speed": "A 9600 baud (bit al secondo) una richiesta di 8 byte impiega 9.2 ms"
     },
     "tips": [
         "Tutti i dispositivi sulla linea devono usare la stessa velocità, parità e bit di stop. Un'impostazione sbagliata sembra in tutto e per tutto uno slave morto.",
-        "Metti una resistenza da 120 Ω a ciascuna estremità della linea, non su ogni dispositivo. Resistenze mancanti o in più causano errori CRC che vanno e vengono.",
+        "Metti una resistenza da 120 Ω a ciascuna estremità della linea, non su ogni dispositivo. Resistenze mancanti o in più distorcono il segnale e causano errori CRC che vanno e vengono.",
         "Due dispositivi con lo stesso indirizzo rispondono insieme e si disturbano a vicenda. Imposta ogni indirizzo prima di collegare il dispositivo.",
         "Se non risponde proprio nessuno, inverti i due fili dati. I costruttori non concordano su quale sia A e quale B."
     ],
@@ -68,7 +69,7 @@
     },
     "timing": {
         "title": "Frame e silenzi sulla linea, a 9600 baud",
-        "note": "Modbus RTU non ha byte di inizio né di fine. Un frame è finito quando la linea resta in silenzio per 3.5 caratteri: 4.0 ms a 9600 baud, con 11 bit per carattere. Sopra i 19200 baud la pausa è fissata a 1.75 ms. Dentro un frame, una pausa più lunga di 1.5 caratteri spezza il frame.",
+        "note": "Modbus RTU non ha byte di inizio né di fine. Un frame è finito quando la linea resta in silenzio per 3.5 caratteri: 4.0 ms a 9600 baud. Un carattere è un byte con i suoi bit di start, parità e stop: 11 bit. Sopra i 19200 baud la pausa è fissata a 1.75 ms. Dentro un frame, una pausa più lunga di 1.5 caratteri spezza il frame.",
         "logger": "Il datalogger trasmette",
         "inv1": "L'inverter 1 risponde",
         "idle": "Linea in silenzio",
@@ -77,7 +78,7 @@
     "playground": {
         "file": "La configurazione del datalogger per questa linea. Ogni slave della linea deve usare la stessa velocità e la stessa parità.",
         "baud": "9600 bit al secondo. Ogni dispositivo sulla linea deve usare la stessa velocità.",
-        "parity": "8E1: 8 bit di dati, parità pari, 1 bit di stop. Il bit di parità scopre gli errori su un singolo bit. 8E1 è il predefinito di Modbus; molti dispositivi escono impostati a 8N1.",
+        "parity": "8E1: 8 bit di dati, parità pari, 1 bit di stop. Il bit di parità è un bit in più che rende pari il numero di 1, così un singolo bit invertito viene scoperto. 8E1 è il predefinito di Modbus. Senza parità la norma chiede 2 bit di stop (8N2), ma molti dispositivi escono impostati a 8N1: tutti i dispositivi sulla linea devono avere la stessa impostazione.",
         "timeout": "Quanto aspetta il datalogger una risposta prima di rinunciare: 1 secondo.",
         "retries": "Chiedi ancora una volta prima di segnare uno slave come offline.",
         "after-broadcast": "Nessuno risponde a un broadcast, quindi il datalogger aspetta questo tempo prima del frame successivo.",

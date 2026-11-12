@@ -1,12 +1,13 @@
 {
-    "intro": "Come un'auto elettrica e una colonnina DC veloce dialogano durante una ricarica. I messaggi viaggiano sul filo control pilot del cavo di ricarica, come segnale a onde convogliate, con IPv6 e TCP sopra. Guida l'auto: chiede ogni passo e la corrente che vuole, e la colonnina risponde con ciò che può dare.",
+    "intro": "Come un'auto elettrica e una colonnina DC veloce dialogano durante una ricarica. Una colonnina DC immette corrente continua direttamente nella batteria. I messaggi viaggiano come segnale a onde convogliate, come una rete domestica che passa per le prese di corrente, sul control pilot: un sottile filo di segnale nel cavo di ricarica. Sopra girano IPv6 e TCP, come su internet. Guida l'auto: chiede ogni passo e la corrente che vuole, e la colonnina risponde con ciò che può dare.",
+    "plain": "Quando colleghi un'auto elettrica a una colonnina veloce, l'auto e la colonnina si parlano attraverso il cavo. Prima che passi energia, si accordano su come verrà pagata la ricarica, controllano che il cavo sia sicuro e si scambiano i propri limiti. Poi l'auto continua a dire alla colonnina quanta corrente vuole la sua batteria, come diresti a chi ti riempie il bicchiere: ancora, più piano, basta.",
     "steps": {
-        "plug": { "title": "Collega e abbina", "text": "Un duty cycle del 5 % sul control pilot chiede il dialogo digitale. I modem a onde convogliate dell'auto e della colonnina si trovano (SLAC). Poi l'auto chiede a tutti sul link, ff02::1 sulla porta UDP 15118, l'indirizzo IP e la porta della colonnina (SDP)." },
-        "session": { "title": "Apri una sessione", "text": "TCP, poi TLS. Le due parti concordano una versione del protocollo e la colonnina apre una sessione." },
+        "plug": { "title": "Collega e abbina", "text": "La colonnina invia un'onda quadra sul control pilot. Il suo duty cycle (la parte di ogni ciclo in cui il segnale resta alto) è del 5 %, che significa: parliamoci in digitale. Poi i modem a onde convogliate dell'auto e della colonnina si trovano. Questo è SLAC (signal level attenuation characterization): l'auto sceglie la colonnina che la sente meglio. Quindi l'auto chiede a tutti sul link (indirizzo ff02::1, porta UDP 15118) l'indirizzo IP e la porta della colonnina. Questo è SDP, il protocollo di scoperta." },
+        "session": { "title": "Apri una sessione", "text": "L'auto apre una connessione TCP verso la colonnina, poi TLS, che la cifra. Le due parti concordano una versione del protocollo e la colonnina apre una sessione." },
         "limits": { "title": "Pagamento e limiti", "text": "Il conducente paga con una carta alla colonnina. Auto e colonnina si comunicano i propri limiti: tensione, corrente e potenza." },
-        "prepare": { "title": "Verifica e precarica", "text": "Prima che passi corrente, la colonnina verifica l'isolamento del cavo. Poi porta la sua tensione a quella della batteria." },
-        "charge": { "title": "Ricarica", "text": "L'auto chiude i suoi contattori e chiede corrente. Continua a chiedere, e la colonnina la segue." },
-        "stop": { "title": "Stop", "text": "All'80 % l'auto termina la ricarica, e poi la sessione." }
+        "prepare": { "title": "Verifica e allinea la tensione", "text": "Prima che passi corrente, la colonnina verifica l'isolamento del cavo: nessuna corrente deve disperdersi verso terra. Poi porta la sua tensione a quella della batteria. Questa è la precarica." },
+        "charge": { "title": "L'auto chiede corrente", "text": "L'auto chiude i suoi contattori (i grossi interruttori tra batteria e cavo) e chiede corrente. Continua a chiedere, e la colonnina la segue." },
+        "stop": { "title": "La ricarica si ferma", "text": "Quando la batteria è piena all'80 %, l'auto termina la ricarica, e poi la sessione." }
     },
     "frames": {
         "cp": "Parlami in digitale",
@@ -15,7 +16,7 @@
         "sdp-res": "Qui: fe80::ff:fe00:a1, porta 54321, con TLS",
         "tls": "Dimostra chi sei, poi cifra",
         "app": "Parlo ISO 15118-2, o DIN 70121",
-        "setup": "Nuova sessione 4A1F09C27B3E8D15",
+        "setup": "La tua nuova sessione è 4A1F09C27B3E8D15",
         "payment": "Pagherò fuori dall'auto: ExternalPayment",
         "params": "Posso dare 500 V, 125 A, 50 kW",
         "cable-check": "L'isolamento è buono",
@@ -25,30 +26,30 @@
         "stop": "Finito: chiudi la sessione"
     },
     "notes": {
-        "cp": "Questo è ancora IEC 61851: un'onda quadra a 1 kHz con duty cycle del 5 %. Il 5 % non offre corrente; significa \"usa la comunicazione digitale\". Il modem a onde convogliate dell'auto si attiva.",
-        "slac": "SLAC (ISO 15118-3) trova la colonnina all'altro capo di questo cavo. In un parcheggio i segnali passano da un cavo all'altro, quindi l'auto invia una raffica di messaggi di sondaggio, e ogni colonnina che li sente riporta con quale intensità sono arrivati. L'auto sceglie la più forte con CM_SLAC_MATCH.REQ. Quella colonnina risponde con CM_SLAC_MATCH.CNF e la chiave di una rete privata a onde convogliate solo per loro due.",
-        "tls": "L'auto apre TCP verso [fe80::ff:fe00:a1]:54321, poi TLS 1.2. La colonnina mostra il suo certificato e l'auto lo verifica con i certificati radice V2G che possiede. Da qui in poi tutto è cifrato.",
+        "cp": "Questa parte è ancora IEC 61851: un'onda quadra a 1 kHz con duty cycle del 5 %. Il 5 % non offre corrente. Significa \"usa la comunicazione digitale\". Il modem a onde convogliate dell'auto si attiva.",
+        "slac": "SLAC (ISO 15118-3) trova la colonnina all'altro capo di questo cavo. In un parcheggio i segnali passano da un cavo a quello accanto. Per questo l'auto invia una raffica di messaggi di sondaggio, e ogni colonnina che li sente riporta con quale intensità sono arrivati. L'auto sceglie la più forte con CM_SLAC_MATCH.REQ. Quella colonnina risponde con CM_SLAC_MATCH.CNF e la chiave di una rete privata a onde convogliate solo per loro due.",
+        "tls": "L'auto apre TCP verso [fe80::ff:fe00:a1]:54321, poi TLS 1.2. La colonnina mostra il suo certificato. L'auto lo verifica con i certificati radice V2G che possiede: i firmatari fidati dei certificati delle colonnine. Da qui in poi tutto è cifrato.",
         "app": "Il primo messaggio della sessione elenca i protocolli che l'auto parla, ciascuno con una versione e una priorità. La colonnina risponde con supportedAppProtocolRes, OK_SuccessfulNegotiation e lo SchemaID scelto: 1, ISO 15118-2. Il laboratorio mostra il messaggio in XML.",
-        "setup": "L'auto ha inviato SessionSetupReq con il suo EVCCID, l'indirizzo MAC del suo modem: 02-00-00-00-00-E1. La colonnina risponde con un nuovo SessionID di 8 byte, il suo EVSEID e l'ora. Ogni messaggio successivo porta il SessionID nell'intestazione.",
-        "payment": "Prima di questo, ServiceDiscovery: la colonnina ha offerto la ricarica DC e due modi di pagare, Contract (Plug & Charge) ed ExternalPayment. L'auto sceglie ExternalPayment: il conducente paga con una carta o un'app. Poi ripete AuthorizationReq finché la colonnina non risponde Finished.",
-        "params": "L'auto ha inviato i suoi limiti e il suo stato di carica, 54 %. La colonnina risponde con i propri: al massimo 500 V, 125 A e 50 kW. Ogni valore è un intero a 16 bit, una potenza di dieci e un'unità, quindi 50 kW viaggiano come 5000 × 10^1 W.",
-        "cable-check": "L'auto ha portato il control pilot nello stato C. La colonnina applica una tensione di prova al cavo DC e misura l'isolamento verso terra. Risponde Ongoing finché non ha finito, poi Finished, con EVSEIsolationStatus Valid.",
+        "setup": "L'auto ha inviato SessionSetupReq con il suo EVCCID: l'indirizzo MAC (l'indirizzo hardware) del suo modem, 02-00-00-00-00-E1. La colonnina risponde con un nuovo SessionID di 8 byte, il suo EVSEID e l'ora. Ogni messaggio successivo porta il SessionID nell'intestazione.",
+        "payment": "Prima di questo è venuto ServiceDiscovery. La colonnina ha offerto la ricarica DC e due modi di pagare: Contract (Plug & Charge, in cui l'auto paga da sola) ed ExternalPayment. L'auto sceglie ExternalPayment: il conducente paga con una carta o un'app. Poi l'auto ripete AuthorizationReq finché la colonnina non risponde Finished.",
+        "params": "L'auto ha inviato i suoi limiti e il suo stato di carica (quanto è piena la batteria), 54 %. La colonnina risponde con i propri: al massimo 500 V, 125 A e 50 kW. Ogni valore è un numero intero a 16 bit, una potenza di dieci e un'unità. Quindi 50 kW viaggiano come 5000 × 10^1 W.",
+        "cable-check": "L'auto ha portato il control pilot nello stato C: pronta a ricaricare. La colonnina applica una tensione di prova al cavo DC e misura l'isolamento verso terra. Risponde Ongoing finché non ha finito, poi Finished, con EVSEIsolationStatus Valid.",
         "pre-charge": "La batteria è a 396 V, dietro i contattori aperti dell'auto. L'auto chiede alla colonnina di portare l'uscita alla stessa tensione, con al massimo 2 A. La colonnina risponde con la sua tensione attuale, 395 V: abbastanza vicina per chiudere i contattori senza scintille.",
         "power-on": "L'auto ha chiuso i suoi contattori. ChargeProgress Start: da ora la colonnina può erogare corrente.",
-        "current-demand": "L'auto chiede 120 A, con il suo stato di carica, e invia la richiesta successiva appena arriva la risposta. La colonnina risponde a ognuna con ciò che eroga: 398 V, 120 A. Comanda l'auto: cambia la corrente man mano che la batteria si riempie.",
-        "stop": "Prima PowerDeliveryReq con ChargeProgress Stop: la corrente scende a 0 e l'auto apre i suoi contattori. WeldingDetection verifica che si siano aperti davvero. Poi SessionStopReq con ChargingSession Terminate chiude la sessione."
+        "current-demand": "L'auto chiede 120 A, con il suo stato di carica. Invia la richiesta successiva appena arriva la risposta. La colonnina risponde a ognuna con ciò che eroga: 398 V, 120 A. Comanda l'auto: cambia la corrente man mano che la batteria si riempie.",
+        "stop": "Prima viene PowerDeliveryReq con ChargeProgress Stop: la corrente scende a 0 e l'auto apre i suoi contattori. WeldingDetection verifica che si siano aperti davvero e non siano rimasti saldati. Poi SessionStopReq con ChargingSession Terminate chiude la sessione."
     },
     "fields": {
-        "version": { "name": "Versione V2GTP", "note": "Versione 0x01, poi lo stesso byte invertito, 0xFE. Un ricevitore scarta un messaggio con qualsiasi altro valore." },
-        "sdp-req": { "name": "Tipo di payload", "note": "0x9000: una richiesta SDP." },
-        "sdp-res": { "name": "Tipo di payload", "note": "0x9001: una risposta SDP." },
+        "version": { "name": "Versione V2GTP", "note": "Versione 0x01, poi lo stesso byte con tutti i bit invertiti, 0xFE. Un ricevitore scarta un messaggio che qui ha qualsiasi altro valore." },
+        "sdp-req": { "name": "Tipo di payload", "note": "0x9000: una richiesta SDP, che chiede dov'è la colonnina." },
+        "sdp-res": { "name": "Tipo di payload", "note": "0x9001: una risposta SDP, che dice dov'è la colonnina." },
         "len-2": { "name": "Lunghezza", "note": "Seguono 2 byte di payload. L'intestazione è sempre di 8 byte." },
         "len-20": { "name": "Lunghezza", "note": "0x14 = seguono 20 byte: indirizzo, porta, sicurezza e trasporto." },
-        "tls-req": { "name": "Sicurezza", "note": "0x00: l'auto vuole TLS. 0x10 significherebbe senza TLS." },
+        "tls-req": { "name": "Sicurezza", "note": "0x00: l'auto vuole TLS, una connessione cifrata. 0x10 significherebbe senza TLS." },
         "tls-res": { "name": "Sicurezza", "note": "0x00: la colonnina accetta TLS." },
         "tcp": { "name": "Trasporto", "note": "0x00: TCP." },
-        "ip-prefix": { "name": "Prefisso IPv6", "note": "fe80::/64: un indirizzo link-local, valido solo su questo link." },
-        "ip-id": { "name": "Interface ID", "note": "Ricavato dall'indirizzo MAC della colonnina, 02-00-00-00-00-A1: FF FE nel mezzo e il bit 0x02 invertito. L'indirizzo completo è fe80::ff:fe00:a1." },
+        "ip-prefix": { "name": "Prefisso IPv6", "note": "fe80::/64: un indirizzo link-local. Vale solo su questo link, la rete privata a onde convogliate tra auto e colonnina." },
+        "ip-id": { "name": "Interface ID", "note": "Ricavato dall'indirizzo MAC della colonnina, 02-00-00-00-00-A1: FF FE va nel mezzo e il bit 0x02 viene invertito. L'indirizzo completo è fe80::ff:fe00:a1." },
         "port": { "name": "Porta TCP", "note": "0xD431 = 54321: dove la colonnina aspetta questa auto." },
         "a-urn": { "name": "URN", "note": "Un uniform resource name: un'etichetta fissa, non un indirizzo da aprire." },
         "a-body": { "name": "Ente", "note": "iso: l'organizzazione titolare del nome." },
@@ -64,15 +65,15 @@
     },
     "facts": {
         "standard": "ISO 15118-2 (2014) per i messaggi, ISO 15118-3 per le onde convogliate. ISO 15118-20 è la generazione successiva.",
-        "between": "Il controllore dell'auto (EVCC) → quello della colonnina (SECC). L'auto chiede, la colonnina risponde.",
+        "between": "Il controllore di comunicazione dell'auto (EVCC) → quello della colonnina (SECC). L'auto chiede, la colonnina risponde.",
         "transport": "HomePlug Green PHY sul control pilot, IPv6, SDP su UDP 15118, poi TCP",
-        "security": "TLS 1.2: la colonnina si identifica con un certificato. Plug & Charge aggiunge un certificato di contratto nell'auto.",
+        "security": "TLS 1.2: la colonnina si identifica con un certificato. Plug & Charge aggiunge un certificato di contratto nell'auto, così l'auto può pagare da sola.",
         "frames": "EXI (XML compresso in bit) dentro un'intestazione V2GTP di 8 byte"
     },
     "tips": [
         "Molte ricariche fallite non superano mai SLAC. Controlla il modem, il cablaggio del control pilot e l'intensità del segnale riportata dalla colonnina prima di guardare i messaggi.",
         "Ogni valore fisico è un intero, una potenza di dieci e un'unità. Leggi il Multiplier: 5000 con Multiplier 1 sono 50 kW, non 5 kW.",
-        "Le operazioni lente, come CableCheck o Authorization, ricevono subito la risposta EVSEProcessing Ongoing. L'auto chiede di nuovo; una colonnina che la lascia in attesa di una risposta la fa rinunciare.",
+        "Le operazioni lente, come CableCheck o Authorization, ricevono subito la risposta EVSEProcessing Ongoing, e l'auto chiede di nuovo. Una colonnina che invece trattiene la risposta fa rinunciare l'auto.",
         "Molte colonnine scelgono ancora DIN 70121 dalla lista dell'auto. Una cattura in cui viene scelto urn:din:70121:2012:MsgDef spiega perché Plug & Charge non parte mai."
     ],
     "points": {
@@ -86,7 +87,7 @@
     },
     "playground": {
         "file": "Il primo messaggio dell'auto nella sessione, scritto in XML. Sulla linea viaggia come EXI, che comprime lo stesso contenuto in poche decine di byte.",
-        "root": "L'elemento radice. Il suo namespace, del 2010, è lo stesso in ogni versione, così qualsiasi colonnina può leggere questo primo messaggio.",
+        "root": "L'elemento radice, che contiene tutti gli altri. Il suo namespace, del 2010, è lo stesso in ogni versione, così qualsiasi colonnina può leggere questo primo messaggio.",
         "iso": "Prima voce: ISO 15118-2.",
         "version": "Versione 2.0. Una colonnina con un'altra versione minore può rispondere OK_SuccessfulNegotiationWithMinorDeviation.",
         "schema-id": "Un numero che l'auto assegna a questa voce. La colonnina indica la sua scelta con esso.",

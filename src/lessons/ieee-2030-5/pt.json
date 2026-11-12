@@ -1,12 +1,13 @@
 {
-    "intro": "É assim que uma concessionária diz a inversores inteligentes, baterias e carregadores o que fazer, pela internet. O equipamento é o cliente: ele busca recursos XML no servidor da concessionária por HTTPS, segue os links que há neles e envia de volta as suas respostas e leituras. Um certificado em cada lado prova quem está falando.",
+    "intro": "É assim que uma concessionária (a empresa que opera a rede elétrica) diz a inversores solares, baterias residenciais e carregadores de carros o que fazer, pela internet. Equipamentos como esses, espalhados pela rede, são chamados de DER (distributed energy resources: recursos energéticos distribuídos). O equipamento é o cliente: ele busca documentos XML (texto estruturado) no servidor da concessionária por HTTPS, a web segura. Ele segue os links que há neles, como faz um navegador, e envia de volta as suas respostas e leituras. Um certificado em cada lado, uma espécie de carteira de identidade digital, prova quem está falando.",
+    "plain": "Hoje muitas casas produzem a própria eletricidade com painéis solares ou a guardam em baterias. Às vezes a rede não consegue receber toda essa energia, então a companhia de energia pede a esses equipamentos que se segurem por um tempo. Cada equipamento consulta as instruções, como \"das 11:00 às 13:00, injete só metade da sua potência\", e as segue como um termostato segue a sua programação. Cada lado mostra uma carteira de identidade digital, para que nenhum estranho possa dar ordens.",
     "steps": {
-        "tls": { "title": "Mostrar certificados", "text": "O inversor abre uma conexão TLS 1.2 com o servidor da concessionária. Os dois lados mostram um certificado, e só uma cipher suite é permitida. Agora cada lado sabe quem é o outro." },
-        "discover": { "title": "Achar a si mesmo", "text": "O inversor conhece um único endereço: /dcap. A partir dele, segue links até a lista de end devices e encontra aquele cujo lFDI bate com o do seu próprio certificado." },
-        "control": { "title": "Obter o controle", "text": "Pelo seu programa, o inversor lê um DERControl: limitar a potência a 50 % durante duas horas, a partir das 11:00 UTC." },
-        "received": { "title": "Confirmar o recebimento", "text": "O controle pede respostas. O inversor envia uma: status 1, recebido." },
-        "start": { "title": "Limitar a potência", "text": "Às 11:00, pelo seu próprio relógio, o inversor reduz a potência de 9.6 kW para 5.0 kW (50 % dos seus 10 kW) e envia o status 2, iniciado." },
-        "report": { "title": "Informar a potência", "text": "O inversor envia a potência medida para o seu espelho no servidor. A concessionária vê que o limite está sendo cumprido." }
+        "tls": { "title": "Mostrar certificados", "text": "O inversor abre uma conexão TLS 1.2 (um link criptografado) com o servidor da concessionária. Os dois lados mostram um certificado. Só uma cipher suite, um conjunto fixo de métodos de criptografia, é permitida. Agora cada lado sabe quem é o outro." },
+        "discover": { "title": "Achar o seu próprio registro", "text": "O inversor conhece um único endereço: /dcap, o ponto de partida do servidor. A partir dele, segue links até a lista de end devices, os equipamentos que o servidor conhece. Ele encontra aquele cujo lFDI bate com o do seu próprio certificado. O lFDI (long-form device identifier: identificador longo do equipamento) é uma impressão digital do certificado." },
+        "control": { "title": "Obter a instrução", "text": "Pelo seu programa DER, um conjunto de instruções para um grupo de equipamentos, o inversor lê um DERControl: limitar a potência a 50 % durante duas horas, a partir das 11:00 UTC (tempo universal)." },
+        "received": { "title": "Confirmar o recebimento", "text": "O controle pede que o equipamento responda. O inversor envia a sua primeira resposta: status 1, recebido." },
+        "start": { "title": "Limitar a potência", "text": "Às 11:00, pelo seu próprio relógio, o inversor reduz a potência de 9.6 kW para 5.0 kW: 50 % do seu máximo de 10 kW. Ele envia o status 2, iniciado." },
+        "report": { "title": "Informar a potência", "text": "O inversor envia a potência medida para o seu espelho: uma cópia do medidor dele que o servidor mantém. A concessionária vê que o limite está sendo cumprido." }
     },
     "frames": {
         "client-hello": "Olá. Falo TLS 1.2, com esta única cipher suite",
@@ -25,34 +26,34 @@
         "post-reading": "Minha potência ativa agora é 5000 W"
     },
     "notes": {
-        "server-hello": "Quatro mensagens numa só leva. O ServerHello escolhe 0xC0AE. O Certificate leva a cadeia de certificados do servidor. O ServerKeyExchange leva a metade dele no acordo de chaves ECDHE. O CertificateRequest pede o certificado do cliente: sem ele, o TLS só verificaria o servidor.",
+        "server-hello": "Quatro mensagens enviadas juntas. O ServerHello escolhe a cipher suite 0xC0AE. O Certificate leva a cadeia de certificados do servidor: o certificado dele e os que atestam a sua validade. O ServerKeyExchange leva a metade dele no acordo de chaves ECDHE. O CertificateRequest pede o certificado do cliente: sem ele, o TLS só verificaria o servidor.",
         "client-finished": "O inversor envia o seu certificado de equipamento e a sua metade do acordo de chaves. Depois assina o handshake inteiro com a sua chave privada (CertificateVerify): só o verdadeiro dono do certificado consegue fazer isso. O certificado foi gravado na fábrica, sob a PKI da IEEE 2030.5, e nunca vence.",
         "server-finished": "O servidor confere a cadeia de certificados do inversor até a raiz em que confia e depois envia o seu próprio Finished. Daqui em diante, todo registro é criptografado. O HTTP trafega dentro, e ninguém no caminho consegue lê-lo ou alterá-lo.",
         "get-dcap": "Dentro do TLS: GET /dcap HTTP/1.1, com Accept: application/sep+xml. /dcap é o único endereço que o cliente recebe. Todos os outros ele encontra pelos links.",
-        "dcap": "Um recurso DeviceCapability: links como EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\" e TimeLink href=\"/tm\". pollRate=\"900\": consultar estes recursos a cada 900 s.",
+        "dcap": "Um recurso DeviceCapability: links como EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\" e TimeLink href=\"/tm\". pollRate=\"900\": ler estes recursos de novo a cada 900 s.",
         "get-edev": "A lista de end devices. O servidor pode listar só os equipamentos que este certificado tem permissão de ver.",
-        "edev": "Cada EndDevice tem um lFDI e um sFDI. O /edev/3 tem BB1309569EF761C13E620EA80AA3E84D2B6B553D, o do próprio inversor. O instalador informou o SFDI à concessionária quando o inversor foi instalado.",
+        "edev": "Cada EndDevice tem um lFDI e um sFDI: as formas longa e curta do seu identificador. O /edev/3 tem BB1309569EF761C13E620EA80AA3E84D2B6B553D, o do próprio inversor. O instalador informou o SFDI à concessionária quando o inversor foi instalado.",
         "get-derc": "Antes disso, mais dois GETs parecidos: do /edev/3 para as FunctionSetAssignments dele e depois para a lista de programas DER. O programa /derp/1 tem links para os seus controles.",
         "derc": "Um DERControl, mostrado linha a linha na seção Experimente: opModMaxLimW 5000 (50.00 %) durante 7200 s, a partir de 1781694000 (11:00 UTC).",
-        "post-received": "Um DERControlResponse, enviado para o endereço replyTo do controle. Ele traz o lFDI do inversor, o mRID do controle como assunto e o status 1: recebido.",
+        "post-received": "Um DERControlResponse, enviado para o endereço replyTo do controle. Ele traz o lFDI do inversor, o mRID do controle (o ID único dele) como assunto e o status 1: recebido.",
         "created": "HTTP 201 Created. O cabeçalho Location dá o endereço da resposta guardada.",
         "post-started": "A mesma resposta com o status 2: iniciado. Às 13:00 o inversor vai enviar o status 3, concluído, e voltar ao seu controle padrão.",
         "post-reading": "Um MirrorMeterReading. O servidor mantém um espelho do medidor do inversor (um MirrorUsagePoint), e o inversor o preenche. O ReadingType dele dá a unidade: uom 38 significa watts."
     },
     "fields": {
-        "record-type": { "name": "Tipo de registro", "note": "22 (0x16): uma mensagem de handshake." },
+        "record-type": { "name": "Tipo de registro", "note": "22 (0x16): uma mensagem de handshake, que estabelece a conexão." },
         "record-version": { "name": "Versão", "note": "0x0303: TLS 1.2. A IEEE 2030.5 exige TLS 1.2." },
         "record-length": { "name": "Comprimento do registro", "note": "Seguem 69 bytes neste registro." },
-        "client-hello": { "name": "ClientHello", "note": "Handshake do tipo 1." },
+        "client-hello": { "name": "ClientHello", "note": "Handshake do tipo 1: a mensagem de abertura do cliente." },
         "hello-length": { "name": "Comprimento", "note": "Seguem 65 bytes de ClientHello." },
         "client-version": { "name": "Versão do cliente", "note": "A versão mais alta que o inversor fala: TLS 1.2." },
         "random": { "name": "Random", "note": "32 bytes aleatórios. Os dois lados os misturam nas chaves de sessão." },
         "session-id": { "name": "Session ID", "note": "Comprimento 0: nenhuma sessão anterior para retomar." },
         "suites-length": { "name": "Cipher suites", "note": "Seguem 2 bytes de cipher suites: só uma." },
-        "suite": { "name": "0xC0AE", "note": "TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8, a suite que a IEEE 2030.5 exige. O ECDHE acerta as chaves, o ECDSA assina os certificados e o AES-128 em modo CCM criptografa os dados, com uma tag de 8 bytes." },
+        "suite": { "name": "0xC0AE", "note": "TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8, a suite que a IEEE 2030.5 exige. O ECDHE acerta as chaves. O ECDSA assina os certificados. O AES-128 em modo CCM criptografa os dados e acrescenta uma tag de 8 bytes que mostra que eles não foram alterados." },
         "compression": { "name": "Compressão", "note": "Um método: 0, sem compressão." },
         "extensions-length": { "name": "Extensões", "note": "Seguem 22 bytes de extensões." },
-        "groups": { "name": "supported_groups", "note": "Extensão 0x000A: só secp256r1 (0x0017), a curva P-256." },
+        "groups": { "name": "supported_groups", "note": "Extensão 0x000A: só secp256r1 (0x0017), a curva elíptica P-256." },
         "point-formats": { "name": "ec_point_formats", "note": "Extensão 0x000B: os pontos da curva são enviados sem compressão (0)." },
         "signatures": { "name": "signature_algorithms", "note": "Extensão 0x000D: só 0x0403, ECDSA com SHA-256." },
         "a-first36": { "name": "Primeiros 36 bits", "note": "Os primeiros 9 dígitos hex. Eles formam o SFDI." },
@@ -62,8 +63,8 @@
         "s-check": { "name": "Dígito verificador", "note": "Ele faz a soma de todos os dígitos ser múltipla de 10: 5+0+2+1+7+3+9+1+4+6+5 = 43, e 43 + 7 = 50. Um erro de digitação quebra a soma." }
     },
     "devices": {
-        "pv": "Arranjo FV",
-        "inverter": "Inversor FV",
+        "pv": "Painéis solares",
+        "inverter": "Inversor solar",
         "router": "Roteador do local",
         "server": "Servidor da concessionária"
     },
@@ -78,7 +79,7 @@
         "O LFDI vem do certificado. Um certificado novo significa um LFDI e um SFDI novos, e o equipamento precisa ser registrado de novo.",
         "Os controles usam tempo Unix em UTC. Um inversor com o relógio errado limita na hora errada, então mantenha-o em sincronia com o recurso Time do servidor (/tm).",
         "Comece pelo /dcap e siga os links toda vez. Todos os outros endereços pertencem ao servidor e podem mudar.",
-        "A maioria dos inversores fica atrás de um roteador que bloqueia conexões de entrada, por isso eles consultam o servidor. Consulte no pollRate, não mais rápido: milhares de equipamentos dividem um único servidor."
+        "A maioria dos inversores fica atrás de um roteador que bloqueia conexões de entrada, por isso eles fazem polling: perguntam ao servidor de novo e de novo. Consulte no pollRate, não mais rápido: milhares de equipamentos dividem um único servidor."
     ],
     "points": {
         "limit": "Limite de potência",
@@ -98,7 +99,7 @@
         "file": "O DERControl que o inversor lê no passo 3. Escolha uma linha marcada para ver o que ela significa.",
         "href": "O endereço próprio do controle. O namespace urn:ieee:std:2030.5:ns marca todo documento IEEE 2030.5.",
         "reply": "Para onde enviar as respostas (replyTo), e quais: responseRequired 03 pede recebido e depois iniciado e concluído.",
-        "mrid": "Um ID de 128 bits, único no mundo; as respostas o citam. Os últimos 8 dígitos hex são o número de empresa IANA do emissor: 32473 (0x7ED9) é o reservado para exemplos.",
+        "mrid": "Um ID de 128 bits, único no mundo. As respostas o citam. Os últimos 8 dígitos hex são o número de empresa IANA do emissor: 32473 (0x7ED9) é o reservado para exemplos.",
         "created": "Os horários são segundos Unix em UTC: 1781686800 é 2026-06-17 09:00.",
         "status": "0: agendado. 1 significaria ativo, 2 cancelado.",
         "duration": "7200 s: duas horas.",

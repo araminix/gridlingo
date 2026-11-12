@@ -1,12 +1,13 @@
 {
-    "intro": "La lingua tra una stazione di ricarica e il server che la gestisce, il CSMS (charging station management system). La colonnina tiene aperto un WebSocket e invia messaggi JSON: chi è, lo stato dei suoi connettori, quale tessera vuole ricaricare e il contatore durante ogni ricarica. Il CSMS risponde a ogni messaggio e può inviare richieste proprie sulla stessa connessione.",
+    "intro": "La lingua tra una stazione di ricarica e il server che la gestisce: il CSMS (charging station management system, il back office dell'operatore). La colonnina tiene aperto un WebSocket: una connessione web che resta attiva. Su questa connessione la colonnina invia brevi messaggi JSON (testo strutturato): chi è, lo stato dei suoi connettori (le prese), quale tessera vuole ricaricare e la lettura del contatore durante ogni ricarica. Il CSMS risponde a ogni messaggio e può inviare richieste proprie sulla stessa connessione.",
+    "plain": "Una colonnina pubblica per auto elettriche non lavora da sola. Resta collegata al sistema informatico del suo operatore, un po' come il POS di un negozio resta in contatto con la banca. La colonnina dice quando è libera, chiede se la tua tessera può ricaricare e comunica quanta energia hai prelevato, così ti si può fare il conto.",
     "steps": {
-        "connect": { "title": "Connessione", "text": "La colonnina apre un WebSocket sicuro verso il suo CSMS. La connessione resta aperta, così entrambe le parti possono trasmettere in qualsiasi momento." },
-        "boot": { "title": "Avvio", "text": "Il primo messaggio dopo l'accensione dice chi è la colonnina. Il CSMS la accetta, comunica l'ora e imposta l'intervallo di heartbeat. Poi la colonnina riporta ogni connettore: il connettore 1 è Available." },
-        "authorize": { "title": "Avvicina una tessera", "text": "Un conducente avvicina una tessera RFID al lettore. La colonnina chiede al CSMS se questa tessera può ricaricare. Può." },
-        "start": { "title": "Inizio", "text": "L'auto è collegata e inizia a prelevare energia. La colonnina apre una transazione e invia la lettura del contatore all'inizio." },
-        "charge": { "title": "Letture del contatore", "text": "Mentre l'auto si ricarica, la colonnina invia il contatore ogni 15 minuti. Il CSMS vede crescere l'energia." },
-        "stop": { "title": "Fine", "text": "Il conducente avvicina di nuovo la tessera. La transazione termina dopo un'ora e 11040 Wh. Ora il CSMS può fatturarla." }
+        "connect": { "title": "Connettiti al server", "text": "La colonnina apre un WebSocket sicuro, cioè cifrato, verso il suo CSMS. La connessione resta aperta, così entrambe le parti possono trasmettere in qualsiasi momento." },
+        "boot": { "title": "La colonnina si avvia", "text": "Il primo messaggio dopo l'accensione dice chi è la colonnina. Il CSMS la accetta, invia l'ora attuale e imposta l'intervallo di heartbeat: ogni quanto la colonnina deve dire \"ci sono ancora\". Poi la colonnina riporta ogni connettore: il connettore 1 è Available." },
+        "authorize": { "title": "Avvicina una tessera", "text": "Un conducente avvicina al lettore una tessera RFID (una tessera senza contatto, come il badge di un ufficio). La colonnina chiede al CSMS se questa tessera può ricaricare. La risposta è sì." },
+        "start": { "title": "La ricarica inizia", "text": "L'auto è collegata e inizia a prelevare energia. La colonnina apre una transazione: la registrazione di questa singola ricarica. Invia la lettura del contatore all'inizio." },
+        "charge": { "title": "Comunica il contatore", "text": "Mentre l'auto si ricarica, la colonnina invia la lettura del suo contatore ogni 15 minuti. Il CSMS vede crescere l'energia." },
+        "stop": { "title": "La ricarica si ferma", "text": "Il conducente avvicina di nuovo la tessera. La transazione termina dopo un'ora e 11040 Wh (circa 11 kWh). Ora il CSMS può fare il conto al conducente." }
     },
     "frames": {
         "upgrade": "Passa a WebSocket, subprotocol ocpp2.0.1",
@@ -17,37 +18,37 @@
         "status-conf": "Preso nota",
         "authorize": "La tessera 04A2B3C4D5E6F7 può ricaricare?",
         "authorize-conf": "Sì: Accepted",
-        "started": "Transazione TX-0187 avviata a 12840 Wh",
+        "started": "Transazione TX-0187 avviata, contatore a 12840 Wh",
         "started-conf": "Preso nota, la tessera è ancora Accepted",
-        "updated": "Ora 15600 Wh, prelievo di 11040 W",
+        "updated": "Contatore ora a 15600 Wh, prelievo di 11040 W",
         "updated-conf": "Preso nota",
-        "ended": "TX-0187 terminata a 23880 Wh",
+        "ended": "TX-0187 terminata, contatore a 23880 Wh",
         "ended-conf": "Preso nota"
     },
     "notes": {
-        "upgrade": "Dentro TLS, la colonnina chiede di trasformare questa connessione HTTP in un WebSocket. L'indirizzo termina con la sua identità, CS-0042. L'intestazione Sec-WebSocket-Protocol chiede ocpp2.0.1, e l'autenticazione HTTP Basic porta la password della colonnina.",
+        "upgrade": "Dentro la connessione cifrata TLS, la colonnina chiede di trasformare questa connessione HTTP in un WebSocket. L'indirizzo web termina con l'identità della colonnina, CS-0042. L'intestazione Sec-WebSocket-Protocol chiede ocpp2.0.1. L'autenticazione HTTP Basic porta la password della colonnina.",
         "switch": "Il CSMS accetta e indica il subprotocol scelto: ocpp2.0.1. Da ora entrambe le parti inviano frame WebSocket, ciascuno con un messaggio OCPP in JSON.",
-        "status": "Una CALL con timestamp, connectorStatus Available, evseId 1 e connectorId 1. Un EVSE è un punto di ricarica; può avere più connettori.",
-        "status-conf": "Un CALLRESULT con payload vuoto: [3,\"1002\",{}]. Ogni CALL riceve una risposta, anche quando non c'è niente da dire.",
-        "authorize": "idToken 04A2B3C4D5E6F7, tipo ISO14443: il numero di serie di 7 byte della tessera RFID. Molte colonnine tengono anche una lista locale di tessere, per decidere senza chiedere.",
+        "status": "Una CALL (una richiesta) con timestamp, connectorStatus Available, evseId 1 e connectorId 1. Un EVSE è un punto di ricarica: ricarica un'auto alla volta. Può avere più connettori (prese).",
+        "status-conf": "Un CALLRESULT (una risposta) con payload vuoto: [3,\"1002\",{}]. Ogni CALL riceve una risposta, anche quando non c'è niente da dire.",
+        "authorize": "idToken 04A2B3C4D5E6F7, tipo ISO14443 (la norma delle tessere senza contatto): il numero di serie di 7 byte della tessera RFID. Molte colonnine tengono anche una lista locale di tessere, così possono decidere senza chiedere al CSMS.",
         "authorize-conf": "idTokenInfo con stato Accepted. Altre risposte, come Blocked, Expired, Invalid o Unknown, significano che la colonnina non deve avviare la ricarica.",
-        "started": "eventType Started, triggerReason ChargingStateChanged, seqNo 0. La colonnina sceglie il transactionId, TX-0187. L'evento porta l'idToken della tessera, chargingState Charging e una lettura del contatore con contesto Transaction.Begin: 12840 Wh.",
+        "started": "eventType Started, triggerReason ChargingStateChanged, seqNo 0: il primo evento di questa transazione. È la colonnina a scegliere il transactionId, TX-0187. L'evento porta anche l'idToken della tessera, chargingState Charging e la lettura del contatore all'inizio (contesto Transaction.Begin): 12840 Wh.",
         "started-conf": "L'evento portava la tessera, quindi la risposta ne riporta lo stato: idTokenInfo Accepted.",
-        "updated": "eventType Updated, triggerReason MeterValuePeriodic, seqNo 1, con due letture: il registro dell'energia e la potenza. Il laboratorio mostra il messaggio completo.",
+        "updated": "eventType Updated, triggerReason MeterValuePeriodic (il timer del contatore), seqNo 1. Porta due letture: il registro dell'energia (il totale progressivo del contatore) e la potenza (quanto velocemente passa l'energia in questo momento). Il laboratorio mostra il messaggio completo.",
         "updated-conf": "Un payload vuoto: il CSMS non ha niente da aggiungere.",
-        "ended": "eventType Ended, triggerReason StopAuthorized, seqNo 2, stoppedReason Local, chargingState EVConnected (il cavo è ancora inserito) e l'ultima lettura del contatore con contesto Transaction.End: 23880 Wh.",
+        "ended": "eventType Ended, triggerReason StopAuthorized (è stata presentata una tessera per fermarla), seqNo 2, stoppedReason Local (fermata alla colonnina). chargingState è EVConnected: il cavo è ancora inserito. L'ultima lettura del contatore (contesto Transaction.End) è 23880 Wh.",
         "ended-conf": "Un payload vuoto. Il CSMS fattura 23880 − 12840 = 11040 Wh al titolare della tessera."
     },
     "fields": {
-        "ws-text": { "name": "FIN · opcode", "note": "0x81: il bit FIN (0x80) dice che l'intero messaggio è in questo frame. L'opcode 0x1 dice che è testo, UTF-8." },
-        "ws-mask-126": { "name": "Maschera · lunghezza", "note": "0xFE: il bit di maschera (0x80) è a 1, perché un client deve mascherare ciò che invia. Il resto, 126 (0x7E), dice che la lunghezza segue in 2 byte." },
+        "ws-text": { "name": "FIN · opcode", "note": "0x81. Il bit FIN (0x80) dice che l'intero messaggio è in questo solo frame. L'opcode 0x1 dice che il frame porta testo (UTF-8)." },
+        "ws-mask-126": { "name": "Maschera · lunghezza", "note": "0xFE. Il bit di maschera (0x80) è a 1, perché un client deve sempre mascherare (rimescolare) ciò che invia. Gli altri bit contengono 126 (0x7E), che significa: la lunghezza vera segue in 2 byte." },
         "ws-len-170": { "name": "Lunghezza", "note": "0x00AA = seguono 170 byte di JSON. Il laboratorio li mostra." },
         "ws-key": { "name": "Masking key", "note": "4 byte casuali. Ogni byte del JSON viene combinato in XOR con loro, a turno: \"[\" (0x5B) viaggia come 0x61. Non è cifratura; a quella pensa TLS." },
-        "ws-len-88": { "name": "Lunghezza", "note": "0x58 = seguono 88 byte di JSON. Il bit di maschera è 0, perché un server non maschera mai, quindi non segue nessuna masking key." },
-        "a-type": { "name": "MessageTypeId", "note": "2 è una CALL, una richiesta. La sua risposta è un 3 (CALLRESULT) o un 4 (CALLERROR)." },
+        "ws-len-88": { "name": "Lunghezza", "note": "0x58 = seguono 88 byte di JSON. Il bit di maschera è 0, perché un server non maschera mai. Quindi non segue nessuna masking key." },
+        "a-type": { "name": "MessageTypeId", "note": "2 significa CALL: una richiesta. La sua risposta è un 3 (CALLRESULT, è andata bene) o un 4 (CALLERROR, è fallita)." },
         "a-id": { "name": "MessageId", "note": "Scelto da chi invia, unico su questa connessione. La risposta porta lo stesso id; nient'altro lega le due." },
         "a-action": { "name": "Action", "note": "Quale messaggio è questo. Una risposta non ha action: il suo id dice a quale CALL risponde." },
-        "a-payload": { "name": "Payload", "note": "La richiesta vera e propria, un oggetto JSON. I suoi campi vengono verificati con lo schema JSON di BootNotificationRequest." }
+        "a-payload": { "name": "Payload", "note": "La richiesta vera e propria, un oggetto JSON. Chi la riceve verifica i suoi campi con lo schema JSON (l'elenco ufficiale dei campi ammessi) di BootNotificationRequest." }
     },
     "devices": {
         "car": "Auto",
@@ -59,11 +60,11 @@
         "standard": "OCPP 2.0.1 (Open Charge Alliance, 2020). OCPP 1.6J è ancora diffuso.",
         "between": "Stazione di ricarica → CSMS (charging station management system)",
         "transport": "WebSocket (RFC 6455) su TLS, subprotocol ocpp2.0.1: un messaggio JSON per frame di testo",
-        "security": "TLS. Il security profile 2 aggiunge una password (HTTP Basic), il profile 3 un certificato client.",
+        "security": "Cifratura TLS. Il security profile 2 aggiunge una password (HTTP Basic). Il profile 3 usa invece un certificato client.",
         "frames": "CALL [2, …] · CALLRESULT [3, …] · CALLERROR [4, …]"
     },
     "tips": [
-        "Se il CSMS non risponde con il subprotocol chiesto dalla colonnina, la colonnina deve chiudere la connessione. \"Si connette, poi cade\" spesso è proprio questo.",
+        "Se il CSMS non risponde con il subprotocol chiesto dalla colonnina, la colonnina deve chiudere la connessione. Una colonnina che \"si connette, poi cade\" spesso ha proprio questo problema.",
         "Invia una CALL alla volta e aspetta la sua risposta, o un timeout, prima della successiva. Una seconda CALL inviata troppo presto può andare persa.",
         "Quando inizia una transazione è un'impostazione (TxStartPoint): all'inserimento della spina, all'autorizzazione o quando passa energia. Concordala con il team del CSMS, altrimenti le transazioni sembrano troppo lunghe o troppo corte.",
         "I timestamp sono in UTC. Imposta l'orologio della colonnina da currentTime nella risposta a BootNotification, altrimenti le letture finiscono nella fascia tariffaria sbagliata."
@@ -83,16 +84,16 @@
         "action": "L'action: quale messaggio è questo. Segue il suo payload.",
         "reason": "Perché la colonnina si è avviata: PowerUp. Altri motivi sono FirmwareUpdate, RemoteReset, Watchdog e altri ancora.",
         "model": "model e vendorName sono gli unici campi obbligatori di chargingStation.",
-        "firmware": "Il firmware in esecuzione ora. Il CSMS lo usa per pianificare gli aggiornamenti.",
+        "firmware": "La versione del firmware (il software interno della colonnina) in esecuzione ora. Il CSMS la usa per pianificare gli aggiornamenti.",
         "event-type": "Started, Updated o Ended. Una transazione ha esattamente un Started e un Ended.",
-        "timestamp": "UTC, con Z. È l'ora dell'evento, non dell'invio: un evento memorizzato mentre si era offline mantiene la sua ora.",
+        "timestamp": "Ora UTC, indicata dalla Z finale. È l'ora dell'evento, non dell'invio: un evento memorizzato mentre si era offline mantiene la propria ora.",
         "trigger": "Perché è stato inviato questo evento: è trascorso l'intervallo del contatore (TxUpdatedInterval).",
         "seq": "seqNo conta gli eventi di questa transazione a partire da 0. Un buco dice al CSMS che manca un messaggio.",
         "transaction-id": "Scelto dalla colonnina all'inizio. Ogni evento di questa ricarica lo porta.",
-        "charging-state": "Charging: passa energia. Altri stati sono EVConnected, SuspendedEV, SuspendedEVSE e Idle.",
+        "charging-state": "Charging: passa energia. Altri stati sono EVConnected, SuspendedEV (l'auto ha messo in pausa), SuspendedEVSE (la colonnina ha messo in pausa) e Idle.",
         "energy": "15600 Wh sul registro del contatore, come il totalizzatore di un contatore di casa. Non riparte da 0 a ogni nuova transazione.",
         "measurand": "Cosa è stato misurato. Senza measurand, un valore significa Energy.Active.Import.Register.",
-        "unit": "Wh, l'unità predefinita per l'energia.",
+        "unit": "Wh (wattora), l'unità predefinita per l'energia.",
         "power": "11040 W: 16 A su ciascuna delle 3 fasi a 230 V."
     }
 }

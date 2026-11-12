@@ -1,11 +1,12 @@
 {
-    "intro": "Seri kablo üzerinde Modbus. Bir master ve en fazla 247 slave, iki telli bir RS-485 hattını paylaşır. Konuşmayı yalnızca master başlatır: bir slave'i adresiyle çağırır ve yalnızca o slave yanıt verir. Her çerçevenin sonundaki CRC bozulmuş baytları yakalar.",
+    "intro": "Seri kablo üzerinde Modbus. Soran cihaz olan bir master ve yanıt veren cihazlar olan en fazla 247 slave, iki telli tek bir RS-485 hattını paylaşır. Konuşmayı yalnızca master başlatır: bir slave'i adresiyle çağırır ve yalnızca o slave yanıt verir. Her çerçeve (hattaki tek bir mesaj) bir CRC ile biter: geri kalanından hesaplanan iki denetim baytı; böylece bozulmuş baytlar yakalanır.",
+    "plain": "Modbus RTU, tek bir kutunun aynı kabloya bağlı birkaç makineden okuma toplamasını sağlar. Yoklama yapan bir öğretmen gibi çalışır: öğretmen bir ad okur, yalnızca o öğrenci yanıt verir, sonra öğretmen sıradakini okur. Kimse sorulmadan konuşmaz. Her mesaj kısa bir denetim koduyla biter; böylece yolda bozulan bir mesaj fark edilir ve yok sayılır.",
     "steps": {
-        "poll": { "title": "Slave 1'e sor", "text": "Veri kaydedici master'dır. Slave 1'den, yani inverterden iki input register ister. Hattaki her cihaz çerçeveyi duyar, ama yalnızca slave 1 yanıt verir." },
-        "meter": { "title": "Slave 2'ye sor", "text": "Sırada adres 2'deki sayaç var. Gücü, iki register'da tek bir 32 bit float; önce yüksek word." },
-        "silent": { "title": "Yanıt yok", "text": "Slave 3 yanıt vermez. Kaydedici 1 saniye bekler, bir kez daha sorar, sonra onu çevrim dışı olarak işaretleyip devam eder. Nedenini bilemez: enerjinin olmaması, kopuk bir kablo ve yanlış bir ayar aynı görünür." },
-        "broadcast": { "title": "Broadcast", "text": "Kaydedici, adres 0'a, yani broadcast olarak bir güç sınırı gönderir. Her slave buna göre davranır ve hiçbiri yanıt vermez; bu yüzden kaydedici kimin aldığını bilmez. Sayaçta 40201 numaralı register yoktur ve hiçbir şey yapmaz." },
-        "confirm": { "title": "Geri oku", "text": "Kaydedici slave'lere uygulamaları için 200 ms verir, sonra sınırı slave 1'den geri okur: %60. Slave 3 hâlâ çevrim dışı, bu yüzden onun sınırı bilinmiyor." }
+        "poll": { "title": "Slave 1'e sor", "text": "Okumaları toplayan küçük bir kutu olan veri kaydedici master'dır. Şebekeye güç veren bir inverter olan slave 1'den iki input register ister. Register'lar 16 bitlik numaralı kutulardır; input register'lar cihazın ölçtüğü değerleri tutar. Hattaki her cihaz çerçeveyi duyar, ama yalnızca slave 1 yanıt verir." },
+        "meter": { "title": "Slave 2'ye sor", "text": "Sırada adres 2'deki enerji sayacı var. Gücü, iki register'ı dolduran bir 32 bit float (ondalık noktalı bir sayı). Üst 16 bitlik yarı olan yüksek word önce gelir." },
+        "silent": { "title": "Yanıt yok", "text": "İkinci inverter olan slave 3 yanıt vermez. Kaydedici 1 saniye bekler, bir kez daha sorar, sonra onu çevrim dışı olarak işaretleyip devam eder. Nedenini bilemez: enerjinin olmaması, kopuk bir kablo ve yanlış bir ayar aynı görünür." },
+        "broadcast": { "title": "Herkese aynı anda söyle", "text": "Kaydedici adres 0'a bir güç sınırı gönderir. Adres 0 bir broadcast'tir: aynı anda her slave'e giden bir mesaj. Her slave buna göre davranır ve hiçbiri yanıt vermez; bu yüzden kaydedici kimin aldığını bilmez. Sayaçta güç sınırı olan 40201 numaralı register yoktur, bu yüzden hiçbir şey yapmaz." },
+        "confirm": { "title": "Geri oku", "text": "Kaydedici slave'lere uygulamaları için 200 ms verir. Sonra sınırı slave 1'den geri okur: %60. Slave 3 hâlâ çevrim dışı, bu yüzden onun sınırı bilinmiyor." }
     },
     "frames": {
         "inv1-req": "Slave 1: bana 0 ve 1 numaralı input register'ları gönder",
@@ -26,7 +27,7 @@
         "fc03": { "name": "Fonksiyon 03", "note": "0x03: ayarların bulunduğu holding register'ları oku." },
         "fc04": { "name": "Fonksiyon 04", "note": "0x04: bir cihazın ölçtüğü değerler olan input register'ları oku. Bunlara yazılamaz." },
         "fc06": { "name": "Fonksiyon 06", "note": "0x06: tek bir register yaz." },
-        "addr-0": { "name": "Adres 0", "note": "0x0000: kılavuzdaki 30001 numaralı register. Hat 0'dan sayar." },
+        "addr-0": { "name": "Adres 0", "note": "0x0000: kılavuzdaki 30001 numaralı register. Baştaki 3 bir input register demektir ve hat 0'dan sayar." },
         "addr-12": { "name": "Adres 12", "note": "0x000C = 12: 30013 numaralı register, şebeke bağlantı noktasındaki güç." },
         "addr-200": { "name": "Adres 200", "note": "0x00C8 = 200: 40201 numaralı register, inverterlerin güç sınırı." },
         "qty-1": { "name": "Sayı", "note": "1 register." },
@@ -36,8 +37,8 @@
         "power": { "name": "Register 30001", "note": "0x0CB2 = 3250: W cinsinden AC güç." },
         "voltage": { "name": "Register 30002", "note": "0x0900 = 2304: 0.1 V'luk adımlarla şebeke gerilimi, yani 230.4 V." },
         "meter-power": { "name": "Register 30013–30014", "note": "0x45337800: 32 bitlik bir float, önce yüksek word (ABCD). Değeri 2871.5 (W)." },
-        "limit-60": { "name": "Değer", "note": "0x003C = 60: anma gücünün %60'ı." },
-        "crc": { "name": "CRC", "note": "Kendinden önceki tüm baytlar üzerinden CRC-16, düşük bayt önce gönderilir. Bir slave CRC'si yanlış olan çerçeveyi atar ve sessiz kalır." }
+        "limit-60": { "name": "Değer", "note": "0x003C = 60: anma gücünün, yani inverterin verebileceği en yüksek gücün %60'ı." },
+        "crc": { "name": "CRC", "note": "Kendinden önceki tüm baytlardan hesaplanan bir CRC-16 denetim değeri, düşük bayt önce gönderilir. Alıcı onu yeniden hesaplar. Bir slave CRC'si tutmayan çerçeveyi atar ve sessiz kalır." }
     },
     "devices": {
         "logger": "Veri kaydedici",
@@ -50,11 +51,11 @@
         "between": "Bir master (kaydedici, kontrolör) → en fazla 247 slave",
         "transport": "RS-485: iki veri teli ve bir toprak, yaklaşık 1200 m'ye kadar",
         "frames": "Adres, fonksiyon kodu, veri, CRC-16. Başlangıç baytı yok: çerçeveleri sessizlik ayırır.",
-        "speed": "9600 baud'da 8 baytlık bir istek 9.2 ms sürer"
+        "speed": "9600 baud'da (saniyede bit) 8 baytlık bir istek 9.2 ms sürer"
     },
     "tips": [
         "Hattaki her cihaz aynı hızı, eşliği ve dur bitlerini kullanmalıdır. Tek bir yanlış ayar, ölü bir slave'den farksız görünür.",
-        "Her cihaza değil, hattın iki ucuna birer 120 Ω direnç koyun. Eksik ya da fazla dirençler gelip giden CRC hatalarına yol açar.",
+        "Her cihaza değil, hattın iki ucuna birer 120 Ω direnç koyun. Eksik ya da fazla dirençler sinyali bozar ve gelip giden CRC hatalarına yol açar.",
         "Aynı adresli iki cihaz aynı anda yanıt verir ve birbirini bozar. Cihazı bağlamadan önce her adresi ayarlayın.",
         "Hiçbir şey yanıt vermiyorsa iki veri telinin yerini değiştirin. Üreticiler hangisinin A, hangisinin B olduğunda anlaşamaz."
     ],
@@ -68,7 +69,7 @@
     },
     "timing": {
         "title": "9600 baud'da hattaki çerçeveler ve sessizlikler",
-        "note": "Modbus RTU'da başlangıç ya da bitiş baytı yoktur. Hat 3.5 karakter boyunca sessiz kalınca çerçeve biter: karakter başına 11 bitle, 9600 baud'da 4.0 ms. 19200 baud'un üzerinde bu boşluk 1.75 ms'de sabittir. Bir çerçevenin içinde 1.5 karakterden uzun bir duraklama çerçeveyi böler.",
+        "note": "Modbus RTU'da başlangıç ya da bitiş baytı yoktur. Hat 3.5 karakter boyunca sessiz kalınca çerçeve biter: 9600 baud'da 4.0 ms. Bir karakter, başlangıç, eşlik ve dur bitleriyle birlikte bir bayttır: 11 bit. 19200 baud'un üzerinde bu boşluk 1.75 ms'de sabittir. Bir çerçevenin içinde 1.5 karakterden uzun bir duraklama çerçeveyi böler.",
         "logger": "Kaydedici gönderiyor",
         "inv1": "İnverter 1 yanıt veriyor",
         "idle": "Hat sessiz",
@@ -77,7 +78,7 @@
     "playground": {
         "file": "Kaydedicinin bu hat için ayarları. Hattaki her slave aynı hızı ve eşliği kullanmalıdır.",
         "baud": "Saniyede 9600 bit. Hattaki her cihaz aynı hızı kullanmalıdır.",
-        "parity": "8E1: 8 veri biti, çift eşlik, 1 dur biti. Eşlik biti tek bitlik hataları yakalar. Modbus'ın varsayılanı 8E1'dir; birçok cihaz 8N1'e ayarlı gelir.",
+        "parity": "8E1: 8 veri biti, çift eşlik, 1 dur biti. Eşlik biti, 1'lerin sayısını çift yapan fazladan bir bittir; böylece tek bir bitin değişmesi yakalanır. Modbus'ın varsayılanı 8E1'dir. Eşlik olmadan standart 2 dur biti (8N2) ister, ama birçok cihaz 8N1'e ayarlı gelir: hattaki her cihaz aynı ayarda olmalıdır.",
         "timeout": "Kaydedicinin vazgeçmeden önce bir yanıtı ne kadar beklediği: 1 saniye.",
         "retries": "Bir slave'i çevrim dışı işaretlemeden önce bir kez daha sor.",
         "after-broadcast": "Bir broadcast'e kimse yanıt vermez; bu yüzden kaydedici bir sonraki çerçeveden önce bu kadar bekler.",

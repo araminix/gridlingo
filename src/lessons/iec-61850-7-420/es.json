@@ -1,11 +1,12 @@
 {
-    "intro": "IEC 61850-7-420 lleva el modelo de datos de IEC 61850 a la energía distribuida: baterías, inversores, generadores y las funciones que los controlan. Un controlador de planta los lee y los controla con los mismos servicios MMS que un relé de subestación. Solo los nombres son nuevos.",
+    "intro": "IEC 61850 es la norma que usan las subestaciones para describir y controlar sus equipos: cada equipo guarda sus valores con nombres estándar, en un árbol fijo. IEC 61850-7-420 lleva ese modelo de datos a la energía distribuida, las muchas fuentes más pequeñas repartidas por la red: baterías, inversores, generadores y las funciones que los controlan. Un controlador de planta los lee y los controla con MMS, los mismos mensajes de red que sirven a los relés de protección de una subestación. Solo los nombres son nuevos.",
+    "plain": "En las subestaciones de la red, los recintos vallados llenos de interruptores y transformadores, cada equipo se describe con los mismos nombres acordados, como habitaciones que llevan todas un cartel estándar en la puerta. Esta norma amplía esos nombres a baterías, convertidores de energía solar y generadores. Así, la computadora de control de una planta puede encontrar \"carga de la batería\" o \"límite de potencia\" por su nombre en el equipo de cualquier fabricante. Lee valores, recibe avisos cuando cambian y envía órdenes como \"no des más de esta potencia\".",
     "steps": {
-        "associate": { "title": "Asociar", "text": "El controlador de planta abre el puerto TCP 102 del inversor de la batería y establece una asociación MMS, como en cualquier conexión IEC 61850." },
-        "read": { "title": "Leer carga y potencia", "text": "Un solo Read pide dos valores: el estado de carga en DSTO1 y la potencia activa en MMXU1. La respuesta trae los dos, en el mismo orden." },
-        "subscribe": { "title": "Pedir informes", "text": "El controlador activa un informe sobre esos mismos dos valores. A partir de ahora, el inversor los envía cuando cambian." },
-        "limit": { "title": "Limitar la salida", "text": "El operador de red permite como máximo 2000 kW. El controlador opera WMaxSpt, la consigna de DWMX1, la función que limita la potencia activa. El inversor acepta y empieza a bajar en rampa." },
-        "report": { "title": "La potencia se estabiliza", "text": "El inversor informa mientras TotW baja. El último informe dice 2000.0 kW: el límite se cumple." }
+        "associate": { "title": "Establecer el enlace", "text": "El controlador de planta, la computadora que gestiona la planta, abre una conexión TCP con el inversor de baterías en el puerto 102. El inversor de baterías conecta la batería a la red. Después los dos establecen una asociación MMS: acuerdan tamaños de mensaje y servicios, como en cualquier conexión IEC 61850." },
+        "read": { "title": "Leer carga y potencia", "text": "Una petición Read pide dos valores. El estado de carga, lo llena que está la batería, vive en DSTO1: el nodo lógico de la unidad de almacenamiento, un grupo de valores con nombre para una función. La potencia activa vive en MMXU1, el nodo de medida. La respuesta trae los dos, en el mismo orden." },
+        "subscribe": { "title": "Pedir informes", "text": "El controlador activa un informe con esos mismos dos valores. A partir de ahora, el inversor los envía por su cuenta cuando cambian." },
+        "limit": { "title": "Limitar la salida", "text": "El operador de la red, la compañía que gestiona las líneas eléctricas, permite como máximo 2000 kW. El controlador envía un comando a WMaxSpt, la consigna (valor objetivo) de DWMX1, la función que limita la potencia activa. El inversor acepta y empieza a bajar su potencia poco a poco." },
+        "report": { "title": "La potencia se estabiliza", "text": "El inversor envía informes mientras baja TotW, su potencia activa total. El último informe dice 2000.0 kW: el límite se cumple." }
     },
     "frames": {
         "tcp": "Abre TCP al puerto 102 y después una conexión de transporte",
@@ -22,7 +23,7 @@
         "tcp": "TCP sin más al puerto 102 y, encima, una conexión de transporte ISO (COTP). La lección de IEC 61850 MMS muestra estos pasos.",
         "initiate-req": "Un Initiate de MMS dentro de las capas de sesión, presentación y ACSE. El controlador ofrece su tamaño de mensaje máximo y los servicios que quiere. La autenticación, si se usa, ocurre aquí (IEC 62351-4).",
         "initiate-resp": "El inversor responde con sus propios tamaños y servicios. A partir de ahora, cada petición nombra una variable por su dispositivo lógico y su ítem.",
-        "enable": "Un Write de TRUE en RptEna del bloque de control de informes LLN0$RP$urcbDER01. Su conjunto de datos dsDER contiene DSTO1.UseSocPct y MMXU1.TotW.",
+        "enable": "Un Write de TRUE en RptEna (habilitación del informe) del bloque de control de informes LLN0$RP$urcbDER01, los ajustes de un informe. Su conjunto de datos dsDER, la lista de valores que lleva el informe, contiene DSTO1.UseSocPct y MMXU1.TotW.",
         "report": "Un InformationReport no solicitado: el inversor lo envía sin que se lo pidan, cada vez que cambia un valor de dsDER."
     },
     "fields": {
@@ -42,14 +43,14 @@
         "read": { "name": "Read", "note": "Etiqueta A4: el servicio Read." },
         "spec": { "name": "Lista de variables", "note": "Una lista de variables, cada una dada por su nombre. Aquí hay dos." },
         "var": { "name": "Variable", "note": "Una entrada de la lista. A continuación va su nombre." },
-        "domain-specific": { "name": "Nombre de dominio", "note": "Un nombre en dos partes: el dominio y el ítem." },
+        "domain-specific": { "name": "Nombre de dominio", "note": "Un nombre en dos partes: el dominio (el dispositivo lógico) y el elemento (la ruta dentro de él)." },
         "domain": { "name": "Dominio", "note": "\"BESS1DER\": el dispositivo lógico DER del IED BESS1." },
         "item-soc": { "name": "Ítem", "note": "\"DSTO1$MX$UseSocPct$mag$f\": el estado de carga de la unidad de almacenamiento, en porcentaje de su energía utilizable." },
         "item-totw": { "name": "Ítem", "note": "\"MMXU1$MX$TotW$mag$f\": la potencia activa total en el lado de CA del inversor." },
         "results": { "name": "Resultados", "note": "Un resultado por variable, en el orden en que se pidieron." },
         "float-tag": { "name": "Coma flotante", "note": "Etiqueta 0x87 (un float), 5 bytes. 08: sigue un float IEEE 754 de precisión simple." },
         "soc": { "name": "UseSocPct", "note": "68.5 (%), el byte más significativo primero." },
-        "totw": { "name": "TotW", "note": "3000.0. La unidad, kW, está en el atributo units (CF)." },
+        "totw": { "name": "TotW", "note": "3000.0. La unidad, kW, se fija en el atributo units, bajo CF (configuración)." },
         "write": { "name": "Write", "note": "Etiqueta A5: el servicio Write. IEC 61850 envía un comando como un Write en Oper." },
         "write-spec": { "name": "Variable", "note": "Una lista de una sola variable, dada por su nombre." },
         "item-oper": { "name": "Ítem", "note": "\"DWMX1$CO$WMaxSpt$Oper\": la estructura Oper de la consigna WMaxSpt. CO significa control." },
@@ -60,7 +61,7 @@
         "ctlnum": { "name": "ctlNum", "note": "1: el cliente numera sus comandos, para poder distinguir cada uno." },
         "oper-t": { "name": "T", "note": "Cuándo lo envió el controlador: 10:41:12.250 UTC. 4 bytes de segundos, 3 de fracciones de segundo y 1 de calidad del reloj." },
         "test": { "name": "Test", "note": "FALSE: un comando real, no una prueba." },
-        "check": { "name": "Check", "note": "Dos bits: comprobación de sincronismo y comprobación de enclavamiento. Los dos están desactivados: una consigna no necesita ninguno." },
+        "check": { "name": "Check", "note": "Dos bits: comprobación de sincronismo (esperar a que ambos lados de un interruptor estén en fase) y comprobación de enclavamiento (rechazar si las reglas de seguridad de la planta lo prohíben). Ambos están desactivados: una consigna no necesita ninguno." },
         "write-resp": { "name": "Respuesta a Write", "note": "Etiqueta A5: la respuesta a un Write, un resultado por variable." },
         "success": { "name": "Éxito", "note": "Etiqueta 0x81, vacía: la escritura funcionó. Con control directo, el nuevo límite se aplica al instante." },
         "a-ld": { "name": "Dispositivo lógico", "note": "BESS1DER: nombre de IED BESS1 e instancia DER." },
@@ -84,7 +85,7 @@
     },
     "tips": [
         "La edición 1 (2009) y la edición 2 (2021) usan nombres distintos. La edición 1 tiene ZINV, ZBAT y DRCT; la edición 2 tiene DINV, DBAT, DSTO y funciones como DWMX. Comprueba qué edición usa el archivo SCL del equipo antes de mapear nada.",
-        "Lee ctlModel (CF) antes de operar. Con direct-with-normal-security, la respuesta al Write es el final. Con enhanced security, después llega un CommandTermination cuando el equipo ha terminado.",
+        "Lee ctlModel (CF), el modelo de control, antes de enviar un comando. Con direct-with-normal-security, la respuesta Write es el final. Con seguridad reforzada (enhanced security), le sigue un CommandTermination cuando el equipo ha terminado.",
         "Las funciones de la edición 2 pueden volver a sus valores por defecto tras un tiempo fijado en RvrtTms. Un controlador que envía un límite una vez y nunca más puede ver cómo desaparece.",
         "Acuerda el signo de la potencia. Algunos equipos cuentan la descarga como positiva y otros como negativa. Prueba primero con una consigna pequeña."
     ],
@@ -97,7 +98,7 @@
         "control": "El nombre de una consigna, y cómo lo escribe MMS"
     },
     "playground": {
-        "scl": "La descripción configurada del inversor de la batería (.cid). Abre DER, luego DSTO1 y MMXU1 para los dos valores que se leen aquí, y DWMX1 para WMaxSpt: su estructura Oper y su ctlModel. Después abre tu propio archivo, si tienes uno.",
+        "scl": "La descripción configurada del inversor de baterías (.cid), un archivo SCL. Abre DER, después DSTO1 y MMXU1 para los dos valores que se leen aquí, y DWMX1 para WMaxSpt: su estructura Oper y su ctlModel. Después abre tu propio archivo, si tienes uno.",
         "encoder": "MMS envía un float con el byte más significativo primero (ABCD). El límite, 2000.0, viaja como 44 FA 00 00."
     }
 }

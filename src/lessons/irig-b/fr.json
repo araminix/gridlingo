@@ -1,11 +1,12 @@
 {
-    "intro": "Le code horaire que les relais de poste reçoivent depuis des décennies. Une horloge GPS envoie une trame par seconde sur un câble coaxial ou une paire torsadée : 100 bits de 10 ms chacun. La largeur de chaque impulsion code un 0, un 1 ou un repère, et le premier front de la trame marque le début exact de la seconde.",
+    "intro": "IRIG-B est le code horaire qu'utilisent les relais de poste depuis des décennies. Une horloge GPS envoie une trame par seconde sur un câble coaxial ou une paire de fils torsadée : 100 bits, de 10 ms chacun. La largeur de chaque impulsion dit ce qu'elle est : un 0, un 1 ou un repère de position. Le premier front de la trame marque le début exact de la seconde.",
+    "plain": "Ce code horaire fonctionne comme les tops horaires à la radio : le début de chaque seconde est marqué exactement, et un court code dit quelle heure il est. Une horloge qui écoute les satellites envoie sur un fil une suite d'impulsions courtes et longues, une fois par seconde. Chaque équipement de protection branché sur le fil lit cette suite et règle sa propre horloge. En cas d'incident, ils notent tous la même heure : l'ordre des événements est donc clair.",
     "steps": {
-        "lock": { "title": "Calage GPS", "text": "L'horloge du poste capte les satellites par son antenne et se cale sur UTC. Dès lors, elle commence chaque trame IRIG-B pile sur la seconde." },
-        "frame": { "title": "Une trame", "text": "À 10:41:07.000, une trame commence : deux repères à la suite, puis les secondes, les minutes, les heures, le jour de l'année et l'année en BCD, les bits de contrôle, et les secondes du jour en binaire. Tous les relais de la ligne l'entendent. IRIG-B n'a ni adresses ni réponses." },
-        "set": { "title": "Mettre à l'heure", "text": "L'heure d'une trame est celle de son premier front, mais un relais ne la connaît qu'une fois la trame lue. Le relais attend donc la trame suivante, vérifie qu'elle arrive exactement une seconde plus tard, et règle son horloge." },
-        "event": { "title": "Un déclenchement", "text": "Un défaut sur le départ F1. Le relais F1 fait déclencher le disjoncteur Q1 et enregistre l'événement avec sa propre horloge : 10:52:31.283. Les enregistrements de tous les relais de cette ligne partagent la même échelle de temps : leur ordre est sans ambiguïté." },
-        "holdover": { "title": "Holdover", "text": "À 11:40, le câble d'antenne est coupé. L'horloge tourne sur son propre oscillateur et continue d'émettre. À 14:12, elle estime son erreur à 10 µs au plus et l'indique dans les bits de qualité de l'heure : 5." }
+        "lock": { "title": "Se caler sur le GPS", "text": "L'horloge du poste capte les satellites par son antenne et se cale sur UTC (temps universel coordonné, l'heure de référence mondiale). Dès lors, elle commence chaque trame IRIG-B pile sur la seconde." },
+        "frame": { "title": "Une trame", "text": "À 10:41:07.000, une trame commence par deux repères à la suite. Viennent ensuite les secondes, les minutes, les heures, le jour de l'année et l'année en BCD (décimal codé binaire : chaque chiffre décimal écrit séparément en binaire). Après eux viennent les bits de contrôle, et les secondes du jour sous forme d'un seul nombre binaire. Tous les relais de la ligne entendent la trame. IRIG-B n'a ni adresses ni réponses." },
+        "set": { "title": "Mettre à l'heure", "text": "L'heure d'une trame est celle de son premier front, mais un relais ne connaît cette heure qu'une fois la trame entière lue. Le relais attend donc la trame suivante, vérifie qu'elle arrive exactement une seconde plus tard, et règle son horloge." },
+        "event": { "title": "Un disjoncteur déclenche", "text": "Un défaut sur le départ F1. Le relais F1 fait déclencher le disjoncteur Q1, qui s'ouvre, et enregistre l'événement avec sa propre horloge : 10:52:31.283. Les enregistrements de tous les relais de cette ligne partagent la même échelle de temps : leur ordre est sans ambiguïté." },
+        "holdover": { "title": "Fonctionner sans GPS", "text": "À 11:40, le câble d'antenne est coupé. L'horloge tourne sur son propre oscillateur et continue d'émettre : c'est le mode holdover. À 14:12, elle estime que son erreur peut atteindre 10 µs, et l'indique dans les bits de qualité de l'heure : 5." }
     },
     "frames": {
         "gps": "Heure satellite : UTC",
@@ -23,16 +24,16 @@
     "fields": {
         "sec-07": { "name": "Secondes", "note": "07 en BCD : le chiffre des unités, 7, dans les bits 1–4, bit de poids faible en premier, puis le chiffre des dizaines, 0, dans les bits 6–8. Affiché ici en hexadécimal, pour se lire comme l'heure." },
         "sec-08": { "name": "Secondes", "note": "08 : un de plus que dans la trame précédente." },
-        "sec-31": { "name": "Secondes", "note": "31 en BCD." },
+        "sec-31": { "name": "Secondes", "note": "31 en BCD : le chiffre des unités, 1, puis le chiffre des dizaines, 3." },
         "min-41": { "name": "Minutes", "note": "41 en BCD : unités dans les bits 10–13, dizaines dans les bits 15–17." },
-        "min-12": { "name": "Minutes", "note": "12 en BCD." },
+        "min-12": { "name": "Minutes", "note": "12 en BCD : le chiffre des unités, 2, puis le chiffre des dizaines, 1." },
         "hour-10": { "name": "Heures", "note": "10 en BCD : unités dans les bits 20–23, dizaines dans les bits 25–26. En UTC, comme l'indiquent les bits de décalage." },
-        "hour-14": { "name": "Heures", "note": "14 en BCD." },
+        "hour-14": { "name": "Heures", "note": "14 en BCD : le chiffre des unités, 4, puis le chiffre des dizaines, 1." },
         "day-316": { "name": "Jour de l'année", "note": "316 = 12 novembre 2026, affiché 03 16. Unités dans les bits 30–33, dizaines dans 35–38, centaines dans 40–41." },
         "year-26": { "name": "Année", "note": "(20)26 en BCD, dans les bits 50–58. Les codes sans année la laissent au relais." },
         "cf-flags": { "name": "Seconde intercalaire · heure d'été", "note": "Bits 60–63 (IEEE C37.118.1) : aucune seconde intercalaire à venir, aucun changement d'heure à venir, pas d'heure d'été." },
         "cf-offset": { "name": "Décalage horaire", "note": "Bits 64–68 et 70 : 0 heure d'écart avec UTC. Cette trame porte l'heure UTC." },
-        "tq-0": { "name": "Qualité de l'heure 0", "note": "Bits 71–74 : calée sur le GPS, précision maximale." },
+        "tq-0": { "name": "Qualité de l'heure 0", "note": "Bits 71–74 : 0, calée sur le GPS, précision maximale." },
         "tq-5": { "name": "Qualité de l'heure 5", "note": "L'erreur de l'horloge peut atteindre 10 µs. 4 signifierait 1 µs, 6 signifierait 100 µs ; 15 signifie que l'heure n'est pas fiable." },
         "parity-0": { "name": "Parité", "note": "Bit 75 : parité paire. Les bits 1–74 contiennent un nombre pair de uns : ce bit vaut donc 0." },
         "parity-1": { "name": "Parité", "note": "Bit 75 : les bits 1–74 contiennent 17 uns : ce bit vaut donc 1, et le compte redevient pair." },
@@ -40,7 +41,7 @@
         "sbs-38468": { "name": "Secondes en binaire pur", "note": "0x9644 = 38468 : une seconde plus tard." },
         "sbs-51151": { "name": "Secondes en binaire pur", "note": "0xC7CF = 51151 = 14 × 3600 + 12 × 60 + 31." },
         "a-format": { "name": "Format", "note": "B : 100 bits par seconde, une trame par seconde." },
-        "a-modulation": { "name": "Modulation", "note": "1 : une sinusoïde modulée en amplitude. 0 est un signal en niveaux continus (largeur d'impulsion), 2 est du Manchester." },
+        "a-modulation": { "name": "Modulation", "note": "1 : une sinusoïde dont l'amplitude porte les impulsions, forte pendant une impulsion et faible ensuite. 0 est un signal en niveaux continus (largeur d'impulsion), 2 est du Manchester." },
         "a-carrier": { "name": "Porteuse", "note": "2 : une porteuse à 1 kHz. 0 signifie pas de porteuse, comme avec les niveaux continus." },
         "a-content": { "name": "Contenu", "note": "4 : heure de l'année en BCD, année, bits de contrôle et secondes en binaire pur. 0 est identique sans l'année ; 7 n'a pas de bits de contrôle." }
     },
@@ -72,7 +73,7 @@
     },
     "timing": {
         "title": "Les 110 premières ms d'une trame",
-        "note": "La trame de 10:41:07 commence par deux repères à la suite : P0 termine la trame précédente, Pr ouvre celle-ci, et le front montant de Pr tombe exactement à 10:41:07.000. Viennent ensuite les secondes, unités d'abord : 1, 1, 1, 0 = 7. B00x envoie les impulsions en niveaux continus : 2 ms pour un 0, 5 ms pour un 1, 8 ms pour un repère. B12x place les mêmes impulsions sur une sinusoïde à 1 kHz, forte pendant l'impulsion et faible ensuite (environ 10:3). La sinusoïde est dessinée ici en marches.",
+        "note": "La trame de 10:41:07 commence par deux repères à la suite : P0 termine la trame précédente, Pr ouvre celle-ci, et le front montant de Pr tombe exactement à 10:41:07.000. Viennent ensuite les secondes, unités d'abord : 1, 1, 1, 0 = 7. B00x envoie les impulsions en niveaux continus : 2 ms pour un 0, 5 ms pour un 1, 8 ms pour un repère. B12x place les mêmes impulsions sur une sinusoïde à 1 kHz, forte pendant l'impulsion et faible ensuite (environ 10 contre 3). La sinusoïde est dessinée ici en marches.",
         "bits": "Bits",
         "b00x": "B00x · niveaux continus",
         "b12x": "B12x · 1 kHz",

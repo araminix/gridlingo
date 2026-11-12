@@ -1,10 +1,11 @@
 {
-    "intro": "전력망에 여유가 없을 때 전력 회사가 건물에 전력 사용을 줄여 달라고 요청하는 방법이에요. 전력 회사 서버는 VTN(virtual top node), 고객 쪽은 VEN(virtual end node)이에요. 이 레슨은 현장 제품 대부분이 쓰는 OpenADR 2.0b를 다뤄요: HTTPS 위의 XML이고, VEN이 폴링하니 건물에 열린 포트가 필요 없어요. VTN은 무엇을, 언제 할지 말하고, 어떻게 할지는 건물이 정해요.",
+    "intro": "전력망에 여유가 없을 때 전력 회사가 건물에 전력 사용을 줄여 달라고 요청하는 방법이에요: 이를 수요 반응이라고 해요. 전력 회사 서버는 VTN(virtual top node)이에요. 고객 쪽은 VEN(virtual end node)으로, 건물에 있는 작은 장치나 프로그램이에요. 이 레슨은 현장 제품 대부분이 쓰는 OpenADR 2.0b를 다뤄요: HTTPS 위의 XML 메시지예요. VEN은 폴링해요: 일정한 간격으로 VTN에 새 소식이 있는지 물어요. 그래서 건물에는 열린 포트, 즉 인터넷에서 들어오는 길이 필요 없어요. VTN은 무엇을, 언제 할지 말하고, 어떻게 할지는 건물이 정해요.",
+    "plain": "가장 더운 오후에는 모두가 한꺼번에 에어컨을 틀어서 전력망이 한계에 가까워져요. 이 프로토콜로 전력 회사는 미리 신청한 건물에 한 시간만 전기를 조금 덜 써 달라고 부탁해요. 가뭄 때 수도 회사가 정원에 물을 주지 말아 달라고 부탁하는 것과 같아요. 건물의 컴퓨터가 알아서 움직여요: 방 온도를 살짝 올리고 복도 조명을 어둡게 해요. 그다음 전기 사용량을 보고해서, 회사가 줄어든 걸 확인하게 해요.",
     "steps": {
-        "poll": { "title": "소식 묻기", "text": "12:00 UTC에 VEN이 평소처럼 1분마다 하는 폴링을 해요. 이번에는 VTN이 이벤트로 답해요: 레벨 1, 17:00부터 18:00 UTC까지." },
-        "optin": { "title": "참여 선택", "text": "이벤트가 응답을 요구해요. VEN이 참여(opt-in)를 선택하고, VTN이 확인해요." },
-        "shed": { "title": "부하 감축", "text": "자기 시계로 17:00이 되면 VEN이 건물 제어기에 동작을 지시해요: 냉방 설정 온도를 2 °C 올리고 복도 조명을 어둡게 해요. 부하가 420 kW에서 340 kW로 떨어져요." },
-        "report": { "title": "보고", "text": "VEN이 등록할 때 합의한 대로 측정한 부하를 보내요. 전력 회사는 부하가 줄어든 걸 확인해요." },
+        "poll": { "title": "소식 묻기", "text": "12:00 UTC(협정 세계시)에 VEN이 1분마다 하던 대로 폴링해요: 새 소식이 있나요? 이번에는 VTN이 이벤트, 즉 전력을 덜 써 달라는 요청으로 답해요: 레벨 1(보통), 17:00부터 18:00 UTC까지." },
+        "optin": { "title": "참여 동의", "text": "이벤트가 응답을 요구해요. VEN이 opt-in해요: 건물이 참여하겠다는 뜻이에요. VTN이 확인해요." },
+        "shed": { "title": "전력 덜 쓰기", "text": "자기 시계로 17:00이 되면 VEN이 건물 제어기에 동작을 지시해요. 냉방 설정 온도(목표 온도)를 2 °C 올리고 복도 조명을 어둡게 해요. 부하, 즉 건물이 끌어 쓰는 전력이 420 kW에서 340 kW로 떨어져요." },
+        "report": { "title": "부하 보고", "text": "VEN이 VTN에 처음 등록할 때 합의한 대로 측정한 부하를 보내요. 전력 회사는 부하가 줄어든 걸 확인해요." },
         "end": { "title": "정상 복귀", "text": "18:00에 이벤트가 끝나요. VEN이 명령을 거둬들이고, 건물은 원래 일정으로 돌아가요." }
     },
     "frames": {
@@ -19,19 +20,19 @@
         "restore": "이벤트 종료: 정상으로 복귀"
     },
     "notes": {
-        "tls": "연결은 언제나 VEN이 열어요. 양쪽이 OpenADR용으로 발급된 인증서를 보여 줘요. TLS 1.2이고, OpenADR이 요구하는 두 스위트 중 하나를 써요: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 또는 TLS_RSA_WITH_AES_128_CBC_SHA256.",
+        "tls": "연결은 언제나 VEN이 열어요. 양쪽이 OpenADR용으로 발급된 인증서를 보여 줘요. 연결에는 TLS 1.2를 쓰고, OpenADR가 요구하는 두 암호 스위트 중 하나를 써요: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 또는 TLS_RSA_WITH_AES_128_CBC_SHA256.",
         "poll": "/OpenADR2/Simple/2.0b/OadrPoll로 보내는 HTTP POST예요. 작은 oadrPoll 메시지에 VEN의 venID만 담겨요. 폴링 주기는 VEN을 등록할 때 VTN이 정했어요.",
         "distribute": "폴링에 대한 응답이에요. 새것만이 아니라 이 VEN의 대기 중·진행 중인 이벤트를 모두 나열해요. '직접 해 보기'에서 한 줄씩 볼 수 있어요.",
-        "created": "EiEvent로 보내는 POST: 이벤트(eventID PEAK-20260715, modificationNumber 0)를 가리키는 oadrCreatedEvent에 responseCode 200과 optType optIn이 담겨요. optOut이면 전력 회사에 이 건물을 기대하지 말라고 알리는 거예요.",
+        "created": "EiEvent로 보내는 POST: 이벤트(eventID PEAK-20260715, modificationNumber 0)를 가리키는 oadrCreatedEvent예요. responseCode 200(OK)과 optType optIn이 담겨요. optOut이면 전력 회사에 이 건물을 기대하지 말라고 알리는 거예요.",
         "response": "responseCode 200인 oadrResponse예요. VTN은 새 소식이 없을 때도 폴링에 같은 메시지로 답해요.",
-        "shed": "OpenADR가 아니에요: VEN이 건물 제어기에 보내는 BACnet 쓰기예요. OpenADR는 레벨 1이라고만 말해요. 레벨 1이 무엇을 뜻하는지는 전력 회사가 아니라 건물에서 정해요.",
+        "shed": "이 부분은 OpenADR가 아니에요: VEN이 건물 제어기인 BMS에 보내는 BACnet 쓰기예요. OpenADR는 레벨 1이라고만 말해요. 레벨 1이 무엇을 뜻하는지는 전력 회사가 아니라 건물에서 정해요.",
         "update-report": "EiReport로 보내는 POST: 15분마다 건물의 실제 전력을 담은 TELEMETRY_USAGE 리포트가 들어 있는 oadrUpdateReport예요. VEN이 보낼 수 있는 리포트를 등록한 뒤, VTN이 oadrCreateReport로 요청했어요.",
         "updated-report": "responseCode 200인 oadrUpdatedReport예요.",
-        "restore": "이것도 OpenADR가 아니에요. VEN이 자기 BACnet 우선순위에 NULL을 써서 명령을 해제해요. 부하가 다시 415 kW로 올라가요."
+        "restore": "이것도 OpenADR가 아니에요. VEN이 자기 BACnet 우선순위에 NULL을 써서 명령을 해제해요: 건물의 원래 스케줄이 다시 넘겨받아요. 부하가 다시 415 kW로 올라가요."
     },
     "fields": {
         "a-host": { "name": "VTN", "note": "전력 회사 서버. VTN은 나머지 앞에 자체 경로를 붙일 수 있어요." },
-        "a-transport": { "name": "전송 방식", "note": "Simple HTTP. OpenADR 2.0b는 VTN이 푸시하는 XMPP 위에서도 동작해요." },
+        "a-transport": { "name": "전송 방식", "note": "VEN이 폴링하는 Simple HTTP예요. Simple HTTP는 VTN이 VEN으로 POST하는 푸시 방식도 돼요. OpenADR 2.0b는 메시징 프로토콜인 XMPP 위에서도 동작해요." },
         "a-profile": { "name": "프로파일", "note": "2.0b: 이벤트, 리포트, 참여 일정. 2.0a는 단순한 기기를 위한 작은 프로파일로, 이벤트만 있어요." },
         "a-service": { "name": "서비스", "note": "OadrPoll. 메시지마다 해당 서비스로 가요: 이벤트는 EiEvent, 리포트는 EiReport, 등록은 EiRegisterParty, 참여 일정은 EiOpt로." }
     },
@@ -50,7 +51,7 @@
     },
     "tips": [
         "이벤트가 바뀔 때마다 modificationNumber가 올라가요. 새 번호마다 답하세요. 그렇지 않으면 VTN은 VEN이 변경을 받지 못했다고 생각해요.",
-        "VEN은 자기 시계로 이벤트를 실행해요. NTP로 맞춰 두세요: 10분 늦은 시계는 부하도 10분 늦게 줄여요.",
+        "VEN은 자기 시계로 이벤트를 실행해요. 그 시계를 NTP로 맞춰 두세요: 10분 늦은 시계는 부하도 10분 늦게 줄여요.",
         "전력 회사는 참여 응답을 모두 계획에 넣어요. 건물이 부하를 줄일 수 없다면 이벤트가 시작된 뒤가 아니라 미리 불참(opt-out)하세요."
     ],
     "points": {

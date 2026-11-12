@@ -1,11 +1,12 @@
 {
-    "intro": "Der Control Pilot (CP) ist eine Ader in jedem Ladekabel. Die Ladestation legt eine Spannung daran, und das Auto zieht diese Spannung mit Widerständen herunter. Am Pegel erkennen beide Seiten, ob ein Auto angeschlossen ist und ob es Leistung will. Ein Rechtecksignal mit 1 kHz auf derselben Ader sagt dem Auto, wie viel Strom es ziehen darf.",
+    "intro": "Der Control Pilot (CP) ist eine dünne Signalader in jedem Ladekabel für Elektroautos. Die Ladestation legt eine Spannung daran, und das Auto zieht diese Spannung mit Widerständen herunter (einfachen Bauteilen, die eine Spannung senken). Am Pegel erkennen beide Seiten, ob ein Auto angeschlossen ist und ob es Leistung will. Außerdem lässt die Ladestation die Spannung 1000-mal pro Sekunde auf und ab springen: ein Rechtecksignal mit 1 kHz. Wie lange es in jeder Periode oben bleibt, sagt dem Auto, wie viel Strom es ziehen darf.",
+    "plain": "Ein Elektroauto und eine Ladestation einigen sich über eine einzige dünne Ader im Kabel aufs Laden, ganz ohne Computernachrichten. Das Auto ändert die Spannung auf dieser Ader und sagt damit „Ich bin angesteckt“ und „Ich bin bereit“, fast so, als würde es einen Schalter umlegen. Die Ladestation antwortet mit Impulsen auf der Ader, und die Länge jedes Impulses sagt dem Auto, wie viel Strom es ziehen darf. Im Kabel fließt kein Strom, bevor sich beide Seiten einig sind.",
     "steps": {
-        "plug": { "title": "Anstecken", "text": "Bevor der Stecker steckt, hält die Ladestation CP auf +12 V: Zustand A. Der Widerstand des Autos zieht ihn auf +9 V herunter: Zustand B. Außerdem liest die Ladestation die Belastbarkeit des Kabels am PP-Kontakt." },
-        "offer": { "title": "Strom anbieten", "text": "Die Ladestation startet auf CP ein Rechtecksignal mit 1 kHz. Der Zeitanteil, in dem es oben ist, das Tastverhältnis, gibt den Strom an, den das Auto ziehen darf. Der Hausanschluss erlaubt 24 A, also bietet die 32-A-Ladestation 24 A an: 40 %." },
-        "charge": { "title": "Laden", "text": "Das Auto schaltet einen zweiten Widerstand zu: CP fällt auf +6 V, Zustand C. Erst jetzt schließt die Ladestation ihr Schütz. Das Auto zieht bis zu 24 A pro Phase." },
-        "reduce": { "title": "Weniger Strom", "text": "Das Haus braucht seine Leistung anderswo. Sein Energiemanager meldet das der Ladestation, und die Ladestation senkt das Tastverhältnis auf 10 %: 6 A. Das Auto hat 5 s Zeit, um zu folgen." },
-        "stop": { "title": "Stopp", "text": "Die Batterie ist voll. Das Auto öffnet seinen Schalter: CP geht zurück auf +9 V, Zustand B. Die Ladestation öffnet das Schütz." },
+        "plug": { "title": "Anstecken", "text": "Bevor der Stecker steckt, hält die Ladestation CP auf +12 V: Zustand A, kein Auto. Der Widerstand des Autos zieht ihn auf +9 V herunter: Zustand B, ein Auto ist angeschlossen. Außerdem liest die Ladestation die Belastbarkeit des Kabels (den höchsten Strom, den es führen kann) am PP-Kontakt: dem Proximity Pilot, einem zweiten kleinen Kontakt im Stecker." },
+        "offer": { "title": "Strom anbieten", "text": "Die Ladestation startet auf CP ein Rechtecksignal mit 1 kHz. Der Anteil jeder Periode, in dem das Signal oben bleibt, ist das Tastverhältnis. Es sagt dem Auto, wie viel Strom es ziehen darf. Der Hausanschluss erlaubt 24 A, also bietet die 32-A-Ladestation 24 A an: ein Tastverhältnis von 40 %." },
+        "charge": { "title": "Strom ein", "text": "Das Auto schaltet einen zweiten Widerstand zu: CP fällt auf +6 V, Zustand C, bereit zum Laden. Erst jetzt schließt die Ladestation ihr Schütz (einen kräftigen Leistungsschalter). Das Auto zieht bis zu 24 A pro Phase, also auf jedem der drei stromführenden Leiter." },
+        "reduce": { "title": "Strom senken", "text": "Das Haus braucht seine Leistung anderswo. Sein Energiemanager, das Gerät, das die Leistung des Hauses auf die Verbraucher verteilt, meldet das der Ladestation. Die Ladestation senkt das Tastverhältnis auf 10 %: 6 A. Das Auto hat 5 s Zeit, um zu folgen." },
+        "stop": { "title": "Laden endet", "text": "Die Batterie ist voll. Das Auto öffnet seinen Schalter: CP geht zurück auf +9 V, Zustand B. Die Ladestation öffnet das Schütz, und der Strom ist aus." },
         "unplug": { "title": "Abstecken", "text": "Der Stecker kommt heraus. CP kehrt auf +12 V zurück, Zustand A, und die Ladestation stoppt das Rechtecksignal." }
     },
     "frames": {
@@ -21,14 +22,14 @@
         "a": "Das Auto ist weg"
     },
     "notes": {
-        "b1": "Die Ladestation speist +12 V über einen Widerstand von 1 kΩ ein. Das Auto schaltet 2.74 kΩ hinter einer Diode von CP gegen Schutzleiter (PE), und die Spannung fällt auf +9 V. B1 bedeutet Zustand B mit konstanter Spannung; B2 ist derselbe Zustand mit Rechtecksignal.",
-        "pp": "Der Proximity Pilot (PP) ist kein Signal. Er ist ein Widerstand im Stecker des Kabels, zwischen PP und PE, und sein Wert gibt die Belastbarkeit des Kabels an: 1.5 kΩ sind 13 A, 680 Ω sind 20 A, 220 Ω sind 32 A, 100 Ω sind 63 A.",
+        "b1": "Die Ladestation speist +12 V über einen Widerstand von 1 kΩ ein. Das Auto schaltet 2.74 kΩ von CP gegen Schutzleiter (PE), hinter einer Diode (einem Bauteil, das Strom nur in eine Richtung durchlässt). Die Spannung fällt auf +9 V. B1 bedeutet Zustand B mit konstanter Spannung. B2 ist derselbe Zustand mit Rechtecksignal.",
+        "pp": "Der Proximity Pilot (PP) ist kein Signal. Er ist ein Widerstand im Stecker des Kabels, zwischen PP und PE. Sein Wert gibt die Belastbarkeit des Kabels an: 1.5 kΩ sind 13 A, 680 Ω sind 20 A, 220 Ω sind 32 A, 100 Ω sind 63 A.",
         "pwm": "Eine Periode dauert 1 ms. CP liegt 40 % davon (0.4 ms) auf +9 V und den Rest auf −12 V. Zwischen 10 % und 85 % ist der Strom das Tastverhältnis × 0.6 A: 40 × 0.6 = 24 A.",
-        "c": "Das Auto schließt seinen Schalter S2 und schaltet 1.3 kΩ parallel zu den 2.74 kΩ. Der obere Pegel des Rechtecksignals fällt auf +6 V. Mit 270 Ω würde er stattdessen auf +3 V fallen: Zustand D, der Belüftung verlangt.",
-        "contactor": "Kein Signal auf CP. Das Schütz der Ladestation verbindet L1, L2, L3 und N mit dem Auto, und das Bordladegerät des Autos macht aus dem Wechselstrom Gleichstrom für die Batterie.",
-        "limit": "Nicht IEC 61851: Ein Energiemanager spricht Modbus, OCPP oder schließt einen Kontakt. Das Auto sieht diese Nachricht nie, nur das neue Tastverhältnis.",
+        "c": "Das Auto schließt seinen Schalter S2 und schaltet 1.3 kΩ parallel zu den 2.74 kΩ. Der obere Pegel des Rechtecksignals fällt auf +6 V. Mit 270 Ω würde er stattdessen auf +3 V fallen: Zustand D. Er verlangt Belüftung, für Batterien, die beim Laden Gas abgeben.",
+        "contactor": "Das ist kein Signal auf CP. Das Schütz der Ladestation verbindet die drei Phasen L1, L2, L3 und den Neutralleiter N mit dem Auto. Das Bordladegerät des Autos macht aus dem Wechselstrom Gleichstrom für die Batterie.",
+        "limit": "Dieser Teil ist nicht IEC 61851. Ein Energiemanager sagt es der Ladestation über Modbus oder OCPP oder schließt einfach einen Kontakt. Das Auto sieht diese Nachricht nie, nur das neue Tastverhältnis.",
         "pwm-10": "10 × 0.6 = 6 A, der kleinste Strom, den ein Tastverhältnis anbieten kann. Das Auto muss seinen Strom innerhalb von 5 s senken.",
-        "b2": "Das Auto öffnet S2, und der obere Pegel geht zurück auf +9 V. Ein gutes Auto senkt vorher seinen Strom, damit das Schütz nicht unter Last öffnet.",
+        "b2": "Das Auto öffnet S2, und der obere Pegel geht zurück auf +9 V. Ein gutes Auto senkt vorher seinen Strom, damit das Schütz nicht unter Last öffnet (während Strom fließt).",
         "open": "In Zustand B darf die Ladestation keine Leistung liefern, also öffnet sie das Schütz. Das Rechtecksignal läuft weiter: Das Auto könnte wieder Leistung anfordern.",
         "a": "Nichts zieht CP mehr herunter: +12 V, Zustand A. Die Ladestation stoppt das Rechtecksignal (A1) und wartet auf das nächste Auto."
     },
@@ -50,7 +51,7 @@
         "Auch den unteren Pegel prüfen. Ein Rechtecksignal, das −12 V nicht erreicht, bedeutet, dass die Diode des Autos fehlt oder kurzgeschlossen ist, und die Ladestation darf nicht einschalten.",
         "5 % ist kein Strom. Es bedeutet „zuerst digital sprechen“ (ISO 15118): Die Grenze kommt dann aus den Nachrichten, nicht aus dem Tastverhältnis.",
         "Auch das Kabel begrenzt den Strom. Mit einem 20-A-Kabel (680 Ω) bietet eine 32-A-Ladestation höchstens 20 A an: ein Tastverhältnis von 33.3 %.",
-        "Zustand D (+3 V) verlangt Belüftung. Eine Ladestation ohne Lüfter für den Raum darf in Zustand D nicht laden. E (0 V) ist ein Kurzschluss oder keine Versorgung; F (−12 V) bedeutet, dass die Ladestation nicht verfügbar ist."
+        "Zustand D (+3 V) verlangt Belüftung. Eine Ladestation ohne Lüfter für den Raum darf in Zustand D nicht laden. Zustand E (0 V) bedeutet Kurzschluss oder keine Versorgung. Zustand F (−12 V) bedeutet, dass die Ladestation nicht verfügbar ist."
     ],
     "points": {
         "state": "CP-Zustand",
@@ -60,7 +61,7 @@
     },
     "timing": {
         "title": "Der Control Pilot, 3 ms je Zustand",
-        "note": "Jede Linie ist die CP-Spannung: −12 V unten, +12 V oben (Pegel = (V + 12) / 24). Das Rechtecksignal wiederholt sich alle 1 ms. Sein Tastverhältnis ist der Strom: 40 % sind 24 A, 10 % sind 6 A. Über 85 % ist der Strom (Tastverhältnis − 64) × 2.5 A, bis zu 80 A bei 96 %. 5 % verlangt digitale Kommunikation. Der untere Pegel bleibt bei −12 V, weil die Diode des Autos ihn sperrt.",
+        "note": "Jede Linie ist die CP-Spannung: −12 V unten, +12 V oben (Pegel = (V + 12) / 24). Das Rechtecksignal wiederholt sich alle 1 ms. Sein Tastverhältnis ist der Strom: 40 % sind 24 A, 10 % sind 6 A. Über 85 % ist der Strom (Tastverhältnis − 64) × 2.5 A, bis zu 80 A bei 96 %. 5 % verlangt digitale Kommunikation. Der untere Pegel bleibt in jedem Zustand bei −12 V, weil die Diode im Auto in dieser Richtung keinen Strom durchlässt.",
         "a": "A · kein Auto",
         "b1": "B1 · Auto",
         "b2": "B2 · 40 %",

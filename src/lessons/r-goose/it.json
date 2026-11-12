@@ -1,11 +1,12 @@
 {
-    "intro": "GOOSE resta dentro una sottostazione: non ha indirizzo IP, quindi i router lo scartano. R-GOOSE mette lo stesso messaggio in UDP su IP, così può attraversare una rete geografica fino a un'altra sottostazione. Siccome esce dalla recinzione, ogni messaggio è firmato con una chiave che possiedono solo i relè del gruppo. R-SV fa lo stesso per i sampled values.",
+    "intro": "GOOSE, il messaggio veloce con cui i relè di protezione si dicono a vicenda di scattare, resta dentro una sola sottostazione. Non ha indirizzo IP, quindi i router lo scartano. R-GOOSE (routable GOOSE, cioè GOOSE instradabile) mette lo stesso messaggio in UDP su IP, così può attraversare una rete geografica (WAN) fino a un'altra sottostazione. Siccome esce dalla sottostazione, ogni messaggio è firmato con una chiave che possiedono solo i relè del gruppo. R-SV fa lo stesso per i sampled values, i flussi di misure delle merging unit.",
+    "plain": "A volte un dispositivo di sicurezza in una sottostazione deve dire a un altro, lontano molti chilometri, di staccare una linea elettrica danneggiata. Questo protocollo porta quell'ordine su una rete a lunga distanza, come una lettera spedita nello stesso momento a tutti i soci di un club. Ogni lettera porta un sigillo che solo i soci sanno fare, così un estraneo non può falsificare un ordine. L'ordine viene inviato più volte: se una copia si perde, non importa.",
     "steps": {
-        "keys": { "title": "Ottieni le chiavi", "text": "Entrambi i relè dimostrano chi sono al key distribution center (KDC) con i loro certificati. Il KDC dà a ciascuno la stessa chiave di gruppo, con un ID e una durata. Senza quella chiave, nessuno può creare un messaggio che i relè accettino." },
-        "heartbeat": { "title": "Heartbeat", "text": "Il relè A pubblica il suo segnale di telescatto sul gruppo multicast IP 239.192.0.1, una volta al secondo finché non succede nulla. I router lo portano attraverso la WAN fino alla sottostazione B. Ogni messaggio è firmato con la chiave di gruppo." },
-        "fault": { "title": "Guasto sulla linea", "text": "Un cortocircuito sulla linea tra le due sottostazioni. Il relè A fa scattare il proprio interruttore e, nello stesso istante, pubblica la variazione: stNum aumenta di uno." },
-        "repeat": { "title": "Ripeti", "text": "Come con GOOSE, il relè A invia di nuovo il messaggio 2 ms dopo, poi dopo 4, 8 … ms. Se la WAN perde un pacchetto, la copia successiva porta lo scatto." },
-        "act": { "title": "Verifica e scatta", "text": "Il relè B verifica la prima copia che arriva: un key ID che conosce, una firma valida (un HMAC) e un nuovo numero SPDU, quindi non è un vecchio messaggio riprodotto. Poi fa scattare l'interruttore B: la linea è isolata a entrambe le estremità." }
+        "keys": { "title": "Ottieni le chiavi", "text": "Entrambi i relè dimostrano chi sono al key distribution center (KDC, il centro di distribuzione delle chiavi) con i loro certificati, le loro carte d'identità digitali. Il KDC dà a ciascuno la stessa chiave di gruppo, con un ID e una durata. Senza quella chiave, nessuno può creare un messaggio che i relè accettino." },
+        "heartbeat": { "title": "Tutto bene", "text": "Il relè A pubblica il suo segnale di telescatto: l'ordine di scattare per il relè all'altro capo della linea. Lo invia al gruppo multicast IP 239.192.0.1, un indirizzo a cui si unisce ogni relè iscritto. Finché non succede nulla, lo invia una volta al secondo. I router lo portano attraverso la WAN fino alla sottostazione B. Ogni messaggio è firmato con la chiave di gruppo." },
+        "fault": { "title": "Guasto sulla linea", "text": "Un cortocircuito sulla linea tra le due sottostazioni. Il relè A fa scattare il proprio interruttore. Nello stesso istante pubblica la variazione: il numero di stato (stNum) aumenta di uno." },
+        "repeat": { "title": "Ripeti in fretta", "text": "Come con GOOSE, il relè A invia di nuovo il messaggio 2 ms dopo la variazione, poi a 4 e 8 ms, e così via. Se la WAN perde un pacchetto, la copia successiva porta lo scatto." },
+        "act": { "title": "Verifica e scatta", "text": "Il relè B verifica la prima copia che arriva. Deve portare un key ID che il relè B conosce e una firma valida: un HMAC, un codice che può calcolare solo chi possiede la chiave. Il suo numero SPDU, un contatore dei messaggi, deve essere nuovo, quindi non è un vecchio messaggio riprodotto. Poi il relè B fa scattare l'interruttore B: la linea è isolata a entrambe le estremità." }
     },
     "frames": {
         "pull-a": "Ecco il mio certificato: dammi le chiavi del mio gruppo",
@@ -19,7 +20,7 @@
         "trip-b": "Eccita la bobina di apertura dell'interruttore B"
     },
     "notes": {
-        "pull-a": "GDOI (RFC 6407) su UDP 848, come richiede IEC 62351-9. Prima il relè e il KDC verificano a vicenda i certificati in uno scambio IKE. Poi il relè chiede le chiavi del suo gruppo R-GOOSE.",
+        "pull-a": "GDOI (RFC 6407) su UDP 848, come richiede IEC 62351-9. Prima il relè e il KDC verificano a vicenda i certificati in uno scambio IKE, il normale scambio di chiavi di IPsec. Poi il relè chiede le chiavi del suo gruppo R-GOOSE.",
         "pull-b": "Il relè B chiede lo stesso gruppo, con il proprio certificato.",
         "keys-a": "La chiave attuale, il suo key ID e per quanto tempo è valida. Ogni membro del gruppo riceve la stessa chiave.",
         "keys-b": "La stessa chiave e lo stesso key ID del relè A.",
@@ -30,18 +31,18 @@
     },
     "fields": {
         "e-dst": { "name": "Destinazione", "note": "01-00-5E-40-00-01: l'indirizzo Ethernet del gruppo IP 239.192.0.1. Come si ottiene è mostrato qui sotto." },
-        "e-src": { "name": "Sorgente", "note": "L'indirizzo MAC del relè A. Al salto successivo, il router ci mette il proprio." },
+        "e-src": { "name": "Sorgente", "note": "L'indirizzo MAC del relè A. Al salto successivo, il router ci mette il proprio indirizzo MAC." },
         "e-type": { "name": "EtherType", "note": "0x0800: segue un pacchetto IPv4. GOOSE su una LAN usa invece 0x88B8." },
         "ip-ver": { "name": "Versione", "note": "0x45: IPv4, con un'intestazione di 5 × 4 = 20 byte." },
-        "dscp": { "name": "DSCP", "note": "0xB8: DSCP 46, expedited forwarding. I router configurati per questo inviano il pacchetto prima di altro traffico." },
+        "dscp": { "name": "DSCP", "note": "0xB8: DSCP 46, expedited forwarding, la classe del traffico urgente. I router configurati per questo inviano il pacchetto prima di altro traffico." },
         "ip-len": { "name": "Lunghezza totale", "note": "0x00C4 = 196 byte: questa intestazione, l'intestazione UDP e il messaggio R-GOOSE." },
-        "ip-id": { "name": "Identificazione", "note": "0x2F3A, un numero per questo pacchetto. Poi 00 00: non è un frammento." },
-        "ttl": { "name": "TTL", "note": "16: il pacchetto può attraversare fino a 16 router. Ognuno lo diminuisce di uno." },
+        "ip-id": { "name": "Identificazione", "note": "0x2F3A, un numero per questo pacchetto. Poi 00 00: nessun flag, e non è un pezzo di un pacchetto più grande (un frammento)." },
+        "ttl": { "name": "TTL", "note": "16: time to live. Il pacchetto può attraversare fino a 16 router; ognuno diminuisce questo valore di uno." },
         "proto": { "name": "Protocollo", "note": "0x11 = 17: UDP." },
-        "ip-sum": { "name": "Checksum", "note": "0x806A, sui 20 byte dell'intestazione. Ogni router lo ricalcola dopo aver diminuito il TTL." },
+        "ip-sum": { "name": "Checksum", "note": "0x806A, sui 20 byte dell'intestazione: permette a ogni router di accorgersi di un'intestazione danneggiata. Ogni router lo ricalcola dopo aver diminuito il TTL." },
         "ip-src": { "name": "IP sorgente", "note": "10.1.0.11: il relè A." },
         "ip-dst": { "name": "IP destinazione", "note": "239.192.0.1: un gruppo multicast. Ogni relè subscriber vi aderisce, e i router inoltrano il pacchetto a ciascuno di loro." },
-        "udp-src": { "name": "Porta sorgente", "note": "0xC001 = 49153, una porta scelta dal relè A. Quella che conta è la porta di destinazione." },
+        "udp-src": { "name": "Porta sorgente", "note": "0xC001 = 49153, una porta scelta dal relè A. Qui conta solo la porta di destinazione." },
         "udp-dst": { "name": "Porta destinazione", "note": "0x0066 = 102, la porta di R-GOOSE e R-SV." },
         "udp-len": { "name": "Lunghezza UDP", "note": "0x00B0 = 176: questa intestazione di 8 byte e 168 byte di R-GOOSE. Non mostrati qui: il checksum UDP, poi l'intestazione di sessione (numero SPDU, key ID, tempi della chiave), il messaggio GOOSE e la firma." },
         "a-prefix": { "name": "Prefisso multicast", "note": "01-00-5E apre l'indirizzo MAC di ogni gruppo multicast IPv4." },
@@ -52,7 +53,7 @@
         "relaya": "Relè A",
         "routera": "Router A",
         "wan": "WAN",
-        "kdc": "KDC",
+        "kdc": "Centro chiavi (KDC)",
         "routerb": "Router B",
         "relayb": "Relè B",
         "breakerb": "Interruttore B"

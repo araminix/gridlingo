@@ -1,11 +1,12 @@
 {
-    "intro": "O LoRaWAN permite que sensores a bateria enviem poucos bytes por muitos quilômetros. Um sensor transmite pelo ar, e cada gateway ao alcance repassa o que ouviu a um único servidor de rede. O servidor de rede fica com uma cópia e a confere; só o servidor de aplicação consegue ler o payload. Um sensor só escuta a rede por um instante depois de transmitir.",
+    "intro": "O LoRaWAN permite que sensores a bateria enviem poucos bytes por rádio a muitos quilômetros. Um sensor transmite pelo ar. Cada gateway ao alcance, um receptor de rádio ligado à internet, repassa o que ouviu a um único servidor de rede. O servidor de rede fica com uma cópia e a confere. Só o servidor de aplicação, aquele que usa os dados, consegue ler o payload (os dados em si). Um sensor só escuta a rede por um instante depois de transmitir.",
+    "plain": "Isto permite que pequenos sensores a bateria enviem mensagens curtas por rádio através de uma cidade ou de um campo extenso, gastando muito pouca energia. É como gritar um recado de um lado a outro de um vale. Cada posto de escuta que o ouve repassa o recado a um escritório central, que fica com uma só cópia. Para poupar energia, o sensor só espera uma resposta por um instante, logo depois de falar.",
     "steps": {
-        "join": { "title": "Ingressar", "text": "O sensor envia um JoinRequest, e os dois gateways o ouvem. 5 s depois a rede responde com um JoinAccept: um endereço curto e os números de que os dois lados precisam para derivar as mesmas chaves de sessão. As chaves em si nunca trafegam." },
-        "uplink": { "title": "Uplink", "text": "Alguns segundos depois o sensor envia a primeira leitura. Ele não sabe quem escuta: os dois gateways a recebem." },
-        "dedupe": { "title": "Duas cópias", "text": "Cada gateway repassa por IP o que ouviu. O servidor de rede espera um momento pelas cópias, fica com uma, a confere e anota qual gateway ouviu melhor." },
-        "decode": { "title": "Decodificar", "text": "O servidor de aplicação decifra o payload e transforma os seus quatro bytes em valores: 46.3 °C e 3.6 V." },
-        "downlink": { "title": "Janela de recepção", "text": "O sensor só escuta 1 s e 2 s depois de transmitir. Uma configuração colocada na fila quando ele ingressou sai na primeira janela, pelo gateway 1, que o ouviu melhor. Depois o sensor dorme até a próxima leitura." }
+        "join": { "title": "Ingressar na rede", "text": "O sensor pede para ingressar com um JoinRequest, e os dois gateways o ouvem. 5 s depois a rede responde com um JoinAccept. Ele traz um endereço curto e os números de que os dois lados precisam para calcular as mesmas chaves de sessão, as chaves secretas desta sessão. As chaves em si nunca trafegam. Esta forma de ingressar se chama OTAA (over-the-air activation: ativação pelo ar)." },
+        "uplink": { "title": "Enviar uma leitura", "text": "Alguns segundos depois o sensor envia a primeira leitura num uplink, uma mensagem que sobe do sensor para a rede. Ele não sabe quem escuta: os dois gateways a recebem." },
+        "dedupe": { "title": "Descartar a duplicata", "text": "Cada gateway repassa pela internet (IP) o que ouviu. O servidor de rede espera um momento por mais cópias e fica com uma. Ele confere essa cópia e anota qual gateway ouviu melhor o sensor." },
+        "decode": { "title": "Ler os valores", "text": "O servidor de aplicação decifra o payload. O codec dele, um pequeno programa escrito para este sensor, transforma os quatro bytes em valores: 46.3 °C e 3.6 V." },
+        "downlink": { "title": "Escutar a resposta", "text": "O sensor só escuta duas vezes, por pouco tempo: 1 s e 2 s depois de transmitir. São as suas janelas de recepção. Uma configuração está esperando desde o ingresso. Ela sai na primeira janela como um downlink, uma mensagem que desce para o sensor, pelo gateway 1, que ouviu melhor o sensor. Depois o sensor dorme até a próxima leitura." }
     },
     "frames": {
         "join-request": "Sou o DevEUI 02-1A-44-00-00-00-07-B3, posso ingressar?",
@@ -17,13 +18,13 @@
         "downlink": "De agora em diante, informe a cada 600 s"
     },
     "notes": {
-        "forward-1": "O gateway não decodifica nada. Ele embrulha os bytes do rádio em JSON (base64), acrescenta o que mediu, RSSI -97 dBm e SNR 7.5 dB, e o horário, e envia ao servidor de rede: aqui com o packet forwarder da Semtech, em UDP 1700.",
-        "forward-2": "Os mesmos bytes vindos do gateway 2, mais distante: RSSI -118 dBm, SNR -6.0 dB.",
-        "to-as": "O servidor de rede ficou com uma cópia, conferiu o MIC com a NwkSKey e conferiu se o FCnt aumentou. Ele repassa o payload, ainda criptografado, com FPort 1 e FCnt 0. O servidor de aplicação o decifra com a AppSKey para 01 CF 0E 10, e o codec dele transforma isso em {\"temperature_c\":46.3,\"battery_v\":3.6}."
+        "forward-1": "O gateway não decodifica nada. Ele embrulha os bytes do rádio em JSON, como texto base64. Acrescenta o que mediu, a intensidade do sinal (RSSI) -97 dBm e a relação sinal-ruído (SNR) 7.5 dB, e o horário. Depois envia isso ao servidor de rede, aqui com o packet forwarder da Semtech em UDP 1700.",
+        "forward-2": "Os mesmos bytes vindos do gateway 2, mais distante e mais fraco: RSSI -118 dBm, SNR -6.0 dB.",
+        "to-as": "O servidor de rede ficou com uma cópia. Ele conferiu o MIC (o código de integridade) com a NwkSKey e conferiu se este FCnt (contador de quadros) ainda não tinha sido usado. Ele repassa o payload, ainda criptografado, com FPort 1 e FCnt 0. O servidor de aplicação o decifra com a AppSKey para 01 CF 0E 10. O codec dele transforma isso em {\"temperature_c\":46.3,\"battery_v\":3.6}."
     },
     "fields": {
         "mhdr-join-request": { "name": "MHDR", "note": "Tipo de mensagem 000: JoinRequest. Versão principal 00: LoRaWAN R1." },
-        "join-eui": { "name": "JoinEUI", "note": "02-00-00-00-00-00-00-01, o ID do join server. O LoRaWAN envia EUIs e endereços com o byte menos significativo primeiro." },
+        "join-eui": { "name": "JoinEUI", "note": "02-00-00-00-00-00-00-01, o ID do join server, que confere os ingressos e gera as chaves. O LoRaWAN envia EUIs e endereços com o byte menos significativo primeiro." },
         "dev-eui": { "name": "DevEUI", "note": "02-1A-44-00-00-00-07-B3, o ID próprio de 64 bits do sensor, byte menos significativo primeiro." },
         "devnonce": { "name": "DevNonce", "note": "7, byte menos significativo primeiro. O sensor conta os seus pedidos de ingresso; o join server recusa um número que já viu." },
         "mic-join": { "name": "MIC", "note": "Um AES-CMAC sobre a mensagem com a AppKey: prova que o sensor conhece a chave. Um valor de exemplo, calculado com a AppKey inventada 2B7E151628AED2A6ABF7158809CF4F3C." },
@@ -31,7 +32,7 @@
         "join-accept": { "name": "Criptografado", "note": "Criptografado com a AppKey. Decifrado: 0C 00 00 (JoinNonce 12), 00 00 00 (NetID 0, uma rede privada), B4 A3 C2 01 (DevAddr 0x01C2A3B4), 00 (RX1 na taxa de dados do uplink, RX2 em DR0 = SF12), 01 (RX1 abre 1 s depois de um uplink), depois o MIC. Valores de exemplo, a partir da AppKey inventada." },
         "mhdr-up": { "name": "MHDR", "note": "Tipo de mensagem 010: um uplink não confirmado, sem pedido de confirmação." },
         "devaddr": { "name": "DevAddr", "note": "0x01C2A3B4, byte menos significativo primeiro: o endereço curto do JoinAccept." },
-        "fctrl-up": { "name": "FCtrl", "note": "0x80: ADR ligado (bit 7), então a rede pode mudar a taxa de dados e a potência do sensor. FOptsLen 0: não vêm comandos MAC." },
+        "fctrl-up": { "name": "FCtrl", "note": "0x80: ADR ligado (bit 7), então a rede pode mudar a taxa de dados e a potência de transmissão do sensor. FOptsLen 0: não vêm comandos MAC (ajustes de rede)." },
         "fcnt-up": { "name": "FCnt", "note": "0: o primeiro uplink desde o ingresso. Ele aumenta a cada uplink, e a rede recusa um número antigo." },
         "fport-1": { "name": "FPort", "note": "1: dados de aplicação. A porta 0 levaria só comandos MAC." },
         "frm-up": { "name": "FRMPayload", "note": "Criptografado com a AppSKey: só o servidor de aplicação consegue lê-lo. Decifrado: 01 CF 0E 10. Um valor de exemplo, a partir da AppKey inventada." },
@@ -39,7 +40,7 @@
         "mhdr-down": { "name": "MHDR", "note": "Tipo de mensagem 011: um downlink não confirmado." },
         "fctrl-down": { "name": "FCtrl", "note": "0x80: ADR ligado, sem confirmação, nada mais esperando, sem comandos MAC." },
         "fcnt-down": { "name": "FCnt", "note": "0: o primeiro downlink desde o ingresso. Os downlinks têm o seu próprio contador." },
-        "fport-2": { "name": "FPort", "note": "2: configurações, neste sensor." },
+        "fport-2": { "name": "FPort", "note": "2: neste sensor, a porta 2 leva configurações." },
         "frm-down": { "name": "FRMPayload", "note": "Criptografado com a AppSKey. O sensor o decifra para 01 02 58: comando 1, definir o intervalo, 0x0258 = 600 s. Um valor de exemplo, a partir da AppKey inventada." },
         "mic-down": { "name": "MIC", "note": "Feito com a NwkSKey, para que o sensor saiba que o downlink é autêntico. Um valor de exemplo, a partir da AppKey inventada." }
     },
@@ -61,8 +62,8 @@
     "tips": [
         "Um sensor que esquece o contador de DevNonce depois de um reset não consegue mais ingressar: o join server recusa números que já viu (\"DevNonce too small\"). Guarde o contador em memória não volátil.",
         "Com ABP (chaves configuradas à mão, sem ingresso), um sensor cujo contador de quadros volta a 0 é ignorado: a rede toma os quadros dele por repetições. Prefira o ingresso (OTAA), que começa contadores novos com chaves novas.",
-        "Em SF12, o mesmo uplink de 17 bytes leva 1.3 s no ar, e o duty cycle de 1 % deixa então o sensor calado por mais de 2 minutos. Posicione os gateways para que os sensores possam usar um spreading factor baixo.",
-        "Um sensor classe A só ouve a rede logo depois de transmitir. Um comando para um sensor que informa uma vez por hora pode esperar uma hora."
+        "Em SF12, o spreading factor mais lento, o mesmo uplink de 17 bytes leva 1.3 s no ar. O duty cycle de 1 % deixa então o sensor calado por mais de 2 minutos. Posicione os gateways para que os sensores possam usar um spreading factor baixo: mais rápido e com menos tempo no ar.",
+        "Um sensor classe A, o tipo comum que poupa bateria, só ouve a rede logo depois de transmitir. Um comando para um sensor que informa uma vez por hora pode esperar uma hora."
     ],
     "points": {
         "temperature": "Temperatura",

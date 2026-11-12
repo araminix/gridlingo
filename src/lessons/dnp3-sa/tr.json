@@ -1,12 +1,13 @@
 {
-    "intro": "Secure Authentication, bir DNP3 outstation'ının bir komutun gerçekten kendi ana istasyonundan geldiğini ve yolda değiştirilmediğini denetlemesini sağlar. Outstation kritik bir isteği yerine getirmeden önce bir challenge (sorgu) gönderir; bunu yalnızca gizli oturum anahtarına sahip olan cihaz yanıtlayabilir. Hiçbir şey şifrelenmez: SA, mesajı kimin gönderdiğini kanıtlar, mesajı gizlemez.",
+    "intro": "Secure Authentication (SA), bir DNP3 outstation'ının (RTU gibi bir saha cihazının) bir komutun gerçekten kendi ana istasyonundan, yani kontrol odasının SCADA sisteminden geldiğini ve yolda değiştirilmediğini denetlemesini sağlar. Outstation bir kesiciyi açmak gibi kritik bir isteği yerine getirmeden önce bir challenge gönderir: yalnızca gizli oturum anahtarına sahip bir cihazın yanıtlayabileceği bir soru. Hiçbir şey şifrelenmez: SA, mesajı kimin gönderdiğini kanıtlar, mesajı gizlemez.",
+    "plain": "DNP3 Secure Authentication, bir kontrol odasının uzaktaki ekipmana gönderdiği komutlara bir denetim ekler. Ekipman, bir enerji hattını kapatmak gibi önemli bir komuta uymadan önce, parola soran bir bekçi gibi yeni bir soru sorar. Bunu yalnızca ortak bir sırrı bilen gerçek kontrol odası yanıtlayabilir. Kaydedilip sonra yeniden oynatılan bir yanıt işe yaramaz, çünkü soru her seferinde yenidir.",
     "steps": {
-        "keys": { "title": "Oturum anahtarlarını kur", "text": "SCADA, herhangi bir komuttan önce RTU'ya her yön için bir tane olmak üzere iki yeni oturum anahtarı verir. Bunları, iki tarafın önceden aldığı gizli güncelleme anahtarıyla sarmalanmış (şifrelenmiş) olarak gönderir. Bunu düzenli olarak tekrarlar; böylece hiçbir oturum anahtarı uzun yaşamaz." },
-        "operate": { "title": "Kritik komut", "text": "Operatör, bir ekibin hatta çalışabilmesi için CB-1'i açar. SCADA bir direct operate gönderir. RTU bunu kritik sayar ve henüz harekete geçmez. Burada yalnızca uygulama katmanı gösteriliyor: bağlantı ve taşıma katmanları DNP3 dersindekiyle aynı." },
-        "challenge": { "title": "Challenge", "text": "RTU bir challenge ile yanıt verir: yeni bir challenge numarası (CSQ 5) ve 16 rastgele bayt. Bunu yalnızca oturum anahtarına sahip olan yanıtlayabilir. Burada gösterilen rastgele baytlar uydurmadır." },
-        "reply": { "title": "Yanıt", "text": "SCADA, oturum anahtarıyla challenge ve kendi komutu üzerinden bir HMAC hesaplar ve ilk 16 baytını gönderir. Anahtarın kendisi hiçbir zaman yola çıkmaz. Burada gösterilen MAC uydurmadır: gerçeği anahtara bağlıdır." },
-        "execute": { "title": "Uygula", "text": "RTU, anahtarın kendi kopyasıyla aynı HMAC'i hesaplar. İkisi tutar; bu yüzden açma çıkışına darbe verir ve onaylar. CB-1 açılır." },
-        "replay": { "title": "Tekrar saldırısı", "text": "Trafo merkezi ağındaki bir saldırgan, dünkü kapama komutunu ve yanıtını kaydetmiş. İkisini de yeniden gönderir. RTU, CSQ 6 ve yeni rastgele baytlarla challenge gönderir; ama kayıtlı yanıt, eski bir anahtarla CSQ 2'yi yanıtlıyor. RTU onu reddeder: CB-1 açık kalır, ekip güvende kalır." }
+        "keys": { "title": "Oturum anahtarlarını paylaş", "text": "SCADA, herhangi bir komuttan önce RTU'ya (uzak terminal birimi) iki yeni oturum anahtarı verir: her yön için bir tane olmak üzere kısa ömürlü gizli anahtarlar. Bunları, iki tarafın önceden aldığı uzun vadeli bir sır olan güncelleme anahtarıyla sarmalanmış (şifrelenmiş) olarak gönderir. Bunu düzenli olarak tekrarlar; böylece hiçbir oturum anahtarı uzun yaşamaz." },
+        "operate": { "title": "Kritik bir komut", "text": "Operatör, bir ekibin hatta çalışabilmesi için CB-1 kesicisini açar. SCADA bir direct operate, yani hemen uygulanacak bir komut gönderir. RTU bunu kritik sayar ve henüz harekete geçmez. Burada yalnızca uygulama katmanı (mesajın kendisi) gösteriliyor: onu saran bağlantı ve taşıma katmanları DNP3 dersindekiyle aynı." },
+        "challenge": { "title": "RTU challenge gönderiyor", "text": "RTU bir challenge ile yanıt verir: yeni bir challenge numarası (CSQ 5) ve 16 rastgele bayt. Bunu yalnızca oturum anahtarına sahip olan yanıtlayabilir. Burada gösterilen rastgele baytlar uydurmadır." },
+        "reply": { "title": "Challenge'ı yanıtla", "text": "SCADA bir MAC (mesaj doğrulama kodu) hesaplar: challenge'ın ve kendi komutunun, yalnızca oturum anahtarının üretebileceği bir parmak izi. Yöntem HMAC'tir ve SCADA sonucun ilk 16 baytını gönderir. Anahtarın kendisi hiçbir zaman yola çıkmaz. Burada gösterilen MAC uydurmadır: gerçeği anahtara bağlıdır." },
+        "execute": { "title": "Komut uygulandı", "text": "RTU, anahtarın kendi kopyasıyla aynı HMAC'i hesaplar. İkisi tutar; bu yüzden açma çıkışına darbe verir (onu kısa bir süre kapatır) ve onaylar. CB-1 açılır." },
+        "replay": { "title": "Tekrar saldırısı engellendi", "text": "Trafo merkezi ağındaki bir saldırgan, dünkü kapama komutunu ve yanıtını kaydetmiş. İkisini de yeniden gönderir: bir tekrar (replay) saldırısı. RTU, CSQ 6 ve yeni rastgele baytlarla challenge gönderir; ama kayıtlı yanıt, eski bir anahtarla üretilmiş ve CSQ 2'yi yanıtlıyor. RTU onu reddeder: CB-1 açık kalır, ekip güvende kalır." }
     },
     "frames": {
         "key-status-request": "Oturum anahtarlarının durumu ne?",
@@ -25,18 +26,18 @@
     "notes": {
         "key-status-request": "SCADA, kullanıcı 1'in oturum anahtarlarının durumunu sorar: bir AUTH_REQUEST (fonksiyon 0x20) içinde g120v4. Anahtar değişiminin baytları burada gösterilmiyor.",
         "key-status": "RTU'nun henüz geçerli oturum anahtarı yok: durum NOT_INIT. Yanıtı olan g120v5, bir anahtar değişim numarası ve taze rastgele veri de taşır.",
-        "key-change": "SCADA iki rastgele oturum anahtarı üretir: biri kendi gönderdikleri, biri RTU'nun gönderdikleri için. İkisini de kullanıcı 1'in güncelleme anahtarıyla sarmalar (AES key wrap) ve g120v6 içinde gönderir.",
+        "key-change": "SCADA iki rastgele oturum anahtarı üretir: biri kendi gönderdikleri, biri RTU'nun gönderdikleri için. İkisini de kullanıcı 1'in güncelleme anahtarıyla sarmalar (şifreler; AES key wrap) ve g120v6 içinde gönderir.",
         "key-ok": "RTU, güncelleme anahtarının kendi kopyasıyla anahtarları açar. OK durumu ve yeni anahtarlarla hesaplanmış bir MAC ile yanıt verir; bu, anahtarlara sahip olduğunu gösterir.",
         "pulse": "DNP3 değil: RTU, açma çıkışını komuttaki açık kalma süresi olan 1000 ms boyunca kapatır ve CB-1 açılır."
     },
     "fields": {
         "ac-3": { "name": "Uygulama kontrolü", "note": "0xC3: FIR ve FIN, tek fragmanda bir istek, sıra 3." },
-        "fc-direct-operate": { "name": "Fonksiyon 5", "note": "DIRECT_OPERATE: önce select olmadan, hemen uygula." },
+        "fc-direct-operate": { "name": "Fonksiyon 5", "note": "DIRECT_OPERATE: önce ayrı bir select (kurma) isteği olmadan, hemen uygula." },
         "g12v1": { "name": "g12v1", "note": "Grup 12, varyasyon 1: bir kontrol rölesi çıkış bloğu (CROB), tek çıkış için tek komut." },
         "q17": { "name": "Niteleyici 0x17", "note": "1 baytlık bir sayı, ardından her nesneden önce 1 baytlık bir indeks." },
         "count-1": { "name": "Sayı 1", "note": "Tek komut." },
         "index-0": { "name": "İndeks 0", "note": "Çıkış 0: CB-1'in açma ve kapama bobinleri." },
-        "trip": { "name": "Kontrol kodu", "note": "0x81: TRIP, darbe olarak (PULSE_ON)." },
+        "trip": { "name": "Kontrol kodu", "note": "0x81: TRIP (kesiciyi aç), darbe olarak (PULSE_ON)." },
         "close": { "name": "Kontrol kodu", "note": "0x41: CLOSE, darbe olarak. Hattı, üzerinde ekip varken yeniden gerilim altına alırdı." },
         "pulses": { "name": "Sayı", "note": "Tek darbe." },
         "on-time": { "name": "Açık kalma süresi", "note": "1000 ms, düşük bayt önce: çıkışın ne kadar kapalı kalacağı." },
@@ -45,12 +46,12 @@
         "status-success": { "name": "Durum 0", "note": "SUCCESS: RTU komutu kabul etti ve darbeyi başlattı." },
         "ac-3-challenge": { "name": "Uygulama kontrolü", "note": "0xC3: sıra 3, challenge ettiği komutla aynı." },
         "fc-auth-response": { "name": "Fonksiyon 0x83", "note": "AUTH_RESPONSE: outstation'dan gelen bir Secure Authentication mesajı." },
-        "iin": { "name": "IIN", "note": "Dahili göstergeler: hiçbir bayrak kurulu değil." },
+        "iin": { "name": "IIN", "note": "Dahili göstergeler, outstation'ın durum bitleri: hiçbir bayrak kurulu değil." },
         "g120v1": { "name": "g120v1", "note": "Grup 120, varyasyon 1: kimlik doğrulama challenge'ı." },
         "size-24": { "name": "Niteleyici 0x5B", "note": "Boyutu ardından 2 baytta gelen tek nesne (01): 0x0018 = 24 bayt." },
         "csq-5": { "name": "CSQ 5", "note": "Challenge sıra numarası. Her challenge'da artar; böylece eski bir yanıt yeni bir challenge'a asla uymaz." },
         "user-1": { "name": "Kullanıcı 1", "note": "Anahtarlarıyla yanıt vermesi gereken kullanıcı. Her kullanıcının kendi güncelleme anahtarı vardır." },
-        "mal-4": { "name": "MAC algoritması 4", "note": "HMAC-SHA-256, 16 bayta kısaltılmış." },
+        "mal-4": { "name": "MAC algoritması 4", "note": "Yanıtın nasıl hesaplanması gerektiği: HMAC-SHA-256, 16 bayta kısaltılmış." },
         "rfc-1": { "name": "Neden 1", "note": "CRITICAL: istek kritikti, bu yüzden kanıtlanması gerekir." },
         "data-5": { "name": "Challenge verisi", "note": "Her challenge için yeni 16 rastgele bayt, iki parça hâlinde gösteriliyor. Burada uydurmadır." },
         "data-end": { "name": "Challenge verisi", "note": "16 rastgele baytın son 8'i." },
@@ -86,9 +87,9 @@
         "frames": "g120: challenge v1, yanıt v2, anahtar durumu v4 ve v5, anahtar değişimi v6"
     },
     "tips": [
-        "SA, mesajı kimin gönderdiğini kanıtlar. Mesajı gizlemez: hattaki herkes komutları ve değerleri yine okuyabilir. Bu önemliyse TLS (IEC 62351-3) ekleyin.",
+        "SA, mesajı kimin gönderdiğini kanıtlar. Mesajı gizlemez: hattaki herkes komutları ve değerleri yine okuyabilir. Bu önemliyse TLS şifrelemesi (IEC 62351-3) ekleyin.",
         "Aggressive mode bir gidiş-dönüşten tasarruf eder: ana istasyon, aldığı son challenge'a dayanarak MAC'ini doğrudan isteğin içine koyar (g120v3 ve g120v9). İki taraf da buna izin vermelidir.",
-        "Devreye almadaki hataların çoğu yanlış güncelleme anahtarı ya da yanlış kullanıcı numarasıdır. O zaman anahtar değişimi başarısız olur ve RTU her kritik isteği reddeder.",
+        "Devreye almadaki (sahadaki ilk çalıştırma) hataların çoğu yanlış güncelleme anahtarından ya da kullanıcı numarasından kaynaklanır. O zaman anahtar değişimi başarısız olur ve RTU her kritik isteği reddeder.",
         "SA'nın saate ihtiyacı yoktur: eski mesajların yeniden işe yaramasını zaman damgaları değil, challenge numaraları ve rastgele veri engeller."
     ],
     "points": {
@@ -103,8 +104,8 @@
         "file": "RTU'nun Secure Authentication ayarları. SCADA aynı kullanıcı numarasını, MAC algoritmasını ve anahtar sarmalamayı kullanmalı ve aynı güncelleme anahtarına sahip olmalı.",
         "version": "IEEE 1815-2012'deki SAv5. İki taraf da aynı sürümü konuşmalı.",
         "user": "Kullanıcı 1. Her kullanıcının kendi güncelleme anahtarı vardır; böylece RTU komutu kimin gönderdiğini bilir.",
-        "update-key": "Güncelleme anahtarı uzun vadeli sırdır. Cihazın korumalı deposunda kalır ve hiçbir zaman açık metin olarak yola çıkmaz.",
-        "key-wrap": "Oturum anahtarlarının g120v6 içinde nasıl sarmalandığı: AES-256 key wrap.",
+        "update-key": "Güncelleme anahtarı uzun vadeli sırdır. Cihazın korumalı deposunda kalır ve hiçbir zaman şifrelenmeden yola çıkmaz.",
+        "key-wrap": "Oturum anahtarlarının g120v6 içinde nasıl sarmalandığı (şifrelendiği): AES-256 key wrap.",
         "mac": "Her yanıttaki MAC: HMAC-SHA-256, 16 bayta kısaltılmış.",
         "interval": "Ana istasyon oturum anahtarlarını her 15 dakikada bir değiştirir.",
         "timeout": "RTU'nun bir challenge'ın yanıtını ne kadar beklediği. Bu süreden sonra komutu düşürür.",

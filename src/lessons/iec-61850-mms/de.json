@@ -1,59 +1,60 @@
 {
-    "intro": "Ein Gerät nach IEC 61850 hat keine Registernummern. Es hat einen Baum benannter Objekte, beschrieben in seiner SCL-Datei: logische Geräte, logische Knoten, Datenobjekte und Attribute. Ein Client durchläuft diesen Baum mit MMS und liest oder schreibt genau den Wert, den er braucht.",
+    "intro": "Viele Protokolle finden einen Wert über eine Nummer, etwa eine Registeradresse. Ein Gerät nach IEC 61850 benennt seine Werte stattdessen, in einem Baum, der in seiner SCL-Datei beschrieben ist (der Gerätebeschreibung in XML). Der Baum hat vier Ebenen: logische Geräte (Gruppen von Funktionen), logische Knoten (je eine Funktion, etwa Messung), Datenobjekte (eine Größe, etwa die Gesamtleistung) und Datenattribute (ein Teil davon, etwa der Wert). Ein Client durchläuft diesen Baum mit MMS (Manufacturing Message Specification) und liest oder schreibt genau den Wert, den er braucht.",
+    "plain": "Man stelle sich eine Bibliothek vor, in der jedes Buch eine vollständige Adresse hat: Gebäude, Regal, Reihe und Titel. Ein Gerät in einem Kraftwerk oder Umspannwerk, hier ein Solarwechselrichter, führt seine Messwerte genauso, jeden unter seinem eigenen klaren Namen. Ein Leitrechner verbindet sich, fragt nach einem Namen und bekommt genau diesen einen Messwert zurück. Er kann das Gerät auch bitten, von selbst Neuigkeiten zu senden, sobald sich ein Messwert ändert.",
     "steps": {
-        "connect": { "title": "Verbinden", "text": "Der Client baut eine TCP-Verbindung zu Port 102 auf und darauf eine ISO-Transportverbindung (COTP)." },
-        "associate": { "title": "Assoziieren", "text": "Ein MMS-Initiate legt Größen und Dienste fest. Erst nach dieser Assoziation darf der Client Fragen stellen." },
-        "browse": { "title": "Modell durchsuchen", "text": "GetNameList liefert die logischen Geräte, dann die Variablen in einem davon. So erkundet ein Tool ein Gerät ohne dessen SCL-Datei." },
-        "read": { "title": "Einen Wert lesen", "text": "Der Client liest PV1INV/MMXU1$MX$TotW$mag$f und erhält eine Gleitkommazahl: 4820.0. Die Einheit, kW, ist ein eigenes Attribut (CF)." },
-        "report": { "title": "Reports aktivieren", "text": "Statt immer wieder zu fragen, aktiviert der Client einen Report. Der Wechselrichter sendet seine Werte jetzt, wenn sie sich ändern." }
+        "connect": { "title": "Verbindung öffnen", "text": "Der Client baut eine TCP-Verbindung zu Port 102 des Wechselrichters auf. Darin öffnet er eine ISO-Transportverbindung (COTP), den Transport, für den MMS ursprünglich entworfen wurde." },
+        "associate": { "title": "Gespräch vereinbaren", "text": "Eine MMS-Initiate-Anfrage legt Nachrichtengrößen und die Dienste fest, die beide Seiten unterstützen. Diese Vereinbarung heißt Assoziation. Erst danach darf der Client Fragen stellen." },
+        "browse": { "title": "Namen auflisten", "text": "GetNameList fragt das Gerät nach Namen. Zuerst liefert es die logischen Geräte, dann die Variablen in einem davon. So erkundet ein Tool ein Gerät, wenn es keine SCL-Datei hat." },
+        "read": { "title": "Einen Wert lesen", "text": "Der Client liest PV1INV/MMXU1$MX$TotW$mag$f, den Namen der gesamten Wirkleistung des Wechselrichters. Er erhält eine Gleitkommazahl (Float) zurück: 4820.0. Die Einheit, kW, ist ein eigenes Attribut, abgelegt bei den Konfigurationswerten (CF)." },
+        "report": { "title": "Reports einschalten", "text": "Statt immer wieder zu fragen, aktiviert der Client einen Report. Jetzt sendet der Wechselrichter seine Werte von selbst, wenn sie sich ändern." }
     },
     "frames": {
         "tcp": "TCP-Verbindung zu Port 102 aufbauen",
         "cotp-cr": "ISO-Transportverbindung öffnen",
         "cotp-cc": "Transportverbindung angenommen",
-        "initiate-req": "Lass uns MMS sprechen: meine Größen und Dienste",
-        "initiate-resp": "Einverstanden: Das sind meine",
+        "initiate-req": "Lass uns MMS sprechen: Hier sind meine Größen und Dienste",
+        "initiate-resp": "Einverstanden: Hier sind meine",
         "names-req": "Welche logischen Geräte hast du?",
         "names-resp": "PV1LD0 und PV1INV",
         "read-req": "Wie hoch ist die gesamte Wirkleistung?",
-        "read-resp": "4820.0",
-        "enable": "Report urcbMeas01 aktivieren",
-        "report": "TotW ist jetzt 4790.5, Hz 50.00"
+        "read-resp": "Gesamte Wirkleistung: 4820.0",
+        "enable": "Report urcbMeas01 einschalten",
+        "report": "Leistung jetzt 4790.5, Frequenz 50.00"
     },
     "notes": {
-        "tcp": "Reines TCP. MMS verwendet Port 102, den ISO-on-TCP-Port aus RFC 1006.",
-        "cotp-cr": "COTP (ISO 8073) läuft auf TCP. Seine Verbindungsanfrage nennt die Transport-Selektoren beider Seiten.",
-        "cotp-cc": "Das Gerät nimmt an. Ab jetzt beginnt jede Nachricht mit TPKT und einem COTP-Daten-Header.",
-        "initiate-req": "Darin stecken drei weitere Schichten: Session, Presentation und ACSE. Der MMS-Teil bietet Größen an (die größte Nachricht) und die Dienste, die der Client nutzen will.",
+        "tcp": "Der übliche TCP-Handshake mit drei Nachrichten. MMS verwendet Port 102, den Port, den RFC 1006 für ISO-Protokolle über TCP reserviert hat.",
+        "cotp-cr": "COTP (ISO 8073) läuft auf TCP. Seine Verbindungsanfrage nennt die Transport-Selektoren beider Seiten: Sie sagen, welches Programm auf jedem Gerät die Daten bekommt.",
+        "cotp-cc": "Das Gerät nimmt an. Ab jetzt beginnt jede Nachricht mit einem TPKT-Header (einer Version und einer Länge) und einem COTP-Daten-Header.",
+        "initiate-req": "Darin stecken drei weitere Schichten: Session, Presentation und ACSE, der Teil, der die Assoziation einrichtet. Der MMS-Teil bietet Größen an (die größte Nachricht) und listet die Dienste auf, die der Client nutzen will.",
         "initiate-resp": "Das Gerät antwortet mit seinen eigenen Größen und Diensten. Eine Authentifizierung, falls verwendet, findet ebenfalls in diesem Schritt statt (IEC 62351-4).",
-        "names-req": "GetNameList mit der Objektklasse \"domain\": In IEC 61850 ist eine Domain ein logisches Gerät.",
+        "names-req": "GetNameList mit der Objektklasse \"domain\". In IEC 61850 ist eine Domain ein logisches Gerät.",
         "names-resp": "MMS benennt ein logisches Gerät mit dem IED-Namen, gefolgt von seiner Instanz: Aus PV1 und INV wird PV1INV.",
-        "enable": "Ein Write von TRUE auf RptEna im Report Control Block. Vorher setzt der Client die Trigger-Optionen und den Datensatz.",
+        "enable": "Ein Write, das RptEna (Report Enable) im Report Control Block auf TRUE setzt. Davor kann der Client die Trigger-Optionen (was einen Report auslöst) und den Datensatz (welche Werte er trägt) setzen.",
         "report": "Ein unaufgeforderter InformationReport: Das Gerät sendet ihn ungefragt, jedes Mal, wenn sich ein Wert im Datensatz ändert."
     },
     "fields": {
         "tpkt-66": { "name": "TPKT", "note": "Version 3, dann die Länge der ganzen Nachricht: 0x0042 = 66 Bytes." },
         "tpkt-36": { "name": "TPKT", "note": "Version 3, dann die Länge: 0x0024 = 36 Bytes." },
-        "cotp-dt": { "name": "COTP", "note": "Eine Dateneinheit (0xF0), die letzte ihrer Nachricht (0x80)." },
-        "session": { "name": "Session", "note": "Zwei kurze Session-Header: Give Tokens, Data Transfer." },
-        "presentation": { "name": "Presentation", "note": "Fully Encoded Data, Presentation Context 3: Was folgt, ist MMS." },
+        "cotp-dt": { "name": "COTP", "note": "0xF0: eine Dateneinheit. 0x80: die letzte Einheit dieser Nachricht, es folgt also nichts mehr." },
+        "session": { "name": "Session", "note": "Zwei kurze Session-Header, „Give Tokens“ und „Data Transfer“. Sie sind hier leer, aber jede Nachricht trägt sie." },
+        "presentation": { "name": "Presentation", "note": "Fully Encoded Data im Presentation Context 3, dem für MMS vereinbarten Kontext: Was folgt, ist MMS." },
         "confirmed-req": { "name": "Confirmed Request", "note": "Tag A0, 44 Bytes: eine Anfrage, die eine Antwort erwartet." },
         "confirmed-resp": { "name": "Confirmed Response", "note": "Tag A1, 14 Bytes: die Antwort." },
         "invoke": { "name": "Invoke ID 5", "note": "Eine Nummer, die der Client wählt. Die Antwort trägt dieselbe." },
         "invoke-resp": { "name": "Invoke ID 5", "note": "Dieselbe Nummer wie in der Anfrage: Das hier beantwortet sie." },
-        "read": { "name": "Read", "note": "Tag A4: der Dienst Read." },
+        "read": { "name": "Read", "note": "Tag A4: Diese Anfrage ist ein Read." },
         "spec": { "name": "Variablenliste", "note": "Eine Liste mit einer Variable, angegeben über ihren Namen." },
-        "domain-specific": { "name": "Domain-spezifischer Name", "note": "Ein Name in zwei Teilen: Domain und Item." },
+        "domain-specific": { "name": "Domain-spezifischer Name", "note": "Ein Name in zwei Teilen: die Domain (das logische Gerät) und das Item (der Rest des Namens)." },
         "domain": { "name": "Domain", "note": "\"PV1INV\": das logische Gerät." },
         "item": { "name": "Item", "note": "\"MMXU1$MX$TotW$mag$f\": logischer Knoten, Functional Constraint, Datenobjekt und Attribut, verbunden durch $." },
         "results": { "name": "Ergebnisse", "note": "Eine Liste von Ergebnissen, eines pro angefragter Variable." },
-        "float-tag": { "name": "Gleitkommazahl", "note": "Tag 0x87 (eine Gleitkommazahl), 5 Bytes." },
-        "exponent": { "name": "Exponentenbreite", "note": "8 Bit: Es folgt eine Gleitkommazahl nach IEEE 754 mit einfacher Genauigkeit." },
-        "float": { "name": "Wert", "note": "4820.0, höchstwertiges Byte zuerst. IEC 104 sendet Gleitkommazahlen andersherum." },
-        "a-ld": { "name": "Logisches Gerät", "note": "PV1INV: IED-Name PV1 und Instanz INV." },
-        "a-ln": { "name": "Logischer Knoten", "note": "MMXU1: Messwerte, Instanz 1." },
-        "a-fc": { "name": "Functional Constraint", "note": "MX: Messwerte. ST ist Status, CF Konfiguration, SP Sollwerte." },
-        "a-do": { "name": "Datenobjekt", "note": "TotW: gesamte Wirkleistung, vom Typ MV." },
+        "float-tag": { "name": "Gleitkommazahl", "note": "Tag 0x87: eine Gleitkommazahl, 5 Bytes lang." },
+        "exponent": { "name": "Exponentenbreite", "note": "8: Der Exponent hat 8 Bits, es folgt also eine übliche Gleitkommazahl mit 4 Bytes (IEEE 754, einfache Genauigkeit)." },
+        "float": { "name": "Wert", "note": "4820.0, mit dem höchstwertigen Byte zuerst gesendet. IEC 104 sendet Gleitkommazahlen andersherum." },
+        "a-ld": { "name": "Logisches Gerät", "note": "PV1INV: der IED-Name des Geräts, PV1, und die Instanz INV." },
+        "a-ln": { "name": "Logischer Knoten", "note": "MMXU1: die Messfunktion (MMXU), Instanz 1." },
+        "a-fc": { "name": "Functional Constraint", "note": "MX: Messwerte. Die Functional Constraint gruppiert Attribute nach ihrem Zweck: ST ist Status, CF Konfiguration, SP Sollwerte." },
+        "a-do": { "name": "Datenobjekt", "note": "TotW: gesamte Wirkleistung, vom Typ MV (Messwert)." },
         "a-da": { "name": "Datenattribut", "note": "mag.f: der Betrag, als Gleitkommazahl." }
     },
     "devices": {
@@ -71,7 +72,7 @@
     "tips": [
         "Zuerst die SCL-Datei lesen. Ein großes Gerät mit GetNameList zu durchsuchen, kann viele Sekunden dauern.",
         "Einheiten und Multiplikatoren stehen in CF-Attributen, nicht neben dem Wert. Ein Wert von 4820 ist nur deshalb in kW, weil das Gerät es so angibt.",
-        "Report Control Blocks gibt es nur wenige. Ein Tool, das einen reserviert und nie freigibt, kann das echte SCADA aussperren.",
+        "Ein Gerät hat nur wenige Report Control Blocks. Ein Tool, das einen reserviert und nie freigibt, kann das echte SCADA aussperren.",
         "MMS sendet Gleitkommazahlen mit dem höchstwertigen Byte zuerst. Code, der auch IEC 104 oder Modbus spricht, macht das oft falsch."
     ],
     "points": {
@@ -83,7 +84,7 @@
         "reference": "Der Name eines Werts und wie MMS ihn schreibt"
     },
     "playground": {
-        "scl": "Die konfigurierte Beschreibung des Wechselrichters (.cid). INV öffnen, dann MMXU1, dann TotW: Der Wert, den du liest, ist mag.f, seine Einheit steht in units. Danach kannst du deine eigene Datei öffnen, falls du eine hast.",
+        "scl": "Die konfigurierte Beschreibung des Wechselrichters (eine .cid-Datei). INV öffnen, dann MMXU1, dann TotW: Der Wert, den du liest, ist mag.f, und seine Einheit steht im Attribut units. Danach kannst du deine eigene Datei öffnen, falls du eine hast.",
         "encoder": "MMS sendet eine Gleitkommazahl mit dem höchstwertigen Byte zuerst (ABCD). Gib einen Wert ein, um seine Bytes zu sehen."
     }
 }

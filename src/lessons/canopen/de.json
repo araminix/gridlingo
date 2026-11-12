@@ -1,11 +1,12 @@
 {
-    "intro": "In einem Batteriesystem teilen sich das Batteriemanagementsystem (BMS) und das Leistungsumrichtersystem (PCS) oft einen CAN-Bus. Ein CAN-Frame ist kurz: ein Identifier und bis zu 8 Datenbytes, ohne Absenderadresse. CANopen gibt den Identifiern eine Bedeutung: welcher Knoten sendet und welche Art von Nachricht es ist.",
+    "intro": "In einem Batteriesystem reden zwei Geräte ständig miteinander: das Batteriemanagementsystem (BMS), der Wächter der Batterie, und das Leistungsumrichtersystem (PCS), das sie lädt und entlädt. Oft teilen sie sich einen CAN-Bus: ein Adernpaar, ursprünglich für Autos entwickelt, auf dem jedes Gerät jede Nachricht hört. Ein CAN-Frame ist kurz: ein Identifier und bis zu 8 Datenbytes, ohne Absenderadresse. CANopen gibt den Identifiern eine Bedeutung: welcher Knoten (ein Gerät am Bus) sendet und welche Art von Nachricht es ist.",
+    "plain": "In einer großen Batterie überwacht ein kleiner Computer jede Zelle, und ein Umrichter bringt Energie hinein und wieder heraus. Die beiden reden über ein gemeinsames Adernpaar, wie Menschen in einem Raum, in dem jeder alles hört. Jede Nachricht beginnt mit einem Etikett, das sagt, von wem sie kommt und worum es geht. So sucht sich jeder Zuhörer heraus, was für ihn wichtig ist. Die meisten Messwerte kommen in festem Takt, ohne dass jemand fragt, und Alarme gehen sofort hinaus.",
     "steps": {
-        "boot": { "title": "Boot-up", "text": "Das BMS (Knoten 5) startet und sendet eine Boot-up-Nachricht. Es ist jetzt Pre-Operational: Es beantwortet SDO-Anfragen, sendet aber keine Prozessdaten." },
-        "identify": { "title": "Identität prüfen", "text": "Das PCS ist der NMT-Master: Es startet und überwacht die anderen Knoten. Es liest die Seriennummer des BMS mit einem SDO: Objekt 0x1018, Subindex 4." },
-        "start": { "title": "Start", "text": "Das PCS weist Knoten 5 an, in Operational zu wechseln. Ab jetzt sendet das BMS jede Sekunde einen Heartbeat und seine Prozessdaten." },
-        "data": { "title": "Prozessdaten", "text": "TPDO1 trägt alle 100 ms Pack-Spannung, Strom, Ladezustand und die heißeste Zelle. Niemand fragt und niemand antwortet: Das PCS hört nur zu. Die EDS-Datei des BMS-Herstellers sagt, was jedes Byte bedeutet." },
-        "alarm": { "title": "Zelle zu heiß", "text": "Eine Zelle in Modul 3 erreicht 61 °C. Das BMS sendet sofort eine Emergency-Nachricht. Das PCS senkt den Strom auf 40 A." },
+        "boot": { "title": "BMS startet", "text": "Das BMS, Knoten 5 am Bus, startet und sendet eine Boot-up-Nachricht. Es ist jetzt Pre-Operational, ein Wartezustand. Es beantwortet SDO-Anfragen, einzelne Fragen nach einem bestimmten Wert, sendet aber keine Prozessdaten, die laufenden Messwerte." },
+        "identify": { "title": "Identität prüfen", "text": "Das PCS ist der NMT-Master (Network Management, Netzwerkmanagement): Es startet und überwacht die anderen Knoten. Es liest die Seriennummer des BMS mit einem SDO. Jeder Wert in einem CANopen-Gerät hat eine Adresse in seinem Objektverzeichnis, einer nummerierten Liste: Die Seriennummer ist Objekt 0x1018, Subindex 4." },
+        "start": { "title": "BMS starten", "text": "Das PCS weist Knoten 5 an, in Operational zu wechseln, seinen Arbeitszustand. Ab jetzt sendet das BMS seine Prozessdaten und jede Sekunde einen Heartbeat: eine kurze Nachricht „Ich lebe noch“." },
+        "data": { "title": "Laufende Messwerte", "text": "TPDO1 ist das erste Transmit-PDO des BMS: ein Prozessdatenobjekt, eine Nachricht mit aktuellen Werten. Alle 100 ms trägt es die Pack-Spannung, den Strom, den Ladezustand (wie voll die Batterie ist) und die Temperatur der heißesten Zelle. Niemand fragt und niemand antwortet: Das PCS hört nur zu. Die EDS-Datei des BMS-Herstellers, ein elektronisches Datenblatt, sagt, was jedes Byte bedeutet." },
+        "alarm": { "title": "Zelle zu heiß", "text": "Eine Zelle in Modul 3 erreicht 61 °C. Das BMS sendet sofort eine Emergency-Nachricht (EMCY). Das PCS senkt den Strom auf 40 A." },
         "recover": { "title": "Entwarnung", "text": "Die Zelle kühlt ab. Das BMS sendet eine Emergency-Nachricht mit Fehlercode 0x0000: Der Fehler ist weg." }
     },
     "frames": {
@@ -23,12 +24,12 @@
         "id-705": { "name": "Identifier 0x705", "note": "0x700 + Knoten 5: Boot-up und Heartbeat von Knoten 5. Auf der Leitung 11 Bits, hier in 2 Bytes gezeigt." },
         "id-605": { "name": "Identifier 0x605", "note": "0x600 + Knoten 5: eine SDO-Anfrage an Knoten 5. Auf der Leitung 11 Bits." },
         "id-585": { "name": "Identifier 0x585", "note": "0x580 + Knoten 5: eine SDO-Antwort von Knoten 5. Auf der Leitung 11 Bits." },
-        "id-000": { "name": "Identifier 0x000", "note": "NMT: der niedrigste Identifier, also gewinnt er den Bus gegen jeden anderen Frame. Nur der NMT-Master sendet ihn." },
+        "id-000": { "name": "Identifier 0x000", "note": "NMT. Senden zwei Knoten gleichzeitig, kommt der niedrigere Identifier zuerst an die Reihe, also gewinnt dieser gegen jeden anderen Frame. Nur der NMT-Master sendet ihn." },
         "id-185": { "name": "Identifier 0x185", "note": "0x180 + Knoten 5: TPDO1, das erste Prozessdatenobjekt, das Knoten 5 sendet. Auf der Leitung 11 Bits." },
-        "id-085": { "name": "Identifier 0x085", "note": "0x080 + Knoten 5: die Emergency-Nachricht von Knoten 5. Mit ihrem niedrigen Identifier gewinnt sie den Bus gegen PDOs." },
+        "id-085": { "name": "Identifier 0x085", "note": "0x080 + Knoten 5: die Emergency-Nachricht von Knoten 5. Ihr niedriger Identifier gibt ihr Vorrang vor PDOs, den Prozessdaten." },
         "dlc-1": { "name": "DLC 1", "note": "Ein Datenbyte. Der Data Length Code hat auf der Leitung 4 Bits, hier in 1 Byte gezeigt." },
         "dlc-2": { "name": "DLC 2", "note": "Zwei Datenbytes." },
-        "dlc-6": { "name": "DLC 6", "note": "Sechs Datenbytes, so angeordnet, wie es das PDO-Mapping des BMS (Objekt 0x1A00) festlegt." },
+        "dlc-6": { "name": "DLC 6", "note": "Sechs Datenbytes. Das PDO-Mapping des BMS, Objekt 0x1A00, legt fest, welcher Wert in welchen Bytes steht." },
         "dlc-8": { "name": "DLC 8", "note": "Acht Datenbytes: SDO- und Emergency-Nachrichten haben immer 8." },
         "state-boot": { "name": "Zustand 0x00", "note": "Boot-up: Knoten 5 ist gestartet und jetzt Pre-Operational." },
         "state-op": { "name": "Zustand 0x05", "note": "Operational. 0x7F wäre Pre-Operational, 0x04 Stopped." },
@@ -42,20 +43,20 @@
         "nmt-node": { "name": "Knoten 5", "note": "Der Knoten, der starten soll. 0 würde jeden Knoten am Bus starten." },
         "volt": { "name": "Pack-Spannung", "note": "0x1FBC = 8124, in Schritten von 0.1 V: 812.4 V. Niederwertiges Byte zuerst, wie alle Zahlen in CANopen." },
         "amp": { "name": "Pack-Strom", "note": "0x05F3 = 1523, in Schritten von 0.1 A: 152.3 A. Bei diesem BMS bedeutet positiv Entladen." },
-        "soc": { "name": "Ladezustand", "note": "0x44 = 68 %." },
+        "soc": { "name": "Ladezustand", "note": "0x44 = 68 %: wie voll die Batterie ist." },
         "tmax": { "name": "Heißeste Zelle", "note": "0x1F = 31 °C." },
         "volt-low": { "name": "Pack-Spannung", "note": "0x1FA2 = 8098: 809.8 V." },
         "amp-low": { "name": "Pack-Strom", "note": "0x0190 = 400: 40.0 A. Das PCS hat den Strom gesenkt." },
         "soc-low": { "name": "Ladezustand", "note": "0x43 = 67 %." },
         "tmax-hot": { "name": "Heißeste Zelle", "note": "0x3A = 58 °C: kühlt ab, ist aber noch heiß." },
         "err-4200": { "name": "Fehlercode 0x4200", "note": "Niederwertiges Byte zuerst: Gerätetemperatur, aus der Klasse der Temperaturfehler (0x4xxx)." },
-        "errreg-09": { "name": "Fehlerregister 0x09", "note": "Der Wert von Objekt 0x1001: Bit 0 (ein Fehler) und Bit 3 (Temperatur)." },
+        "errreg-09": { "name": "Fehlerregister 0x09", "note": "Eine Zusammenfassung der aktiven Fehler, die auch in Objekt 0x1001 steht: Bit 0 (irgendein Fehler) und Bit 3 (Temperatur) sind gesetzt." },
         "emcy-maker": { "name": "Herstellerdaten", "note": "Fünf Bytes, die der BMS-Hersteller festlegt. Dieser sendet Modul 3, Zelle 12 (0x0C) und 61 °C (0x3D)." },
         "err-0000": { "name": "Fehlercode 0x0000", "note": "Error Reset: Kein Fehler ist mehr aktiv." },
         "errreg-00": { "name": "Fehlerregister 0x00", "note": "Kein Fehlerbit ist gesetzt." },
         "emcy-maker-0": { "name": "Herstellerdaten", "note": "Alles null." },
-        "a-function": { "name": "Funktionscode", "note": "Die oberen 4 Bits. 0011 = 3: TPDO1, 0x180 im Identifier." },
-        "a-node": { "name": "Node ID", "note": "Die unteren 7 Bits. 0000101 = 5: das BMS. Ein Bus hat Platz für die Knoten 1 bis 127." }
+        "a-function": { "name": "Funktionscode", "note": "Die oberen 4 Bits: die Art der Nachricht. 0011 = 3: TPDO1, 0x180 im Identifier." },
+        "a-node": { "name": "Node ID", "note": "Die unteren 7 Bits: welcher Knoten. 0000101 = 5: das BMS. Ein Bus hat Platz für die Knoten 1 bis 127." }
     },
     "devices": {
         "rack": "Batterie-Rack",
@@ -73,7 +74,7 @@
     "tips": [
         "Viele Batteriehersteller verwenden eigene CAN-Nachrichten mit eigenen Identifiern und Skalierungen, nicht CANopen. CANopen ist ein verbreiteter genormter Weg. Vor dem Anschließen die EDS-Datei oder die CAN-Nachrichtenliste des Herstellers anfordern.",
         "Zwei Knoten dürfen nie denselben Identifier senden. In CANopen muss jede Node ID am Bus eindeutig sein.",
-        "Den Heartbeat überwachen. Die Consumer Heartbeat Time des PCS (Objekt 0x1016) etwas länger einstellen als die Heartbeat-Periode des BMS (0x1017), damit ein verstummtes BMS das PCS stoppt.",
+        "Den Heartbeat überwachen. Die Zeit, die das PCS auf ihn wartet, die Consumer Heartbeat Time (Objekt 0x1016), etwas länger einstellen als die Heartbeat-Periode des BMS (0x1017). Dann stoppt ein verstummtes BMS das PCS.",
         "An jedes Ende des Busses einen Widerstand mit 120 Ω setzen und nirgendwo sonst. Ohne Widerstand oder mit einem zu viel brechen Frames, je länger das Kabel wird."
     ],
     "points": {
@@ -88,11 +89,11 @@
         "operational": "Operational"
     },
     "anatomy": {
-        "cobid": "Ein Identifier: ein Funktionscode und eine Node ID"
+        "cobid": "Ein Identifier (COB-ID): ein Funktionscode und eine Node ID"
     },
     "timing": {
         "title": "Was der Bus in zwei Sekunden trägt",
-        "note": "TPDO1 geht alle 100 ms hinaus (sein Event Timer), der Heartbeat alle 1000 ms. Eine Emergency-Nachricht geht einmal hinaus, wenn der Fehler auftritt, und noch einmal, wenn er verschwindet. Der CAN-Controller-Chip ergänzt jeden Frame um Startbit, CRC, Acknowledge-Slot und Stuff-Bits; die hier gezeigten Bytes sind das, was die Software sieht.",
+        "note": "TPDO1 geht alle 100 ms hinaus (sein Event Timer), der Heartbeat alle 1000 ms. Eine Emergency-Nachricht geht einmal hinaus, wenn der Fehler auftritt, und noch einmal, wenn er verschwindet. Der CAN-Controller-Chip ergänzt jeden Frame um Startbit, CRC, Acknowledge-Slot und Stuff-Bits (zusätzliche Bits, die die Empfänger im Takt halten). Die hier gezeigten Bytes sind das, was die Software sieht.",
         "tpdo": "TPDO1 · 0x185",
         "heartbeat": "Heartbeat · 0x705",
         "emcy": "EMCY · 0x085",

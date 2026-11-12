@@ -1,11 +1,12 @@
 {
-    "intro": "Bina otomasyonunun dili: ısıtma, soğutma, aydınlatma ve sayaçlar. Her cihaz nesneler barındırır (bir analog giriş, bir ikili çıkış, bir zaman programı); her nesnenin de güncel değeri gibi özellikleri vardır. IP ağında BACnet, 47808 portuna giden UDP datagramlarıyla taşınır ve cihazlar birbirini broadcast ile bulur.",
+    "intro": "BACnet (Building Automation and Control Networks), bina otomasyonunun ortak dilidir: ısıtma, soğutma, aydınlatma ve sayaçlar. Her cihaz bir analog giriş (ölçülen bir sayı), bir ikili çıkış (açık/kapalı bir komut) ya da bir zaman programı gibi nesneler barındırır. Her nesnenin de güncel değeri gibi özellikleri vardır. IP ağında BACnet, 47808 portuna giden UDP datagramlarıyla, yani bağlantı kurmadan gönderilen tekil paketlerle taşınır. Cihazlar birbirini broadcast ile, yani ağdaki her cihazın duyduğu tek bir mesajla bulur.",
+    "plain": "Bu, bir binadaki makinelerin birbiriyle konuşmak için kullandığı ortak dildir: ısıtma, klima, ışıklar ve elektrik sayaçları. Her cihaz, \"oda sıcaklığı\" ya da \"fan açık mı kapalı mı\" gibi etiketli kutulardan oluşan bir set olarak tanımlanır. Diğer cihazlar bu kutulardakini okuyabilir ya da değiştirebilir. Bir kontrol bilgisayarı tüm binaya kimlerin orada olduğunu sorabilir, bir sayacı okuyabilir, bir sınır koyabilir ve bir değer değişince haber verilmesini isteyebilir.",
     "steps": {
-        "discover": { "title": "Cihazı bul", "text": "BMS kontrolörü cihaz numarasıyla (2001) tanır, ama IP adresini bilmez. Who-Is yayınlar. Yalnızca cihaz 2001, I-Am ile yanıt verir. BMS onun IP adresini paketten alır." },
-        "read": { "title": "Sayacı oku", "text": "BMS, analog-input 1'in present-value'sunu okur: binanın ana sayaçtaki gücü. Yanıt bir REAL: 268.5 kW." },
-        "write": { "title": "Bir sınır koy", "text": "Operatör talep sınırını 250 kW'a düşürür. Yazma işlemi öncelik 8'i taşır; bu yüzden değer öncelik dizisinin 8 numaralı yuvasına gider." },
-        "subscribe": { "title": "Abone ol", "text": "BMS, tekrar tekrar okumak yerine kontrolörden sayaç değerindeki her değişikliği bir saat boyunca bildirmesini ister." },
-        "cov": { "title": "Yük düşüyor", "text": "Bina sınırın üzerinde, bu yüzden kontrolör yük atar: bir chiller kademesini kapatır. Güç 243.5 kW'a düşer. Bu değişiklik 5 kW'lık COV artımından büyük olduğu için kontrolör BMS'e haber verir." }
+        "discover": { "title": "Cihazı bul", "text": "BMS (bina yönetim sistemi, operatörlerin bilgisayarı) kontrolörü cihaz numarasıyla (2001) tanır, ama IP adresini bilmez. Her cihaza giden bir soru olan Who-Is'i yayınlar: cihaz 2001 orada mı? Yalnızca cihaz 2001, I-Am ile yanıt verir. BMS kontrolörün IP adresini o paketten alır." },
+        "read": { "title": "Sayacı oku", "text": "BMS, analog-input 1'in present-value'sunu okur: binanın ana sayaçtaki gücü. Yanıt bir REAL, yani 4 baytlık ondalıklı bir sayı: 268.5 kW." },
+        "write": { "title": "Bir sınır koy", "text": "Operatör talep sınırını, yani binanın çekebileceği en yüksek gücü 250 kW'a düşürür. Komut verilebilen bir değerin bir öncelik dizisi vardır: en önemlisi 1 olmak üzere 16 yuva. Değer tutan en önemli yuva kazanır. Bu yazma öncelik 8'i taşır, bu yüzden değer 8 numaralı yuvaya gider." },
+        "subscribe": { "title": "Değişikliklere abone ol", "text": "BMS tekrar tekrar okumak yerine COV'a (değer değişikliği) abone olur. Kontrolörden sayaç değerindeki her değişikliği bir saat boyunca bildirmesini ister." },
+        "cov": { "title": "Güç düşüyor", "text": "Bina sınırın üzerinde, bu yüzden kontrolör yük atar: soğutma tesisinin bir parçası olan bir chiller kademesini kapatır. Güç 243.5 kW'a düşer. COV artımı, bildirmeye değer en küçük değişikliktir; burada 5 kW. Bu değişiklik daha büyük, bu yüzden kontrolör BMS'e haber verir." }
     },
     "frames": {
         "who-is": "Cihaz 2001 orada mı?",
@@ -36,11 +37,11 @@
         "unconfirmed": { "name": "Unconfirmed-Request", "note": "0x10: üst 4 bitte PDU türü 1. Kimse onaylamaz." },
         "who-is": { "name": "Who-Is", "note": "Servis 8." },
         "low-limit": { "name": "Alt sınır", "note": "Context tag 0, 2 bayt: 0x07D1 = 2001, yanıt vermesi gereken en küçük cihaz numarası." },
-        "high-limit": { "name": "Üst sınır", "note": "Context tag 1: yine 2001. Yalnızca cihaz 2001 yanıt verir. AHU kontrolörü, yani cihaz 2002, sessiz kalır." },
+        "high-limit": { "name": "Üst sınır", "note": "Context tag 1: yine 2001. Yalnızca cihaz 2001 yanıt verir. Klima santrali kontrolörü (AHU), yani cihaz 2002, sessiz kalır." },
         "i-am": { "name": "I-Am", "note": "Servis 0." },
         "device-id": { "name": "Cihaz", "note": "Application tag 12 (bir nesne tanımlayıcısı), 4 bayt: cihaz 2001. Aşağıdaki parça parça görünüm onu açıyor." },
         "max-apdu": { "name": "Max APDU", "note": "İşaretsiz, 2 bayt: 1476 bayta kadar mesaj kabul eder." },
-        "segmentation": { "name": "Segmentasyon", "note": "Enumerated, 1 bayt: 3 = yok. Her mesaj tek bir datagrama sığmalı." },
+        "segmentation": { "name": "Segmentasyon", "note": "Enumerated, 1 bayt: 3 = segmentasyon yok. Bir mesaj parçalara bölünemez, bu yüzden tek bir datagrama sığmalı." },
         "vendor": { "name": "Üretici kimliği", "note": "İşaretsiz: üretici 4000. ASHRAE her üreticiye bir numara verir; bu numara uydurmadır." },
         "confirmed": { "name": "Confirmed-Request", "note": "0x00: tek parça hâlinde PDU türü 0. Yanıtlanmak zorundadır." },
         "max-resp": { "name": "Maks. yanıt", "note": "Kod 5: BMS 1476 bayta kadar yanıt kabul eder." },
@@ -58,7 +59,7 @@
         "invoke2-ack": { "name": "Invoke ID 2", "note": "2 numaralı isteğin yanıtı." },
         "write-property": { "name": "WriteProperty", "note": "Servis 15 (0x0F)." },
         "write-property-ack": { "name": "WriteProperty", "note": "Servis 15: yazma tamamlandı." },
-        "obj-av1": { "name": "Nesne", "note": "Context tag 0: analog-value, örnek 1, talep sınırı ayar değeri. 0x00800001: üst 10 bitte nesne türü 2." },
+        "obj-av1": { "name": "Nesne", "note": "Context tag 0: analog-value, örnek 1, talep sınırı ayarı. 0x00800001: üst 10 bitte nesne türü 2." },
         "real-250": { "name": "REAL", "note": "250.0: kW cinsinden yeni sınır." },
         "priority8": { "name": "Öncelik 8", "note": "Context tag 4: 16 yuvadan 8 numaralısına, yani operatörün yuvasına yaz. Değer tutan en küçük numaralı yuva kazanır." },
         "simple-ack": { "name": "SimpleACK", "note": "0x20: PDU türü 2. Tamam, veri yok." },
@@ -90,7 +91,7 @@
         "bms": "BMS iş istasyonu",
         "switch": "Bina ağ anahtarı",
         "controller": "Enerji kontrolörü",
-        "ahu": "AHU kontrolörü",
+        "ahu": "Klima santrali kontrolörü",
         "meter": "Ana sayaç"
     },
     "facts": {

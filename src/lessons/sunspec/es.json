@@ -1,11 +1,12 @@
 {
-    "intro": "Cada equipo Modbus tiene su propio mapa de registros, así que cada equipo nuevo supone un manual nuevo. SunSpec fija el mapa: un equipo organiza sus datos en modelos numerados, cada uno con un orden de valores conocido. Un controlador encuentra los modelos por sí solo, uno tras otro, y lee cualquier inversor, batería o medidor SunSpec de la misma manera.",
+    "intro": "Un equipo Modbus guarda sus valores en registros: casillas numeradas de 16 bits. Cada equipo tiene su propio mapa de registros, la lista de qué contiene cada registro, así que cada equipo nuevo supone un manual nuevo. SunSpec fija el mapa. Un equipo organiza sus datos en modelos numerados: bloques de registros, cada uno con un orden de valores conocido. Un controlador encuentra los modelos por sí solo, uno tras otro, y lee cualquier inversor, batería o medidor SunSpec de la misma manera.",
+    "plain": "SunSpec es una disposición común para las lecturas que hay dentro de los convertidores de energía solar, las baterías y los medidores. Sin ella, cada fabricante las ordena a su manera, y cada equipo nuevo necesita su propio manual. Con SunSpec, todos los equipos rellenan el mismo formulario, en el mismo orden, con una etiqueta en la parte superior de cada página. Así un solo programa puede leer de la misma forma los equipos de cualquier fabricante.",
     "steps": {
-        "find": { "title": "Buscar la marca", "text": "El controlador todavía no sabe nada de este inversor. Lee dos registros en 40000. Contienen \"SunS\": este equipo sigue SunSpec, y su mapa se puede descubrir en vez de introducirlo a mano." },
-        "common": { "title": "¿Quién eres?", "text": "El primer modelo es siempre el modelo común, ID 1: quién fabricó el equipo, qué es y su número de serie. Todo modelo empieza con dos registros: su ID y su longitud." },
-        "walk": { "title": "Siguiente modelo", "text": "El controlador salta el modelo común según su longitud: 40002 + 2 + 66 = 40070. Ahí encuentra el modelo 103, un inversor trifásico de 50 registros." },
-        "read": { "title": "Leer con factores de escala", "text": "Los registros guardan enteros de 16 bits. Por eso cada valor tiene un factor de escala: una potencia de diez en otro registro. W = 4820 con W_SF = 0 son 4820 W. Hz = 5001 con Hz_SF = −2 son 50.01 Hz." },
-        "end": { "title": "El final", "text": "El controlador vuelve a saltar, a 40070 + 2 + 50 = 40122, y encuentra el ID 0xFFFF: no hay más modelos. Ahora conoce todos los modelos del inversor y dónde está cada valor." }
+        "find": { "title": "Buscar la marca SunSpec", "text": "El controlador de planta todavía no sabe nada de este inversor. Lee dos registros en la dirección 40000, el lugar habitual donde buscar. Contienen las letras \"SunS\": este equipo sigue SunSpec, y su mapa se puede descubrir en vez de introducirlo a mano." },
+        "common": { "title": "¿Quién eres?", "text": "El primer modelo es siempre el modelo común, ID 1: quién fabricó el equipo, qué es y su número de serie. Todo modelo empieza con una cabecera de dos registros: su ID, que dice qué tipo de modelo es, y su longitud en registros." },
+        "walk": { "title": "Buscar el siguiente modelo", "text": "El controlador salta el modelo común según su longitud: 40002 + 2 + 66 = 40070. Ahí encuentra el modelo 103, un inversor trifásico (uno que alimenta los tres conductores activos de la red), de 50 registros." },
+        "read": { "title": "Leer potencia y frecuencia", "text": "Los registros solo guardan números enteros de 16 bits. Por eso cada valor llega con un factor de escala en otro registro: la potencia de diez por la que hay que multiplicarlo. W (potencia activa) = 4820 con W_SF = 0 son 4820 × 1 = 4820 W. Hz (frecuencia de la red) = 5001 con Hz_SF = −2 son 5001 × 0.01 = 50.01 Hz." },
+        "end": { "title": "Fin de la lista", "text": "El controlador vuelve a saltar, a 40070 + 2 + 50 = 40122, y encuentra el ID 0xFFFF: no hay más modelos. Ahora conoce todos los modelos del inversor y dónde está cada valor." }
     },
     "frames": {
         "sid-req": "Envíame los registros 40000 y 40001",
@@ -20,7 +21,7 @@
         "end-resp": "0xFFFF: ese era el último modelo"
     },
     "fields": {
-        "tid-1": { "name": "ID de transacción 1", "note": "Un número que elige el controlador. La respuesta lleva el mismo." },
+        "tid-1": { "name": "ID de transacción 1", "note": "Un número que elige el controlador. La respuesta lleva el mismo, para que el controlador pueda emparejarlas." },
         "tid-2": { "name": "ID de transacción 2", "note": "Siguiente petición, siguiente número." },
         "tid-3": { "name": "ID de transacción 3", "note": "La tercera petición." },
         "tid-4": { "name": "ID de transacción 4", "note": "La cuarta petición." },
@@ -49,17 +50,17 @@
         "mn": { "name": "Mn", "note": "Fabricante: \"Example\". Un texto ocupa siempre todos sus registros, aquí 16, con dos caracteres en cada uno. El resto se rellena con ceros." },
         "md": { "name": "Md", "note": "Modelo: \"EX-5K-3P\", 16 registros." },
         "opt": { "name": "Opt", "note": "Opciones, 8 registros: todo ceros, es decir, sin uso." },
-        "vr": { "name": "Vr", "note": "Versión, 8 registros: firmware \"3.4.1\"." },
+        "vr": { "name": "Vr", "note": "Versión, 8 registros: firmware (el software propio del equipo) \"3.4.1\"." },
         "sn": { "name": "SN", "note": "Número de serie, 16 registros: \"24110042\"." },
         "fill": { "name": "Ceros", "note": "Ceros después del texto." },
         "da": { "name": "DA", "note": "Dirección del equipo: el ID de unidad al que responde, 1." },
         "pad": { "name": "Pad", "note": "Un registro de relleno que hace par la longitud. Su valor no significa nada." },
         "id-103": { "name": "ID 103", "note": "0x0067 = 103: un inversor trifásico, con enteros y factores de escala." },
         "l-50": { "name": "L 50", "note": "0x0032 = 50 registros: de 40072 a 40121." },
-        "w": { "name": "W", "note": "0x12D4 = 4820: potencia CA, antes de aplicar la escala. W es un número con signo." },
+        "w": { "name": "W", "note": "0x12D4 = 4820: potencia CA, antes de aplicar la escala. W tiene signo: puede ser negativo." },
         "w-sf": { "name": "W_SF", "note": "0: multiplica W por 10⁰ = 1. La potencia es de 4820 W." },
         "hz": { "name": "Hz", "note": "0x1389 = 5001: frecuencia de red, antes de aplicar la escala." },
-        "hz-sf": { "name": "Hz_SF", "note": "0xFFFE = −2: multiplica Hz por 10⁻². La frecuencia es de 50.01 Hz." },
+        "hz-sf": { "name": "Hz_SF", "note": "0xFFFE, leído como número con signo, es −2: multiplica Hz por 10⁻² = 0.01. La frecuencia es de 50.01 Hz." },
         "id-end": { "name": "ID 0xFFFF", "note": "El modelo final: no siguen más modelos." },
         "l-0": { "name": "L 0", "note": "El modelo final no tiene datos." },
         "a-at": { "name": "Cabecera", "note": "El primer registro del modelo: su ID." },
@@ -67,7 +68,7 @@
         "a-l": { "name": "L", "note": "50: cuántos registros siguen a la cabecera." },
         "a-body": { "name": "Datos", "note": "Los valores del modelo, en un orden fijo. W está siempre 12 registros más adelante." },
         "a-next": { "name": "Siguiente cabecera", "note": "Donde empieza el siguiente modelo: cabecera + 2 + L." },
-        "a-raw": { "name": "Hz", "note": "El registro tal como se envía: un entero." },
+        "a-raw": { "name": "Hz", "note": "El registro tal como se envía: un número entero." },
         "a-sf": { "name": "Hz_SF", "note": "El factor de escala: una potencia de diez, de −10 a 10. Un mismo factor de escala puede servir para varios valores." },
         "a-real": { "name": "Valor", "note": "Lo que significa: 5001 × 10⁻² = 50.01 Hz. Un registro de 16 bits no puede guardar 50.01, pero así sí puede." }
     },
@@ -85,7 +86,7 @@
         "frames": "Modbus sin más: lecturas con FC 03, escrituras con FC 06 y FC 16"
     },
     "tips": [
-        "No copies los números de registro de un equipo a otro. Recorre los modelos desde la dirección base: el mismo modelo puede estar en otro sitio en el siguiente equipo.",
+        "No copies los números de registro de un equipo a otro. Recorre los modelos desde la dirección base, donde está \"SunS\": el mismo modelo puede estar en otro sitio en el siguiente equipo.",
         "Algunos equipos dan al modelo común una longitud de 65, sin el registro de relleno. Salta siempre según la longitud que envía el equipo.",
         "0x8000 en un registro con signo o en un factor de escala, y 0xFFFF en uno sin signo, significan \"no implementado\". No los muestres como −32768 o 65535.",
         "Lee un valor y su factor de escala en una sola petición. Dos lecturas separadas pueden emparejar un valor nuevo con un factor de escala antiguo."

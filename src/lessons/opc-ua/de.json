@@ -1,12 +1,13 @@
 {
-    "intro": "OPC UA ist das Client-Server-Protokoll moderner Industriesoftware. Ein Server bietet einen Adressraum an: Knoten mit Namen, Typen und Werten, verbunden durch Referenzen. Ein Client öffnet einen Secure Channel und eine Sitzung und kann dann durchsuchen, lesen, schreiben oder abonnieren.",
+    "intro": "OPC UA (Open Platform Communications Unified Architecture) ist ein Client-Server-Protokoll, das in Industriesoftware weit verbreitet ist. Ein Server bietet einen Adressraum an: Knoten (Ordner, Objekte, Variablen …) mit Namen, Typen und Werten, verbunden durch Referenzen. Ein Client, das Programm, das fragt, öffnet zuerst einen Secure Channel, der festlegt, wie Nachrichten geschützt werden. Dann öffnet er eine Sitzung, die seine Arbeit an einen Benutzer bindet. Jetzt kann er durchsuchen, lesen, schreiben oder Änderungen abonnieren.",
+    "plain": "Mit diesem Protokoll schaut ein Leitprogramm in die Steuerung einer Maschine hinein und findet jeden Wert über seinen Namen, so wie man sich am Computer durch Ordner klickt. Zuerst einigt sich das Programm mit der Steuerung darauf, wie ihr Gespräch geschützt wird, und sagt, wer es ist. Dann kann es einen Wert lesen, eine Einstellung ändern oder darum bitten, jedes Mal Bescheid zu bekommen, wenn sich ein Wert ändert.",
     "steps": {
-        "hello": { "title": "Hello", "text": "Nachdem die TCP-Verbindung zu Port 4840 steht, sagt der Client Hello: seine Puffergrößen und den Endpunkt, den er will. Der Server bestätigt mit seinen eigenen Grenzen." },
-        "channel": { "title": "Secure Channel", "text": "OpenSecureChannel legt fest, wie Nachrichten geschützt werden. Hier ist die Policy None: keine Signatur, keine Verschlüsselung. Der Server gibt dem Kanal die Nummer 5." },
-        "session": { "title": "Sitzung", "text": "CreateSession und ActivateSession binden einen Benutzer an den Kanal. Der Client erhält ein Authentication Token, das er in jede spätere Anfrage einsetzt." },
-        "browse": { "title": "Durchsuchen", "text": "Der Client durchläuft den Adressraum ab dem Ordner Objects und findet das Objekt PV1 und seine Variable TotW." },
-        "read": { "title": "Einen Wert lesen", "text": "Read fragt Attribut 13 (Value) von ns=2;s=PV1.TotW ab. Die Antwort ist ein Float, 4820.0, mit zwei Zeitstempeln." },
-        "subscribe": { "title": "Abonnieren", "text": "Der Client bittet den Server, TotW zu beobachten. Er hält eine Publish-Anfrage beim Server bereit; ändert sich der Wert, beantwortet der Server sie." }
+        "hello": { "title": "Hallo sagen", "text": "Der Client baut eine Netzwerkverbindung (TCP) zu Port 4840 auf. Er sagt Hello: die größten Datenstücke, die er annehmen kann (seine Puffergrößen), und den Endpunkt, den er will, also die Serveradresse, die er anruft. Der Server bestätigt mit seinen eigenen Grenzen." },
+        "channel": { "title": "Secure Channel öffnen", "text": "OpenSecureChannel legt fest, wie Nachrichten geschützt werden. Eine Signatur beweist, wer eine Nachricht gesendet hat und dass niemand sie verändert hat; Verschlüsselung verbirgt ihren Inhalt. Hier ist die Security Policy None: keine Signatur, keine Verschlüsselung. Der Server gibt dem Kanal die Nummer 5." },
+        "session": { "title": "Sitzung starten", "text": "CreateSession und ActivateSession binden einen Benutzer an den Kanal. Der Client erhält ein Authentication Token, eine geheime Kennung wie ein Besucherausweis. Er setzt das Token in jede spätere Anfrage ein." },
+        "browse": { "title": "Server durchsuchen", "text": "Der Client sieht sich im Adressraum um, beginnend beim Ordner Objects, so wie man Ordner auf einer Festplatte öffnet. Er findet das Objekt PV1, einen Wechselrichter, und seine Variable TotW: die gesamte Wirkleistung, also die Leistung, die der Wechselrichter abgibt." },
+        "read": { "title": "Einen Wert lesen", "text": "Read fragt Attribut 13, den Value, des Knotens ns=2;s=PV1.TotW ab. Diese NodeId, die Adresse des Knotens, bedeutet: im Namespace 2 (dem eigenen Namensraum des Steuerungsherstellers) der String PV1.TotW. Die Antwort ist ein Float, eine Dezimalzahl in 4 Bytes: 4820.0. Dazu kommen zwei Zeitstempel: wann der Wert gemessen wurde und wann der Server ihn gelesen hat." },
+        "subscribe": { "title": "Änderungen abonnieren", "text": "Der Client bittet den Server, TotW zu beobachten. Er hält eine Publish-Anfrage beim Server bereit, wie eine offene Frage. Ändert sich der Wert, beantwortet der Server sie." }
     },
     "frames": {
         "hel": "Hello: Das sind meine Puffergrößen",
@@ -25,21 +26,21 @@
         "publish": "TotW ist jetzt 4790.5"
     },
     "notes": {
-        "create-req": "Ein MSG mit einem CreateSessionRequest: Name und Zertifikat des Clients, eine zufällige Nonce und wie lange die Sitzung untätig bleiben darf.",
+        "create-req": "Ein MSG mit einem CreateSessionRequest: Name und Zertifikat des Clients, eine Nonce (eine Zufallszahl, die nur einmal verwendet wird) und wie lange die Sitzung untätig bleiben darf.",
         "create-resp": "Der Server liefert eine Session ID, das Authentication Token, seine Endpunkte und sein Zertifikat. Das Token ist geheim: Wer es hat, kann die Sitzung nutzen.",
         "activate-req": "ActivateSession mit einem anonymen Identity Token. Ein echter Benutzer sendet einen Namen und ein für den Server verschlüsseltes Passwort oder ein Benutzerzertifikat.",
         "activate-resp": "Die Sitzung ist aktiv. Bleibt sie länger untätig als in CreateSession vereinbart, schließt der Server sie.",
-        "browse-req": "Browse ab Knoten i=85, dem Ordner Objects, entlang seiner hierarchischen Referenzen.",
+        "browse-req": "Browse ab Knoten i=85, dem Ordner Objects, entlang seiner hierarchischen Referenzen: der Verweise von einem Ordner auf das, was darin liegt.",
         "browse-resp": "Eine Liste von Referenzen, jede mit NodeId, Browse Name und Knotenklasse. ns=2;s=PV1 ist ein Objekt; ns=2;s=PV1.TotW ist eine Variable darin.",
-        "monitor": "Zwei Anfragen, jede mit ihrer Antwort. CreateSubscription setzt ein Publishing-Intervall von 1000 ms. CreateMonitoredItems lässt den Server TotW alle 500 ms abtasten. Dann sendet der Client Publish-Anfragen im Voraus.",
-        "publish": "Eine PublishResponse mit einer Data Change Notification: das Handle des Clients für TotW, sein neuer Wert und die Zeitstempel. Der Client bestätigt sie in seiner nächsten Publish-Anfrage."
+        "monitor": "Zwei Anfragen, jede mit ihrer Antwort. CreateSubscription setzt ein Publishing-Intervall von 1000 ms: Einmal pro Sekunde sendet der Server, was sich geändert hat, falls sich etwas geändert hat. CreateMonitoredItems lässt den Server TotW alle 500 ms abtasten. Dann sendet der Client Publish-Anfragen im Voraus.",
+        "publish": "Eine PublishResponse mit einer Data Change Notification: das Handle des Clients für TotW (die Nummer, die er für dieses Item gewählt hat), sein neuer Wert und die Zeitstempel. Der Client bestätigt sie in seiner nächsten Publish-Anfrage."
     },
     "fields": {
         "hel": { "name": "HEL", "note": "Nachrichtentyp Hello, in ASCII." },
         "ack": { "name": "ACK", "note": "Nachrichtentyp Acknowledge." },
         "opn": { "name": "OPN", "note": "Nachrichtentyp OpenSecureChannel." },
         "msg": { "name": "MSG", "note": "Nachrichtentyp: eine Dienstnachricht auf einem offenen Kanal." },
-        "final": { "name": "F", "note": "Der letzte Chunk der Nachricht. Hier zugleich der einzige." },
+        "final": { "name": "F", "note": "Der letzte Chunk (das letzte Stück) der Nachricht. Hier zugleich der einzige." },
         "size-56": { "name": "Nachrichtengröße", "note": "0x38 = 56 Bytes, die ganze Nachricht. Jede Zahl in OPC UA wird mit dem niederwertigen Byte zuerst gesendet." },
         "size-28": { "name": "Nachrichtengröße", "note": "0x1C = 28 Bytes." },
         "size-132": { "name": "Nachrichtengröße", "note": "0x84 = 132 Bytes." },
@@ -59,7 +60,7 @@
         "channel-0": { "name": "Secure Channel ID", "note": "0: Es gibt noch keinen Kanal. Der Server wählt die Nummer." },
         "policy": { "name": "Security Policy", "note": "Eine Länge von 47, dann http://opcfoundation.org/UA/SecurityPolicy#None: keine Signatur, keine Verschlüsselung." },
         "no-cert": { "name": "Absenderzertifikat", "note": "Länge -1: keines. Mit einer echten Policy steht hier das X.509-Zertifikat des Absenders." },
-        "no-thumb": { "name": "Empfänger-Thumbprint", "note": "Keiner. Mit einer echten Policy: der Fingerabdruck des Empfängerzertifikats." },
+        "no-thumb": { "name": "Empfänger-Thumbprint", "note": "Länge -1: keiner. Mit einer echten Policy: der Fingerabdruck (ein kurzer Hash) des Empfängerzertifikats." },
         "seq-1": { "name": "Sequenznummer", "note": "1: Der Client zählt jeden Chunk, den er auf diesem Kanal sendet." },
         "req-1": { "name": "Request ID", "note": "1. Die Antwort trägt dieselbe ID." },
         "type-446": { "name": "Typ", "note": "Eine NodeId in 4 Bytes: Namespace 0, Nummer 446 (0x01BE): OpenSecureChannelRequest." },
@@ -68,12 +69,12 @@
         "handle-1": { "name": "Request Handle", "note": "1: eine Nummer, mit der der Client die Antwort zuordnet." },
         "diag-audit": { "name": "Diagnose · Audit", "note": "Return Diagnostics 0 (keine gewünscht), dann eine Audit Entry ID der Länge -1 (keine)." },
         "timeout": { "name": "Timeout Hint", "note": "0x2710 = 10000 ms: wie lange der Client warten wird." },
-        "no-header": { "name": "Additional Header", "note": "Ein leeres Extension Object." },
-        "ua-version": { "name": "Protokollversion", "note": "0." },
+        "no-header": { "name": "Additional Header", "note": "Ein leeres Extension Object: keine zusätzlichen Header-Felder." },
+        "ua-version": { "name": "Protokollversion", "note": "0: die Protokollversion des Senders." },
         "issue": { "name": "Request Type", "note": "0: ein neues Security Token ausstellen. 1 würde eines erneuern." },
         "mode-none": { "name": "Security Mode", "note": "1: None. 2 ist Sign, 3 ist SignAndEncrypt." },
-        "client-nonce": { "name": "Client Nonce", "note": "Länge 0: Mit None sind keine Schlüssel zu erzeugen." },
-        "lifetime": { "name": "Gewünschte Lebensdauer", "note": "0x0036EE80 = 3600000 ms: Der Client wird das Token innerhalb einer Stunde erneuern." },
+        "client-nonce": { "name": "Client Nonce", "note": "Länge 0: Mit der Policy None werden keine Schlüssel erzeugt, also ist keine Zufallszahl nötig." },
+        "lifetime": { "name": "Gewünschte Lebensdauer", "note": "0x0036EE80 = 3600000 ms: Das Token soll eine Stunde gelten. Der Client erneuert es vorher." },
         "channel-5": { "name": "Secure Channel ID", "note": "5: die Nummer, die der Server diesem Kanal gegeben hat." },
         "seq-1-server": { "name": "Sequenznummer", "note": "1: Der Server zählt seine eigenen Chunks." },
         "req-1-resp": { "name": "Request ID", "note": "1: Das beantwortet Anfrage 1." },
@@ -109,7 +110,7 @@
         "handle-5-resp": { "name": "Request Handle", "note": "5, wie in der Anfrage." },
         "results-1": { "name": "Ergebnisse", "note": "Ein Array mit einem Ergebnis, für den einen angefragten Knoten." },
         "mask": { "name": "DataValue-Maske", "note": "0x0D: Es folgen ein Wert, ein Quell-Zeitstempel und ein Server-Zeitstempel. Kein Statuscode bedeutet Good." },
-        "float": { "name": "Variant-Typ", "note": "0x0A = 10: Float, 4 Bytes." },
+        "float": { "name": "Variant-Typ", "note": "0x0A = 10: Float, eine Dezimalzahl in 4 Bytes." },
         "value": { "name": "Wert", "note": "4820.0, niederwertiges Byte zuerst. Die Einheit, kW, ist eine Eigenschaft des Knotens (EngineeringUnits)." },
         "source-time": { "name": "Quell-Zeitstempel", "note": "10:41:06.000 UTC: wann der Regler den Wert gemessen hat." },
         "server-time": { "name": "Server-Zeitstempel", "note": "10:41:06.302 UTC: wann der Server ihn gelesen hat." },
@@ -122,7 +123,7 @@
         "scada": "SCADA",
         "ctrl": "Parkregler",
         "inv": "Wechselrichter PV1",
-        "pv": "PV-Module",
+        "pv": "Solarmodule",
         "meter": "Netzzähler"
     },
     "facts": {
@@ -133,10 +134,10 @@
         "model": "Adressraum: Knoten in Namespaces, verbunden durch Referenzen"
     },
     "tips": [
-        "Diese Lektion verwendet den Security Mode None, damit sich die Bytes lesen lassen. In der Anlage SignAndEncrypt mit einer aktuellen Policy wie Basic256Sha256 verwenden. Sign allein verhindert Veränderungen, aber jeder im Netz kann die Werte weiterhin mitlesen.",
+        "Diese Lektion verwendet den Security Mode None, damit sich die Bytes lesen lassen. In der Anlage SignAndEncrypt mit einer aktuellen Policy wie Basic256Sha256 verwenden. Sign allein verhindert, dass jemand die Nachrichten verändert, aber jeder im Netz kann die Werte weiterhin mitlesen.",
         "Beide Seiten müssen dem Zertifikat der anderen vertrauen. Viele erste Verbindungen scheitern, weil der Server das Zertifikat des Clients in seine Liste abgewiesener Zertifikate gelegt hat. Ein Administrator muss es in die Liste vertrauenswürdiger Zertifikate verschieben.",
         "Namespace-Indizes können sich ändern, wenn der Server neu startet oder aktualisiert wird. Zu jeder NodeId die Namespace-URI speichern und den Index nach dem Verbinden nachschlagen.",
-        "Nicht mehrmals pro Sekunde mit Read abfragen. Ein Abonnement mit Abtast- und Publishing-Intervall belastet den Server weit weniger."
+        "Nicht pollen, also nicht mehrmals pro Sekunde Read senden. Ein Abonnement mit Abtast- und Publishing-Intervall belastet den Server weit weniger."
     ],
     "points": {
         "channel": "Secure Channel",

@@ -1,11 +1,12 @@
 {
-    "intro": "El código de tiempo que los relés de subestación llevan décadas recibiendo. Un reloj GPS envía una trama por segundo por un cable coaxial o un par trenzado: 100 bits de 10 ms cada uno. El ancho de cada pulso es un 0, un 1 o un marcador, y el primer flanco de la trama es el inicio exacto del segundo.",
+    "intro": "IRIG-B es el código de tiempo que los relés de subestación usan desde hace décadas. Un reloj GPS envía una trama por segundo por un cable coaxial o un par de hilos trenzados: 100 bits de 10 ms cada uno. El ancho de cada pulso dice qué es: un 0, un 1 o un marcador de posición. El primer flanco de la trama marca el inicio exacto del segundo.",
+    "plain": "Este código de tiempo funciona como la señal horaria de la radio: el inicio de cada segundo queda marcado con exactitud, y un código corto dice qué hora es. Un reloj que escucha a los satélites envía por un cable un patrón de pulsos cortos y largos, una vez por segundo. Cada equipo de protección conectado al cable lee el patrón y pone en hora su propio reloj. Cuando algo sale mal, todos anotan la misma hora, así que el orden de los hechos queda claro.",
     "steps": {
-        "lock": { "title": "Enganche GPS", "text": "El reloj de la estación oye los satélites por su antena y se engancha a UTC. Desde ahora empieza cada trama IRIG-B exactamente en el segundo." },
-        "frame": { "title": "Una trama", "text": "A las 10:41:07.000 empieza una trama: dos marcadores seguidos, luego segundos, minutos, horas, día del año y año en BCD, los bits de control y los segundos del día en binario. Todos los relés de la línea la oyen. IRIG-B no tiene direcciones ni respuestas." },
-        "set": { "title": "Poner en hora", "text": "La hora de una trama es la de su primer flanco, pero un relé solo la conoce cuando termina de leer la trama. Así que el relé espera a la trama siguiente, comprueba que llega exactamente un segundo después y pone en hora su reloj." },
-        "event": { "title": "Un disparo", "text": "Una falla en el alimentador F1. El relé F1 dispara el interruptor Q1 y guarda el evento con su propio reloj: 10:52:31.283. Los registros de todos los relés de esta línea comparten una misma escala de tiempo, así que su orden está claro." },
-        "holdover": { "title": "Holdover", "text": "A las 11:40 se corta el cable de la antena. El reloj sigue con su propio oscilador y continúa enviando. A las 14:12 estima su error en hasta 10 µs y lo indica en los bits de calidad de tiempo: 5." }
+        "lock": { "title": "Engancharse al GPS", "text": "El reloj de la estación oye los satélites por su antena y se engancha a UTC (tiempo universal coordinado, la hora de referencia mundial). Desde ahora empieza cada trama IRIG-B exactamente en el segundo." },
+        "frame": { "title": "Una trama", "text": "A las 10:41:07.000 empieza una trama con dos marcadores seguidos. Luego vienen los segundos, los minutos, las horas, el día del año y el año en BCD (decimal codificado en binario: cada dígito decimal se escribe en binario por separado). Después vienen los bits de control y los segundos del día como un solo número binario. Todos los relés de la línea oyen la trama. IRIG-B no tiene direcciones ni respuestas." },
+        "set": { "title": "Poner en hora", "text": "La hora de una trama es la de su primer flanco, pero un relé solo conoce esa hora cuando ha leído la trama entera. Así que el relé espera a la trama siguiente, comprueba que llega exactamente un segundo después y pone en hora su reloj." },
+        "event": { "title": "Dispara un interruptor", "text": "Una falla en el alimentador F1. El relé F1 dispara el interruptor Q1, que se abre, y guarda el evento con su propio reloj: 10:52:31.283. Los registros de todos los relés de esta línea comparten una misma escala de tiempo, así que su orden está claro." },
+        "holdover": { "title": "Funcionar sin GPS", "text": "A las 11:40 se corta el cable de la antena. El reloj sigue con su propio oscilador y continúa enviando: esto se llama holdover. A las 14:12 estima que su error puede llegar a 10 µs y lo indica en los bits de calidad de tiempo: 5." }
     },
     "frames": {
         "gps": "Hora de los satélites: UTC",
@@ -23,16 +24,16 @@
     "fields": {
         "sec-07": { "name": "Segundos", "note": "07 en BCD: el dígito de las unidades, 7, en los bits 1–4, el bit bajo primero; después el de las decenas, 0, en los bits 6–8. Se muestra aquí en hex para que se lea como la hora." },
         "sec-08": { "name": "Segundos", "note": "08: uno más que en la trama anterior." },
-        "sec-31": { "name": "Segundos", "note": "31 en BCD." },
+        "sec-31": { "name": "Segundos", "note": "31 en BCD: primero el dígito de las unidades, 1, y luego el de las decenas, 3." },
         "min-41": { "name": "Minutos", "note": "41 en BCD: unidades en los bits 10–13, decenas en los bits 15–17." },
-        "min-12": { "name": "Minutos", "note": "12 en BCD." },
+        "min-12": { "name": "Minutos", "note": "12 en BCD: primero el dígito de las unidades, 2, y luego el de las decenas, 1." },
         "hour-10": { "name": "Horas", "note": "10 en BCD: unidades en los bits 20–23, decenas en los bits 25–26. UTC, como dicen los bits de desfase." },
-        "hour-14": { "name": "Horas", "note": "14 en BCD." },
+        "hour-14": { "name": "Horas", "note": "14 en BCD: primero el dígito de las unidades, 4, y luego el de las decenas, 1." },
         "day-316": { "name": "Día del año", "note": "316 = 12 de noviembre de 2026, mostrado como 03 16. Unidades en los bits 30–33, decenas en 35–38, centenas en 40–41." },
         "year-26": { "name": "Año", "note": "(20)26 en BCD, en los bits 50–58. Los códigos sin año se lo dejan al relé." },
         "cf-flags": { "name": "Segundo intercalar · horario de verano", "note": "Bits 60–63 (IEEE C37.118.1): ningún segundo intercalar pendiente, ningún cambio de horario de verano pendiente, sin horario de verano." },
         "cf-offset": { "name": "Desfase horario", "note": "Bits 64–68 y 70: 0 horas respecto a UTC. Esta trama lleva UTC." },
-        "tq-0": { "name": "Calidad de tiempo 0", "note": "Bits 71–74: enganchado al GPS, precisión completa." },
+        "tq-0": { "name": "Calidad de tiempo 0", "note": "Bits 71–74: 0, enganchado al GPS, precisión completa." },
         "tq-5": { "name": "Calidad de tiempo 5", "note": "El error del reloj puede llegar a 10 µs. 4 significaría 1 µs y 6, 100 µs; 15 significa que la hora no es fiable." },
         "parity-0": { "name": "Paridad", "note": "Bit 75: paridad par. Los bits 1–74 contienen un número par de unos, así que este bit es 0." },
         "parity-1": { "name": "Paridad", "note": "Bit 75: los bits 1–74 contienen 17 unos, así que este bit es 1 y la cuenta vuelve a ser par." },
@@ -40,7 +41,7 @@
         "sbs-38468": { "name": "Segundos en binario puro", "note": "0x9644 = 38468: un segundo después." },
         "sbs-51151": { "name": "Segundos en binario puro", "note": "0xC7CF = 51151 = 14 × 3600 + 12 × 60 + 31." },
         "a-format": { "name": "Formato", "note": "B: 100 bits por segundo, una trama por segundo." },
-        "a-modulation": { "name": "Modulación", "note": "1: una senoide modulada en amplitud. 0 es un cambio de nivel en CC (ancho de pulso); 2 es Manchester." },
+        "a-modulation": { "name": "Modulación", "note": "1: una onda senoidal cuya amplitud lleva los pulsos, grande durante un pulso y pequeña después. 0 es un cambio de nivel en CC (ancho de pulso); 2 es Manchester." },
         "a-carrier": { "name": "Portadora", "note": "2: una portadora de 1 kHz. 0 significa sin portadora, como con un cambio de nivel en CC." },
         "a-content": { "name": "Contenido", "note": "4: hora del año en BCD, año, bits de control y segundos en binario puro. 0 es lo mismo sin el año; 7 no tiene bits de control." }
     },
@@ -72,7 +73,7 @@
     },
     "timing": {
         "title": "Los primeros 110 ms de una trama",
-        "note": "La trama de las 10:41:07 empieza con dos marcadores seguidos: P0 cierra la trama anterior, Pr abre esta, y el flanco de subida de Pr es exactamente 10:41:07.000. Después vienen los segundos, las unidades primero: 1, 1, 1, 0 = 7. B00x envía los pulsos como niveles de CC: 2 ms para un 0, 5 ms para un 1, 8 ms para un marcador. B12x pone los mismos pulsos sobre una senoide de 1 kHz, fuerte durante el pulso y débil después (aproximadamente 10:3). Aquí la senoide se dibuja como escalones.",
+        "note": "La trama de las 10:41:07 empieza con dos marcadores seguidos: P0 cierra la trama anterior, Pr abre esta, y el flanco de subida de Pr es exactamente 10:41:07.000. Después vienen los segundos, las unidades primero: 1, 1, 1, 0 = 7. B00x envía los pulsos como niveles de CC: 2 ms para un 0, 5 ms para un 1, 8 ms para un marcador. B12x pone los mismos pulsos sobre una senoide de 1 kHz, fuerte durante el pulso y débil después (aproximadamente 10 a 3). Aquí la senoide se dibuja como escalones.",
         "bits": "Bits",
         "b00x": "B00x · nivel de CC",
         "b12x": "B12x · 1 kHz",

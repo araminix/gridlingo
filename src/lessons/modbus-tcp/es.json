@@ -1,11 +1,12 @@
 {
-    "intro": "La forma más sencilla de leer y escribir en un equipo por Ethernet. Un equipo guarda sus datos en registros numerados de 16 bits. Un cliente pide unos registros por su número y recibe su contenido. El protocolo no dice qué significa cada registro: eso está en el manual del equipo.",
+    "intro": "La forma más sencilla de leer y escribir en un equipo por Ethernet. Un equipo guarda sus datos en registros: casillas numeradas de 16 bits, cada una con un número entero de 0 a 65535. Un cliente, el equipo que pregunta, pide unos registros por su número y recibe su contenido. El protocolo no dice qué significa cada registro: eso está en el manual del equipo.",
+    "plain": "Modbus TCP permite que una máquina lea y cambie los números que hay dentro de otra máquina a través de una red informática. Imagina dentro del equipo una pared de casilleros numerados, cada uno con un número dentro. Una computadora pregunta \"¿qué hay en el casillero 100?\", y el equipo responde con lo que hay dentro. Solo el manual del equipo dice qué significa cada casillero, por ejemplo la potencia en este momento o un límite.",
     "steps": {
-        "connect": { "title": "Conectar", "text": "El controlador de planta abre una conexión TCP con el inversor en el puerto 502. Modbus TCP no tiene inicio de sesión ni comando de arranque: basta con la conexión." },
-        "read": { "title": "Leer la potencia", "text": "El manual indica la potencia activa en el registro 40101. En el cable es la dirección 100, porque el cable cuenta desde 0. La respuesta son 4 bytes: un float de 32 bits en dos registros, 4820.5 kW." },
-        "limit": { "title": "Fijar un límite", "text": "El operador de red pide menos potencia. El controlador escribe 3000 en la dirección 200, el límite de potencia. El inversor responde con una copia exacta de la petición: esa copia significa hecho." },
-        "check": { "title": "Comprobar", "text": "Modbus nunca informa de un cambio por su cuenta: el cliente debe volver a preguntar. Seis segundos después, la potencia es de 2998.7 kW." },
-        "mistake": { "title": "Dirección errónea", "text": "Un script nuevo envía como dirección el número del manual, 40101. El inversor no tiene ningún registro ahí, así que responde con una excepción en lugar de datos." }
+        "connect": { "title": "Abrir una conexión", "text": "El controlador de planta, la computadora que opera la planta solar, se conecta al inversor, el equipo que convierte la energía solar en energía para la red. Abre una conexión TCP (un enlace fiable por la red) en el puerto 502, el reservado para Modbus. Modbus TCP no tiene inicio de sesión ni comando de arranque: basta con la conexión." },
+        "read": { "title": "Leer la potencia", "text": "El manual indica la potencia activa (la potencia que el inversor entrega en este momento) en el registro 40101. El primer dígito, 4, solo indica el tipo de registro. El resto, 0101, cuenta desde 1, pero el cable cuenta desde 0, así que el controlador pide la dirección 100. La respuesta son 4 bytes: un float de 32 bits (un número con punto decimal) que ocupa dos registros. Su valor: 4820.5 kW." },
+        "limit": { "title": "Fijar un límite de potencia", "text": "El operador de red, la empresa que opera las líneas eléctricas, pide menos potencia. El controlador escribe 3000 en la dirección 200, el límite de potencia en kW. El inversor responde con una copia exacta de la petición. Esa copia significa: hecho." },
+        "check": { "title": "Comprobar", "text": "Modbus nunca informa de un cambio por su cuenta. El cliente debe volver a preguntar, una y otra vez: esto se llama sondeo (polling). Seis segundos después, la potencia es de 2998.7 kW." },
+        "mistake": { "title": "Dirección errónea", "text": "Un script nuevo envía el número del manual, 40101, tal cual, en lugar de la dirección 100. El inversor no tiene ningún registro ahí. Así que responde con una excepción, un mensaje de error, en lugar de datos." }
     },
     "frames": {
         "tcp": "Abre una conexión TCP al puerto 502",
@@ -19,34 +20,34 @@
         "exception": "Error 02: ese registro no existe"
     },
     "notes": {
-        "tcp": "TCP sin más, todavía sin bytes de Modbus. Muchos equipos aceptan solo unas pocas conexiones a la vez, así que el cliente mantiene su conexión abierta y la reutiliza."
+        "tcp": "TCP sin más: tres mensajes cortos que abren la conexión. Todavía sin bytes de Modbus. Muchos equipos aceptan solo unas pocas conexiones a la vez, así que el cliente mantiene su conexión abierta y la reutiliza."
     },
     "fields": {
-        "tid-1": { "name": "ID de transacción 1", "note": "Un número que elige el cliente. La respuesta lleva el mismo, para que el cliente pueda emparejarlas." },
+        "tid-1": { "name": "ID de transacción 1", "note": "Un número que elige el cliente. La respuesta lleva el mismo, para que el cliente pueda emparejar cada respuesta con su petición." },
         "tid-2": { "name": "ID de transacción 2", "note": "Siguiente petición, siguiente número." },
-        "tid-3": { "name": "ID de transacción 3", "note": "La respuesta a la petición 3 lleva un 3." },
+        "tid-3": { "name": "ID de transacción 3", "note": "La petición 3 y su respuesta llevan ambas un 3." },
         "tid-4": { "name": "ID de transacción 4", "note": "Incluso una respuesta de error lleva el número de la petición." },
         "proto": { "name": "ID de protocolo", "note": "0x0000: Modbus. Siempre es cero." },
-        "len-6": { "name": "Longitud", "note": "Siguen 6 bytes: el ID de unidad y 5 bytes de petición." },
+        "len-6": { "name": "Longitud", "note": "Siguen 6 bytes: el ID de unidad y 5 bytes más." },
         "len-7": { "name": "Longitud", "note": "Siguen 7 bytes." },
         "len-3": { "name": "Longitud", "note": "Siguen 3 bytes." },
-        "unit": { "name": "ID de unidad 1", "note": "Elige un equipo detrás de un gateway. Este inversor responde al 1." },
-        "fc03": { "name": "Función 03", "note": "0x03: leer holding registers." },
+        "unit": { "name": "ID de unidad 1", "note": "Elige un equipo detrás de un gateway, una caja que conecta varios equipos a una sola dirección de red. Este inversor responde al 1." },
+        "fc03": { "name": "Función 03", "note": "0x03: leer holding registers, los registros que un cliente puede leer y escribir." },
         "fc06": { "name": "Función 06", "note": "0x06: escribir un registro." },
         "fc06-echo": { "name": "Función 06", "note": "La respuesta a una escritura repite la petición byte a byte." },
-        "fc83": { "name": "Función 83", "note": "0x83 = 0x03 + 0x80. El bit más alto activo significa: esto es un error." },
+        "fc83": { "name": "Función 83", "note": "0x83 = 0x03 + 0x80. El código de función con su bit más alto activo significa: esto es una respuesta de error." },
         "addr-100": { "name": "Dirección 100", "note": "0x0064 = 100: el registro 40101 del manual." },
         "addr-200": { "name": "Dirección 200", "note": "0x00C8 = 200: el registro 40201, el límite de potencia activa." },
         "addr-40101": { "name": "Dirección 40101", "note": "0x9CA5 = 40101: el número del manual, enviado tal cual. Mal: el inversor no tiene nada ahí." },
         "qty-2": { "name": "Cantidad", "note": "2 registros: un valor de 32 bits." },
         "count-4": { "name": "Cantidad de bytes", "note": "Siguen 4 bytes de datos: 2 registros." },
-        "reg-100": { "name": "Registro 100", "note": "0xA400: la mitad baja del float. Este inversor envía primero la palabra baja (CDAB)." },
-        "reg-101": { "name": "Registro 101", "note": "0x4596: la mitad alta. Alta y luego baja, 0x4596A400, es 4820.5 (kW)." },
+        "reg-100": { "name": "Registro 100", "note": "0xA400: la mitad baja del float. Este inversor envía primero la mitad baja de 16 bits, un orden de palabras llamado CDAB." },
+        "reg-101": { "name": "Registro 101", "note": "0x4596: la mitad alta. Puestas en orden, alta y luego baja, 0x4596A400 es 4820.5 (kW)." },
         "reg-100-later": { "name": "Registro 100", "note": "0x6B33: la mitad baja." },
         "reg-101-later": { "name": "Registro 101", "note": "0x453B: la mitad alta. 0x453B6B33 es 2998.7 (kW)." },
         "limit-3000": { "name": "Valor", "note": "0x0BB8 = 3000 (kW)." },
         "code-02": { "name": "Excepción 02", "note": "Dirección de datos ilegal: el registro no existe. 01 significaría una función desconocida, 03 un valor incorrecto." },
-        "a-table": { "name": "Tabla", "note": "4: un holding register, que se lee con la función 03. 3 es un input register (función 04), 1 una entrada discreta, 0 un coil." },
+        "a-table": { "name": "Tabla", "note": "4: un holding register, que se lee con la función 03. 3 es un input register (solo lectura, función 04), 1 una entrada discreta (un bit on/off de solo lectura), 0 un coil (un bit on/off que un cliente puede escribir)." },
         "a-number": { "name": "Número", "note": "0101: el registro 101. Los manuales cuentan desde 1, el cable cuenta desde 0." }
     },
     "devices": {
@@ -59,13 +60,13 @@
         "standard": "Modbus Application Protocol V1.1b3 y Modbus Messaging on TCP/IP V1.0b (Modbus Organization)",
         "between": "Cliente (controlador de planta, SCADA, registrador) → servidor (inversor, medidor, batería)",
         "transport": "TCP 502",
-        "security": "Ninguna. Cualquiera que llegue al puerto 502 puede leer y escribir. Modbus/TCP Security añade TLS en el puerto 802.",
-        "frames": "Una cabecera MBAP de 7 bytes, y luego un código de función y sus datos",
+        "security": "Ninguna. Cualquiera que llegue al puerto 502 puede leer y escribir. Modbus/TCP Security añade cifrado TLS en el puerto 802.",
+        "frames": "Una cabecera MBAP de 7 bytes (ID de transacción, ID de protocolo, longitud, ID de unidad), y luego un código de función y sus datos",
         "since": "1979 en líneas serie (Modicon), en TCP desde 1999"
     },
     "tips": [
         "Averigua si el manual cuenta los registros desde 0 o desde 1. Un registro de diferencia lee la mitad de un valor y la mitad del siguiente, y el resultado puede parecer casi correcto.",
-        "Comprueba el orden de las palabras de los valores de 32 bits con un valor que conozcas, como la potencia que muestra la pantalla del inversor. Muchos equipos envían primero la palabra baja (CDAB).",
+        "Comprueba el orden de las palabras de los valores de 32 bits, es decir, qué mitad de 16 bits va primero, con un valor que conozcas, como la potencia que muestra la pantalla del inversor. Muchos equipos envían primero la palabra baja (CDAB).",
         "Muchos equipos aceptan solo unas pocas conexiones TCP. Una herramienta de pruebas que se quede conectada puede dejar fuera al controlador de planta.",
         "Modbus no tiene contraseñas. Mantén el puerto 502 dentro de la red de la planta y que nunca sea accesible desde internet."
     ],
@@ -78,12 +79,12 @@
     },
     "playground": {
         "encoder": "Este inversor envía un float de 32 bits con la palabra baja primero (CDAB). Escribe un valor para ver sus bytes, y qué significan esos mismos bytes leídos en otro orden.",
-        "file": "El mapa de registros del inversor, sacado de su manual. El controlador debe configurarse con las mismas direcciones, tipos y orden de palabras.",
+        "file": "El mapa de registros del inversor, sacado de su manual: qué contiene cada registro. El controlador debe configurarse con las mismas direcciones, tipos y orden de palabras.",
         "unit": "El ID de unidad al que responde el inversor.",
         "offset": "Cómo convertir un número de registro en una dirección. Búscalo en cada manual: algunos cuentan desde 0.",
         "float": "Dos registros, un float, la palabra baja primero. El controlador debe estar configurado en CDAB.",
-        "scaled": "Un entero con escala: 5001 significa 50.01 Hz.",
-        "uint32": "También dos registros, también con la palabra baja primero.",
+        "scaled": "Un número entero con escala: divide entre 100, así que 5001 significa 50.01 Hz.",
+        "uint32": "También dos registros, también con la palabra baja primero: un número entero demasiado grande para un solo registro.",
         "limit": "Se puede escribir: el límite que fija el controlador en el paso 3.",
         "fallback": "Si el controlador deja de escribir durante este tiempo, el inversor vuelve a su valor de respaldo. Así, un enlace perdido no deja la planta atascada en un límite antiguo."
     }

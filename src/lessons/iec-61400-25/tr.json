@@ -1,72 +1,73 @@
 {
-    "intro": "IEC 61400-25, rüzgar santralleri için IEC 61850'dir. Türbin, rotoru, jeneratörü ve konvertörü, hava durumu ve tüm parkın kontrolü için mantıksal düğümler ekler. IEC 61400-25-4 modeli protokollere eşler; MMS eşlemesiyle bir türbin, herhangi bir IEC 61850 sunucusu gibi konuşur.",
+    "intro": "IEC 61400-25, trafo merkezlerinde veri ve mesajlar için kullanılan standart olan IEC 61850'yi rüzgar santrallerine taşır. Mantıksal düğümler ekler: her fonksiyon için bir tane olmak üzere adlandırılmış veri grupları. Bunlar türbini, rotorunu, jeneratörünü ve konvertörünü, hava durumunu ve tüm parkın kontrolünü kapsar. IEC 61400-25-4 bölümü, bu modelin gerçek protokoller üzerinde nasıl taşınacağını söyler. MMS eşlemesiyle (MMS: Manufacturing Message Specification, IEC 61850 verisini okuyan ve yazan protokol) bir türbin, herhangi bir IEC 61850 sunucusu gibi konuşur.",
+    "plain": "Bir rüzgar santralinde çok sayıda türbin ve onları izleyip ne kadar güç üreteceklerini söylemesi gereken bir kontrol odası vardır. Bu standart her türbine aynı adlandırılmış okumaları verir. Kutuları hep aynı yerde olan basılı bir form gibidir: güç burada, rotor hızı şurada, rüzgar hızı orada. Formu bilen bir kontrol sistemi, her üreticinin kendi dilini öğrenmeden bir türbini okuyabilir ve ona bir sınır gönderebilir.",
     "steps": {
-        "associate": { "title": "İlişkilen", "text": "Park kontrolörü WT01 türbininde TCP 102 portunu açar ve bir MMS ilişkilendirmesi (association) kurar. MMS eşlemesiyle bir türbin sıradan bir IEC 61850 sunucusudur." },
-        "read": { "title": "Türbini oku", "text": "Tek bir Read üç değer ister: WTUR1'deki aktif güç, WROT1'deki rotor hızı ve WMET1'deki rüzgar hızı. WTUR, türbinin işletme durumunu (TurSt) da tutar." },
-        "subscribe": { "title": "Rapor iste", "text": "Kontrolör urcbWTG01 raporunu etkinleştirir. Türbin artık veri setini bir değer değiştiğinde ve her durumda her 10 s'de bir gönderir." },
-        "limit": { "title": "Park için bir sınır", "text": "Şebeke işletmecisinin SCADA'sı, parkın aktif güç kontrolü olan WAPC1'i kumanda eder: tüm santral için en fazla 5.4 MW." },
-        "follow": { "title": "Türbinler uyuyor", "text": "Park kontrolörü üç türbinin her birine payını verir: 1800 kW. WT01 kanatlarının pitch açısını değiştirir, gücünü düşürür ve yeni gücünü raporlar." }
+        "associate": { "title": "WT01'e bağlan", "text": "Tüm rüzgar santralini yöneten bilgisayar olan park kontrolörü, WT01 türbininin 102 portuna bir ağ bağlantısı (TCP) açar. Sonra bir MMS ilişkilendirmesi kurar: iki tarafın nasıl konuşacaklarında anlaştığı bir oturum. MMS eşlemesiyle türbin sıradan bir IEC 61850 sunucusudur, yani veri tutan ve isteklere yanıt veren bir cihaz." },
+        "read": { "title": "Türbini oku", "text": "Tek bir Read isteği, her biri kendi mantıksal düğümünden üç değer ister. Aktif güç (türbinin verdiği elektrik gücü), türbinin bütününü temsil eden WTUR1'den gelir. Rotor hızı, rotor olan WROT1'den gelir. Rüzgar hızı, meteoroloji sensörleri olan WMET1'den gelir. WTUR, türbinin işletme durumunu (TurSt) da tutar." },
+        "subscribe": { "title": "Rapor iste", "text": "Kontrolör, türbinde neyin ne zaman gönderileceğini söyleyen bir ayar olan urcbWTG01 rapor kontrol bloğunu açar. Artık türbin, sabit bir değer listesi olan veri setini, değerlerden biri değiştiğinde ve her durumda her 10 s'de bir gönderir." },
+        "limit": { "title": "Park için bir sınır", "text": "Şebeke işletmecisinin SCADA'sı (kontrol merkezindeki izleme sistemi) WAPC1'e bir komut gönderir. Bu mantıksal düğüm tüm parkın aktif gücünü kontrol eder. Emir: tüm santral için en fazla 5.4 MW." },
+        "follow": { "title": "Türbinler uyuyor", "text": "Park kontrolörü sınırı böler ve üç türbinin her birine payını verir: 1800 kW. WT01 kanatlarını daha az rüzgar yakalayacak şekilde çevirir (pitch), gücünü adım adım düşürür ve yeni gücünü raporlar." }
     },
     "frames": {
-        "initiate-req": "MMS konuşalım: benim boyutlarım ve servislerim",
+        "initiate-req": "MMS konuşalım: boyut sınırlarım ve servislerim",
         "initiate-resp": "Anlaştık: bunlar da benimkiler",
         "read-req": "Gücün, rotor hızın ve rüzgar hızın?",
         "read-resp": "2350.0 kW, 12.75 rpm, 9.5 m/s",
-        "enable-req": "urcbWTG01 raporunu etkinleştir",
+        "enable-req": "urcbWTG01 raporunu aç",
         "enable-resp": "Tamam",
         "oper": "Park en fazla 5.4 MW verebilir",
         "share": "Her türbin: en fazla 1800 kW",
-        "report": "W artık 1800.0 kW"
+        "report": "Gücüm W artık 1800.0 kW"
     },
     "notes": {
-        "initiate-req": "IEC 61850 MMS dersindeki gibi önce 102 portuna TCP ve bir COTP bağlantısı. Sonra MMS Initiate boyutları ve servisleri önerir.",
-        "initiate-resp": "Türbin kendi boyutları ve servisleriyle yanıt verir. Artık modelinde gezinilebilir ya da model SCL dosyasından okunabilir.",
-        "oper": "Parkın aktif gücüne ait mantıksal düğüm olan WAPC'ye bir kontrol: santralin çıkışı için yeni bir referans değer. Park kontrolörü bir Write yanıtıyla karşılık verir.",
+        "initiate-req": "IEC 61850 MMS dersindeki gibi önce 102 portuna bir TCP bağlantısı ve bir COTP bağlantısı. Sonra MMS Initiate isteği kontrolörün mesaj boyutu sınırlarını ve desteklediği servisleri önerir.",
+        "initiate-resp": "Türbin kendi boyut sınırları ve servisleriyle yanıt verir. Kontrolör artık türbinin veri modelinde gezinebilir ya da modeli türbinin SCL dosyasından okuyabilir.",
+        "oper": "Parkın aktif gücüne ait mantıksal düğüm olan WAPC1'e bir Operate: santralin çıkışı için yeni bir hedef. Park kontrolörü bir Write yanıtıyla karşılık verir.",
         "share": "Sınırın her türbine nasıl ulaşacağı park kontrolörüne kalmıştır. Park içinde birçoğu bunun için türbin üreticisinin kendi protokolünü kullanır.",
-        "report": "urcbWTG01'den W, RotSpd ve HorWdSpd içeren, istenmeden gönderilmiş bir InformationReport. Neden kodu onu neyin tetiklediğini söyler: bir veri değişikliği."
+        "report": "urcbWTG01'den W, RotSpd ve HorWdSpd içeren bir InformationReport. Türbin bunu bir istek olmadan, kendiliğinden gönderir. Neden kodu onu neyin tetiklediğini söyler: bir veri değişikliği."
     },
     "fields": {
         "tpkt-143": { "name": "TPKT", "note": "Sürüm 3, ardından tüm mesajın uzunluğu: 0x008F = 143 bayt." },
         "tpkt-50": { "name": "TPKT", "note": "Sürüm 3, ardından uzunluk: 0x0032 = 50 bayt." },
         "tpkt-75": { "name": "TPKT", "note": "Sürüm 3, ardından uzunluk: 0x004B = 75 bayt." },
         "tpkt-29": { "name": "TPKT", "note": "Sürüm 3, ardından uzunluk: 0x001D = 29 bayt." },
-        "cotp-dt": { "name": "COTP", "note": "Bir veri birimi (0xF0), mesajının sonuncusu (0x80)." },
-        "session": { "name": "Oturum", "note": "İki kısa oturum başlığı: give tokens, data transfer." },
-        "presentation": { "name": "Sunum", "note": "Tam kodlanmış veri, sunum bağlamı 3: ardından gelen MMS'tir." },
-        "presentation-long": { "name": "Sunum", "note": "Tam kodlanmış veri, bağlam 3: ardından MMS gelir. 81 81 uzun bir uzunluktur: 0x81, ardından tek bir uzunluk baytı geldiğini söyler; o bayt da, yani 0x81, 129'dur." },
+        "cotp-dt": { "name": "COTP", "note": "02: ardından iki başlık baytı gelir. 0xF0: bir veri birimi. 0x80: mesajının son birimi." },
+        "session": { "name": "Oturum", "note": "İki kısa oturum başlığı: önce Give Tokens, sonra Data Transfer. Her biri içeriksiz 2 bayttır." },
+        "presentation": { "name": "Sunum", "note": "Sunum bağlamı 3'te tam kodlanmış veri. Bağlantı kurulurken bağlam 3'ün MMS anlamına geldiği kararlaştırıldı, yani ardından gelen MMS'tir." },
+        "presentation-long": { "name": "Sunum", "note": "Bağlam 3'te tam kodlanmış veri: ardından MMS gelir. 81 81 uzun bir uzunluktur: 0x81, ardından tek bir uzunluk baytı geldiğini söyler; o bayt da, yani 0x81, 129'dur." },
         "confirmed-req": { "name": "Onaylı istek", "note": "Etiket A0: yanıt bekleyen bir istek. Sonraki bayt, içindeki baytları sayar." },
         "confirmed-resp": { "name": "Onaylı yanıt", "note": "Etiket A1: bir isteğin yanıtı." },
         "invoke-3": { "name": "Invoke ID 3", "note": "Kontrolörün seçtiği bir numara. Yanıt da aynısını taşır." },
         "invoke-3-resp": { "name": "Invoke ID 3", "note": "İstekteki numaranın aynısı: bu, o isteğin yanıtı." },
         "invoke-4": { "name": "Invoke ID 4", "note": "Yeni bir istek, yeni bir numara." },
         "invoke-4-resp": { "name": "Invoke ID 4", "note": "Bu, RptEna'ya yazmanın yanıtı." },
-        "read": { "name": "Read", "note": "Etiket A4: Read servisi." },
+        "read": { "name": "Read", "note": "Etiket A4: değer isteyen Read servisi." },
         "spec": { "name": "Değişken listesi", "note": "Her biri adıyla verilmiş değişkenlerin listesi. Burada üç tane var." },
         "var": { "name": "Değişken", "note": "Listenin bir girdisi. Ardından adı gelir." },
-        "domain-specific": { "name": "Domain'e özgü ad", "note": "İki parçalı bir ad: domain ve öğe." },
-        "domain": { "name": "Domain", "note": "\"WT01WTG\": WT01 IED'sinin WTG mantıksal cihazı." },
+        "domain-specific": { "name": "Domain'e özgü ad", "note": "İki parçalı bir ad: domain (mantıksal cihaz) ve öğe (onun içindeki veri)." },
+        "domain": { "name": "Domain", "note": "\"WT01WTG\": türbinin kontrolörü olan WT01 IED'sinin WTG mantıksal cihazı." },
         "item-w": { "name": "Öğe", "note": "\"WTUR1$MX$W$mag$f\": türbinin aktif güç çıkışı." },
         "item-rotspd": { "name": "Öğe", "note": "\"WROT1$MX$RotSpd$mag$f\": rotor hızı." },
-        "item-wdspd": { "name": "Öğe", "note": "\"WMET1$MX$HorWdSpd$mag$f\": naselin üstündeki anemometreden yatay rüzgar hızı." },
+        "item-wdspd": { "name": "Öğe", "note": "\"WMET1$MX$HorWdSpd$mag$f\": kulenin tepesindeki gövde olan naselin üstündeki anemometreden (rüzgar ölçer) yatay rüzgar hızı." },
         "results": { "name": "Sonuçlar", "note": "İstendikleri sırayla üç sonuç." },
-        "float-tag": { "name": "Kayan nokta", "note": "Etiket 0x87 (bir float), 5 bayt. 08: ardından IEEE 754 tek duyarlıklı bir float gelir." },
-        "w": { "name": "W", "note": "2350.0. Birim (kW), units özniteliğinde (CF)." },
+        "float-tag": { "name": "Kayan nokta", "note": "Etiket 0x87 (bir float), 5 bayt. 08: üs 8 bittir, yani ardından IEEE 754 tek duyarlıklı bir float gelir." },
+        "w": { "name": "W", "note": "2350.0, burada kW cinsinden. Değer birimi olmadan gönderilir: birim units özniteliğindedir (CF)." },
         "rotspd": { "name": "RotSpd", "note": "12.75 (rpm), en anlamlı bayt önce." },
         "wdspd": { "name": "HorWdSpd", "note": "9.5 (m/s)." },
-        "write": { "name": "Write", "note": "Etiket A5: Write servisi." },
+        "write": { "name": "Write", "note": "Etiket A5: değer ayarlayan Write servisi." },
         "write-spec": { "name": "Değişken", "note": "Adıyla verilmiş tek değişkenlik bir liste." },
-        "item-rptena": { "name": "Öğe", "note": "\"LLN0$RP$urcbWTG01$RptEna\": urcbWTG rapor kontrol bloğunun ilk kopyası olan urcbWTG01'in etkinleştirme bayrağı. RP, tamponsuz (unbuffered) bir raporu işaretler." },
+        "item-rptena": { "name": "Öğe", "note": "\"LLN0$RP$urcbWTG01$RptEna\": urcbWTG01'in açma/kapama anahtarı RptEna. urcbWTG01, urcbWTG rapor kontrol bloğunun ilk örneğidir. RP tamponsuz (unbuffered) bir raporu işaretler: hiçbir istemci bağlı değilken değişenler saklanmaz." },
         "data-list": { "name": "Veri", "note": "Yazılacak değerler, her değişken için bir tane." },
         "true": { "name": "TRUE", "note": "Etiket 0x83, bir boolean, 1 bayt: TRUE. Raporlar şimdi başlıyor." },
         "write-resp": { "name": "Write yanıtı", "note": "Etiket A5: bir Write'ın yanıtı, her değişken için bir sonuç." },
         "success": { "name": "Başarılı", "note": "Etiket 0x81, boş: yazma işe yaradı." },
-        "a-ld": { "name": "Mantıksal cihaz", "note": "WT01WTG: IED adı WT01 ve örnek WTG." },
+        "a-ld": { "name": "Mantıksal cihaz", "note": "WT01WTG: IED adı WT01 ve mantıksal cihaz örneği WTG." },
         "a-ln": { "name": "Mantıksal düğüm", "note": "WMET1: bu türbinin meteoroloji sensörleri. Bir meteoroloji direğinin kendi WMET'i vardır." },
         "a-fc": { "name": "Fonksiyonel kısıt", "note": "MX: ölçülen değerler." },
         "a-hor": { "name": "Yatay", "note": "Hor. Veri nesnesi adları bunun gibi kısa sözcüklerden, boşluksuz birleştirilerek kurulur." },
         "a-wd": { "name": "Rüzgar", "note": "Wd. Diğer kısa sözcükler: sıcaklık için Tmp, yön için Dir." },
         "a-spd": { "name": "Hız", "note": "Spd. Hepsi birlikte: HorWdSpd, yatay rüzgar hızı." },
-        "a-da": { "name": "Veri özniteliği", "note": "mag.f: büyüklük, float olarak." }
+        "a-da": { "name": "Veri özniteliği", "note": "mag.f: büyüklük (değerin kendisi), kayan noktalı sayı olarak." }
     },
     "devices": {
         "scada": "Kontrol merkezi",
@@ -85,7 +86,7 @@
     },
     "tips": [
         "Edition 2 (2015), naseldeki rüzgar ve hava sensörlerini WNAC'tan WMET'e taşıdı ve birkaç kısaltmayı değiştirdi. Edition 1 için yazılmış bir istemci yanlış yere bakar.",
-        "Bir değer birim taşımaz. W, W ya da kW cinsinden olabilir: bağlandıktan sonra units'i (CF) bir kez okuyun ve saklayın.",
+        "Bir değer birim taşımaz. Güç W, watt ya da kilovat cinsinden olabilir: bağlandıktan sonra units özniteliğini (CF) bir kez okuyun ve saklayın.",
         "Türbin üreticileri modeli farklı doldurur: isteğe bağlı veri nesneleri, örnek numaraları, veri setleri. Her türbin tipinin SCL dosyasını okuyun; bir eşlemeyi hepsine kopyalamayın.",
         "Birçok park, işletmeciye doğru IEC 61400-25 konuşur, ama türbinlere doğru üreticinin kendi protokolünü. Hangi arayüzü alacağınızı sorun."
     ],
@@ -98,7 +99,7 @@
         "dataname": "Kısa sözcüklerden kurulmuş bir veri nesnesi adı"
     },
     "playground": {
-        "scl": "Türbinin konfigüre edilmiş tanımı (.cid). WTG'yi açın: türbinin her parçası bir mantıksal düğümdür. Burada okunan üç değer WTUR1, WROT1 ve WMET1'dedir. Sonra varsa kendi dosyanızı açın.",
+        "scl": "Türbinin konfigürasyon dosyası (.cid, SCL ile yazılmış). WTG'yi açın: türbinin her parçası bir mantıksal düğümdür. Burada okunan üç değer WTUR1, WROT1 ve WMET1'dedir. Sonra varsa kendi dosyanızı açın.",
         "encoder": "MMS bir float'ı en anlamlı bayt önce gönderir (ABCD). 2350.0, 45 12 E0 00 olarak taşınır."
     }
 }

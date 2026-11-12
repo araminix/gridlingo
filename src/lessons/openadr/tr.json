@@ -1,10 +1,11 @@
 {
-    "intro": "Şebekede güç yetmediğinde bir elektrik şirketinin binalardan daha az güç kullanmalarını istemesinin yolu. Elektrik şirketinin sunucusu VTN'dir (virtual top node); müşteri tarafı VEN'dir (virtual end node). Bu ders, sahadaki ürünlerin çoğunun konuştuğu sürüm olan OpenADR 2.0b'yi kullanıyor: HTTPS üzerinden XML ve sorgulamayı VEN yapıyor; böylece binada açık port gerekmiyor. VTN neyin ne zaman yapılacağını söyler; nasıl yapılacağına bina karar verir.",
+    "intro": "Şebekede güç yetmediğinde bir elektrik şirketinin binalardan daha az güç kullanmalarını istemesinin yolu: talep tarafı katılımı (demand response). Elektrik şirketinin sunucusu VTN'dir (virtual top node). Müşteri tarafı VEN'dir (virtual end node): binadaki küçük bir kutu ya da program. Bu ders, sahadaki ürünlerin çoğunun konuştuğu sürüm olan OpenADR 2.0b'yi kullanıyor: HTTPS üzerinden XML mesajları. Sorgulamayı VEN yapar: düzenli aralıklarla VTN'e yeni bir şey olup olmadığını sorar. Böylece binada açık port, yani internetten içeri giren bir yol gerekmez. VTN neyin ne zaman yapılacağını söyler; nasıl yapılacağına bina karar verir.",
+    "plain": "En sıcak öğleden sonralarda herkes klimasını aynı anda çalıştırır ve elektrik şebekesi sınırına yaklaşır. Bu protokolle elektrik şirketi, programa kaydolmuş binalardan bir saatliğine biraz daha az elektrik kullanmalarını ister; tıpkı su idaresinin kuraklıkta insanlardan bahçelerini sulamamalarını istemesi gibi. Binadaki bir bilgisayar kendi kendine harekete geçer: odaların biraz ısınmasına izin verir ve koridor ışıklarını kısar. Sonra binanın güç tüketimini bildirir; böylece şirket düşüşü görür.",
     "steps": {
-        "poll": { "title": "Yenilik sor", "text": "12:00 UTC'de VEN, her dakika yaptığı gibi sorgular. Bu kez VTN bir olayla (event) yanıt verir: seviye 1, 17:00'dan 18:00 UTC'ye." },
-        "optin": { "title": "Katıl", "text": "Olay bir yanıt istiyor. VEN katılacağını (opt in) bildirir, VTN de onaylar." },
-        "shed": { "title": "Yük at", "text": "Kendi saatine göre 17:00'da VEN, binanın kontrolörüne harekete geçmesini söyler: soğutma ayar değerleri 2 °C artar ve koridor ışıkları kısılır. Yük 420 kW'tan 340 kW'a düşer." },
-        "report": { "title": "Raporla", "text": "VEN, kaydolurken anlaşıldığı gibi ölçtüğü yükü gönderir. Elektrik şirketi düşüşü görür." },
+        "poll": { "title": "Yenilik sor", "text": "12:00 UTC'de (evrensel saat) VEN, her dakika yaptığı gibi sorgular: yeni bir şey var mı? Bu kez VTN bir olayla (event), yani daha az güç kullanma isteğiyle yanıt verir: seviye 1 (orta), 17:00'dan 18:00 UTC'ye." },
+        "optin": { "title": "Katılmayı kabul et", "text": "Olay bir yanıt istiyor. VEN opt in der: bina katılacak. VTN onaylar." },
+        "shed": { "title": "Daha az güç kullan", "text": "Kendi saatine göre 17:00'da VEN, binanın kontrolörüne harekete geçmesini söyler. Soğutma ayar değerleri, yani hedef sıcaklıklar 2 °C artar ve koridor ışıkları kısılır. Yük, yani binanın çektiği güç, 420 kW'tan 340 kW'a düşer." },
+        "report": { "title": "Yükü raporla", "text": "VEN, VTN'e ilk kaydolurken anlaşıldığı gibi ölçtüğü yükü gönderir. Elektrik şirketi düşüşü görür." },
         "end": { "title": "Normale dön", "text": "18:00'da olay biter. VEN komutlarını geri alır ve bina programına döner." }
     },
     "frames": {
@@ -19,19 +20,19 @@
         "restore": "Olay bitti: normale dön"
     },
     "notes": {
-        "tls": "Bağlantıyı her zaman VEN açar. İki taraf da OpenADR için verilmiş bir sertifika gösterir. TLS 1.2, OpenADR'nin istediği iki takımdan biriyle: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 ya da TLS_RSA_WITH_AES_128_CBC_SHA256.",
+        "tls": "Bağlantıyı her zaman VEN açar. İki taraf da OpenADR için verilmiş bir sertifika gösterir. Bağlantı TLS 1.2'yi, OpenADR'nin istediği iki şifre takımından biriyle kullanır: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 ya da TLS_RSA_WITH_AES_128_CBC_SHA256.",
         "poll": "/OpenADR2/Simple/2.0b/OadrPoll'a, küçük bir oadrPoll mesajı taşıyan bir HTTP POST: yalnızca VEN'in venID'si. Sorgulama sıklığını VTN, VEN kaydolurken belirledi.",
         "distribute": "Sorgunun yanıtı. Yalnızca yenileri değil, bu VEN için bekleyen ve etkin tüm olayları listeler. Bunu deneme alanı satır satır gösteriyor.",
-        "created": "EiEvent'e bir POST: olayı adlandıran (eventID PEAK-20260715, modificationNumber 0), responseCode 200 ve optType optIn içeren bir oadrCreatedEvent. optOut, elektrik şirketine bu binaya güvenmemesini söylerdi.",
+        "created": "EiEvent'e bir POST: olayı adlandıran (eventID PEAK-20260715, modificationNumber 0) bir oadrCreatedEvent. responseCode 200 (OK) ve optType optIn taşır. optOut, elektrik şirketine bu binaya güvenmemesini söylerdi.",
         "response": "responseCode 200 içeren bir oadrResponse. VTN, yeni bir şeyi olmadığında bir sorguyu da aynı mesajla yanıtlar.",
-        "shed": "OpenADR değil: VEN'den binanın kontrolörüne bir BACnet yazması. OpenADR yalnızca seviye 1 der. Seviye 1'in ne anlama geldiği elektrik şirketi tarafından değil, binada belirlenir.",
+        "shed": "Bu kısım OpenADR değil: VEN'den binanın kontrolörüne, yani BMS'e bir BACnet yazması. OpenADR yalnızca seviye 1 der. Seviye 1'in ne anlama geldiği elektrik şirketi tarafından değil, binada belirlenir.",
         "update-report": "EiReport'a bir POST: TELEMETRY_USAGE raporu içeren, binanın her 15 dakikadaki gerçek gücünü taşıyan bir oadrUpdateReport. VTN bunu, VEN gönderebileceği raporları kaydettikten sonra oadrCreateReport ile istedi.",
         "updated-report": "responseCode 200 içeren bir oadrUpdatedReport.",
-        "restore": "Bu da OpenADR değil. VEN kendi BACnet önceliğine NULL yazar ve böylece komutlarını bırakır. Yük yeniden 415 kW'a çıkar."
+        "restore": "Bu da OpenADR değil. VEN kendi BACnet önceliğine NULL yazar ve böylece komutlarını bırakır: binanın kendi programı yeniden devreye girer. Yük yeniden 415 kW'a çıkar."
     },
     "fields": {
         "a-host": { "name": "VTN", "note": "Elektrik şirketinin sunucusu. Bir VTN, geri kalanın önüne kendine ait bir yol koyabilir." },
-        "a-transport": { "name": "Taşıma", "note": "Simple HTTP. OpenADR 2.0b, VTN'in mesajı ittiği (push) XMPP üzerinde de çalışabilir." },
+        "a-transport": { "name": "Taşıma", "note": "Simple HTTP; sorgulamayı VEN yapar. Simple HTTP itme (push) de yapabilir; o zaman VTN, VEN'e POST gönderir. OpenADR 2.0b, bir mesajlaşma protokolü olan XMPP üzerinde de çalışabilir." },
         "a-profile": { "name": "Profil", "note": "2.0b: olaylar, raporlar ve opt programları. 2.0a, basit cihazlar için yalnızca olaylardan oluşan daha küçük bir profildir." },
         "a-service": { "name": "Servis", "note": "OadrPoll. Her mesaj kendi servisine gider: olaylar EiEvent'e, raporlar EiReport'a, kayıt EiRegisterParty'ye, opt programları EiOpt'a." }
     },
@@ -50,7 +51,7 @@
     },
     "tips": [
         "Bir olaydaki her değişiklik modificationNumber'ı artırır. Her yeni numarayı yanıtlayın; yoksa VTN, VEN'in değişikliği hiç almadığını düşünür.",
-        "VEN olayı kendi saatine göre yürütür. Onu NTP'ye bağlı tutun: 10 dakika geri kalan bir saat, yükü 10 dakika geç atar.",
+        "VEN olayı kendi saatine göre yürütür. Bu saati NTP ile ayarlı tutun: 10 dakika geri kalan bir saat, yükü 10 dakika geç atar.",
         "Elektrik şirketi her katılımı (opt-in) plana katar. Bina yük atamayacaksa olay başladıktan sonra değil, erkenden katılmayacağını (opt out) bildirin."
     ],
     "points": {

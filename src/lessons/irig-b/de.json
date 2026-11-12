@@ -1,11 +1,12 @@
 {
-    "intro": "Der Zeitcode, den Schutzgeräte in Umspannwerken seit Jahrzehnten nutzen. Eine GPS-Uhr sendet über ein Koaxialkabel oder ein verdrilltes Adernpaar einen Frame pro Sekunde: 100 Bits zu je 10 ms. Die Breite jedes Impulses steht für eine 0, eine 1 oder einen Marker, und die erste Flanke des Frames ist der genaue Beginn der Sekunde.",
+    "intro": "IRIG-B ist der Zeitcode, den Schutzgeräte in Umspannwerken seit Jahrzehnten nutzen. Eine GPS-Uhr sendet über ein Koaxialkabel oder ein verdrilltes Adernpaar einen Frame pro Sekunde: 100 Bits, jedes 10 ms lang. Die Breite jedes Impulses sagt, was er ist: eine 0, eine 1 oder ein Positionsmarker. Die erste Flanke des Frames markiert den genauen Beginn der Sekunde.",
+    "plain": "Dieser Zeitcode funktioniert wie das Zeitzeichen im Radio: Der Beginn jeder Sekunde ist genau markiert, und ein kurzer Code sagt, wie spät es ist. Eine Uhr, die Satelliten empfängt, schickt einmal pro Sekunde ein Muster aus kurzen und langen Impulsen über eine Leitung. Jedes Schutzgerät an der Leitung liest das Muster und stellt seine eigene Uhr. Geht etwas schief, notieren alle dieselbe Zeit, also ist die Reihenfolge der Ereignisse eindeutig.",
     "steps": {
-        "lock": { "title": "GPS-Empfang", "text": "Die Stationsuhr empfängt die Satelliten über ihre Antenne und synchronisiert sich auf UTC. Ab jetzt beginnt sie jeden IRIG-B-Frame genau auf die Sekunde." },
-        "frame": { "title": "Ein Frame", "text": "Um 10:41:07.000 beginnt ein Frame: zwei Marker hintereinander, dann Sekunden, Minuten, Stunden, Tag des Jahres und Jahr in BCD, die Steuerbits und die Sekunden des Tages binär. Jedes Schutzgerät an der Leitung hört ihn. IRIG-B kennt keine Adressen und keine Antworten." },
-        "set": { "title": "Uhr stellen", "text": "Die Zeit in einem Frame ist die Zeit seiner ersten Flanke, aber ein Schutzgerät kennt sie erst, wenn der Frame gelesen ist. Deshalb wartet das Schutzgerät auf den nächsten Frame, prüft, dass er genau eine Sekunde später kommt, und stellt seine Uhr." },
-        "event": { "title": "Eine Auslösung", "text": "Ein Fehler im Abgang F1. Schutzgerät F1 löst Leistungsschalter Q1 aus und speichert das Ereignis mit seiner eigenen Uhr: 10:52:31.283. Die Aufzeichnungen aller Schutzgeräte an dieser Leitung haben eine gemeinsame Zeitskala, ihre Reihenfolge ist also eindeutig." },
-        "holdover": { "title": "Holdover", "text": "Um 11:40 wird das Antennenkabel durchtrennt. Die Uhr läuft mit ihrem eigenen Oszillator weiter und sendet weiter. Um 14:12 schätzt sie ihren Fehler auf bis zu 10 µs und meldet das in den Bits der Zeitqualität: 5." }
+        "lock": { "title": "Auf GPS synchronisieren", "text": "Die Stationsuhr empfängt die Satelliten über ihre Antenne und synchronisiert sich auf UTC (koordinierte Weltzeit, die Referenzzeit der Welt). Ab jetzt beginnt sie jeden IRIG-B-Frame genau auf die Sekunde." },
+        "frame": { "title": "Ein Frame", "text": "Um 10:41:07.000 beginnt ein Frame mit zwei Markern hintereinander. Dann kommen Sekunden, Minuten, Stunden, Tag des Jahres und Jahr in BCD (binär codierte Dezimalzahl: jede Dezimalziffer einzeln binär geschrieben). Danach folgen die Steuerbits und die Sekunden des Tages als eine Binärzahl. Jedes Schutzgerät an der Leitung hört den Frame. IRIG-B kennt keine Adressen und keine Antworten." },
+        "set": { "title": "Uhr stellen", "text": "Die Zeit in einem Frame ist die Zeit seiner ersten Flanke, aber ein Schutzgerät kennt diese Zeit erst, wenn es den ganzen Frame gelesen hat. Deshalb wartet das Schutzgerät auf den nächsten Frame, prüft, dass er genau eine Sekunde später kommt, und stellt seine Uhr." },
+        "event": { "title": "Ein Schalter löst aus", "text": "Ein Fehler im Abgang F1. Schutzgerät F1 löst Leistungsschalter Q1 aus, der öffnet, und speichert das Ereignis mit seiner eigenen Uhr: 10:52:31.283. Die Aufzeichnungen aller Schutzgeräte an dieser Leitung haben eine gemeinsame Zeitskala, ihre Reihenfolge ist also eindeutig." },
+        "holdover": { "title": "Betrieb ohne GPS", "text": "Um 11:40 wird das Antennenkabel durchtrennt. Die Uhr läuft mit ihrem eigenen Oszillator weiter und sendet weiter: Das nennt man Holdover. Um 14:12 schätzt sie, dass ihr Fehler bis zu 10 µs betragen kann, und meldet das in den Bits der Zeitqualität: 5." }
     },
     "frames": {
         "gps": "Satellitenzeit: UTC",
@@ -23,16 +24,16 @@
     "fields": {
         "sec-07": { "name": "Sekunden", "note": "07 in BCD: die Einerstelle 7 in den Bits 1–4, niedrigstes Bit zuerst, dann die Zehnerstelle 0 in den Bits 6–8. Hier als Hex dargestellt, damit es sich wie die Uhrzeit liest." },
         "sec-08": { "name": "Sekunden", "note": "08: eins mehr als im letzten Frame." },
-        "sec-31": { "name": "Sekunden", "note": "31 in BCD." },
+        "sec-31": { "name": "Sekunden", "note": "31 in BCD: die Einerstelle 1, dann die Zehnerstelle 3." },
         "min-41": { "name": "Minuten", "note": "41 in BCD: Einer in den Bits 10–13, Zehner in den Bits 15–17." },
-        "min-12": { "name": "Minuten", "note": "12 in BCD." },
+        "min-12": { "name": "Minuten", "note": "12 in BCD: die Einerstelle 2, dann die Zehnerstelle 1." },
         "hour-10": { "name": "Stunden", "note": "10 in BCD: Einer in den Bits 20–23, Zehner in den Bits 25–26. UTC, wie die Offset-Bits sagen." },
-        "hour-14": { "name": "Stunden", "note": "14 in BCD." },
+        "hour-14": { "name": "Stunden", "note": "14 in BCD: die Einerstelle 4, dann die Zehnerstelle 1." },
         "day-316": { "name": "Tag des Jahres", "note": "316 = 12. November 2026, dargestellt als 03 16. Einer in den Bits 30–33, Zehner in 35–38, Hunderter in 40–41." },
         "year-26": { "name": "Jahr", "note": "(20)26 in BCD, in den Bits 50–58. Codes ohne Jahr überlassen es dem Schutzgerät." },
         "cf-flags": { "name": "Schaltsekunde · Sommerzeit", "note": "Bits 60–63 (IEEE C37.118.1): keine Schaltsekunde angekündigt, kein Sommerzeitwechsel angekündigt, keine Sommerzeit." },
         "cf-offset": { "name": "Zeitversatz", "note": "Bits 64–68 und 70: 0 Stunden zu UTC. Dieser Frame trägt UTC." },
-        "tq-0": { "name": "Zeitqualität 0", "note": "Bits 71–74: auf GPS synchronisiert, volle Genauigkeit." },
+        "tq-0": { "name": "Zeitqualität 0", "note": "Bits 71–74: 0, auf GPS synchronisiert, volle Genauigkeit." },
         "tq-5": { "name": "Zeitqualität 5", "note": "Der Fehler der Uhr kann bis zu 10 µs betragen. 4 hieße 1 µs, 6 hieße 100 µs; 15 bedeutet, dass die Zeit nicht verlässlich ist." },
         "parity-0": { "name": "Parität", "note": "Bit 75: gerade Parität. Die Bits 1–74 enthalten eine gerade Anzahl Einsen, also ist dieses Bit 0." },
         "parity-1": { "name": "Parität", "note": "Bit 75: Die Bits 1–74 enthalten 17 Einsen, also ist dieses Bit 1, und die Anzahl ist wieder gerade." },
@@ -40,7 +41,7 @@
         "sbs-38468": { "name": "Straight Binary Seconds", "note": "0x9644 = 38468: eine Sekunde später." },
         "sbs-51151": { "name": "Straight Binary Seconds", "note": "0xC7CF = 51151 = 14 × 3600 + 12 × 60 + 31." },
         "a-format": { "name": "Format", "note": "B: 100 Bits pro Sekunde, ein Frame pro Sekunde." },
-        "a-modulation": { "name": "Modulation", "note": "1: ein amplitudenmodulierter Sinus. 0 ist ein Gleichspannungspegel (Impulsbreite), 2 ist Manchester." },
+        "a-modulation": { "name": "Modulation", "note": "1: eine Sinuswelle, deren Amplitude die Impulse trägt, groß während eines Impulses und klein danach. 0 ist ein Gleichspannungspegel (Impulsbreite), 2 ist Manchester." },
         "a-carrier": { "name": "Träger", "note": "2: ein Träger mit 1 kHz. 0 bedeutet kein Träger, wie beim Gleichspannungspegel." },
         "a-content": { "name": "Inhalt", "note": "4: BCD-Zeit des Jahres, Jahr, Steuerbits und Straight Binary Seconds. 0 ist dasselbe ohne Jahr; 7 hat keine Steuerbits." }
     },
@@ -72,7 +73,7 @@
     },
     "timing": {
         "title": "Die ersten 110 ms eines Frames",
-        "note": "Der Frame für 10:41:07 beginnt mit zwei Markern hintereinander: P0 beendet den letzten Frame, Pr beginnt diesen, und die steigende Flanke von Pr liegt genau bei 10:41:07.000. Dann die Sekunden, Einer zuerst: 1, 1, 1, 0 = 7. B00x sendet die Impulse als Gleichspannungspegel: 2 ms für eine 0, 5 ms für eine 1, 8 ms für einen Marker. B12x legt dieselben Impulse auf einen Sinus mit 1 kHz, laut während des Impulses und leise danach (etwa 10:3). Der Sinus ist hier als Stufen gezeichnet.",
+        "note": "Der Frame für 10:41:07 beginnt mit zwei Markern hintereinander: P0 beendet den letzten Frame, Pr beginnt diesen, und die steigende Flanke von Pr liegt genau bei 10:41:07.000. Dann die Sekunden, Einer zuerst: 1, 1, 1, 0 = 7. B00x sendet die Impulse als Gleichspannungspegel: 2 ms für eine 0, 5 ms für eine 1, 8 ms für einen Marker. B12x legt dieselben Impulse auf einen Sinus mit 1 kHz, laut während des Impulses und leise danach (etwa 10 zu 3). Der Sinus ist hier als Stufen gezeichnet.",
         "bits": "Bits",
         "b00x": "B00x · Gleichspannungspegel",
         "b12x": "B12x · 1 kHz",

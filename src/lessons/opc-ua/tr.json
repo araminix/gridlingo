@@ -1,12 +1,13 @@
 {
-    "intro": "OPC UA, modern endüstriyel yazılımın istemci–sunucu protokolüdür. Sunucu bir adres uzayı sunar: adları, türleri ve değerleri olan, referanslarla birbirine bağlı düğümler. İstemci bir güvenli kanal ve bir oturum açar; sonra gezinir, okur, yazar ya da abone olur.",
+    "intro": "OPC UA (Open Platform Communications Unified Architecture), endüstriyel yazılımların her yerinde kullanılan bir istemci–sunucu protokolüdür. Sunucu bir adres uzayı sunar: adları, türleri ve değerleri olan, referanslarla birbirine bağlı düğümler (klasörler, nesneler, değişkenler …). İstemci, yani soran program, önce bir güvenli kanal açar; bu kanal mesajların nasıl korunacağını belirler. Sonra çalışmasını bir kullanıcıya bağlayan bir oturum açar. Artık gezinebilir, okuyabilir, yazabilir ya da değişikliklere abone olabilir.",
+    "plain": "Bu protokol, bir kontrol programının bir makinenin kontrolörünün içine bakmasını ve her değeri adıyla bulmasını sağlar; tıpkı bilgisayardaki klasörlerde gezinmek gibi. Program önce kontrolörle konuşmalarını nasıl koruyacaklarında anlaşır ve kim olduğunu söyler. Sonra bir değeri okuyabilir, bir ayarı değiştirebilir ya da bir değer her değiştiğinde kendisine haber verilmesini isteyebilir.",
     "steps": {
-        "hello": { "title": "Hello", "text": "TCP 4840 portuna bağlandıktan sonra istemci Hello der: tampon boyutlarını ve istediği endpoint'i bildirir. Sunucu kendi sınırlarıyla onaylar." },
-        "channel": { "title": "Güvenli kanal", "text": "OpenSecureChannel, mesajların nasıl korunacağını belirler. Burada politika None: imza yok, şifreleme yok. Sunucu kanala 5 numarasını verir." },
-        "session": { "title": "Oturum", "text": "CreateSession ve ActivateSession bir kullanıcıyı kanala bağlar. İstemci, sonraki her isteğe koyacağı bir kimlik doğrulama token'ı alır." },
-        "browse": { "title": "Gezin", "text": "İstemci adres uzayında Objects klasöründen başlayarak gezinir ve PV1 nesnesini ve onun TotW değişkenini bulur." },
-        "read": { "title": "Bir değer oku", "text": "Read, ns=2;s=PV1.TotW'nin 13 numaralı özniteliğini (Value) ister. Yanıt iki zaman damgalı bir Float: 4820.0." },
-        "subscribe": { "title": "Abone ol", "text": "İstemci sunucudan TotW'yi izlemesini ister. Sunucuda bekleyen bir Publish isteği tutar; değer değişince sunucu onu yanıtlar." }
+        "hello": { "title": "Merhaba de", "text": "İstemci 4840 portuna bir ağ bağlantısı (TCP) açar. Hello der: alabileceği en büyük veri parçalarını (tampon boyutlarını) ve istediği endpoint'i, yani aradığı sunucu adresini bildirir. Sunucu kendi sınırlarıyla onaylar." },
+        "channel": { "title": "Güvenli bir kanal aç", "text": "OpenSecureChannel, mesajların nasıl korunacağını belirler. İmzalama, bir mesajı kimin gönderdiğini ve kimsenin değiştirmediğini kanıtlar; şifreleme ise ne dediğini gizler. Burada güvenlik politikası None: imza yok, şifreleme yok. Sunucu kanala 5 numarasını verir." },
+        "session": { "title": "Bir oturum başlat", "text": "CreateSession ve ActivateSession bir kullanıcıyı kanala bağlar. İstemci bir kimlik doğrulama token'ı alır: ziyaretçi kartı gibi gizli bir kimlik. Token'ı sonraki her isteğe koyar." },
+        "browse": { "title": "Sunucuda gezin", "text": "İstemci, bir diskteki klasörleri açar gibi, Objects klasöründen başlayarak adres uzayına bakar. Bir inverter olan PV1 nesnesini ve onun TotW değişkenini bulur: toplam aktif güç, yani inverterin verdiği güç." },
+        "read": { "title": "Bir değer oku", "text": "Read, ns=2;s=PV1.TotW düğümünün 13 numaralı özniteliğini, yani Value'yu ister. Düğümün adresi olan bu NodeId şu demektir: namespace 2'de (kontrolör üreticisinin kendi ad kümesi) PV1.TotW dizgisi. Yanıt bir Float'tır, yani 4 baytlık bir ondalıklı sayı: 4820.0. İki zaman damgasıyla gelir: değerin ne zaman ölçüldüğü ve sunucunun onu ne zaman okuduğu." },
+        "subscribe": { "title": "Değişikliklere abone ol", "text": "İstemci sunucudan TotW'yi izlemesini ister. Sunucuda, açık bir soru gibi bekleyen bir Publish isteği tutar. Değer değişince sunucu onu yanıtlar." }
     },
     "frames": {
         "hel": "Hello: tampon boyutlarım bunlar",
@@ -25,14 +26,14 @@
         "publish": "TotW artık 4790.5"
     },
     "notes": {
-        "create-req": "CreateSessionRequest içeren bir MSG: istemcinin adı ve sertifikası, rastgele bir nonce ve oturumun ne kadar süre boşta kalabileceği.",
+        "create-req": "CreateSessionRequest içeren bir MSG: istemcinin adı ve sertifikası, bir nonce (bir kez kullanılan rastgele bir sayı) ve oturumun ne kadar süre boşta kalabileceği.",
         "create-resp": "Sunucu bir oturum kimliği, kimlik doğrulama token'ı, endpoint'lerini ve sertifikasını döndürür. Token gizlidir: ona sahip olan herkes oturumu kullanabilir.",
         "activate-req": "Anonim bir kimlik token'ıyla ActivateSession. Gerçek bir kullanıcı, sunucu için şifrelenmiş bir ad ve parola ya da bir kullanıcı sertifikası gönderir.",
         "activate-resp": "Oturum etkin. CreateSession'da anlaşılan süreden uzun boşta kalırsa sunucu onu kapatır.",
-        "browse-req": "Objects klasörü olan i=85 düğümünden, hiyerarşik referanslarını izleyerek Browse.",
+        "browse-req": "Objects klasörü olan i=85 düğümünden, hiyerarşik referanslarını izleyerek Browse: bunlar bir klasörden içindekilere giden bağlantılardır.",
         "browse-resp": "Her biri bir NodeId, bir browse name ve bir node class içeren referans listesi. ns=2;s=PV1 bir nesnedir; ns=2;s=PV1.TotW onun içindeki bir değişkendir.",
-        "monitor": "Her biri kendi yanıtıyla iki istek. CreateSubscription 1000 ms'lik bir yayın aralığı belirler. CreateMonitoredItems, sunucunun TotW'yi her 500 ms'de örneklemesini sağlar. Sonra istemci Publish isteklerini önceden gönderir.",
-        "publish": "Veri değişikliği bildirimi içeren bir PublishResponse: istemcinin TotW için kullandığı handle, yeni değeri ve zaman damgaları. İstemci bunu bir sonraki Publish isteğinde onaylar."
+        "monitor": "Her biri kendi yanıtıyla iki istek. CreateSubscription 1000 ms'lik bir yayın aralığı belirler: sunucu saniyede bir, değişen bir şey varsa onu gönderir. CreateMonitoredItems, sunucunun TotW'yi her 500 ms'de örneklemesini sağlar. Sonra istemci Publish isteklerini önceden gönderir.",
+        "publish": "Veri değişikliği bildirimi içeren bir PublishResponse: istemcinin TotW için kullandığı handle (bu öğe için seçtiği numara), yeni değeri ve zaman damgaları. İstemci bunu bir sonraki Publish isteğinde onaylar."
     },
     "fields": {
         "hel": { "name": "HEL", "note": "ASCII olarak mesaj türü Hello." },
@@ -59,7 +60,7 @@
         "channel-0": { "name": "Güvenli kanal kimliği", "note": "0: henüz kanal yok. Numarayı sunucu seçer." },
         "policy": { "name": "Güvenlik politikası", "note": "47 uzunluk, ardından http://opcfoundation.org/UA/SecurityPolicy#None: imza yok, şifreleme yok." },
         "no-cert": { "name": "Gönderen sertifikası", "note": "Uzunluk -1: yok. Gerçek bir politikada gönderenin X.509 sertifikası buraya gelir." },
-        "no-thumb": { "name": "Alıcı parmak izi", "note": "Yok. Gerçek bir politikada: alıcının sertifikasının parmak izi (thumbprint)." },
+        "no-thumb": { "name": "Alıcı parmak izi", "note": "Uzunluk -1: yok. Gerçek bir politikada: alıcının sertifikasının parmak izi (thumbprint, kısa bir özet)." },
         "seq-1": { "name": "Sıra numarası", "note": "1: istemci bu kanalda gönderdiği her parçayı sayar." },
         "req-1": { "name": "İstek kimliği", "note": "1. Yanıt da aynı kimliği taşır." },
         "type-446": { "name": "Tür", "note": "4 baytlık bir NodeId: namespace 0, numara 446 (0x01BE): OpenSecureChannelRequest." },
@@ -68,12 +69,12 @@
         "handle-1": { "name": "İstek handle'ı", "note": "1: istemcinin yanıtı eşleştirmek için kullandığı bir numara." },
         "diag-audit": { "name": "Tanılama · denetim", "note": "Dönülecek tanılama 0 (istenmiyor), ardından -1 uzunluğunda bir denetim (audit) girdisi kimliği (yok)." },
         "timeout": { "name": "Zaman aşımı ipucu", "note": "0x2710 = 10000 ms: istemcinin ne kadar bekleyeceği." },
-        "no-header": { "name": "Ek başlık", "note": "Boş bir extension object." },
-        "ua-version": { "name": "Protokol sürümü", "note": "0." },
+        "no-header": { "name": "Ek başlık", "note": "Boş bir extension object: ek başlık alanı yok." },
+        "ua-version": { "name": "Protokol sürümü", "note": "0: gönderenin protokol sürümü." },
         "issue": { "name": "İstek türü", "note": "0: yeni bir güvenlik token'ı çıkar. 1 olsaydı mevcut olanı yenilerdi." },
         "mode-none": { "name": "Güvenlik modu", "note": "1: None. 2 Sign, 3 SignAndEncrypt'tir." },
-        "client-nonce": { "name": "İstemci nonce'u", "note": "Uzunluk 0: None'da üretilecek anahtar yok." },
-        "lifetime": { "name": "İstenen ömür", "note": "0x0036EE80 = 3600000 ms: istemci token'ı bir saat içinde yenileyecek." },
+        "client-nonce": { "name": "İstemci nonce'u", "note": "Uzunluk 0: None politikasında anahtar üretilmez, bu yüzden rastgele sayı gerekmez." },
+        "lifetime": { "name": "İstenen ömür", "note": "0x0036EE80 = 3600000 ms: token bir saat geçerli olmalı. İstemci onu bu süre dolmadan yenileyecek." },
         "channel-5": { "name": "Güvenli kanal kimliği", "note": "5: sunucunun bu kanala verdiği numara." },
         "seq-1-server": { "name": "Sıra numarası", "note": "1: sunucu kendi parçalarını sayar." },
         "req-1-resp": { "name": "İstek kimliği", "note": "1: bu, 1 numaralı isteğin yanıtı." },
@@ -109,7 +110,7 @@
         "handle-5-resp": { "name": "İstek handle'ı", "note": "5, istekteki gibi." },
         "results-1": { "name": "Sonuçlar", "note": "İstenen tek düğüm için tek sonuçluk bir dizi." },
         "mask": { "name": "DataValue maskesi", "note": "0x0D: ardından bir değer, bir kaynak zaman damgası ve bir sunucu zaman damgası gelir. Durum kodu olmaması Good demektir." },
-        "float": { "name": "Variant türü", "note": "0x0A = 10: Float, 4 bayt." },
+        "float": { "name": "Variant türü", "note": "0x0A = 10: Float, 4 baytlık bir ondalıklı sayı." },
         "value": { "name": "Değer", "note": "4820.0, düşük bayt önce. Birim (kW), düğümün bir özelliğidir (EngineeringUnits)." },
         "source-time": { "name": "Kaynak zaman damgası", "note": "10:41:06.000 UTC: kontrolörün değeri ölçtüğü an." },
         "server-time": { "name": "Sunucu zaman damgası", "note": "10:41:06.302 UTC: sunucunun değeri okuduğu an." },
@@ -122,7 +123,7 @@
         "scada": "SCADA",
         "ctrl": "Santral kontrolörü",
         "inv": "PV1 inverteri",
-        "pv": "PV dizisi",
+        "pv": "Güneş panelleri",
         "meter": "Şebeke sayacı"
     },
     "facts": {
@@ -133,10 +134,10 @@
         "model": "Adres uzayı: namespace'lerdeki, referanslarla bağlı düğümler"
     },
     "tips": [
-        "Bu ders, baytlar okunabilsin diye None güvenlik modunu kullanıyor. Sahada Basic256Sha256 gibi güncel bir politikayla SignAndEncrypt kullanın. Yalnızca Sign değişiklikleri engeller, ama ağdaki herkes değerleri yine okuyabilir.",
+        "Bu ders, baytlar okunabilsin diye None güvenlik modunu kullanıyor. Sahada Basic256Sha256 gibi güncel bir politikayla SignAndEncrypt kullanın. Yalnızca Sign, mesajların değiştirilmesini engeller; ama ağdaki herkes değerleri yine okuyabilir.",
         "İki taraf da birbirinin sertifikasına güvenmelidir. İlk bağlantıların çoğu, sunucu istemcinin sertifikasını reddedilenler listesine koyduğu için başarısız olur. Bir yöneticinin onu güvenilenler listesine taşıması gerekir.",
         "Namespace indeksleri, sunucu yeniden başladığında ya da güncellendiğinde değişebilir. Her NodeId ile birlikte namespace URI'sini saklayın ve bağlandıktan sonra indeksini arayın.",
-        "Saniyede birçok kez Read ile sorgulamayın. Örnekleme ve yayın aralığı olan bir abonelik sunucuya çok daha az yük getirir."
+        "Sorgulama (polling) yapmayın, yani saniyede birçok kez Read göndermeyin. Örnekleme ve yayın aralığı olan bir abonelik sunucuya çok daha az yük getirir."
     ],
     "points": {
         "channel": "Güvenli kanal",

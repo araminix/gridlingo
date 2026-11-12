@@ -1,11 +1,12 @@
 {
-    "intro": "Une unité de mesure de phaseurs (PMU) mesure la tension et le courant sous forme de phaseurs : l'amplitude de la sinusoïde et son angle par rapport à une onde parfaite de 50 Hz qui repart à chaque seconde UTC. Son horloge vient du GPS : chaque valeur porte donc un horodatage exact. Un concentrateur (PDC) recueille les flux de nombreuses PMU et les aligne dans le temps, pour voir tout le réseau au même instant.",
+    "intro": "Une unité de mesure de phaseurs (PMU) mesure la tension et le courant sous forme de phaseurs. Un phaseur donne deux nombres pour l'onde alternative : son amplitude, et son angle, qui dit de combien elle est en avance ou en retard sur une onde de référence parfaite de 50 Hz qui repart à chaque seconde UTC (UTC : l'heure de référence mondiale). L'horloge de la PMU vient des satellites GPS : chaque valeur porte donc un horodatage exact. Un concentrateur de données de phaseurs (PDC) recueille les flux de nombreuses PMU et les aligne dans le temps, pour voir tout le réseau au même instant.",
+    "plain": "Le courant du secteur oscille 50 ou 60 fois par seconde, selon le pays. C37.118 permet à des appareils de mesure répartis sur un réseau d'indiquer, plusieurs fois par seconde, la force de cette oscillation et l'endroit exact où elle en est de son rythme. Chaque appareil règle son horloge par satellite : des mesures prises très loin l'une de l'autre peuvent ainsi être mises côte à côte, comme des photos prises par de nombreux appareils au même instant. Ensemble, elles montrent tout le réseau à un moment donné, et un incident à mesure qu'il se propage.",
     "steps": {
-        "connect": { "title": "Connexion", "text": "Le PDC du centre de conduite ouvre une connexion TCP vers la PMU sur le port 4712. La PMU n'envoie rien tant qu'on ne lui demande rien." },
-        "config": { "title": "Demander la configuration", "text": "Les trames de données ne portent que des nombres : ni noms, ni unités. Le PDC demande donc d'abord la trame de configuration 2 (CFG-2) : quelles valeurs arrivent, dans quel format, à quelle cadence." },
+        "connect": { "title": "Ouvrir la connexion", "text": "Le PDC du centre de conduite ouvre une connexion TCP (une liaison fiable entre deux ordinateurs) vers la PMU sur le port 4712. La PMU n'envoie rien tant qu'on ne lui demande rien." },
+        "config": { "title": "Demander la configuration", "text": "Les trames de données, les messages qui portent les mesures, ne contiennent que des nombres : ni noms, ni unités. Le PDC demande donc d'abord la trame de configuration 2 (CFG-2). Elle indique quelles valeurs arrivent, dans quel format, à quelle cadence." },
         "start": { "title": "Lancer le flux", "text": "La commande 2 active les trames de données. La PMU les envoie jusqu'à ce que le PDC envoie la commande 1 ou ferme la connexion." },
-        "stream": { "title": "50 trames par seconde", "text": "Une trame de données toutes les 20 ms : horodatage, état, deux phaseurs et la fréquence. En 20 ms, les deux angles ont avancé de +0.144°, car le réseau tourne à 50.020 Hz, un peu plus vite que la référence de 50 Hz." },
-        "event": { "title": "Perte d'un groupe", "text": "Quelque part sur le réseau, un gros groupe de production déclenche. La fréquence baisse : 49.946 Hz, à −0.12 Hz par seconde. Toutes les PMU horodatent sur la même seconde GPS : le PDC peut comparer leurs valeurs échantillon par échantillon." }
+        "stream": { "title": "50 trames par seconde", "text": "Toutes les 20 ms arrive une trame de données avec un horodatage, un état, deux phaseurs et la fréquence. En 20 ms, les deux angles ont avancé de +0.144°. La raison : le réseau tourne à 50.020 Hz, un peu plus vite que l'onde de référence de 50 Hz." },
+        "event": { "title": "Perte d'un groupe", "text": "Quelque part sur le réseau, un gros groupe de production déclenche : il se déconnecte brutalement. La fréquence baisse : 49.946 Hz, à −0.12 Hz par seconde. Toutes les PMU horodatent sur la même seconde GPS : le PDC peut comparer leurs valeurs échantillon par échantillon." }
     },
     "frames": {
         "tcp": "Ouvrir TCP vers le port 4712",
@@ -17,10 +18,10 @@
         "data-event": "Fréquence 49.946 Hz, en baisse de 0.12 Hz/s"
     },
     "notes": {
-        "tcp": "Du TCP simple. Commandes et données peuvent partager cette même connexion, comme ici. Une PMU peut aussi envoyer ses données en UDP, en général vers le port 4713, ce qui permet aussi le multicast vers plusieurs PDC."
+        "tcp": "Du TCP simple. Commandes et données peuvent partager cette même connexion, comme ici. Une PMU peut aussi envoyer ses données en UDP, en général vers le port 4713. UDP permet aussi le multicast : un même flux envoyé à plusieurs PDC à la fois."
     },
     "fields": {
-        "sync-cmd": { "name": "SYNC", "note": "0xAA ouvre chaque trame. 0x41 : trame de type 4 (une commande), version 1." },
+        "sync-cmd": { "name": "SYNC", "note": "0xAA ouvre chaque trame. 0x41 : trame de type 4 (une commande), version 1 (le format de trame de la norme de 2005, que celle de 2011 conserve pour ces trames)." },
         "sync-cfg2": { "name": "SYNC", "note": "0x31 : trame de type 3 (trame de configuration 2), version 1." },
         "sync-data": { "name": "SYNC", "note": "0x01 : trame de type 0 (une trame de données), version 1." },
         "size-18": { "name": "FRAMESIZE", "note": "18 octets : la trame entière, contrôle compris." },
@@ -31,7 +32,7 @@
         "soc-07": { "name": "SOC", "note": "0x6AF597C3 = 10:41:07 UTC." },
         "soc-12": { "name": "SOC", "note": "0x6AF597C8 = 10:41:12 UTC." },
         "tq-0": { "name": "Qualité de l'heure", "note": "0 : l'horloge est calée sur UTC et aucune seconde intercalaire n'est prévue. Si le GPS tombe, ce code indique de combien l'horloge peut s'écarter." },
-        "frac-954": { "name": "FRACSEC", "note": "0x0E8E90 = 954 000 µs : 10:41:06.954." },
+        "frac-954": { "name": "FRACSEC", "note": "La fraction de seconde, en millionièmes : 0x0E8E90 = 954 000 µs : 10:41:06.954." },
         "frac-961": { "name": "FRACSEC", "note": "0x0EA9E8 = 961 000 µs : 10:41:06.961." },
         "frac-970": { "name": "FRACSEC", "note": "0x0ECD10 = 970 000 µs : 10:41:06.970." },
         "frac-0": { "name": "FRACSEC", "note": "0 : pile sur la seconde. C'est l'instant de la mesure, pas celui du départ de la trame." },
@@ -39,23 +40,23 @@
         "frac-460": { "name": "FRACSEC", "note": "0x0704E0 = 460 000 µs : 10:41:12.460." },
         "cmd-5": { "name": "CMD 5", "note": "Envoyer la trame de configuration 2. Autres commandes : 1 arrête les données, 2 les lance, 3 demande la trame d'en-tête, 4 la CFG-1." },
         "cmd-2": { "name": "CMD 2", "note": "Activer les trames de données." },
-        "chk": { "name": "CHK", "note": "CRC-CCITT de tous les octets qui précèdent : polynôme 0x1021, valeur initiale 0xFFFF. Une trame dont le contrôle est faux est jetée." },
+        "chk": { "name": "CHK", "note": "Un contrôle d'erreur (CRC-CCITT) sur tous les octets qui précèdent : polynôme 0x1021, valeur initiale 0xFFFF. Une trame dont le contrôle est faux est jetée." },
         "timebase": { "name": "TIME_BASE", "note": "1 000 000 (0x0F4240) : FRACSEC compte en millionièmes de seconde." },
         "numpmu": { "name": "NUM_PMU", "note": "1 PMU dans ce flux. Un PDC qui relaie de nombreuses PMU les liste toutes ici, et ses trames de données portent un bloc pour chacune." },
         "stn": { "name": "STN", "note": "Le nom de la station : ALPHA PMU1." },
         "pad": { "name": "Bourrage", "note": "Des espaces : dans la CFG-2, chaque nom fait exactement 16 caractères." },
         "pmuid": { "name": "IDCODE", "note": "L'identifiant des données de cette PMU : 7." },
-        "format": { "name": "FORMAT", "note": "0x000B : phaseurs en flottants sous forme polaire (amplitude et angle), FREQ et DFREQ en flottants également." },
+        "format": { "name": "FORMAT", "note": "0x000B : phaseurs en flottants sous forme polaire (amplitude et angle). FREQ et DFREQ (la fréquence et sa vitesse de variation) sont aussi des flottants." },
         "counts": { "name": "PHNMR · ANNMR · DGNMR", "note": "2 phaseurs, 0 valeur analogique, 0 mot d'état numérique. Avec FORMAT, cela fixe la taille de chaque trame de données." },
-        "chnam-v": { "name": "CHNAM", "note": "Le nom du phaseur 1 : V1 POS SEQ, la tension directe." },
+        "chnam-v": { "name": "CHNAM", "note": "Le nom du phaseur 1 : V1 POS SEQ, la tension directe (les trois phases combinées en une seule valeur équilibrée)." },
         "chnam-i": { "name": "CHNAM", "note": "Phaseur 2 : I1 POS SEQ, le courant direct." },
         "phunit-v": { "name": "PHUNIT", "note": "Premier octet 0 : le phaseur 1 est une tension. Les 3 autres octets mettent à l'échelle les entiers 16 bits (300 000 × 10⁻⁵ V par bit) ; avec des flottants, ils sont ignorés." },
         "phunit-i": { "name": "PHUNIT", "note": "Premier octet 1 : le phaseur 2 est un courant. 3 000 × 10⁻⁵ A par bit, inutilisé lui aussi avec des flottants." },
-        "fnom": { "name": "FNOM", "note": "Bit 0 à 1 : un réseau à 50 Hz. À 0, il signifierait 60 Hz." },
+        "fnom": { "name": "FNOM", "note": "La fréquence nominale. Bit 0 à 1 : un réseau à 50 Hz. À 0, il signifierait 60 Hz." },
         "cfgcnt": { "name": "CFGCNT", "note": "3 : la configuration de la PMU a été modifiée 3 fois. Le PDC le compare pour savoir si sa copie est à jour." },
         "rate": { "name": "DATA_RATE", "note": "50 trames par seconde : une toutes les 20 ms." },
         "stat": { "name": "STAT", "note": "0x0000 : données bonnes, PMU synchronisée sur UTC, tri par horodatage, aucun déclencheur, aucun changement de configuration à venir." },
-        "v1-mag-0": { "name": "Amplitude V1", "note": "89 120 V, en flottant. Tension simple : environ 154 kV entre phases." },
+        "v1-mag-0": { "name": "Amplitude V1", "note": "89 120 V, en flottant, mesurés entre phase et neutre. Entre deux phases, cela fait environ 154 kV." },
         "v1-ang-0": { "name": "Angle V1", "note": "−0.21642 rad = −12.400°, par rapport à l'onde de référence de 50 Hz." },
         "i1-mag-0": { "name": "Amplitude I1", "note": "412.0 A." },
         "i1-ang-0": { "name": "Angle I1", "note": "−0.54454 rad = −31.200°." },
@@ -111,6 +112,6 @@
         "latency": "+30 ms"
     },
     "playground": {
-        "encoder": "C37.118 envoie les flottants octet de poids fort en premier (ABCD). 89120 est l'amplitude V1 de la première trame de données : 47 AE 10 00."
+        "encoder": "C37.118 envoie les flottants octet de poids fort (le plus haut) en premier (ABCD). 89120 est l'amplitude V1 de la première trame de données : 47 AE 10 00."
     }
 }

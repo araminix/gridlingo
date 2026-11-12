@@ -1,10 +1,11 @@
 {
-    "intro": "Come un'azienda elettrica chiede agli edifici di consumare meno quando la rete è in difficoltà. Il server dell'azienda elettrica è il VTN (virtual top node); il lato del cliente è il VEN (virtual end node). Questa lezione usa OpenADR 2.0b, la versione parlata dalla maggior parte dei prodotti sul campo: XML su HTTPS, con il VEN che interroga, così l'edificio non ha bisogno di porte aperte. Il VTN dice cosa e quando; l'edificio decide come.",
+    "intro": "Come un'azienda elettrica (la società dell'energia) chiede agli edifici di consumare meno quando la rete è in difficoltà: è il demand response. Il server dell'azienda elettrica è il VTN (virtual top node). Il lato del cliente è il VEN (virtual end node), una piccola scatola o un programma nell'edificio. Questa lezione usa OpenADR 2.0b, la versione parlata dalla maggior parte dei prodotti sul campo: messaggi XML su HTTPS. Il VEN fa polling: chiede novità al VTN a intervalli regolari. Così l'edificio non ha bisogno di porte aperte, cioè di un ingresso da internet. Il VTN dice cosa e quando; l'edificio decide come.",
+    "plain": "Nei pomeriggi più caldi tutti accendono il condizionatore nello stesso momento, e la rete elettrica si avvicina al suo limite. Con questo protocollo la società elettrica chiede agli edifici che hanno aderito di consumare un po' meno per un'ora, come un acquedotto che durante la siccità chiede di non innaffiare i giardini. Un computer nell'edificio agisce da solo: lascia salire di poco la temperatura delle stanze e abbassa le luci dei corridoi. Poi comunica il proprio consumo, così la società vede il calo.",
     "steps": {
-        "poll": { "title": "Chiedi novità", "text": "Alle 12:00 UTC il VEN interroga, come fa ogni minuto. Questa volta il VTN risponde con un evento: livello 1, dalle 17:00 alle 18:00 UTC." },
-        "optin": { "title": "Opt-in", "text": "L'evento chiede una risposta. Il VEN aderisce, e il VTN conferma." },
-        "shed": { "title": "Riduci il carico", "text": "Alle 17:00, secondo il proprio orologio, il VEN dice al controllore dell'edificio di agire: i setpoint di raffrescamento salgono di 2 °C e le luci dei corridoi si abbassano. Il carico scende da 420 kW a 340 kW." },
-        "report": { "title": "Report", "text": "Il VEN invia il carico che misura, come concordato al momento della registrazione. L'azienda elettrica vede il calo." },
+        "poll": { "title": "Chiedi novità", "text": "Alle 12:00 UTC (il tempo universale) il VEN interroga, come fa ogni minuto: c'è qualcosa di nuovo? Questa volta il VTN risponde con un evento, una richiesta di consumare meno: livello 1 (moderato), dalle 17:00 alle 18:00 UTC." },
+        "optin": { "title": "Accetta di partecipare", "text": "L'evento chiede una risposta. Il VEN fa opt-in: l'edificio parteciperà. Il VTN conferma." },
+        "shed": { "title": "Consuma meno", "text": "Alle 17:00, secondo il proprio orologio, il VEN dice al controllore dell'edificio di agire. I setpoint di raffrescamento, cioè le temperature obiettivo, salgono di 2 °C e le luci dei corridoi si abbassano. Il carico, la potenza che l'edificio assorbe, scende da 420 kW a 340 kW." },
+        "report": { "title": "Comunica il carico", "text": "Il VEN invia il carico che misura, come concordato quando si è registrato per la prima volta presso il VTN. L'azienda elettrica vede il calo." },
         "end": { "title": "Ritorno alla normalità", "text": "Alle 18:00 l'evento è finito. Il VEN ritira i suoi comandi e l'edificio torna alla sua programmazione." }
     },
     "frames": {
@@ -19,19 +20,19 @@
         "restore": "Evento finito: si torna alla normalità"
     },
     "notes": {
-        "tls": "È sempre il VEN ad aprire la connessione. Entrambe le parti mostrano un certificato emesso per OpenADR. TLS 1.2, con una delle due suite richieste da OpenADR: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 o TLS_RSA_WITH_AES_128_CBC_SHA256.",
+        "tls": "È sempre il VEN ad aprire la connessione. Entrambe le parti mostrano un certificato emesso per OpenADR. La connessione usa TLS 1.2, con una delle due cipher suite richieste da OpenADR: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 o TLS_RSA_WITH_AES_128_CBC_SHA256.",
         "poll": "Una HTTP POST a /OpenADR2/Simple/2.0b/OadrPoll, con un piccolo messaggio oadrPoll: solo il venID del VEN. Il VTN ha fissato la frequenza di polling quando il VEN si è registrato.",
         "distribute": "La risposta al polling. Elenca tutti gli eventi in sospeso e attivi per questo VEN, non solo quelli nuovi. Il laboratorio mostra questo riga per riga.",
-        "created": "Una POST a EiEvent: un oadrCreatedEvent che indica l'evento (eventID PEAK-20260715, modificationNumber 0), con responseCode 200 e optType optIn. optOut direbbe all'azienda elettrica di non contare su questo edificio.",
+        "created": "Una POST a EiEvent: un oadrCreatedEvent che indica l'evento (eventID PEAK-20260715, modificationNumber 0). Porta responseCode 200 (OK) e optType optIn. optOut direbbe all'azienda elettrica di non contare su questo edificio.",
         "response": "Un oadrResponse con responseCode 200. Il VTN risponde con lo stesso messaggio a un polling quando non ha novità.",
-        "shed": "Non è OpenADR: una scrittura BACnet dal VEN al controllore dell'edificio. OpenADR dice solo livello 1. Cosa significhi il livello 1 lo stabilisce l'edificio, non l'azienda elettrica.",
+        "shed": "Questa parte non è OpenADR: è una scrittura BACnet dal VEN al controllore dell'edificio, il BMS. OpenADR dice solo livello 1. Cosa significhi il livello 1 lo stabilisce l'edificio, non l'azienda elettrica.",
         "update-report": "Una POST a EiReport: un oadrUpdateReport con un report TELEMETRY_USAGE, la potenza reale dell'edificio ogni 15 minuti. Il VTN l'ha chiesto con oadrCreateReport, dopo che il VEN aveva registrato i report che può inviare.",
         "updated-report": "Un oadrUpdatedReport con responseCode 200.",
-        "restore": "Anche questo non è OpenADR. Il VEN scrive NULL alla sua priorità BACnet, il che rilascia i suoi comandi. Il carico risale a 415 kW."
+        "restore": "Anche questo non è OpenADR. Il VEN scrive NULL alla sua priorità BACnet, il che rilascia i suoi comandi: torna a valere il programma orario dell'edificio. Il carico risale a 415 kW."
     },
     "fields": {
         "a-host": { "name": "VTN", "note": "Il server dell'azienda elettrica. Un VTN può anteporre un proprio percorso al resto." },
-        "a-transport": { "name": "Trasporto", "note": "Simple HTTP. OpenADR 2.0b può girare anche su XMPP, dove è il VTN a spingere i messaggi." },
+        "a-transport": { "name": "Trasporto", "note": "Simple HTTP, con il VEN che fa polling. Simple HTTP può funzionare anche in push, con il VTN che invia una POST al VEN; OpenADR 2.0b può girare anche su XMPP, un protocollo di messaggistica." },
         "a-profile": { "name": "Profilo", "note": "2.0b: eventi, report e opt schedule. 2.0a è un profilo più piccolo per dispositivi semplici, solo con gli eventi." },
         "a-service": { "name": "Servizio", "note": "OadrPoll. Ogni messaggio va al suo servizio: gli eventi a EiEvent, i report a EiReport, la registrazione a EiRegisterParty, gli opt schedule a EiOpt." }
     },
@@ -50,7 +51,7 @@
     },
     "tips": [
         "Ogni modifica a un evento incrementa il suo modificationNumber. Rispondi a ogni nuovo numero, altrimenti il VTN pensa che il VEN non abbia mai ricevuto la modifica.",
-        "Il VEN esegue l'evento secondo il proprio orologio. Tienilo sincronizzato con NTP: un orologio indietro di 10 minuti riduce il carico con 10 minuti di ritardo.",
+        "Il VEN esegue l'evento secondo il proprio orologio. Tieni quell'orologio regolato con NTP: un orologio indietro di 10 minuti riduce il carico con 10 minuti di ritardo.",
         "L'azienda elettrica pianifica in base a ogni opt-in. Se l'edificio non può ridurre il carico, fai opt-out presto, non dopo l'inizio dell'evento."
     ],
     "points": {

@@ -1,12 +1,13 @@
 {
-    "intro": "Cómo hablan un vehículo eléctrico y un cargador rápido de CC durante una carga. Los mensajes viajan por el hilo de control piloto del cable de carga, como señal powerline, con IPv6 y TCP encima. El vehículo lleva la voz cantante: pide cada paso y la corriente que quiere, y el cargador responde con lo que puede dar.",
+    "intro": "Cómo hablan un vehículo eléctrico y un cargador rápido de CC durante una carga. Un cargador de CC inyecta corriente continua directamente en la batería. Los mensajes viajan como señal powerline, igual que una red doméstica por los enchufes, por el piloto de control: un hilo de señal delgado del cable de carga. Encima van IPv6 y TCP, como en internet. El vehículo lleva la voz cantante: pide cada paso y la corriente que quiere, y el cargador responde con lo que puede dar.",
+    "plain": "Cuando enchufas un vehículo eléctrico a un cargador rápido, el vehículo y el cargador se hablan a través del cable. Antes de que pase energía, acuerdan cómo se pagará la carga, comprueban que el cable es seguro y se dicen sus límites. Después el vehículo le va diciendo al cargador cuánta corriente quiere su batería, como le dirías a quien te llena el vaso: más, más despacio, basta.",
     "steps": {
-        "plug": { "title": "Enchufar y emparejar", "text": "Un ciclo de trabajo del 5 % en el piloto de control pide comunicación digital. Los módems powerline del vehículo y del cargador se encuentran (SLAC). Después el vehículo pregunta a todos los del enlace, ff02::1 en el puerto UDP 15118, por la dirección IP y el puerto del cargador (SDP)." },
-        "session": { "title": "Abrir una sesión", "text": "TCP y después TLS. Los dos acuerdan una versión del protocolo y el cargador abre una sesión." },
+        "plug": { "title": "Enchufar y emparejar", "text": "El cargador envía una onda cuadrada por el piloto de control. Su ciclo de trabajo (la parte de cada ciclo en que la señal está en alto) es del 5 %, lo que significa: hablemos en digital. A continuación, los módems powerline del vehículo y del cargador se encuentran. Esto es SLAC (signal level attenuation characterization, caracterización de la atenuación del nivel de señal): el vehículo elige el cargador que mejor lo oye. Después el vehículo pregunta a todos los del enlace (dirección ff02::1, puerto UDP 15118) por la dirección IP y el puerto del cargador. Esto es SDP, el protocolo de descubrimiento." },
+        "session": { "title": "Abrir una sesión", "text": "El vehículo abre una conexión TCP con el cargador y después TLS, que la cifra. Los dos acuerdan una versión del protocolo y el cargador abre una sesión." },
         "limits": { "title": "Pago y límites", "text": "El conductor paga con una tarjeta en el cargador. El vehículo y el cargador se comunican sus límites: tensión, corriente y potencia." },
-        "prepare": { "title": "Prueba y precarga", "text": "Antes de que circule corriente, el cargador prueba el aislamiento del cable. Después sube su tensión hasta la de la batería." },
-        "charge": { "title": "Cargar", "text": "El vehículo cierra sus contactores y pide corriente. Sigue pidiendo, y el cargador lo sigue." },
-        "stop": { "title": "Fin", "text": "Al 80 % el vehículo termina la carga, y después la sesión." }
+        "prepare": { "title": "Comprobar e igualar la tensión", "text": "Antes de que circule corriente, el cargador prueba el aislamiento del cable: no puede fugarse corriente a tierra. Después sube su tensión hasta la de la batería. Esto es la precarga." },
+        "charge": { "title": "El vehículo pide corriente", "text": "El vehículo cierra sus contactores (los grandes interruptores entre la batería y el cable) y pide corriente. Sigue pidiendo, y el cargador lo sigue." },
+        "stop": { "title": "Termina la carga", "text": "Cuando la batería está al 80 %, el vehículo termina la carga, y después la sesión." }
     },
     "frames": {
         "cp": "Háblame en digital",
@@ -15,7 +16,7 @@
         "sdp-res": "Aquí: fe80::ff:fe00:a1, puerto 54321, con TLS",
         "tls": "Demuestra quién eres y luego cifra",
         "app": "Hablo ISO 15118-2, o DIN 70121",
-        "setup": "Nueva sesión 4A1F09C27B3E8D15",
+        "setup": "Tu nueva sesión es 4A1F09C27B3E8D15",
         "payment": "Pagaré fuera del vehículo: ExternalPayment",
         "params": "Puedo dar 500 V, 125 A, 50 kW",
         "cable-check": "El aislamiento está bien",
@@ -25,30 +26,30 @@
         "stop": "Listo: termina la sesión"
     },
     "notes": {
-        "cp": "Esto sigue siendo IEC 61851: una onda cuadrada de 1 kHz con un ciclo de trabajo del 5 %. El 5 % no ofrece corriente; significa \"usa comunicación digital\". El módem powerline del vehículo se activa.",
-        "slac": "SLAC (ISO 15118-3) encuentra el cargador del otro extremo de este cable. En un aparcamiento las señales se filtran de un cable a otro, así que el vehículo envía una ráfaga de mensajes de sondeo, y cada cargador que los oye informa de con qué intensidad le llegaron. El vehículo elige el más fuerte con CM_SLAC_MATCH.REQ. Ese cargador responde CM_SLAC_MATCH.CNF con la clave de una red powerline privada para los dos.",
-        "tls": "El vehículo abre TCP con [fe80::ff:fe00:a1]:54321 y después TLS 1.2. El cargador muestra su certificado, y el vehículo lo comprueba con los certificados raíz V2G que tiene. A partir de aquí, todo va cifrado.",
+        "cp": "Esta parte sigue siendo IEC 61851: una onda cuadrada de 1 kHz con un ciclo de trabajo del 5 %. El 5 % no ofrece corriente. Significa \"usa comunicación digital\". El módem powerline del vehículo se activa.",
+        "slac": "SLAC (ISO 15118-3) encuentra el cargador del otro extremo de este cable. En un estacionamiento, las señales se filtran de un cable al de al lado. Por eso el vehículo envía una ráfaga de mensajes de sondeo, y cada cargador que los oye informa de con qué intensidad le llegaron. El vehículo elige el más fuerte con CM_SLAC_MATCH.REQ. Ese cargador responde CM_SLAC_MATCH.CNF con la clave de una red powerline privada para los dos.",
+        "tls": "El vehículo abre TCP con [fe80::ff:fe00:a1]:54321 y después TLS 1.2. El cargador muestra su certificado. El vehículo lo comprueba con los certificados raíz V2G que tiene: los firmantes de confianza de los certificados de cargadores. A partir de aquí, todo va cifrado.",
         "app": "El primer mensaje de la sesión enumera los protocolos que habla el vehículo, cada uno con una versión y una prioridad. El cargador responde supportedAppProtocolRes con OK_SuccessfulNegotiation y el SchemaID que eligió: 1, ISO 15118-2. La zona de pruebas muestra el mensaje en XML.",
-        "setup": "El vehículo envió SessionSetupReq con su EVCCID, la dirección MAC de su módem: 02-00-00-00-00-E1. El cargador responde con un nuevo SessionID de 8 bytes, su EVSEID y la hora. Todos los mensajes posteriores llevan el SessionID en su cabecera.",
-        "payment": "Antes de esto, ServiceDiscovery: el cargador ofreció carga en CC y dos formas de pago, Contract (Plug & Charge) y ExternalPayment. El vehículo elige ExternalPayment: el conductor paga con una tarjeta o una app. Después repite AuthorizationReq hasta que el cargador responde Finished.",
-        "params": "El vehículo envió sus límites y su estado de carga, 54 %. El cargador responde con los suyos: como máximo 500 V, 125 A y 50 kW. Cada valor es un entero de 16 bits, una potencia de diez y una unidad, así que 50 kW viaja como 5000 × 10^1 W.",
-        "cable-check": "El vehículo ha puesto el piloto de control en el estado C. El cargador aplica una tensión de prueba al cable de CC y mide el aislamiento respecto a tierra. Responde Ongoing hasta terminar, después Finished, con EVSEIsolationStatus Valid.",
+        "setup": "El vehículo envió SessionSetupReq con su EVCCID: la dirección MAC (dirección de hardware) de su módem, 02-00-00-00-00-E1. El cargador responde con un nuevo SessionID de 8 bytes, su EVSEID y la hora. Todos los mensajes posteriores llevan el SessionID en su cabecera.",
+        "payment": "Antes de esto vino ServiceDiscovery. El cargador ofreció carga en CC y dos formas de pago: Contract (Plug & Charge, donde el vehículo paga por sí solo) y ExternalPayment. El vehículo elige ExternalPayment: el conductor paga con una tarjeta o una app. Después el vehículo repite AuthorizationReq hasta que el cargador responde Finished.",
+        "params": "El vehículo envió sus límites y su estado de carga (lo llena que está la batería), 54 %. El cargador responde con los suyos: como máximo 500 V, 125 A y 50 kW. Cada valor es un número entero de 16 bits, una potencia de diez y una unidad. Así, 50 kW viaja como 5000 × 10^1 W.",
+        "cable-check": "El vehículo ha puesto el piloto de control en el estado C: listo para cargar. El cargador aplica una tensión de prueba al cable de CC y mide el aislamiento respecto a tierra. Responde Ongoing hasta terminar, después Finished, con EVSEIsolationStatus Valid.",
         "pre-charge": "La batería está a 396 V, detrás de los contactores abiertos del vehículo. El vehículo pide al cargador que suba su salida a la misma tensión, con 2 A como máximo. El cargador responde con su tensión actual, 395 V: lo bastante cerca para cerrar los contactores sin chispa.",
         "power-on": "El vehículo ha cerrado sus contactores. ChargeProgress Start: desde ahora el cargador puede entregar corriente.",
-        "current-demand": "El vehículo pide 120 A, junto con su estado de carga, y envía la siguiente petición en cuanto llega la respuesta. El cargador responde a cada una con lo que entrega: 398 V, 120 A. El vehículo manda: cambia la corriente a medida que se llena la batería.",
-        "stop": "Primero PowerDeliveryReq con ChargeProgress Stop: la corriente baja a 0 y el vehículo abre sus contactores. WeldingDetection comprueba que de verdad se abrieron. Después SessionStopReq con ChargingSession Terminate termina la sesión."
+        "current-demand": "El vehículo pide 120 A, junto con su estado de carga. Envía la siguiente petición en cuanto llega la respuesta. El cargador responde a cada una con lo que entrega: 398 V, 120 A. El vehículo manda: cambia la corriente a medida que se llena la batería.",
+        "stop": "Primero viene PowerDeliveryReq con ChargeProgress Stop: la corriente baja a 0 y el vehículo abre sus contactores. WeldingDetection comprueba que de verdad se abrieron y no quedaron soldados. Después SessionStopReq con ChargingSession Terminate termina la sesión."
     },
     "fields": {
-        "version": { "name": "Versión V2GTP", "note": "Versión 0x01 y después el mismo byte invertido, 0xFE. Un receptor descarta un mensaje con cualquier otra cosa." },
-        "sdp-req": { "name": "Tipo de carga útil", "note": "0x9000: una petición SDP." },
-        "sdp-res": { "name": "Tipo de carga útil", "note": "0x9001: una respuesta SDP." },
+        "version": { "name": "Versión V2GTP", "note": "Versión 0x01 y después el mismo byte con todos sus bits invertidos, 0xFE. Un receptor descarta un mensaje que traiga cualquier otra cosa aquí." },
+        "sdp-req": { "name": "Tipo de carga útil", "note": "0x9000: una petición SDP, que pregunta dónde está el cargador." },
+        "sdp-res": { "name": "Tipo de carga útil", "note": "0x9001: una respuesta SDP, que dice dónde está el cargador." },
         "len-2": { "name": "Longitud", "note": "Siguen 2 bytes de carga útil. La cabecera en sí siempre mide 8 bytes." },
         "len-20": { "name": "Longitud", "note": "0x14 = siguen 20 bytes: dirección, puerto, seguridad y transporte." },
-        "tls-req": { "name": "Seguridad", "note": "0x00: el vehículo quiere TLS. 0x10 significaría sin TLS." },
+        "tls-req": { "name": "Seguridad", "note": "0x00: el vehículo quiere TLS, una conexión cifrada. 0x10 significaría sin TLS." },
         "tls-res": { "name": "Seguridad", "note": "0x00: el cargador acepta TLS." },
         "tcp": { "name": "Transporte", "note": "0x00: TCP." },
-        "ip-prefix": { "name": "Prefijo IPv6", "note": "fe80::/64: una dirección de enlace local, válida solo en este enlace." },
-        "ip-id": { "name": "ID de interfaz", "note": "Se forma con la dirección MAC del cargador, 02-00-00-00-00-A1: FF FE en el centro y el bit 0x02 invertido. La dirección completa es fe80::ff:fe00:a1." },
+        "ip-prefix": { "name": "Prefijo IPv6", "note": "fe80::/64: una dirección de enlace local. Solo es válida en este enlace, la red powerline privada del vehículo y el cargador." },
+        "ip-id": { "name": "ID de interfaz", "note": "Se forma con la dirección MAC del cargador, 02-00-00-00-00-A1: FF FE va en el centro y el bit 0x02 se invierte. La dirección completa es fe80::ff:fe00:a1." },
         "port": { "name": "Puerto TCP", "note": "0xD431 = 54321: donde el cargador espera a este vehículo." },
         "a-urn": { "name": "URN", "note": "Un nombre uniforme de recurso: una etiqueta fija, no una dirección que abrir." },
         "a-body": { "name": "Organismo", "note": "iso: la organización dueña del nombre." },
@@ -64,15 +65,15 @@
     },
     "facts": {
         "standard": "ISO 15118-2 (2014) para los mensajes, ISO 15118-3 para la capa powerline. ISO 15118-20 es la siguiente generación.",
-        "between": "El controlador del vehículo (EVCC) → el del cargador (SECC). El vehículo pregunta y el cargador responde.",
+        "between": "El controlador de comunicación del vehículo (EVCC) → el del cargador (SECC). El vehículo pregunta y el cargador responde.",
         "transport": "HomePlug Green PHY en el piloto de control, IPv6, SDP en UDP 15118 y después TCP",
-        "security": "TLS 1.2: el cargador se identifica con un certificado. Plug & Charge añade un certificado de contrato en el vehículo.",
+        "security": "TLS 1.2: el cargador se identifica con un certificado. Plug & Charge añade un certificado de contrato en el vehículo, para que el vehículo pueda pagar por sí solo.",
         "frames": "EXI (XML empaquetado en bits) dentro de una cabecera V2GTP de 8 bytes"
     },
     "tips": [
         "Muchas cargas fallidas nunca pasan de SLAC. Revisa el módem, el cableado del piloto de control y la intensidad de señal que informa el cargador antes de mirar los mensajes.",
         "Todo valor físico es un entero, una potencia de diez y una unidad. Lee el Multiplier: 5000 con Multiplier 1 son 50 kW, no 5 kW.",
-        "El trabajo lento, como CableCheck o Authorization, se responde al instante con EVSEProcessing Ongoing. El vehículo vuelve a preguntar; un cargador que lo hace esperar una respuesta consigue que se rinda.",
+        "El trabajo lento, como CableCheck o Authorization, se responde al instante con EVSEProcessing Ongoing, y el vehículo vuelve a preguntar. Un cargador que, en cambio, retiene su respuesta consigue que el vehículo se rinda.",
         "Muchos cargadores siguen eligiendo DIN 70121 de la lista del vehículo. Una captura en la que se elige urn:din:70121:2012:MsgDef explica por qué Plug & Charge nunca arranca."
     ],
     "points": {
@@ -86,7 +87,7 @@
     },
     "playground": {
         "file": "El primer mensaje del vehículo en la sesión, escrito en XML. En el cable viaja como EXI, que empaqueta el mismo contenido en unas pocas decenas de bytes.",
-        "root": "El elemento raíz. Su propio espacio de nombres, de 2010, es el mismo en todas las versiones, así que cualquier cargador puede leer este primer mensaje.",
+        "root": "El elemento raíz, que contiene todos los demás. Su propio espacio de nombres, de 2010, es el mismo en todas las versiones, así que cualquier cargador puede leer este primer mensaje.",
         "iso": "Primera entrada: ISO 15118-2.",
         "version": "Versión 2.0. Un cargador con otra versión menor puede responder OK_SuccessfulNegotiationWithMinorDeviation.",
         "schema-id": "Un número que el vehículo da a esta entrada. El cargador nombra su elección con él.",

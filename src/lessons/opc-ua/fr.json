@@ -1,12 +1,13 @@
 {
-    "intro": "OPC UA est le protocole client–serveur des logiciels industriels modernes. Un serveur propose un espace d'adressage : des nœuds avec des noms, des types et des valeurs, reliés par des références. Un client ouvre un canal sécurisé et une session, puis parcourt, lit, écrit ou s'abonne.",
+    "intro": "OPC UA (Open Platform Communications Unified Architecture) est un protocole client–serveur répandu dans les logiciels industriels. Un serveur propose un espace d'adressage : des nœuds (dossiers, objets, variables …) avec des noms, des types et des valeurs, reliés par des références. Un client, le programme qui demande, ouvre d'abord un canal sécurisé, qui fixe la protection des messages. Puis il ouvre une session, qui rattache son travail à un utilisateur. Il peut alors parcourir, lire, écrire ou s'abonner aux changements.",
+    "plain": "Ce protocole permet à un programme de conduite de regarder dans l'automate d'une machine et d'y trouver n'importe quelle valeur par son nom, comme on parcourt les dossiers d'un ordinateur. Le programme convient d'abord avec l'automate de la façon de protéger leurs échanges, et dit qui il est. Il peut ensuite lire une valeur, modifier un réglage ou demander à être prévenu chaque fois qu'une valeur change.",
     "steps": {
-        "hello": { "title": "Hello", "text": "Une fois TCP connecté au port 4840, le client dit Hello : ses tailles de tampon et l'endpoint qu'il veut. Le serveur acquitte avec ses propres limites." },
-        "channel": { "title": "Canal sécurisé", "text": "OpenSecureChannel fixe la protection des messages. Ici, la politique est None : ni signature, ni chiffrement. Le serveur attribue le numéro 5 au canal." },
-        "session": { "title": "Session", "text": "CreateSession et ActivateSession lient un utilisateur au canal. Le client reçoit un jeton d'authentification qu'il place dans chaque requête suivante." },
-        "browse": { "title": "Parcourir", "text": "Le client parcourt l'espace d'adressage depuis le dossier Objects et trouve l'objet PV1 et sa variable TotW." },
-        "read": { "title": "Lire une valeur", "text": "Read demande l'attribut 13 (Value) de ns=2;s=PV1.TotW. La réponse est un Float, 4820.0, avec deux horodatages." },
-        "subscribe": { "title": "S'abonner", "text": "Le client demande au serveur de surveiller TotW. Il laisse une requête Publish en attente chez le serveur ; quand la valeur change, le serveur y répond." }
+        "hello": { "title": "Dire bonjour", "text": "Le client ouvre une connexion réseau (TCP) vers le port 4840. Il dit Hello : les plus gros blocs de données qu'il peut accepter (ses tailles de tampon), et l'endpoint qu'il veut, l'adresse du serveur qu'il appelle. Le serveur acquitte avec ses propres limites." },
+        "channel": { "title": "Ouvrir un canal sécurisé", "text": "OpenSecureChannel fixe la protection des messages. La signature prouve qui a envoyé un message et que personne ne l'a modifié ; le chiffrement cache ce qu'il dit. Ici, la politique de sécurité est None : ni signature, ni chiffrement. Le serveur attribue le numéro 5 au canal." },
+        "session": { "title": "Ouvrir une session", "text": "CreateSession et ActivateSession lient un utilisateur au canal. Le client reçoit un jeton d'authentification, un identifiant secret comparable à un badge de visiteur. Il place ce jeton dans chaque requête suivante." },
+        "browse": { "title": "Parcourir le serveur", "text": "Le client explore l'espace d'adressage à partir du dossier Objects, comme on ouvre des dossiers sur un disque. Il trouve l'objet PV1, un onduleur, et sa variable TotW : la puissance active totale, celle que l'onduleur fournit." },
+        "read": { "title": "Lire une valeur", "text": "Read demande l'attribut 13, la Value, du nœud ns=2;s=PV1.TotW. Ce NodeId, l'adresse du nœud, signifie : dans l'espace de noms 2 (le jeu de noms propre au fabricant de l'automate), la chaîne PV1.TotW. La réponse est un Float, un nombre décimal sur 4 octets : 4820.0. Elle arrive avec deux horodatages : le moment où la valeur a été mesurée, et celui où le serveur l'a lue." },
+        "subscribe": { "title": "S'abonner aux changements", "text": "Le client demande au serveur de surveiller TotW. Il laisse une requête Publish en attente chez le serveur, comme une question ouverte. Quand la valeur change, le serveur y répond." }
     },
     "frames": {
         "hel": "Hello : voici mes tailles de tampon",
@@ -25,14 +26,14 @@
         "publish": "TotW vaut maintenant 4790.5"
     },
     "notes": {
-        "create-req": "Un MSG avec une CreateSessionRequest : le nom et le certificat du client, un nonce aléatoire, et la durée pendant laquelle la session peut rester inactive.",
+        "create-req": "Un MSG avec une CreateSessionRequest : le nom et le certificat du client, un nonce (un nombre aléatoire utilisé une seule fois), et la durée pendant laquelle la session peut rester inactive.",
         "create-resp": "Le serveur renvoie un identifiant de session, le jeton d'authentification, ses endpoints et son certificat. Le jeton est secret : quiconque le détient peut utiliser la session.",
         "activate-req": "ActivateSession avec un jeton d'identité anonyme. Un vrai utilisateur envoie un nom et un mot de passe chiffrés pour le serveur, ou un certificat utilisateur.",
         "activate-resp": "La session est active. Si elle reste inactive plus longtemps que la durée convenue dans CreateSession, le serveur la ferme.",
-        "browse-req": "Browse depuis le nœud i=85, le dossier Objects, en suivant ses références hiérarchiques.",
+        "browse-req": "Browse depuis le nœud i=85, le dossier Objects, en suivant ses références hiérarchiques : les liens d'un dossier vers ce qu'il contient.",
         "browse-resp": "Une liste de références, chacune avec un NodeId, un browse name et une classe de nœud. ns=2;s=PV1 est un objet ; ns=2;s=PV1.TotW est une variable qu'il contient.",
-        "monitor": "Deux requêtes, chacune avec sa réponse. CreateSubscription fixe un intervalle de publication de 1000 ms. CreateMonitoredItems fait échantillonner TotW par le serveur toutes les 500 ms. Puis le client envoie des requêtes Publish à l'avance.",
-        "publish": "Une PublishResponse avec une notification de changement de données : l'identifiant client de TotW, sa nouvelle valeur et ses horodatages. Le client l'acquitte dans sa requête Publish suivante."
+        "monitor": "Deux requêtes, chacune avec sa réponse. CreateSubscription fixe un intervalle de publication de 1000 ms : une fois par seconde, le serveur envoie ce qui a changé, s'il y a du nouveau. CreateMonitoredItems fait échantillonner TotW par le serveur toutes les 500 ms. Puis le client envoie des requêtes Publish à l'avance.",
+        "publish": "Une PublishResponse avec une notification de changement de données : l'identifiant client de TotW (le numéro qu'il a choisi pour cet élément), sa nouvelle valeur et ses horodatages. Le client l'acquitte dans sa requête Publish suivante."
     },
     "fields": {
         "hel": { "name": "HEL", "note": "Type de message Hello, en ASCII." },
@@ -59,7 +60,7 @@
         "channel-0": { "name": "Secure channel ID", "note": "0 : il n'y a pas encore de canal. C'est le serveur qui choisit le numéro." },
         "policy": { "name": "Politique de sécurité", "note": "Une longueur de 47, puis http://opcfoundation.org/UA/SecurityPolicy#None : ni signature, ni chiffrement." },
         "no-cert": { "name": "Certificat de l'émetteur", "note": "Longueur -1 : aucun. Avec une vraie politique, le certificat X.509 de l'émetteur se place ici." },
-        "no-thumb": { "name": "Empreinte du destinataire", "note": "Aucune. Avec une vraie politique : l'empreinte du certificat du destinataire." },
+        "no-thumb": { "name": "Empreinte du destinataire", "note": "Longueur -1 : aucune. Avec une vraie politique : l'empreinte (un court hachage) du certificat du destinataire." },
         "seq-1": { "name": "Numéro de séquence", "note": "1 : le client compte chaque fragment qu'il envoie sur ce canal." },
         "req-1": { "name": "Request ID", "note": "1. La réponse porte le même identifiant." },
         "type-446": { "name": "Type", "note": "Un NodeId sur 4 octets : espace de noms 0, numéro 446 (0x01BE) : OpenSecureChannelRequest." },
@@ -68,12 +69,12 @@
         "handle-1": { "name": "Request handle", "note": "1 : un numéro dont le client se sert pour apparier la réponse." },
         "diag-audit": { "name": "Diagnostics · audit", "note": "Diagnostics demandés 0 (aucun), puis un identifiant d'audit de longueur -1 (aucun)." },
         "timeout": { "name": "Timeout indicatif", "note": "0x2710 = 10000 ms : le temps que le client attendra." },
-        "no-header": { "name": "En-tête additionnel", "note": "Un objet d'extension vide." },
-        "ua-version": { "name": "Version du protocole", "note": "0." },
+        "no-header": { "name": "En-tête additionnel", "note": "Un objet d'extension vide : aucun champ d'en-tête supplémentaire." },
+        "ua-version": { "name": "Version du protocole", "note": "0 : la version de protocole de l'émetteur." },
         "issue": { "name": "Type de requête", "note": "0 : émettre un nouveau jeton de sécurité. 1 en renouvellerait un." },
         "mode-none": { "name": "Mode de sécurité", "note": "1 : None. 2 est Sign, 3 est SignAndEncrypt." },
-        "client-nonce": { "name": "Nonce du client", "note": "Longueur 0 : avec None, il n'y a pas de clés à fabriquer." },
-        "lifetime": { "name": "Durée de vie demandée", "note": "0x0036EE80 = 3600000 ms : le client renouvellera le jeton dans l'heure." },
+        "client-nonce": { "name": "Nonce du client", "note": "Longueur 0 : avec la politique None, aucune clé n'est fabriquée ; aucun nombre aléatoire n'est donc nécessaire." },
+        "lifetime": { "name": "Durée de vie demandée", "note": "0x0036EE80 = 3600000 ms : le jeton doit durer une heure. Le client le renouvellera avant." },
         "channel-5": { "name": "Secure channel ID", "note": "5 : le numéro que le serveur a donné à ce canal." },
         "seq-1-server": { "name": "Numéro de séquence", "note": "1 : le serveur compte ses propres fragments." },
         "req-1-resp": { "name": "Request ID", "note": "1 : ceci répond à la requête 1." },
@@ -109,7 +110,7 @@
         "handle-5-resp": { "name": "Request handle", "note": "5, comme dans la requête." },
         "results-1": { "name": "Résultats", "note": "Un tableau d'un seul résultat, pour le seul nœud demandé." },
         "mask": { "name": "Masque DataValue", "note": "0x0D : une valeur, un horodatage source et un horodatage serveur suivent. L'absence de code d'état signifie Good." },
-        "float": { "name": "Type du Variant", "note": "0x0A = 10 : Float, 4 octets." },
+        "float": { "name": "Type du Variant", "note": "0x0A = 10 : Float, un nombre décimal sur 4 octets." },
         "value": { "name": "Valeur", "note": "4820.0, octet de poids faible en premier. L'unité, kW, est une propriété du nœud (EngineeringUnits)." },
         "source-time": { "name": "Horodatage source", "note": "10:41:06.000 UTC : le moment où le contrôleur a mesuré la valeur." },
         "server-time": { "name": "Horodatage serveur", "note": "10:41:06.302 UTC : le moment où le serveur l'a lue." },
@@ -122,7 +123,7 @@
         "scada": "SCADA",
         "ctrl": "Contrôleur de centrale",
         "inv": "Onduleur PV1",
-        "pv": "Champ PV",
+        "pv": "Panneaux solaires",
         "meter": "Compteur réseau"
     },
     "facts": {
@@ -133,10 +134,10 @@
         "model": "Espace d'adressage : des nœuds dans des espaces de noms, reliés par des références"
     },
     "tips": [
-        "Cette leçon utilise le mode de sécurité None pour que les octets restent lisibles. Sur un site, utilisez SignAndEncrypt avec une politique actuelle comme Basic256Sha256. Sign seul empêche les modifications, mais n'importe qui sur le réseau peut encore lire les valeurs.",
+        "Cette leçon utilise le mode de sécurité None pour que les octets restent lisibles. Sur un site, utilisez SignAndEncrypt avec une politique actuelle comme Basic256Sha256. Sign seul empêche quiconque de modifier les messages, mais n'importe qui sur le réseau peut encore lire les valeurs.",
         "Les deux côtés doivent faire confiance au certificat de l'autre. Beaucoup de premières connexions échouent parce que le serveur a placé le certificat du client dans sa liste des certificats rejetés. Un administrateur doit le déplacer dans la liste de confiance.",
         "Les index d'espace de noms peuvent changer quand le serveur redémarre ou est mis à jour. Stockez l'URI de l'espace de noms avec chaque NodeId, et retrouvez son index après la connexion.",
-        "Ne scrutez pas avec Read plusieurs fois par seconde. Un abonnement avec un intervalle d'échantillonnage et un intervalle de publication coûte bien moins cher au serveur."
+        "Ne scrutez pas, c'est-à-dire n'envoyez pas Read plusieurs fois par seconde. Un abonnement avec un intervalle d'échantillonnage et un intervalle de publication coûte bien moins cher au serveur."
     ],
     "points": {
         "channel": "Canal sécurisé",

@@ -1,12 +1,13 @@
 {
-    "intro": "Así intercambian datos en vivo los centros de control entre sí: un operador de transmisión (TSO) con los operadores de distribución, las centrales y los TSO vecinos. ICCP, también llamado TASE.2, funciona sobre MMS. Una tabla bilateral, acordada por ambas empresas, enumera exactamente lo que cada socio puede leer, y el servidor la hace cumplir.",
+    "intro": "Cómo intercambian datos en vivo los centros de control: un TSO (operador del sistema de transporte, que gestiona la red de alta tensión) con los DSO (operadores del sistema de distribución, que gestionan las redes locales), las centrales y los TSO vecinos. ICCP, también llamado TASE.2, funciona sobre MMS (Manufacturing Message Specification), la misma mensajería que usa IEC 61850. Una tabla bilateral, acordada por ambas compañías, enumera exactamente qué puede leer cada socio, y el servidor la hace cumplir.",
+    "plain": "ICCP permite a las salas de control de distintas compañías eléctricas compartir lecturas en vivo, como cuánta potencia fluye entre sus redes. Las dos compañías acuerdan primero una lista de lo que puede ver cada una, como la lista de invitados en una puerta. Después, el lado que envía informa de los valores acordados cada pocos segundos, y al instante cuando algo cambia. Una petición de algo que no está en la lista se rechaza.",
     "steps": {
-        "connect": { "title": "Conectar y asociar", "text": "El cliente ICCP del DSO abre TCP 102 hacia el servidor del TSO, a través de una VPN. Después MMS establece la asociación: el cliente se identifica con un AP title, y el servidor solo acepta nombres que estén en alguna de sus tablas bilaterales." },
-        "check": { "title": "Comprobar el ID de tabla", "text": "El cliente lee Bilateral_Table_ID de su propio dominio en el servidor y lo compara con su copia. Coinciden: ambos lados trabajan con el mismo acuerdo." },
-        "subscribe": { "title": "Pedir informes", "text": "El cliente crea un conjunto de datos, DS_TIELINES, en su dominio: los valores que quiere recibir juntos. Un transfer set le dice al servidor cuándo enviarlo. El cliente pide uno libre (Next_DSTransfer_Set) y después escribe en él: cada 4 s y, además, al instante ante cualquier cambio." },
+        "connect": { "title": "Conectar e identificarse", "text": "El cliente ICCP del DSO abre una conexión TCP en el puerto 102 con el servidor del TSO, a través de una VPN (un túnel cifrado entre las dos compañías). Después MMS establece una asociación: una sesión entre los dos programas. El cliente se identifica con un AP title, su nombre único de aplicación. El servidor solo acepta nombres que estén en una de sus tablas bilaterales." },
+        "check": { "title": "Comprobar la versión de la tabla", "text": "El cliente lee Bilateral_Table_ID, la versión del acuerdo. La lee de su propio dominio en el servidor: el área que contiene lo que puede ver este socio. Compara el ID con su propia copia. Coinciden: ambos lados trabajan con el mismo acuerdo." },
+        "subscribe": { "title": "Pedir informes", "text": "El cliente crea un conjunto de datos, DS_TIELINES, en su dominio: una lista de los valores que quiere juntos. Un transfer set le dice al servidor cuándo enviar esa lista. El cliente pide un transfer set libre (Next_DSTransfer_Set) y después escribe en él sus ajustes: cada 4 s, y al instante ante cualquier cambio." },
         "interval": { "title": "Informe cada 4 s", "text": "El servidor envía el conjunto de datos completo cada 4 segundos, como un InformationReport. Nadie lo pide y nadie lo responde." },
-        "change": { "title": "Informe por cambio", "text": "En la subestación se abre el interruptor de la línea de interconexión 2. El servidor no espera al siguiente intervalo: informa al instante. El flujo se ha pasado a la línea de interconexión 1." },
-        "denied": { "title": "Fuera de la tabla", "text": "Un operador del DSO pide GEN_K1_MW, la producción de un generador del TSO. No está en la tabla bilateral de DSO_EAST, así que el servidor responde con un error de acceso en lugar de un valor." }
+        "change": { "title": "Informe por cambio", "text": "Se abre en la subestación el interruptor de la línea de interconexión 2, una línea que une las dos redes. El servidor no espera al siguiente intervalo: informa al instante. El flujo de potencia ha pasado a la línea de interconexión 1." },
+        "denied": { "title": "Acceso denegado", "text": "Un operador del DSO pide GEN_K1_MW, la producción de un generador del TSO. No está en la tabla bilateral de DSO_EAST, así que el servidor responde con un error de acceso en lugar de un valor." }
     },
     "frames": {
         "connect": "Abre TCP 102 y una conexión de transporte ISO",
@@ -25,23 +26,23 @@
         "denied-resp": "Error de acceso: no está en tu tabla"
     },
     "notes": {
-        "connect": "TCP al puerto 102 y, encima, una conexión COTP, exactamente igual que en IEC 61850 MMS. Entre dos empresas esto suele ir dentro de una VPN IPsec, porque ICCP no cifra nada por sí mismo.",
-        "initiate-req": "Las capas de sesión, presentación y ACSE envuelven el Initiate de MMS. ACSE lleva los AP titles de ambos lados. El servidor busca el AP title del llamante para saber qué tabla bilateral, y por tanto qué dominio, corresponde a este cliente.",
+        "connect": "TCP al puerto 102 y, encima, una conexión COTP (la capa de transporte ISO), exactamente como en IEC 61850 MMS. Entre dos compañías esto suele ir dentro de una VPN IPsec, porque ICCP por sí mismo no cifra nada.",
+        "initiate-req": "Las capas de sesión, presentación y ACSE envuelven el Initiate de MMS. ACSE, la capa que establece la asociación, lleva los AP titles de ambos lados. El servidor busca el calling AP title para saber qué tabla bilateral, y por tanto qué dominio, corresponde a este cliente.",
         "initiate-resp": "Un AP title que no está en ninguna tabla bilateral se rechaza aquí, antes de que se pueda leer ningún dato. La parte MMS acuerda los tamaños de mensaje y los servicios.",
-        "define-ds": "MMS DefineNamedVariableList, en el dominio DSO_EAST. El conjunto de datos de un transfer set puede empezar con tres miembros especiales, Transfer_Set_Name, Transfer_Set_Time_Stamp y DSConditions_Detected, para que cada informe diga qué transfer set lo envió, cuándo y por qué.",
+        "define-ds": "DefineNamedVariableList de MMS, en el dominio DSO_EAST. Un conjunto de datos para un transfer set puede empezar con tres miembros especiales: Transfer_Set_Name, Transfer_Set_Time_Stamp y DSConditions_Detected. Con ellos, cada informe dice qué transfer set lo envió, cuándo y por qué.",
         "define-ok": "El servidor comprueba cada nombre con la tabla bilateral antes de crear la lista. Si el cliente no puede leer alguno de los nombres, la petición falla.",
         "next-ts": "Un Read de la variable especial Next_DSTransfer_Set en el dominio DSO_EAST. Cada lectura entrega un transfer set libre del conjunto disponible en el servidor.",
         "next-ts-resp": "El nombre de un transfer set que el cliente ya puede usar: DSTS_07.",
         "ts-start": "Un Write de los atributos del transfer set: DataSetName DSO_EAST/DS_TIELINES, Interval 4 s, condiciones IntervalTimeOut y ObjectChange, Status enabled. El servidor confirma la escritura y empieza a enviar informes.",
-        "report-interval": "Un InformationReport de MMS sin confirmación, con el nombre del conjunto de datos. Lleva el nombre del transfer set, la hora, el motivo (fin del intervalo) y todos los valores, cada uno con sus indicadores de calidad: valid, held, suspect o not valid.",
+        "report-interval": "Un InformationReport de MMS sin confirmación, con el nombre del conjunto de datos. Lleva el nombre del transfer set, la hora, el motivo (fin del intervalo) y todos los valores. Cada valor tiene indicadores de calidad que dicen hasta qué punto es fiable: valid, held, suspect o not valid.",
         "report-change": "Se envía entre dos informes periódicos porque cambió un valor (motivo: cambio de objeto). Tampoco recibe respuesta, salvo que el transfer set se haya marcado como crítico: entonces el cliente debe confirmarlo.",
-        "denied-req": "Un Read de un valor del ámbito propio del TSO (VCC), no del dominio DSO_EAST. Puede que otros socios tengan permiso para leerlo; DSO_EAST no.",
+        "denied-req": "Un Read de un valor del ámbito propio del TSO (VCC, la parte del servidor compartida por todos los socios), no del dominio DSO_EAST. Puede que otros socios tengan permiso para leerlo; DSO_EAST no.",
         "denied-resp": "El resultado de la lectura es un error de acceso MMS en lugar de un valor. La solución no está en el software: las dos empresas añaden el valor a la tabla y suben su ID."
     },
     "fields": {
-        "tpkt-67": { "name": "TPKT", "note": "Versión 3 y, después, la longitud del mensaje completo: 0x0043 = 67 bytes." },
+        "tpkt-67": { "name": "TPKT", "note": "La cabecera que lleva los mensajes ISO sobre TCP: versión 3 y después la longitud del mensaje completo: 0x0043 = 67 bytes." },
         "tpkt-46": { "name": "TPKT", "note": "Versión 3 y, después, la longitud: 0x002E = 46 bytes." },
-        "cotp-dt": { "name": "COTP", "note": "Una unidad de datos (0xF0), la última de su mensaje (0x80)." },
+        "cotp-dt": { "name": "COTP", "note": "La cabecera de transporte ISO: una unidad de datos (0xF0), la última de su mensaje (0x80)." },
         "session": { "name": "Sesión", "note": "Dos cabeceras de sesión cortas: cesión de testigos y transferencia de datos." },
         "presentation": { "name": "Presentación", "note": "Datos totalmente codificados, contexto de presentación 3: lo que sigue es MMS." },
         "confirmed-req": { "name": "Petición confirmada", "note": "Etiqueta A0, 45 bytes: una petición que espera respuesta." },
@@ -101,7 +102,7 @@
         "table": "El nombre de la tabla. En el servidor es también el dominio del cliente: DSO_EAST.",
         "table-id": "La versión que acordaron ambos lados. El cliente la lee del servidor después de cada asociación.",
         "client-ap": "El AP title del cliente (con su AE qualifier debajo): así sabe el servidor quién llama.",
-        "blocks": "Los bloques de conformidad que usan los socios: el 1, los servicios básicos, y el 2, los informes por cambio.",
+        "blocks": "Bloques de conformidad (grupos de funciones) que usan los socios: 1, los servicios básicos, y 2, los informes por cambio.",
         "read": "Los valores que puede leer el DSO. Viven en su dominio, DSO_EAST (ámbito ICC). Cualquier otra cosa da un error de acceso.",
         "data-value": "Data_RealQ: un float con indicadores de calidad.",
         "state": "Data_State: un estado, como abierto o cerrado, con indicadores de calidad.",

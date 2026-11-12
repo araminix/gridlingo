@@ -1,11 +1,12 @@
 {
-    "intro": "O Modbus TCP comum deixa qualquer um na rede ler e escrever. O Modbus/TCP Security envolve os mesmos quadros em TLS, na porta 802. Os dois lados provam quem são com certificados, e o certificado do cliente pode trazer um papel. Depois, as regras do servidor decidem, requisição por requisição, o que esse papel pode fazer.",
+    "intro": "O Modbus TCP comum deixa qualquer um na rede ler e escrever os valores de um equipamento. O Modbus/TCP Security envolve as mesmas mensagens em TLS (Transport Layer Security, a mesma proteção das páginas https), na porta 802. Os dois lados provam quem são com certificados: identidades digitais assinadas por uma autoridade em que ambos confiam. O certificado do cliente também pode trazer um papel, como \"Viewer\". Depois, as regras do servidor decidem, requisição por requisição, o que esse papel pode fazer.",
+    "plain": "O Modbus comum é como um prédio em que qualquer visitante pode entrar e acionar qualquer interruptor. A versão segura acrescenta uma portaria: os dois lados mostram um documento de identidade, e tudo o que dizem depois é embaralhado para que estranhos não consigam ler. O documento do visitante também diz a função dele, como \"visualizador\". O equipamento confere essa função antes de cada pedido, então um visualizador pode olhar, mas não alterar nada.",
     "steps": {
-        "connect": { "title": "Conectar", "text": "O servidor de monitoramento abre uma conexão TCP com o inversor na porta 802, a porta do Modbus/TCP Security. A porta 502 pode ficar fechada." },
-        "hello": { "title": "Olá", "text": "O cliente oferece TLS 1.2 e uma cipher suite. O inversor responde com o seu certificado e pede o do cliente. Os dois lados precisam provar quem são: a especificação exige isso." },
-        "prove": { "title": "Mostrar o papel", "text": "O cliente envia o seu certificado. Nele há um papel, \"Viewer\", numa extensão definida pela Modbus Organization. O inversor confere o certificado com a CA em que confia e guarda o papel para esta conexão." },
-        "read": { "title": "Leitura: permitida", "text": "Agora quadros Modbus TCP comuns trafegam dentro de registros TLS criptografados. O inversor confere cada requisição com as suas regras: um viewer pode ler. Ele responde 4820.5 kW." },
-        "write": { "title": "Escrita: recusada", "text": "O cliente tenta definir um limite de potência. Um viewer não pode escrever, então o inversor recusa com a exceção 01, o código que a especificação define para isso. O limite continua em 5000 kW." }
+        "connect": { "title": "Abrir uma conexão", "text": "O servidor de monitoramento, um computador que coleta os dados da usina, abre uma conexão TCP com o inversor na porta 802, a porta do Modbus/TCP Security. A porta 502, a do Modbus comum, pode ficar fechada." },
+        "hello": { "title": "Combinar a criptografia", "text": "O cliente oferece TLS 1.2 e uma cipher suite: um conjunto de métodos para trocar chaves, criptografar e verificar. O inversor responde com o seu certificado e pede o do cliente. Os dois lados precisam provar quem são: a especificação exige isso." },
+        "prove": { "title": "Mostrar identidade e papel", "text": "O cliente envia o seu certificado. Nele há um papel, \"Viewer\", numa extensão (um campo extra) definida pela Modbus Organization. O inversor confere se o certificado foi assinado pela CA em que confia: a autoridade certificadora que emite os certificados da usina. Ele guarda o papel para esta conexão." },
+        "read": { "title": "Leitura: permitida", "text": "Agora mensagens Modbus TCP comuns trafegam dentro de registros TLS, lacradas e criptografadas. O inversor confere cada requisição com as suas regras: um viewer pode ler. Ele responde 4820.5 kW." },
+        "write": { "title": "Escrita: recusada", "text": "O cliente tenta definir um limite de potência. Um viewer não pode escrever, então o inversor recusa com a exceção 01, o código de erro que a especificação define para isso. O limite continua em 5000 kW." }
     },
     "frames": {
         "tcp": "Abrir uma conexão TCP com a porta 802",
@@ -19,10 +20,10 @@
         "write-refused": "(criptografado) Recusado: exceção 01"
     },
     "notes": {
-        "tcp": "TCP puro para a porta 802, não a 502. Só o handshake TLS vem a seguir às claras.",
-        "server-hello": "Cinco mensagens de handshake. O ServerHello escolhe TLS 1.2 e 0xC02F. O Certificate leva o certificado do inversor e o da CA dele. O ServerKeyExchange traz a metade do inversor na troca de chaves, assinada com a chave dele. O CertificateRequest pede o certificado do cliente: um servidor Modbus/TCP Security sempre precisa pedir. O ServerHelloDone encerra a vez dele.",
+        "tcp": "TCP puro para a porta 802, não a 502. Só o handshake TLS, a troca inicial, vem a seguir às claras.",
+        "server-hello": "Cinco mensagens de handshake. O ServerHello escolhe TLS 1.2 e 0xC02F. O Certificate leva o certificado do inversor e o da CA dele. O ServerKeyExchange traz a metade do inversor na troca de chaves, assinada com a chave privada dele. A partir das duas metades, os dois lados calculam as mesmas chaves secretas. O CertificateRequest pede o certificado do cliente: um servidor Modbus/TCP Security sempre precisa pedir. O ServerHelloDone encerra a vez dele.",
         "client-cert": "O Certificate leva o certificado do cliente, com o papel. O ClientKeyExchange traz a metade do cliente na troca de chaves. O CertificateVerify assina o handshake até aqui: a prova de que o cliente tem a chave privada do certificado. ChangeCipherSpec e Finished ligam a criptografia. No TLS 1.2 os certificados trafegam às claras, então qualquer um na rede consegue ler o papel.",
-        "server-finished": "O inversor também liga a criptografia. Se o cliente não tivesse enviado certificado, ou enviado um de uma CA desconhecida, o inversor teria encerrado a conexão com um alerta."
+        "server-finished": "O inversor também liga a criptografia. Se o cliente não tivesse enviado certificado, ou enviado um de uma CA desconhecida, o inversor teria encerrado a conexão com um alerta, uma mensagem de erro do TLS."
     },
     "fields": {
         "rec-handshake": { "name": "Tipo de registro 22", "note": "0x16: um registro de handshake. O handshake trafega às claras." },
@@ -37,23 +38,23 @@
         "suites": { "name": "Cipher suites", "note": "2 bytes, uma suite: 0xC02F, troca de chaves com ECDHE, certificados RSA, criptografia AES-128-GCM, SHA-256. A especificação a exige para equipamentos com chaves RSA." },
         "compression": { "name": "Compressão", "note": "Um método: 0, nenhuma." },
         "ext-len": { "name": "Extensões", "note": "Seguem 0x0053 = 83 bytes de extensões." },
-        "ext-reneg": { "name": "renegotiation_info", "note": "0xFF01, vazia: o cliente suporta renegociação segura, o que a especificação exige." },
+        "ext-reneg": { "name": "renegotiation_info", "note": "0xFF01, vazia: o cliente suporta renegociação segura, uma forma protegida de refazer o handshake numa conexão aberta. A especificação a exige." },
         "ext-points": { "name": "ec_point_formats", "note": "0x000B: como os pontos de curva elíptica podem ser escritos." },
-        "ext-groups": { "name": "supported_groups", "note": "0x000A, 12 bytes: segue uma lista de 10 bytes." },
+        "ext-groups": { "name": "supported_groups", "note": "0x000A, 12 bytes: as curvas que o cliente pode usar na troca de chaves. Segue uma lista de 10 bytes." },
         "groups": { "name": "Curvas", "note": "Cinco curvas para a troca de chaves: x25519 (0x001D), P-256 (0x0017), x448, P-384 e P-521. Todo equipamento que usa curvas elípticas precisa suportar a P-256." },
-        "ext-flags": { "name": "Duas flags", "note": "encrypt_then_mac (0x0016) e extended_master_secret (0x0017), ambas vazias." },
+        "ext-flags": { "name": "Duas flags", "note": "encrypt_then_mac (0x0016) e extended_master_secret (0x0017): duas opções de segurança que o cliente suporta. Ambas vazias: estar ali já é a mensagem." },
         "ext-sigalgs": { "name": "signature_algorithms", "note": "0x000D: segue uma lista de 40 bytes, 2 para cada um de 20 algoritmos." },
         "sigalgs": { "name": "Assinaturas", "note": "Tipos de assinatura que o cliente aceita, 2 bytes cada. 0x0403 é ECDSA na P-256 com SHA-256; 0x0401, mais adiante, é RSA com SHA-256." },
         "sigalgs-more": { "name": "Assinaturas", "note": "Mais tipos de assinatura, 2 bytes cada." },
         "rec-app": { "name": "Tipo de registro 23", "note": "0x17: dados de aplicação. O que vem a seguir é criptografado." },
         "rec-v12": { "name": "Versão", "note": "0x0303: TLS 1.2." },
-        "len-read-req": { "name": "Comprimento", "note": "Seguem 36 bytes, não mostrados: um nonce de 8 bytes, a requisição de 12 bytes criptografada e uma tag de 16 bytes. Dentro está a requisição Modbus TCP comum 00 01 00 00 00 06 01 03 00 64 00 02: ler os registradores 100 e 101." },
+        "len-read-req": { "name": "Comprimento", "note": "Seguem 36 bytes, não mostrados: um nonce de 8 bytes (um número usado uma única vez), a requisição de 12 bytes criptografada e uma tag de 16 bytes que prova que ninguém a alterou. Dentro está a requisição Modbus TCP comum 00 01 00 00 00 06 01 03 00 64 00 02: ler os registradores 100 e 101." },
         "len-read-resp": { "name": "Comprimento", "note": "Seguem 37 bytes: nonce, 13 bytes de resposta, tag. Dentro: 00 01 00 00 00 07 01 03 04 A4 00 45 96, potência ativa 4820.5 kW." },
         "len-write-req": { "name": "Comprimento", "note": "Seguem 36 bytes. Dentro: 00 02 00 00 00 06 01 06 00 C8 0B B8, escrever 3000 no registrador 200, o limite de potência." },
         "len-refused": { "name": "Comprimento", "note": "Seguem 33 bytes: nonce, 9 bytes de resposta, tag. Dentro: 00 02 00 00 00 03 01 86 01. 0x86 é 0x06 com o bit de erro ativo; 01 é o código da exceção." },
         "a-extension": { "name": "Extensão", "note": "Uma SEQUENCE de 0x17 = 23 bytes: uma extensão do certificado." },
-        "a-oid": { "name": "Object ID", "note": "1.3.6.1.4.1.50316.802.1: o papel Modbus. 50316 é o número que a IANA deu à Modbus Organization." },
-        "a-octets": { "name": "Valor", "note": "Uma OCTET STRING de 8 bytes que contém o valor da extensão." },
+        "a-oid": { "name": "Object ID", "note": "1.3.6.1.4.1.50316.802.1: o número único no mundo que significa \"papel Modbus\". 50316 é o número que a IANA deu à Modbus Organization." },
+        "a-octets": { "name": "Valor", "note": "Uma OCTET STRING (uma sequência de bytes) de 8 bytes que contém o valor da extensão." },
         "a-utf8": { "name": "UTF8String", "note": "0x0C: texto em UTF-8, com 6 bytes. A especificação exige este tipo." },
         "a-role": { "name": "Papel", "note": "\"Viewer\". Um papel por certificado. As regras do servidor dizem o que ele pode fazer." }
     },
@@ -88,7 +89,7 @@
         "role": "A extensão de papel no certificado do cliente, byte a byte"
     },
     "playground": {
-        "file": "O certificado do servidor de monitoramento, como o openssl x509 -text o imprime. O papel é a última extensão.",
+        "file": "O certificado do servidor de monitoramento, como a ferramenta openssl o imprime (openssl x509 -text). O papel é a última extensão.",
         "issuer": "A CA que o assinou. O inversor só aceita certificados de uma CA em que confia.",
         "expiry": "Depois desta data, o inversor recusa o certificado.",
         "subject": "A quem o certificado pertence: o servidor de monitoramento.",

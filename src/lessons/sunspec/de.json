@@ -1,11 +1,12 @@
 {
-    "intro": "Jedes Modbus-Gerät hat seine eigene Registerbelegung, also bedeutet jedes neue Gerät ein neues Handbuch. SunSpec legt die Belegung fest: Ein Gerät ordnet seine Daten in nummerierten Modellen an, jedes mit einer bekannten Reihenfolge der Werte. Ein Regler findet die Modelle selbst, eines nach dem anderen, und liest jeden SunSpec-Wechselrichter, jede Batterie und jeden Zähler auf dieselbe Weise.",
+    "intro": "Ein Modbus-Gerät hält seine Werte in Registern: nummerierten 16-Bit-Fächern. Jedes Gerät hat seine eigene Registerbelegung, die Liste, welches Register was enthält, also bedeutet jedes neue Gerät ein neues Handbuch. SunSpec legt die Belegung fest. Ein Gerät ordnet seine Daten in nummerierten Modellen an: Blöcken von Registern, jeder mit einer bekannten Reihenfolge der Werte. Ein Regler findet die Modelle selbst, eines nach dem anderen, und liest jeden SunSpec-Wechselrichter, jede Batterie und jeden Zähler auf dieselbe Weise.",
+    "plain": "SunSpec ist eine gemeinsame Anordnung für die Messwerte in Solarwechselrichtern, Batterien und Zählern. Ohne sie listet jeder Hersteller sie in seiner eigenen Reihenfolge auf, also braucht jedes neue Gerät sein eigenes Handbuch. Mit SunSpec füllt jedes Gerät dasselbe Formular aus, in derselben Reihenfolge, mit einer Überschrift oben auf jeder Seite. So kann ein Programm Geräte jedes Herstellers auf dieselbe Weise lesen.",
     "steps": {
-        "find": { "title": "Kennung finden", "text": "Der Regler weiß noch nichts über diesen Wechselrichter. Er liest zwei Register ab 40000. Darin steht \"SunS\": Dieses Gerät folgt SunSpec, und seine Belegung lässt sich finden, statt sie einzutippen." },
-        "common": { "title": "Wer bist du?", "text": "Das erste Modell ist immer das Common Model, ID 1: wer das Gerät hergestellt hat, was es ist, seine Seriennummer. Jedes Modell beginnt mit zwei Registern: seiner ID und seiner Länge." },
-        "walk": { "title": "Nächstes Modell", "text": "Der Regler springt um die Länge des Common Model weiter: 40002 + 2 + 66 = 40070. Dort findet er Modell 103, einen dreiphasigen Wechselrichter, 50 Register lang." },
-        "read": { "title": "Mit Skalierungsfaktoren lesen", "text": "Register enthalten 16-Bit-Ganzzahlen. Deshalb hat jeder Wert einen Skalierungsfaktor: eine Zehnerpotenz in einem anderen Register. W = 4820 mit W_SF = 0 ergibt 4820 W. Hz = 5001 mit Hz_SF = −2 ergibt 50.01 Hz." },
-        "end": { "title": "Das Ende", "text": "Der Regler springt erneut, auf 40070 + 2 + 50 = 40122, und findet die ID 0xFFFF: keine weiteren Modelle. Jetzt kennt er jedes Modell des Wechselrichters und weiß, wo jeder Wert liegt." }
+        "find": { "title": "SunSpec-Kennung finden", "text": "Der Parkregler weiß noch nichts über diesen Wechselrichter. Er liest zwei Register ab Adresse 40000, der üblichen Stelle zum Suchen. Darin stehen die Buchstaben \"SunS\": Dieses Gerät folgt SunSpec, und seine Belegung lässt sich finden, statt sie einzutippen." },
+        "common": { "title": "Wer bist du?", "text": "Das erste Modell ist immer das Common Model, ID 1: wer das Gerät hergestellt hat, was es ist, seine Seriennummer. Jedes Modell beginnt mit einem Header aus zwei Registern: seiner ID, die sagt, welche Art Modell es ist, und seiner Länge in Registern." },
+        "walk": { "title": "Nächstes Modell finden", "text": "Der Regler überspringt das Common Model um seine Länge: 40002 + 2 + 66 = 40070. Dort findet er Modell 103, einen dreiphasigen Wechselrichter (einen, der in alle drei Außenleiter des Netzes einspeist), 50 Register lang." },
+        "read": { "title": "Leistung und Frequenz lesen", "text": "Register enthalten nur ganze Zahlen mit 16 Bit. Deshalb kommt jeder Wert mit einem Skalierungsfaktor in einem anderen Register: der Zehnerpotenz, mit der er multipliziert wird. W (Wirkleistung) = 4820 mit W_SF = 0 ergibt 4820 × 1 = 4820 W. Hz (Netzfrequenz) = 5001 mit Hz_SF = −2 ergibt 5001 × 0.01 = 50.01 Hz." },
+        "end": { "title": "Ende der Liste", "text": "Der Regler springt erneut, auf 40070 + 2 + 50 = 40122, und findet die ID 0xFFFF: keine weiteren Modelle. Jetzt kennt er jedes Modell des Wechselrichters und weiß, wo jeder Wert liegt." }
     },
     "frames": {
         "sid-req": "Schick mir die Register 40000 und 40001",
@@ -20,7 +21,7 @@
         "end-resp": "0xFFFF: Das war das letzte Modell"
     },
     "fields": {
-        "tid-1": { "name": "Transaction ID 1", "note": "Eine Nummer, die der Regler wählt. Die Antwort trägt dieselbe." },
+        "tid-1": { "name": "Transaction ID 1", "note": "Eine Nummer, die der Regler wählt. Die Antwort trägt dieselbe, so kann der Regler beide zuordnen." },
         "tid-2": { "name": "Transaction ID 2", "note": "Die nächste Anfrage, die nächste Nummer." },
         "tid-3": { "name": "Transaction ID 3", "note": "Die dritte Anfrage." },
         "tid-4": { "name": "Transaction ID 4", "note": "Die vierte Anfrage." },
@@ -49,17 +50,17 @@
         "mn": { "name": "Mn", "note": "Hersteller: \"Example\". Ein String belegt immer alle seine Register, hier 16, mit zwei Zeichen in jedem. Nullen füllen den Rest." },
         "md": { "name": "Md", "note": "Modell: \"EX-5K-3P\", 16 Register." },
         "opt": { "name": "Opt", "note": "Optionen, 8 Register: alles Nullen, also nicht verwendet." },
-        "vr": { "name": "Vr", "note": "Version, 8 Register: Firmware \"3.4.1\"." },
+        "vr": { "name": "Vr", "note": "Version, 8 Register: Firmware (die eigene Software des Geräts) \"3.4.1\"." },
         "sn": { "name": "SN", "note": "Seriennummer, 16 Register: \"24110042\"." },
         "fill": { "name": "Nullen", "note": "Nullen nach dem Text." },
         "da": { "name": "DA", "note": "Geräteadresse: die Unit ID, auf die es antwortet, 1." },
         "pad": { "name": "Pad", "note": "Ein Füllregister, das die Länge gerade macht. Sein Wert bedeutet nichts." },
         "id-103": { "name": "ID 103", "note": "0x0067 = 103: ein dreiphasiger Wechselrichter, mit Ganzzahlen und Skalierungsfaktoren." },
         "l-50": { "name": "L 50", "note": "0x0032 = 50 Register: von 40072 bis 40121." },
-        "w": { "name": "W", "note": "0x12D4 = 4820: AC-Leistung, vor der Skalierung. W ist vorzeichenbehaftet." },
+        "w": { "name": "W", "note": "0x12D4 = 4820: AC-Leistung, vor der Skalierung. W ist vorzeichenbehaftet: Sie kann negativ sein." },
         "w-sf": { "name": "W_SF", "note": "0: W mit 10⁰ = 1 multiplizieren. Die Leistung beträgt 4820 W." },
         "hz": { "name": "Hz", "note": "0x1389 = 5001: Netzfrequenz, vor der Skalierung." },
-        "hz-sf": { "name": "Hz_SF", "note": "0xFFFE = −2: Hz mit 10⁻² multiplizieren. Die Frequenz beträgt 50.01 Hz." },
+        "hz-sf": { "name": "Hz_SF", "note": "0xFFFE, als vorzeichenbehaftete Zahl gelesen, ist −2: Hz mit 10⁻² = 0.01 multiplizieren. Die Frequenz beträgt 50.01 Hz." },
         "id-end": { "name": "ID 0xFFFF", "note": "Das End Model: Es folgen keine weiteren Modelle." },
         "l-0": { "name": "L 0", "note": "Das End Model hat keine Daten." },
         "a-at": { "name": "Header", "note": "Das erste Register des Modells: seine ID." },
@@ -67,7 +68,7 @@
         "a-l": { "name": "L", "note": "50: wie viele Register dem Header folgen." },
         "a-body": { "name": "Daten", "note": "Die Werte des Modells, in fester Reihenfolge. W liegt immer 12 Register tief." },
         "a-next": { "name": "Nächster Header", "note": "Wo das nächste Modell beginnt: Header + 2 + L." },
-        "a-raw": { "name": "Hz", "note": "Das Register, wie es gesendet wird: eine Ganzzahl." },
+        "a-raw": { "name": "Hz", "note": "Das Register, wie es gesendet wird: eine ganze Zahl." },
         "a-sf": { "name": "Hz_SF", "note": "Der Skalierungsfaktor: eine Zehnerpotenz von −10 bis 10. Ein Skalierungsfaktor kann für mehrere Werte gelten." },
         "a-real": { "name": "Wert", "note": "Was es bedeutet: 5001 × 10⁻² = 50.01 Hz. Ein 16-Bit-Register kann 50.01 nicht speichern, auf diese Weise aber doch." }
     },
@@ -85,7 +86,7 @@
         "frames": "Reines Modbus: Lesen mit FC 03, Schreiben mit FC 06 und FC 16"
     },
     "tips": [
-        "Registernummern nicht von einem Gerät auf ein anderes übertragen. Die Modelle ab der Basisadresse durchlaufen: Dasselbe Modell kann beim nächsten Gerät woanders liegen.",
+        "Registernummern nicht von einem Gerät auf ein anderes übertragen. Die Modelle ab der Basisadresse durchlaufen, wo \"SunS\" steht: Dasselbe Modell kann beim nächsten Gerät woanders liegen.",
         "Manche Geräte geben dem Common Model die Länge 65, ohne Pad. Immer um die Länge springen, die das Gerät sendet.",
         "0x8000 in einem vorzeichenbehafteten Register oder einem Skalierungsfaktor und 0xFFFF in einem vorzeichenlosen bedeuten \"nicht implementiert\". Nicht als −32768 oder 65535 anzeigen.",
         "Einen Wert und seinen Skalierungsfaktor in einer Anfrage lesen. Zwei getrennte Lesevorgänge können einen neuen Wert mit einem alten Skalierungsfaktor kombinieren."

@@ -1,11 +1,12 @@
 {
-    "intro": "Chaque équipement Modbus a sa propre table de registres : chaque nouvel équipement implique donc un nouveau manuel. SunSpec fixe la table : un équipement range ses données dans des modèles numérotés, chacun avec un ordre de valeurs connu. Un contrôleur trouve les modèles tout seul, l'un après l'autre, et lit n'importe quel onduleur, batterie ou compteur SunSpec de la même façon.",
+    "intro": "Un équipement Modbus range ses valeurs dans des registres : des cases numérotées de 16 bits. Chaque équipement a sa propre table de registres, la liste de ce que contient chaque registre : chaque nouvel équipement implique donc un nouveau manuel. SunSpec fixe la table. Un équipement range ses données dans des modèles numérotés : des blocs de registres, chacun avec un ordre de valeurs connu. Un contrôleur trouve les modèles tout seul, l'un après l'autre, et lit n'importe quel onduleur, batterie ou compteur SunSpec de la même façon.",
+    "plain": "SunSpec est une organisation commune des mesures des convertisseurs solaires, des batteries et des compteurs. Sans lui, chaque fabricant les range dans son propre ordre, et chaque nouvel équipement demande son propre manuel. Avec SunSpec, chaque équipement remplit le même formulaire, dans le même ordre, avec une étiquette en haut de chaque page. Un même programme peut ainsi lire les équipements de n'importe quel fabricant de la même façon.",
     "steps": {
-        "find": { "title": "Trouver le marqueur", "text": "Le contrôleur ne sait encore rien de cet onduleur. Il lit deux registres à 40000. Ils contiennent \"SunS\" : cet équipement suit SunSpec, et sa table peut être découverte au lieu d'être saisie à la main." },
-        "common": { "title": "Qui es-tu ?", "text": "Le premier modèle est toujours le modèle commun, ID 1 : le fabricant de l'équipement, ce qu'il est, son numéro de série. Chaque modèle commence par deux registres : son ID et sa longueur." },
-        "walk": { "title": "Modèle suivant", "text": "Le contrôleur saute par-dessus le modèle commun grâce à sa longueur : 40002 + 2 + 66 = 40070. Il y trouve le modèle 103, un onduleur triphasé, long de 50 registres." },
-        "read": { "title": "Lire avec les facteurs d'échelle", "text": "Les registres contiennent des entiers de 16 bits. Chaque valeur a donc un facteur d'échelle : une puissance de dix, dans un autre registre. W = 4820 avec W_SF = 0 donne 4820 W. Hz = 5001 avec Hz_SF = −2 donne 50.01 Hz." },
-        "end": { "title": "La fin", "text": "Le contrôleur saute de nouveau, à 40070 + 2 + 50 = 40122, et trouve l'ID 0xFFFF : plus de modèles. Il connaît maintenant tous les modèles de l'onduleur et l'emplacement de chaque valeur." }
+        "find": { "title": "Trouver le marqueur SunSpec", "text": "Le contrôleur de centrale ne sait encore rien de cet onduleur. Il lit deux registres à l'adresse 40000, l'endroit habituel où chercher. Ils contiennent les lettres \"SunS\" : cet équipement suit SunSpec, et sa table peut être découverte au lieu d'être saisie à la main." },
+        "common": { "title": "Qui es-tu ?", "text": "Le premier modèle est toujours le modèle commun, ID 1 : le fabricant de l'équipement, ce qu'il est, son numéro de série. Chaque modèle commence par un en-tête de deux registres : son ID, qui dit de quel genre de modèle il s'agit, et sa longueur en registres." },
+        "walk": { "title": "Trouver le modèle suivant", "text": "Le contrôleur saute par-dessus le modèle commun grâce à sa longueur : 40002 + 2 + 66 = 40070. Il y trouve le modèle 103, un onduleur triphasé (qui alimente les trois phases du réseau), long de 50 registres." },
+        "read": { "title": "Lire puissance et fréquence", "text": "Les registres ne contiennent que des nombres entiers de 16 bits. Chaque valeur est donc accompagnée d'un facteur d'échelle dans un autre registre : la puissance de dix par laquelle la multiplier. W (puissance active) = 4820 avec W_SF = 0 donne 4820 × 1 = 4820 W. Hz (fréquence du réseau) = 5001 avec Hz_SF = −2 donne 5001 × 0.01 = 50.01 Hz." },
+        "end": { "title": "Fin de la liste", "text": "Le contrôleur saute de nouveau, à 40070 + 2 + 50 = 40122, et trouve l'ID 0xFFFF : plus de modèles. Il connaît maintenant tous les modèles de l'onduleur et l'emplacement de chaque valeur." }
     },
     "frames": {
         "sid-req": "Envoie-moi les registres 40000 et 40001",
@@ -20,7 +21,7 @@
         "end-resp": "0xFFFF : c'était le dernier modèle"
     },
     "fields": {
-        "tid-1": { "name": "Transaction ID 1", "note": "Un numéro choisi par le contrôleur. La réponse porte le même." },
+        "tid-1": { "name": "Transaction ID 1", "note": "Un numéro choisi par le contrôleur. La réponse porte le même : le contrôleur peut ainsi les apparier." },
         "tid-2": { "name": "Transaction ID 2", "note": "La requête suivante, le numéro suivant." },
         "tid-3": { "name": "Transaction ID 3", "note": "La troisième requête." },
         "tid-4": { "name": "Transaction ID 4", "note": "La quatrième requête." },
@@ -49,17 +50,17 @@
         "mn": { "name": "Mn", "note": "Fabricant : \"Example\". Une chaîne occupe toujours tous ses registres, ici 16, à raison de deux caractères chacun. Des zéros complètent le reste." },
         "md": { "name": "Md", "note": "Modèle : \"EX-5K-3P\", 16 registres." },
         "opt": { "name": "Opt", "note": "Options, 8 registres : tous à zéro, c'est-à-dire inutilisés." },
-        "vr": { "name": "Vr", "note": "Version, 8 registres : firmware \"3.4.1\"." },
+        "vr": { "name": "Vr", "note": "Version, 8 registres : firmware (le logiciel propre à l'équipement) \"3.4.1\"." },
         "sn": { "name": "SN", "note": "Numéro de série, 16 registres : \"24110042\"." },
         "fill": { "name": "Zéros", "note": "Des zéros après le texte." },
         "da": { "name": "DA", "note": "Adresse de l'équipement : l'unit ID auquel il répond, 1." },
         "pad": { "name": "Pad", "note": "Un registre de remplissage qui rend la longueur paire. Sa valeur ne signifie rien." },
         "id-103": { "name": "ID 103", "note": "0x0067 = 103 : un onduleur triphasé, avec entiers et facteurs d'échelle." },
         "l-50": { "name": "L 50", "note": "0x0032 = 50 registres : de 40072 à 40121." },
-        "w": { "name": "W", "note": "0x12D4 = 4820 : puissance AC, avant mise à l'échelle. W est un nombre signé." },
+        "w": { "name": "W", "note": "0x12D4 = 4820 : puissance AC, avant mise à l'échelle. W est signé : il peut être négatif." },
         "w-sf": { "name": "W_SF", "note": "0 : multiplier W par 10⁰ = 1. La puissance est de 4820 W." },
         "hz": { "name": "Hz", "note": "0x1389 = 5001 : fréquence du réseau, avant mise à l'échelle." },
-        "hz-sf": { "name": "Hz_SF", "note": "0xFFFE = −2 : multiplier Hz par 10⁻². La fréquence est de 50.01 Hz." },
+        "hz-sf": { "name": "Hz_SF", "note": "0xFFFE, lu comme un nombre signé, vaut −2 : multiplier Hz par 10⁻² = 0.01. La fréquence est de 50.01 Hz." },
         "id-end": { "name": "ID 0xFFFF", "note": "Le modèle de fin : aucun autre modèle ne suit." },
         "l-0": { "name": "L 0", "note": "Le modèle de fin n'a pas de données." },
         "a-at": { "name": "En-tête", "note": "Le premier registre du modèle : son ID." },
@@ -67,7 +68,7 @@
         "a-l": { "name": "L", "note": "50 : le nombre de registres qui suivent l'en-tête." },
         "a-body": { "name": "Données", "note": "Les valeurs du modèle, dans un ordre fixe. W est toujours 12 registres plus loin." },
         "a-next": { "name": "En-tête suivant", "note": "Là où commence le modèle suivant : en-tête + 2 + L." },
-        "a-raw": { "name": "Hz", "note": "Le registre tel qu'envoyé : un entier." },
+        "a-raw": { "name": "Hz", "note": "Le registre tel qu'envoyé : un nombre entier." },
         "a-sf": { "name": "Hz_SF", "note": "Le facteur d'échelle : une puissance de dix, de −10 à 10. Un même facteur d'échelle peut servir à plusieurs valeurs." },
         "a-real": { "name": "Valeur", "note": "Ce que cela signifie : 5001 × 10⁻² = 50.01 Hz. Un registre de 16 bits ne peut pas contenir 50.01, mais de cette façon, si." }
     },
@@ -85,7 +86,7 @@
         "frames": "Du Modbus ordinaire : lectures en FC 03, écritures en FC 06 et FC 16"
     },
     "tips": [
-        "Ne recopiez pas les numéros de registres d'un équipement à l'autre. Parcourez les modèles depuis l'adresse de base : le même modèle peut se trouver ailleurs sur l'équipement suivant.",
+        "Ne recopiez pas les numéros de registres d'un équipement à l'autre. Parcourez les modèles depuis l'adresse de base, là où se trouve \"SunS\" : le même modèle peut se trouver ailleurs sur l'équipement suivant.",
         "Certains équipements donnent au modèle commun une longueur de 65, sans le pad. Sautez toujours de la longueur envoyée par l'équipement.",
         "0x8000 dans un registre signé ou un facteur d'échelle, et 0xFFFF dans un registre non signé, signifient « non implémenté ». Ne les affichez pas comme −32768 ou 65535.",
         "Lisez une valeur et son facteur d'échelle dans la même requête. Deux lectures séparées peuvent associer une nouvelle valeur à un ancien facteur d'échelle."

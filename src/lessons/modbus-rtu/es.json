@@ -1,11 +1,12 @@
 {
-    "intro": "Modbus por un cable serie. Un maestro y hasta 247 esclavos comparten una línea RS-485 de dos hilos. Solo el maestro inicia una conversación: llama a un esclavo por su dirección, y solo ese esclavo responde. Un CRC al final de cada trama detecta los bytes dañados.",
+    "intro": "Modbus por un cable serie. Un maestro, el equipo que pregunta, y hasta 247 esclavos, los equipos que responden, comparten una línea RS-485 de dos hilos. Solo el maestro inicia una conversación: llama a un esclavo por su dirección, y solo ese esclavo responde. Cada trama (un mensaje en la línea) termina con un CRC: dos bytes de comprobación calculados a partir del resto, de modo que se detectan los bytes dañados.",
+    "plain": "Modbus RTU permite que una caja recoja lecturas de varias máquinas conectadas al mismo cable. Funciona como un profesor que pasa lista: dice un nombre, solo responde ese alumno, y luego llama al siguiente. Nadie habla sin que le pregunten. Cada mensaje termina con un breve código de comprobación, así que un mensaje que se estropea por el camino se detecta y se ignora.",
     "steps": {
-        "poll": { "title": "Preguntar al esclavo 1", "text": "El registrador de datos es el maestro. Pide al esclavo 1, el inversor, dos input registers. Todos los equipos de la línea oyen la trama, pero solo responde el esclavo 1." },
-        "meter": { "title": "Preguntar al esclavo 2", "text": "Ahora, el medidor de la dirección 2. Su potencia es un float de 32 bits en dos registros, con la palabra alta primero." },
-        "silent": { "title": "Sin respuesta", "text": "El esclavo 3 no responde. El registrador espera 1 segundo, pregunta una vez más, lo marca como fuera de línea y sigue. No puede saber por qué: sin alimentación, un hilo roto y un ajuste erróneo se ven igual." },
-        "broadcast": { "title": "Difusión", "text": "El registrador envía un límite de potencia a la dirección 0, una difusión. Todos los esclavos lo aplican y ninguno responde, así que el registrador no sabe quién lo recibió. El medidor no tiene registro 40201 y no hace nada." },
-        "confirm": { "title": "Releerlo", "text": "El registrador da 200 ms a los esclavos para actuar y luego relee el límite del esclavo 1: 60 %. El esclavo 3 sigue fuera de línea, así que su límite es desconocido." }
+        "poll": { "title": "Preguntar al esclavo 1", "text": "El registrador de datos, una pequeña caja que recoge lecturas, es el maestro. Pide al esclavo 1, un inversor que entrega energía a la red, dos input registers. Los registros son casillas numeradas de 16 bits; los input registers guardan valores que el equipo mide. Todos los equipos de la línea oyen la trama, pero solo responde el esclavo 1." },
+        "meter": { "title": "Preguntar al esclavo 2", "text": "Ahora, el medidor de energía de la dirección 2. Su potencia es un float de 32 bits (un número con punto decimal) que ocupa dos registros. La palabra alta, la mitad superior de 16 bits, va primero." },
+        "silent": { "title": "Sin respuesta", "text": "El esclavo 3, el segundo inversor, no responde. El registrador espera 1 segundo, pregunta una vez más, lo marca como fuera de línea y sigue. No puede saber por qué: sin alimentación, un hilo roto y un ajuste erróneo se ven igual." },
+        "broadcast": { "title": "Decírselo a todos a la vez", "text": "El registrador envía un límite de potencia a la dirección 0. La dirección 0 es una difusión (broadcast): un mensaje para todos los esclavos a la vez. Todos los esclavos lo aplican y ninguno responde, así que el registrador no sabe quién lo recibió. El medidor no tiene el registro 40201, el límite de potencia, así que no hace nada." },
+        "confirm": { "title": "Releerlo", "text": "El registrador da 200 ms a los esclavos para actuar. Luego relee el límite del esclavo 1: 60 %. El esclavo 3 sigue fuera de línea, así que su límite es desconocido." }
     },
     "frames": {
         "inv1-req": "Esclavo 1: envíame los input registers 0 y 1",
@@ -26,7 +27,7 @@
         "fc03": { "name": "Función 03", "note": "0x03: leer holding registers, donde están los ajustes." },
         "fc04": { "name": "Función 04", "note": "0x04: leer input registers, los valores que mide un equipo. No se pueden escribir." },
         "fc06": { "name": "Función 06", "note": "0x06: escribir un registro." },
-        "addr-0": { "name": "Dirección 0", "note": "0x0000: el registro 30001 del manual. El cable cuenta desde 0." },
+        "addr-0": { "name": "Dirección 0", "note": "0x0000: el registro 30001 del manual. El 3 inicial indica un input register, y el cable cuenta desde 0." },
         "addr-12": { "name": "Dirección 12", "note": "0x000C = 12: el registro 30013, la potencia en el punto de conexión a la red." },
         "addr-200": { "name": "Dirección 200", "note": "0x00C8 = 200: el registro 40201, el límite de potencia de los inversores." },
         "qty-1": { "name": "Cantidad", "note": "1 registro." },
@@ -36,8 +37,8 @@
         "power": { "name": "Registro 30001", "note": "0x0CB2 = 3250: potencia CA, en W." },
         "voltage": { "name": "Registro 30002", "note": "0x0900 = 2304: tensión de red en pasos de 0.1 V, es decir, 230.4 V." },
         "meter-power": { "name": "Registros 30013–30014", "note": "0x45337800: un float de 32 bits, con la palabra alta primero (ABCD). Vale 2871.5 (W)." },
-        "limit-60": { "name": "Valor", "note": "0x003C = 60: el 60 % de la potencia nominal." },
-        "crc": { "name": "CRC", "note": "CRC-16 sobre todos los bytes anteriores, enviado con el byte bajo primero. Un esclavo descarta la trama cuyo CRC es incorrecto y se queda callado." }
+        "limit-60": { "name": "Valor", "note": "0x003C = 60: el 60 % de la potencia nominal, lo máximo que puede dar el inversor." },
+        "crc": { "name": "CRC", "note": "Un valor de comprobación CRC-16 calculado a partir de todos los bytes anteriores, enviado con el byte bajo primero. El receptor lo vuelve a calcular. Un esclavo descarta la trama cuyo CRC no coincide y se queda callado." }
     },
     "devices": {
         "logger": "Registrador de datos",
@@ -50,11 +51,11 @@
         "between": "Un maestro (registrador, controlador) → hasta 247 esclavos",
         "transport": "RS-485: dos hilos de datos y una tierra, hasta unos 1200 m",
         "frames": "Dirección, código de función, datos, CRC-16. Sin byte de inicio: el silencio separa las tramas.",
-        "speed": "A 9600 baudios, una petición de 8 bytes tarda 9.2 ms"
+        "speed": "A 9600 baudios (bits por segundo), una petición de 8 bytes tarda 9.2 ms"
     },
     "tips": [
         "Todos los equipos de la línea deben usar la misma velocidad, paridad y bits de parada. Un solo ajuste erróneo parece exactamente un esclavo muerto.",
-        "Pon una resistencia de 120 Ω en cada extremo de la línea, no en cada equipo. Si faltan o sobran, aparecen errores de CRC que van y vienen.",
+        "Pon una resistencia de 120 Ω en cada extremo de la línea, no en cada equipo. Si faltan o sobran, la señal se deforma y aparecen errores de CRC que van y vienen.",
         "Dos equipos con la misma dirección responden a la vez y se pisan. Configura cada dirección antes de conectar el equipo.",
         "Si no responde nadie, intercambia los dos hilos de datos. Los fabricantes no se ponen de acuerdo en cuál es A y cuál es B."
     ],
@@ -68,7 +69,7 @@
     },
     "timing": {
         "title": "Tramas y silencios en la línea, a 9600 baudios",
-        "note": "Modbus RTU no tiene byte de inicio ni de fin. Una trama termina cuando la línea queda en silencio durante 3.5 caracteres: 4.0 ms a 9600 baudios, con 11 bits por carácter. Por encima de 19200 baudios, el silencio es fijo de 1.75 ms. Dentro de una trama, una pausa de más de 1.5 caracteres rompe la trama.",
+        "note": "Modbus RTU no tiene byte de inicio ni de fin. Una trama termina cuando la línea queda en silencio durante 3.5 caracteres: 4.0 ms a 9600 baudios. Un carácter es un byte con sus bits de inicio, paridad y parada: 11 bits. Por encima de 19200 baudios, el silencio es fijo de 1.75 ms. Dentro de una trama, una pausa de más de 1.5 caracteres rompe la trama.",
         "logger": "El registrador envía",
         "inv1": "El inversor 1 responde",
         "idle": "Línea en silencio",
@@ -77,7 +78,7 @@
     "playground": {
         "file": "La configuración del registrador para esta línea. Todos los esclavos de la línea deben usar la misma velocidad y paridad.",
         "baud": "9600 bits por segundo. Todos los equipos de la línea deben usar la misma velocidad.",
-        "parity": "8E1: 8 bits de datos, paridad par, 1 bit de parada. El bit de paridad detecta los errores de un solo bit. 8E1 es el valor por defecto de Modbus; muchos equipos vienen configurados en 8N1.",
+        "parity": "8E1: 8 bits de datos, paridad par, 1 bit de parada. El bit de paridad es un bit adicional que hace par el número de unos, de modo que se detecta un solo bit cambiado. 8E1 es el valor por defecto de Modbus. Sin paridad, la norma pide 2 bits de parada (8N2), pero muchos equipos vienen configurados en 8N1: todos los equipos de la línea deben coincidir.",
         "timeout": "Cuánto espera el registrador una respuesta antes de rendirse: 1 segundo.",
         "retries": "Pregunta una vez más antes de marcar un esclavo como fuera de línea.",
         "after-broadcast": "Nadie responde a una difusión, así que el registrador espera este tiempo antes de la siguiente trama.",

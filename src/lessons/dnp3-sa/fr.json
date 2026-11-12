@@ -1,12 +1,13 @@
 {
-    "intro": "Secure Authentication permet à une outstation DNP3 de vérifier qu'une commande vient vraiment de son maître et n'a pas été modifiée en chemin. Avant d'exécuter une requête critique, l'outstation envoie un défi ; seul un équipement qui détient la clé de session secrète peut y répondre. Rien n'est chiffré : SA prouve qui a envoyé un message, il ne le cache pas.",
+    "intro": "Secure Authentication (SA) permet à une outstation DNP3, un équipement de terrain comme un RTU, de vérifier qu'une commande vient vraiment de son maître, le système SCADA de la salle de conduite, et n'a pas été modifiée en chemin. Avant d'exécuter une requête critique, comme l'ouverture d'un disjoncteur, l'outstation envoie un défi : une question à laquelle seul un équipement qui détient la clé de session secrète peut répondre. Rien n'est chiffré : SA prouve qui a envoyé un message, il ne le cache pas.",
+    "plain": "DNP3 Secure Authentication ajoute une vérification aux commandes qu'une salle de conduite envoie à des équipements lointains. Avant d'obéir à une commande importante, comme couper une ligne électrique, l'équipement pose une question nouvelle, comme un gardien qui demande le mot de passe. Seule la vraie salle de conduite, qui connaît un secret partagé, peut y répondre. Une réponse enregistrée et rejouée plus tard échoue, car la question change à chaque fois.",
     "steps": {
-        "keys": { "title": "Clés de session", "text": "Avant toute commande, le SCADA remet au RTU deux nouvelles clés de session, une pour chaque sens. Il les envoie enveloppées (chiffrées) avec la clé de mise à jour, un secret que les deux côtés ont reçu à l'avance. Il recommence régulièrement, pour qu'aucune clé de session ne vive longtemps." },
-        "operate": { "title": "Commande critique", "text": "L'opérateur ouvre CB-1 pour qu'une équipe puisse travailler sur la ligne. Le SCADA envoie un direct operate. Le RTU la considère comme critique et n'agit pas encore. Seule la couche application est montrée ici : les couches liaison et transport sont les mêmes que dans la leçon DNP3." },
-        "challenge": { "title": "Défi", "text": "Le RTU répond par un défi : un nouveau numéro de défi (CSQ 5) et 16 octets aléatoires. Seul le détenteur de la clé de session peut y répondre. Les octets aléatoires montrés ici sont inventés." },
-        "reply": { "title": "Réponse", "text": "Le SCADA calcule un HMAC avec la clé de session, sur le défi et sa commande, et en envoie les 16 premiers octets. La clé elle-même ne circule jamais. Le MAC montré ici est inventé : un vrai dépend de la clé." },
-        "execute": { "title": "Exécution", "text": "Le RTU calcule le même HMAC avec sa copie de la clé. Les deux concordent : il envoie l'impulsion sur la sortie de déclenchement et confirme. CB-1 s'ouvre." },
-        "replay": { "title": "Attaque par rejeu", "text": "Un attaquant sur le réseau du poste a enregistré hier la commande de fermeture et sa réponse. Il renvoie les deux. Le RTU lance le défi CSQ 6 avec de nouveaux octets aléatoires, mais la réponse enregistrée répond à CSQ 2, avec une ancienne clé. Le RTU la rejette : CB-1 reste ouvert et l'équipe reste en sécurité." }
+        "keys": { "title": "Partager les clés de session", "text": "Avant toute commande, le SCADA remet au RTU (remote terminal unit) deux nouvelles clés de session : des clés secrètes de courte durée, une pour chaque sens. Il les envoie enveloppées (chiffrées) avec la clé de mise à jour, un secret à long terme que les deux côtés ont reçu à l'avance. Il recommence régulièrement, pour qu'aucune clé de session ne vive longtemps." },
+        "operate": { "title": "Une commande critique", "text": "L'opérateur ouvre le disjoncteur CB-1 pour qu'une équipe puisse travailler sur la ligne. Le SCADA envoie un direct operate : une commande à exécuter tout de suite. Le RTU la considère comme critique et n'agit pas encore. Seule la couche application (le message lui-même) est montrée ici : les couches liaison et transport qui l'entourent sont les mêmes que dans la leçon DNP3." },
+        "challenge": { "title": "Le RTU lance un défi", "text": "Le RTU répond par un défi : un nouveau numéro de défi (CSQ 5) et 16 octets aléatoires. Seul le détenteur de la clé de session peut y répondre. Les octets aléatoires montrés ici sont inventés." },
+        "reply": { "title": "Répondre au défi", "text": "Le SCADA calcule un MAC (message authentication code) : une empreinte du défi et de sa commande que seule la clé de session peut produire. La méthode est HMAC, et le SCADA envoie les 16 premiers octets du résultat. La clé elle-même ne circule jamais. Le MAC montré ici est inventé : un vrai dépend de la clé." },
+        "execute": { "title": "Commande exécutée", "text": "Le RTU calcule le même HMAC avec sa copie de la clé. Les deux concordent : il envoie une impulsion sur la sortie de déclenchement (il la ferme brièvement) et confirme. CB-1 s'ouvre." },
+        "replay": { "title": "Attaque par rejeu bloquée", "text": "Un attaquant sur le réseau du poste a enregistré hier la commande de fermeture et sa réponse. Il renvoie les deux : une attaque par rejeu. Le RTU lance le défi CSQ 6 avec de nouveaux octets aléatoires, mais la réponse enregistrée répond à CSQ 2, avec une ancienne clé. Le RTU la rejette : CB-1 reste ouvert et l'équipe reste en sécurité." }
     },
     "frames": {
         "key-status-request": "Où en sont tes clés de session ?",
@@ -25,18 +26,18 @@
     "notes": {
         "key-status-request": "Le SCADA demande l'état des clés de session de l'utilisateur 1 : g120v4, dans un AUTH_REQUEST (fonction 0x20). Les octets de l'échange de clés ne sont pas montrés ici.",
         "key-status": "Le RTU n'a pas encore de clé de session valide : état NOT_INIT. Sa réponse, g120v5, porte aussi un numéro de changement de clé et des données aléatoires fraîches.",
-        "key-change": "Le SCADA crée deux clés de session aléatoires : une pour ce qu'il envoie, une pour ce que le RTU envoie. Il les enveloppe toutes les deux avec la clé de mise à jour de l'utilisateur 1 (AES key wrap) et les envoie dans g120v6.",
+        "key-change": "Le SCADA crée deux clés de session aléatoires : une pour ce qu'il envoie, une pour ce que le RTU envoie. Il les enveloppe (chiffre) toutes les deux avec la clé de mise à jour de l'utilisateur 1 (AES key wrap) et les envoie dans g120v6.",
         "key-ok": "Le RTU désenveloppe les clés avec sa propre copie de la clé de mise à jour. Il répond par l'état OK et un MAC calculé avec les nouvelles clés, ce qui prouve qu'il les détient.",
         "pulse": "Pas du DNP3 : le RTU ferme sa sortie de déclenchement pendant 1000 ms, la durée d'impulsion de la commande, et CB-1 s'ouvre."
     },
     "fields": {
         "ac-3": { "name": "Contrôle applicatif", "note": "0xC3 : FIR et FIN, une requête en un seul fragment, séquence 3." },
-        "fc-direct-operate": { "name": "Fonction 5", "note": "DIRECT_OPERATE : agir tout de suite, sans sélection préalable." },
+        "fc-direct-operate": { "name": "Fonction 5", "note": "DIRECT_OPERATE : agir tout de suite, sans requête de sélection (armement) préalable." },
         "g12v1": { "name": "g12v1", "note": "Groupe 12, variation 1 : un bloc de commande de relais de sortie (CROB), une commande pour une sortie." },
         "q17": { "name": "Qualificatif 0x17", "note": "Un nombre sur 1 octet, puis un index sur 1 octet devant chaque objet." },
         "count-1": { "name": "Nombre 1", "note": "Une seule commande." },
         "index-0": { "name": "Index 0", "note": "Sortie 0 : les bobines de déclenchement et de fermeture de CB-1." },
-        "trip": { "name": "Code de commande", "note": "0x81 : TRIP, sous forme d'impulsion (PULSE_ON)." },
+        "trip": { "name": "Code de commande", "note": "0x81 : TRIP (ouvrir le disjoncteur), sous forme d'impulsion (PULSE_ON)." },
         "close": { "name": "Code de commande", "note": "0x41 : CLOSE, sous forme d'impulsion. Elle remettrait la ligne sous tension, avec l'équipe dessus." },
         "pulses": { "name": "Nombre", "note": "Une seule impulsion." },
         "on-time": { "name": "Durée ON", "note": "1000 ms, octet de poids faible en premier : la durée pendant laquelle la sortie reste fermée." },
@@ -45,12 +46,12 @@
         "status-success": { "name": "État 0", "note": "SUCCESS : le RTU a accepté la commande et lancé l'impulsion." },
         "ac-3-challenge": { "name": "Contrôle applicatif", "note": "0xC3 : séquence 3, la même que la commande qu'il met au défi." },
         "fc-auth-response": { "name": "Fonction 0x83", "note": "AUTH_RESPONSE : un message Secure Authentication venant de l'outstation." },
-        "iin": { "name": "IIN", "note": "Indications internes : aucun indicateur levé." },
+        "iin": { "name": "IIN", "note": "Indications internes, les bits d'état de l'outstation : aucun indicateur levé." },
         "g120v1": { "name": "g120v1", "note": "Groupe 120, variation 1 : défi d'authentification." },
         "size-24": { "name": "Qualificatif 0x5B", "note": "Un seul objet (01) dont la taille suit sur 2 octets : 0x0018 = 24 octets." },
         "csq-5": { "name": "CSQ 5", "note": "Numéro de séquence du défi. Il augmente à chaque défi, si bien qu'une ancienne réponse ne correspond jamais à un nouveau défi." },
         "user-1": { "name": "Utilisateur 1", "note": "L'utilisateur dont les clés doivent répondre. Chaque utilisateur a sa propre clé de mise à jour." },
-        "mal-4": { "name": "Algorithme MAC 4", "note": "HMAC-SHA-256, tronqué à 16 octets." },
+        "mal-4": { "name": "Algorithme MAC 4", "note": "La façon de calculer la réponse : HMAC-SHA-256, tronqué à 16 octets." },
         "rfc-1": { "name": "Motif 1", "note": "CRITICAL : la requête était critique, elle doit donc être prouvée." },
         "data-5": { "name": "Données du défi", "note": "16 octets aléatoires, nouveaux à chaque défi, montrés en deux parties. Inventés ici." },
         "data-end": { "name": "Données du défi", "note": "Les 8 derniers des 16 octets aléatoires." },
@@ -86,10 +87,10 @@
         "frames": "g120 : défi v1, réponse v2, état des clés v4 et v5, changement de clés v6"
     },
     "tips": [
-        "SA prouve qui a envoyé un message. Il ne le cache pas : n'importe qui sur la ligne peut toujours lire les commandes et les valeurs. Ajoutez TLS (IEC 62351-3) quand cela compte.",
+        "SA prouve qui a envoyé un message. Il ne le cache pas : n'importe qui sur la ligne peut toujours lire les commandes et les valeurs. Ajoutez le chiffrement TLS (IEC 62351-3) quand cela compte.",
         "Le mode agressif économise un aller-retour : le maître place son MAC dans la requête elle-même (g120v3 et g120v9), à partir du dernier défi reçu. Les deux côtés doivent l'autoriser.",
-        "La plupart des échecs à la mise en service viennent d'une mauvaise clé de mise à jour ou d'un mauvais numéro d'utilisateur. Le changement de clés échoue alors, et le RTU rejette toutes les requêtes critiques.",
-        "SA n'a besoin d'aucune horloge : ce sont les numéros de défi et les données aléatoires qui empêchent les anciens messages de resservir, pas les horodatages."
+        "La plupart des échecs à la mise en service (le premier démarrage sur site) viennent d'une mauvaise clé de mise à jour ou d'un mauvais numéro d'utilisateur. Le changement de clés échoue alors, et le RTU rejette toutes les requêtes critiques.",
+        "SA n'a besoin d'aucune horloge : ce sont les numéros de défi et les données aléatoires, et non les horodatages, qui empêchent les anciens messages de resservir."
     ],
     "points": {
         "cb": "Disjoncteur CB-1",
@@ -103,8 +104,8 @@
         "file": "Les paramètres Secure Authentication du RTU. Le SCADA doit utiliser le même numéro d'utilisateur, le même algorithme MAC et le même key wrap, et détenir la même clé de mise à jour.",
         "version": "SAv5, d'IEEE 1815-2012. Les deux côtés doivent parler la même version.",
         "user": "Utilisateur 1. Chaque utilisateur a sa propre clé de mise à jour : le RTU sait ainsi qui a envoyé une commande.",
-        "update-key": "La clé de mise à jour est le secret à long terme. Elle reste dans la mémoire protégée de l'équipement et ne circule jamais en clair.",
-        "key-wrap": "La façon dont les clés de session sont enveloppées dans g120v6 : AES-256 key wrap.",
+        "update-key": "La clé de mise à jour est le secret à long terme. Elle reste dans la mémoire protégée de l'équipement et ne circule jamais sans être chiffrée.",
+        "key-wrap": "La façon dont les clés de session sont enveloppées (chiffrées) dans g120v6 : AES-256 key wrap.",
         "mac": "Le MAC de chaque réponse : HMAC-SHA-256, tronqué à 16 octets.",
         "interval": "Le maître change les clés de session toutes les 15 minutes.",
         "timeout": "Le temps pendant lequel le RTU attend la réponse à un défi. Passé ce délai, il abandonne la commande.",

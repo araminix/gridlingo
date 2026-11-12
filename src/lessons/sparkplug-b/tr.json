@@ -1,12 +1,13 @@
 {
-    "intro": "Sparkplug B, SCADA için MQTT'nin üstüne kurulan bir kurallar bütünüdür. Sabit topic adları kimin neyi gönderdiğini söyler. Bir doğum (birth) mesajı her metriği bir kez, adı, alias'ı ve veri türüyle listeler; bundan sonra yalnızca değişiklikler alias ile taşınır. Bir ölüm (death) mesajı da bir ağ geçidi gittiğinde SCADA'ya bunu hemen bildirir.",
+    "intro": "Sparkplug B, yayınla ve abone ol protokolü olan MQTT'nin üstüne kurulan, SCADA için bir kurallar bütünüdür; SCADA, bir santrali izleyen ve kontrol eden sistemlerdir. Sabit topic adları (mesajların altında yayınlandığı adlar) kimin neyi gönderdiğini söyler. Bir doğum (birth) mesajı her metriği (güç gibi adı olan bir değeri) bir kez listeler. Her metrik bir ad, bir alias (adın yerine geçen kısa bir numara) ve bir veri türüyle gelir. Bundan sonra yalnızca değişiklikler alias ile taşınır. Bir ölüm (death) mesajı, bir ağ geçidi gittiğinde bunu SCADA'ya bildirir; ağ geçidi bunu kendisi söyleyememiş olsa bile.",
+    "plain": "Bunlar, verilerini bir mesaj postanesi üzerinden paylaşan santraller ve fabrikalar için ortak kurallardır. Bir cihaz çevrim içi olunca önce kendini eksiksiz tanıtır: elindeki her ölçümü, bir ad ve kısa bir numarayla birlikte bildirir. Sonra yalnızca değişeni, kısa numaraları kullanarak gönderir; \"2 numara artık şu\" der gibi. Cihaz ortadan kaybolursa postane bunu duyurur; böylece kontrol odası onun değerlerinin güncel olmadığını bilir.",
     "steps": {
-        "host": { "title": "SCADA çevrim içi", "text": "Birincil host olan SCADA, broker'a bir will mesajıyla bağlanır, her Sparkplug topic'ine abone olur, sonra STATE'ini yayınlar: online, retained." },
-        "connect": { "title": "Edge node bağlanıyor", "text": "Edge node GW1, bdSeq 0 numaralı kendi will mesajı NDEATH ile bağlanır. SCADA'nın retained STATE'ini okur: SCADA çevrim içi, yani başlayabilir." },
-        "birth": { "title": "Doğum", "text": "NBIRTH edge node'un, DBIRTH de arkasındaki inverterin her metriğini listeler: ad, alias, veri türü ve değer. Artık SCADA modelin tamamını biliyor." },
-        "data": { "title": "Değişiklikte raporla", "text": "Yalnızca inverterin gücü değişti. DDATA, bir sonraki sıra numarasıyla yalnızca o metriği, alias'ıyla taşır." },
-        "rebirth": { "title": "Yeniden doğum", "text": "SCADA, seq 2'den sonra seq 4'ü alır: 3 numaralı mesaj kaybolmuş. SCADA artık kendi kopyasına güvenemez, bu yüzden bir yeniden doğum (rebirth) ister. Edge node NBIRTH ve DBIRTH'i yeniden gönderir." },
-        "death": { "title": "Ölüm", "text": "Edge node'un bağlantısı, son paketinden hemen sonra 300. saniyede kopar. 45 s sonra (broker'ın duyduğu son paketten itibaren sayılan, 30 s'lik keep alive'ın 1.5 katı) broker onun will mesajını, NDEATH'i yayınlar. SCADA GW1'i çevrim dışı, değerlerini de STALE olarak işaretler." }
+        "host": { "title": "SCADA çevrim içi oluyor", "text": "Birincil host (veriyi alan ana uygulama) olan SCADA, broker'a, yani her mesajı ileten MQTT sunucusuna bağlanır. Bir will mesajı bırakır: kendisi ortadan kaybolursa broker'ın onun adına yayınlayacağı bir mesaj. Her Sparkplug topic'ine abone olur. Sonra STATE'ini, yani online durumunu retained bir mesaj olarak yayınlar: broker onu sonradan abone olan herkes için saklar." },
+        "connect": { "title": "GW1 ağ geçidi bağlanıyor", "text": "Edge node GW1, yani santralin cihazlarından veri toplayan ağ geçidi, kendi will mesajıyla bağlanır: ölüm mesajı NDEATH. Will mesajı bdSeq 0'ı taşır: bu oturumun doğum ve ölüm sıra numarası. GW1, SCADA'nın retained STATE'ini okur: SCADA çevrim içi, yani başlayabilir." },
+        "birth": { "title": "Doğum: tüm metrikleri listele", "text": "NBIRTH (node birth, düğüm doğumu) edge node'un her metriğini listeler. DBIRTH (device birth, cihaz doğumu) arkasındaki inverterin her metriğini listeler. Her metrik adı, alias'ı, veri türü ve değeriyle gelir. Artık SCADA modelin tamamını biliyor." },
+        "data": { "title": "Yalnızca değişiklikleri gönder", "text": "Yalnızca inverterin gücü değişti. DDATA (device data, cihaz verisi), bir sonraki sıra numarasıyla yalnızca o metriği, alias'ıyla taşır. Buna değişiklikte raporlama (report by exception) denir: yalnızca değişen gönderilir." },
+        "rebirth": { "title": "Kayıp mesaj, yeniden doğum", "text": "Her mesaj bir sıra numarası, seq taşır. SCADA, seq 2'den sonra seq 4'ü alır: 3 numaralı mesaj kaybolmuş. SCADA artık elindeki değer kopyasına güvenemez; bu yüzden NCMD ile, yani düğüme giden bir komutla bir yeniden doğum (rebirth) ister. Edge node NBIRTH ve DBIRTH'i yeniden gönderir." },
+        "death": { "title": "Ağ geçidi susuyor", "text": "Edge node'un bağlantısı, son paketinden hemen sonra 300. saniyede kopar. Broker, duyduğu son paketten itibaren 30 s'lik keep alive'ın 1.5 katı kadar bekler. Yani 45 s sonra will mesajını, NDEATH'i yayınlar. SCADA GW1'i çevrim dışı, değerlerini de STALE olarak işaretler: hâlâ gösterilir ama güncel değildir." }
     },
     "frames": {
         "host-connect": "Ben SCADA1. Kaybolursam çevrim dışı olduğumu yayınla",
@@ -38,13 +39,13 @@
         "publish-q1-retain": { "name": "MQTT PUBLISH", "note": "0x33: QoS 1 ve retained. Broker onu sonradan abone olacak her edge node için saklar." },
         "rl-65": { "name": "Kalan uzunluk", "note": "Ardından 65 bayt gelir." },
         "state-topic": { "name": "Topic", "note": "spBv1.0/STATE/SCADA1: kimliği SCADA1 olan host'un STATE topic'i." },
-        "packet-id": { "name": "Paket kimliği 1", "note": "Her QoS 1 mesajında olduğu gibi, broker'ın PUBACK'i için." },
-        "state-online": { "name": "online", "note": "{\"online\":true, SCADA çevrim içi. STATE, JSON olan tek Sparkplug mesajıdır; diğerlerinin hepsi protobuf'tur." },
+        "packet-id": { "name": "Paket kimliği 1", "note": "1: her QoS 1 mesajında olduğu gibi, broker'ın PUBACK'i (alındısı) bu numarayı belirtir." },
+        "state-online": { "name": "online", "note": "{\"online\":true, SCADA çevrim içi. STATE, JSON olan tek Sparkplug mesajıdır; diğerlerinin hepsi protobuf'tur: kompakt bir ikili biçim." },
         "state-time": { "name": "timestamp", "note": "1970'ten beri 1794480000000 ms = 10:40:00.000 UTC. CONNECT'indeki will mesajıyla aynı değer: edge node'lar bu oturumu eskisinden ayırmak için bunu kullanır." },
         "publish-q0": { "name": "MQTT PUBLISH", "note": "0x30: QoS 0, retained değil. Sonradan bağlanan bir host değerleri eski veriden değil, bir doğum mesajından öğrenir." },
         "rl-59": { "name": "Kalan uzunluk", "note": "Ardından 59 bayt gelir: topic ve payload." },
         "ddata-topic": { "name": "Topic", "note": "spBv1.0/SolarPark/DDATA/GW1/INV1, 32 bayt (0x0020). Buradan itibaren baytlar bir protobuf Payload'dır." },
-        "payload-time": { "name": "timestamp", "note": "Etiket 0x08: alan 1, bir varint. Mesajın gönderildiği an: 1970'ten beri 1794480067280 ms = 10:41:07.280 UTC. Bir varint, en düşük önce olmak üzere bayt başına 7 bit tutar; üst bitin 1 olması devamının geldiği demektir." },
+        "payload-time": { "name": "timestamp", "note": "Etiket 0x08: alan 1, bir varint (değişken uzunluklu bir tam sayı). Mesajın gönderildiği an: 1970'ten beri 1794480067280 ms = 10:41:07.280 UTC. Bir varint, en düşük önce olmak üzere bayt başına 7 bit tutar; üst bitin 1 olması ardından başka baytların geldiği demektir." },
         "metric": { "name": "metrics", "note": "Etiket 0x12: alan 2, tek bir metrik. Ardından 0x0E = 14 bayt gelir." },
         "alias": { "name": "alias", "note": "Etiket 0x10: metriğin alan 2'si, alias 2. Doğum mesajı 2'nin AC/Power olduğunu söyledi, bu yüzden ad gönderilmez." },
         "metric-time": { "name": "timestamp", "note": "Etiket 0x18: metriğin alan 3'ü, değerin okunduğu an: 1794480067250, mesaj gönderilmeden 30 ms önce." },
@@ -72,7 +73,7 @@
     },
     "tips": [
         "Her edge node'un grubu içinde benzersiz bir edge_node_id'si ve kendi MQTT istemci kimliği olmalıdır. Aynı kimliklere sahip iki ağ geçidi birbirini düşürür ve SCADA bütün gün doğumlar ve ölümler görür.",
-        "Bir alias yalnızca bir sonraki doğuma kadar geçerlidir. Yeniden doğumdan sonra eski alias'ları tutan bir araç, değerleri yanlış metriğe yazar.",
+        "Bir alias yalnızca bir sonraki doğuma kadar geçerlidir. Yeniden doğumdan sonra eski alias'ları tutan bir araç, değerleri yanlış metriğin altına kaydeder.",
         "Doğum mesajında olmayan bir metrik SCADA için yoktur. Bir metrik ekledikten sonra yeni bir doğum mesajı yayınlayın.",
         "Her edge node'da birincil host kimliğini ayarlayın. O zaman doğum mesajından önce SCADA'nın STATE'ini bekler. Bu olmadan doğum mesajları SCADA yokken çıkar ve SCADA yeniden doğum istemek zorunda kalır."
     ],

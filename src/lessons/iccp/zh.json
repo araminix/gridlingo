@@ -1,12 +1,13 @@
 {
-    "intro": "调度中心之间如何交换实时数据：输电网运营商（TSO）与配电网运营商、电厂以及相邻的 TSO 之间。ICCP 也叫 TASE.2，运行在 MMS 之上。双方公司共同商定一张双边表，列明每个伙伴能读什么，由服务器强制执行。",
+    "intro": "调度中心之间如何交换实时数据：TSO（输电网运营商，运营高压电网）与 DSO（配电网运营商，运营本地电网）、电厂以及相邻 TSO 之间。ICCP 也叫 TASE.2，运行在 MMS（制造报文规范）之上，与 IEC 61850 用的是同一套报文机制。双方公司共同商定一张双边表，列明每个伙伴能读什么，由服务器强制执行。",
+    "plain": "ICCP 让不同电力公司的控制室共享实时读数，比如两张电网之间流过多少功率。两家公司先商定一份清单，写明各自能看什么，就像门口的宾客名单。发送方随后每隔几秒报告一次约定的数值，有变化时立即报告。请求清单以外的任何东西都会被拒绝。",
     "steps": {
-        "connect": { "title": "连接与关联", "text": "DSO 的 ICCP 客户端经 VPN 向 TSO 服务器的 TCP 102 建立连接。然后 MMS 建立关联：客户端用 AP 标题报上自己的名字，服务器只接受出现在某张双边表里的名字。" },
-        "check": { "title": "核对表 ID", "text": "客户端从服务器上自己的域里读取 Bilateral_Table_ID，与自己手里的副本比较。两者一致：双方依据的是同一份协议。" },
-        "subscribe": { "title": "订阅报告", "text": "客户端在自己的域里创建数据集 DS_TIELINES：它想一起收到的那些值。传输集告诉服务器什么时候发送。客户端先要一个空闲的传输集（Next_DSTransfer_Set），然后写入设置：每 4 s 一次，有任何变化时立即发送。" },
+        "connect": { "title": "连接与识别", "text": "DSO 的 ICCP 客户端经 VPN（两家公司之间的加密隧道）向 TSO 服务器的 102 端口建立 TCP 连接。然后 MMS 建立关联：两个程序之间的会话。客户端用 AP 标题（它独一无二的应用名称）报上自己的名字。服务器只接受出现在某张双边表里的名字。" },
+        "check": { "title": "核对表版本", "text": "客户端读取 Bilateral_Table_ID，即协议的版本。它从服务器上自己的域里读取：域是存放这个伙伴可见内容的区域。它把这个 ID 与自己手里的副本比较。两者一致：双方依据的是同一份协议。" },
+        "subscribe": { "title": "订阅报告", "text": "客户端在自己的域里创建数据集 DS_TIELINES：它想一起收到的那些值的列表。传输集告诉服务器什么时候发送这个列表。客户端先要一个空闲的传输集（Next_DSTransfer_Set），然后把设置写进去：每 4 s 一次，有任何变化时立即发送。" },
         "interval": { "title": "每 4 s 报告", "text": "服务器每 4 秒用 InformationReport 发送整个数据集。没人请求，也没人应答。" },
-        "change": { "title": "变化即报", "text": "变电站里联络线 2 的断路器分闸。服务器不等下一个周期，立即报告。潮流已转移到联络线 1。" },
-        "denied": { "title": "表外数据", "text": "DSO 的一名调度员请求 GEN_K1_MW，即 TSO 一台发电机的出力。它不在 DSO_EAST 的双边表里，所以服务器返回访问错误，而不是数值。" }
+        "change": { "title": "变化即报", "text": "变电站里联络线 2（连接两张电网的线路）的断路器分闸。服务器不等下一个周期，立即报告。潮流已转移到联络线 1。" },
+        "denied": { "title": "拒绝访问", "text": "DSO 的一名调度员请求 GEN_K1_MW，即 TSO 一台发电机的出力。它不在 DSO_EAST 的双边表里，所以服务器返回访问错误，而不是数值。" }
     },
     "frames": {
         "connect": "建立 TCP 102 和 ISO 传输连接",
@@ -25,23 +26,23 @@
         "denied-resp": "访问错误：不在你的表里"
     },
     "notes": {
-        "connect": "先 TCP 连接 102 端口，再在上面建立 COTP 连接，与 IEC 61850 MMS 完全相同。两家公司之间通常把它放在 IPsec VPN 里，因为 ICCP 本身不做任何加密。",
-        "initiate-req": "会话层、表示层和 ACSE 层包裹着 MMS Initiate。ACSE 携带双方的 AP 标题。服务器根据主叫的 AP 标题查出属于这个客户端的双边表，也就查出了它的域。",
+        "connect": "先 TCP 连接 102 端口，再在上面建立 COTP 连接（ISO 传输层），与 IEC 61850 MMS 完全相同。两家公司之间通常把它放在 IPsec VPN 里，因为 ICCP 本身不做任何加密。",
+        "initiate-req": "会话层、表示层和 ACSE 层包裹着 MMS Initiate。ACSE 是建立关联的那一层，携带双方的 AP 标题。服务器根据主叫的 AP 标题查出属于这个客户端的双边表，也就查出了它的域。",
         "initiate-resp": "不在任何双边表里的 AP 标题在这里就被拒绝，根本读不到数据。MMS 部分协商报文大小和服务。",
-        "define-ds": "MMS DefineNamedVariableList，在域 DSO_EAST 中。用于传输集的数据集可以以三个特殊成员开头：Transfer_Set_Name、Transfer_Set_Time_Stamp 和 DSConditions_Detected，这样每份报告都说明是哪个传输集、在何时、因何发出的。",
+        "define-ds": "MMS DefineNamedVariableList，在域 DSO_EAST 中。用于传输集的数据集可以以三个特殊成员开头：Transfer_Set_Name、Transfer_Set_Time_Stamp 和 DSConditions_Detected。有了它们，每份报告都说明是哪个传输集、在何时、因何发出的。",
         "define-ok": "服务器在创建列表之前，先把每个名字和双边表核对一遍。只要有一个名字客户端无权读取，请求就会失败。",
         "next-ts": "在域 DSO_EAST 中读取特殊变量 Next_DSTransfer_Set。每读一次，就从服务器的池子里分配出一个空闲的传输集。",
         "next-ts-resp": "客户端现在可以使用的传输集名称：DSTS_07。",
         "ts-start": "写入传输集的属性：DataSetName DSO_EAST/DS_TIELINES，Interval 4 s，条件 IntervalTimeOut 和 ObjectChange，Status 为 enabled。服务器确认写入，然后开始报告。",
-        "report-interval": "一条无需确认的 MMS InformationReport，以数据集命名。它携带传输集的名称、时间、原因（周期到时）和每个值，每个值都带品质标志：有效、保持、可疑或无效。",
+        "report-interval": "一条无需确认的 MMS InformationReport，以数据集命名。它携带传输集的名称、时间、原因（周期到时）和每个值。每个值都带品质标志，说明它有多可信：有效、保持、可疑或无效。",
         "report-change": "因为有值变化（原因：对象变化），在两次周期报告之间发出。它同样没有应答，除非传输集被标为关键：那时客户端必须确认。",
-        "denied-req": "读取 TSO 自己范围（VCC）内的一个值，不在域 DSO_EAST 中。其他伙伴也许可以读它，DSO_EAST 不行。",
+        "denied-req": "读取 TSO 自己范围（VCC，服务器上所有伙伴共享的部分）内的一个值，不在域 DSO_EAST 中。其他伙伴也许可以读它，DSO_EAST 不行。",
         "denied-resp": "读取结果是 MMS 访问错误，而不是数值。解决办法不在软件里：两家公司把这个值加进表里，并提升表的 ID。"
     },
     "fields": {
-        "tpkt-67": { "name": "TPKT", "note": "版本 3，然后是整条报文的长度：0x0043 = 67 字节。" },
+        "tpkt-67": { "name": "TPKT", "note": "在 TCP 上承载 ISO 报文的报头：版本 3，然后是整条报文的长度：0x0043 = 67 字节。" },
         "tpkt-46": { "name": "TPKT", "note": "版本 3，然后是长度：0x002E = 46 字节。" },
-        "cotp-dt": { "name": "COTP", "note": "一个数据单元（0xF0），是其报文的最后一个（0x80）。" },
+        "cotp-dt": { "name": "COTP", "note": "ISO 传输层报头：一个数据单元（0xF0），是其报文的最后一个（0x80）。" },
         "session": { "name": "会话层", "note": "两个简短的会话头：给出令牌、数据传送。" },
         "presentation": { "name": "表示层", "note": "完全编码的数据，表示上下文 3：后面是 MMS。" },
         "confirmed-req": { "name": "确认请求", "note": "标签 A0，45 字节：一个需要应答的请求。" },
@@ -101,7 +102,7 @@
         "table": "表的名称。在服务器上，它也是客户端的域：DSO_EAST。",
         "table-id": "双方商定的版本。每次建立关联后，客户端都会从服务器读取它。",
         "client-ap": "客户端的 AP 标题（下面是它的 AE 限定词）：服务器靠它知道是谁在呼叫。",
-        "blocks": "双方使用的一致性块：1 为基本服务，2 为变化报告。",
+        "blocks": "双方使用的一致性块（功能组）：1 为基本服务，2 为变化报告。",
         "read": "DSO 可以读取的值。它们放在 DSO 的域 DSO_EAST 中（ICC 范围）。其他任何值都会返回访问错误。",
         "data-value": "Data_RealQ：带品质标志的浮点数。",
         "state": "Data_State：分位或合位这类状态，带品质标志。",

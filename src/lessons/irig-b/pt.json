@@ -1,11 +1,12 @@
 {
-    "intro": "O código de tempo que os relés de subestação recebem há décadas. Um relógio GPS envia um quadro por segundo num cabo coaxial ou num par trançado: 100 bits de 10 ms cada. A largura de cada pulso indica um 0, um 1 ou um marcador, e a primeira borda do quadro é o início exato do segundo.",
+    "intro": "O IRIG-B é o código de tempo que os relés de subestação usam há décadas. Um relógio GPS envia um quadro por segundo num cabo coaxial ou num par trançado de fios: 100 bits, cada um com 10 ms. A largura de cada pulso diz o que ele é: um 0, um 1 ou um marcador de posição. A primeira borda do quadro marca o início exato do segundo.",
+    "plain": "Este código de tempo funciona como o sinal de hora do rádio: o início de cada segundo é marcado com precisão, e um código curto diz que horas são. Um relógio que escuta os satélites envia por um fio, uma vez por segundo, uma sequência de pulsos curtos e longos. Cada equipamento de proteção no fio lê essa sequência e acerta o próprio relógio. Quando algo dá errado, todos anotam o mesmo horário, e a ordem dos eventos fica clara.",
     "steps": {
-        "lock": { "title": "Sincronismo GPS", "text": "O relógio da estação recebe os satélites pela antena e trava no UTC. A partir de agora ele começa cada quadro IRIG-B exatamente no segundo." },
-        "frame": { "title": "Um quadro", "text": "Às 10:41:07.000 começa um quadro: dois marcadores seguidos, depois segundos, minutos, horas, dia do ano e ano em BCD, os bits de controle e os segundos do dia em binário. Todo relé na linha o recebe. O IRIG-B não tem endereços nem respostas." },
-        "set": { "title": "Acertar o relógio", "text": "O horário de um quadro é o da sua primeira borda, mas o relé só o conhece depois de ler o quadro inteiro. Por isso o relé espera o próximo quadro, confere se ele veio exatamente um segundo depois e então acerta o relógio." },
-        "event": { "title": "Um trip", "text": "Uma falta no alimentador F1. O relé F1 abre o disjuntor Q1 e registra o evento com o seu próprio relógio: 10:52:31.283. Os registros de todos os relés desta linha usam a mesma escala de tempo, então a ordem deles fica clara." },
-        "holdover": { "title": "Holdover", "text": "Às 11:40 o cabo da antena é cortado. O relógio passa a rodar com o próprio oscilador e continua enviando. Às 14:12 ele estima o seu erro em até 10 µs e informa isso nos bits de qualidade do tempo: 5." }
+        "lock": { "title": "Travar no GPS", "text": "O relógio da estação recebe os satélites pela antena e trava no UTC (Tempo Universal Coordenado, a hora de referência mundial). A partir de agora ele começa cada quadro IRIG-B exatamente no segundo." },
+        "frame": { "title": "Um quadro", "text": "Às 10:41:07.000 começa um quadro com dois marcadores seguidos. Depois vêm os segundos, minutos, horas, dia do ano e ano em BCD (decimal codificado em binário: cada dígito decimal escrito em binário separadamente). Em seguida vêm os bits de controle e os segundos do dia como um único número binário. Todo relé na linha recebe o quadro. O IRIG-B não tem endereços nem respostas." },
+        "set": { "title": "Acertar o relógio", "text": "O horário de um quadro é o da sua primeira borda, mas o relé só conhece esse horário depois de ler o quadro inteiro. Por isso o relé espera o próximo quadro, confere se ele veio exatamente um segundo depois e então acerta o relógio." },
+        "event": { "title": "Um disjuntor desarma", "text": "Uma falta no alimentador F1. O relé F1 manda abrir o disjuntor Q1, que abre, e registra o evento com o seu próprio relógio: 10:52:31.283. Os registros de todos os relés desta linha usam a mesma escala de tempo, então a ordem deles fica clara." },
+        "holdover": { "title": "Funcionando sem GPS", "text": "Às 11:40 o cabo da antena é cortado. O relógio passa a rodar com o próprio oscilador e continua enviando: isso se chama holdover. Às 14:12 ele estima que o seu erro pode chegar a 10 µs e informa isso nos bits de qualidade do tempo: 5." }
     },
     "frames": {
         "gps": "Hora dos satélites: UTC",
@@ -23,16 +24,16 @@
     "fields": {
         "sec-07": { "name": "Segundos", "note": "07 em BCD: o dígito das unidades, 7, nos bits 1–4, bit menos significativo primeiro, depois o dígito das dezenas, 0, nos bits 6–8. Mostrado aqui em hex, para ser lido como o horário." },
         "sec-08": { "name": "Segundos", "note": "08: um a mais que no último quadro." },
-        "sec-31": { "name": "Segundos", "note": "31 em BCD." },
+        "sec-31": { "name": "Segundos", "note": "31 em BCD: o dígito das unidades, 1, depois o das dezenas, 3." },
         "min-41": { "name": "Minutos", "note": "41 em BCD: unidades nos bits 10–13, dezenas nos bits 15–17." },
-        "min-12": { "name": "Minutos", "note": "12 em BCD." },
+        "min-12": { "name": "Minutos", "note": "12 em BCD: o dígito das unidades, 2, depois o das dezenas, 1." },
         "hour-10": { "name": "Horas", "note": "10 em BCD: unidades nos bits 20–23, dezenas nos bits 25–26. UTC, como dizem os bits de offset." },
-        "hour-14": { "name": "Horas", "note": "14 em BCD." },
+        "hour-14": { "name": "Horas", "note": "14 em BCD: o dígito das unidades, 4, depois o das dezenas, 1." },
         "day-316": { "name": "Dia do ano", "note": "316 = 12 de novembro de 2026, mostrado como 03 16. Unidades nos bits 30–33, dezenas nos 35–38, centenas nos 40–41." },
         "year-26": { "name": "Ano", "note": "(20)26 em BCD, nos bits 50–58. Os códigos sem o ano deixam isso para o relé." },
         "cf-flags": { "name": "Segundo bissexto · horário de verão", "note": "Bits 60–63 (IEEE C37.118.1): nenhum segundo bissexto pendente, nenhuma mudança de horário de verão pendente, fora do horário de verão." },
         "cf-offset": { "name": "Offset de tempo", "note": "Bits 64–68 e 70: 0 horas em relação ao UTC. Este quadro traz UTC." },
-        "tq-0": { "name": "Qualidade do tempo 0", "note": "Bits 71–74: travado no GPS, precisão total." },
+        "tq-0": { "name": "Qualidade do tempo 0", "note": "Bits 71–74: 0, travado no GPS, precisão total." },
         "tq-5": { "name": "Qualidade do tempo 5", "note": "O erro do relógio pode chegar a 10 µs. 4 significaria 1 µs, 6 significaria 100 µs; 15 indica que o horário não é confiável." },
         "parity-0": { "name": "Paridade", "note": "Bit 75: paridade par. Os bits 1–74 têm um número par de uns, então este bit é 0." },
         "parity-1": { "name": "Paridade", "note": "Bit 75: os bits 1–74 têm 17 uns, então este bit é 1 e a contagem volta a ser par." },
@@ -40,7 +41,7 @@
         "sbs-38468": { "name": "Segundos em binário puro", "note": "0x9644 = 38468: um segundo depois." },
         "sbs-51151": { "name": "Segundos em binário puro", "note": "0xC7CF = 51151 = 14 × 3600 + 12 × 60 + 31." },
         "a-format": { "name": "Formato", "note": "B: 100 bits por segundo, um quadro por segundo." },
-        "a-modulation": { "name": "Modulação", "note": "1: uma senoide modulada em amplitude. 0 é nível CC (largura de pulso), 2 é Manchester." },
+        "a-modulation": { "name": "Modulação", "note": "1: uma senoide cuja amplitude leva os pulsos, grande durante um pulso e pequena depois dele. 0 é nível CC (largura de pulso), 2 é Manchester." },
         "a-carrier": { "name": "Portadora", "note": "2: uma portadora de 1 kHz. 0 significa sem portadora, como no nível CC." },
         "a-content": { "name": "Conteúdo", "note": "4: horário do ano em BCD, ano, bits de controle e segundos em binário puro. 0 é o mesmo sem o ano; 7 não tem bits de controle." }
     },
@@ -72,7 +73,7 @@
     },
     "timing": {
         "title": "Os primeiros 110 ms de um quadro",
-        "note": "O quadro de 10:41:07 começa com dois marcadores seguidos: o P0 encerra o quadro anterior, o Pr inicia este, e a borda de subida do Pr é exatamente 10:41:07.000. Depois vêm os segundos, unidades primeiro: 1, 1, 1, 0 = 7. O B00x envia os pulsos como níveis CC: 2 ms para um 0, 5 ms para um 1, 8 ms para um marcador. O B12x coloca os mesmos pulsos numa senoide de 1 kHz, forte durante o pulso e fraca depois dele (cerca de 10:3). A senoide aparece aqui desenhada em degraus.",
+        "note": "O quadro de 10:41:07 começa com dois marcadores seguidos: o P0 encerra o quadro anterior, o Pr inicia este, e a borda de subida do Pr é exatamente 10:41:07.000. Depois vêm os segundos, unidades primeiro: 1, 1, 1, 0 = 7. O B00x envia os pulsos como níveis CC: 2 ms para um 0, 5 ms para um 1, 8 ms para um marcador. O B12x coloca os mesmos pulsos numa senoide de 1 kHz, forte durante o pulso e fraca depois dele (cerca de 10 para 3). A senoide aparece aqui desenhada em degraus.",
         "bits": "Bits",
         "b00x": "B00x · nível CC",
         "b12x": "B12x · 1 kHz",

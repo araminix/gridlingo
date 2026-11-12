@@ -1,12 +1,13 @@
 {
-    "intro": "전력 회사가 인터넷으로 스마트 인버터, 배터리, 충전기에 할 일을 알려 주는 방법이에요. 기기가 클라이언트예요: 전력 회사 서버에서 HTTPS로 XML 리소스를 가져오고, 그 안의 링크를 따라가고, 응답과 측정값을 다시 POST해요. 양쪽의 인증서가 누가 말하는지 증명해요.",
+    "intro": "전력 회사(전력망을 운영하는 회사)가 인터넷으로 태양광 인버터, 가정용 배터리, 전기차 충전기에 할 일을 알려 주는 방법이에요. 이렇게 전력망 곳곳에 흩어진 기기를 DER(distributed energy resources, 분산 에너지 자원)이라고 해요. 기기가 클라이언트예요: 전력 회사 서버에서 XML 문서(구조화된 텍스트)를 HTTPS, 즉 보안 웹으로 가져와요. 브라우저처럼 그 안의 링크를 따라가고, 응답과 측정값을 다시 POST해요. 양쪽의 인증서, 일종의 디지털 신분증이 누가 말하는지 증명해요.",
+    "plain": "요즘은 태양광 패널로 전기를 직접 만들거나 배터리에 저장하는 집이 많아요. 가끔 전력망이 그 전기를 다 받지 못할 때가 있어서, 전력 회사가 이 장치들에 잠시 줄여 달라고 부탁해요. 장치는 저마다 지시를 확인하러 들러요. 예를 들면 \"11:00부터 13:00까지 출력의 절반만 내보내세요\" 같은 지시예요. 그리고 온도 조절기가 예약 일정을 따르듯 그대로 따라요. 양쪽이 디지털 신분증을 보여 주니, 낯선 이가 명령을 내릴 수 없어요.",
     "steps": {
-        "tls": { "title": "인증서 제시", "text": "인버터가 전력 회사 서버로 TLS 1.2 연결을 열어요. 양쪽이 인증서를 보여 주고, 암호 스위트는 하나만 허용돼요. 이제 서로가 누구인지 알아요." },
-        "discover": { "title": "자기 찾기", "text": "인버터가 아는 주소는 /dcap 하나예요. 거기서 링크를 따라 엔드 디바이스 목록으로 가서, lFDI가 자기 인증서와 일치하는 항목을 찾아요." },
-        "control": { "title": "제어 받기", "text": "인버터가 자기 프로그램을 거쳐 DERControl을 읽어요: 11:00 UTC부터 두 시간 동안 출력을 50 %로 제한." },
-        "received": { "title": "수신 확인", "text": "제어가 응답을 요구해요. 인버터가 응답을 하나 POST해요: 상태 1, 수신." },
-        "start": { "title": "출력 제한", "text": "자기 시계로 11:00이 되면 인버터가 출력을 9.6 kW에서 5.0 kW(10 kW의 50 %)로 줄이고, 상태 2, 시작을 POST해요." },
-        "report": { "title": "출력 보고", "text": "인버터가 측정한 전력을 서버에 있는 자기 미러에 POST해요. 전력 회사는 제한이 지켜지는 걸 확인해요." }
+        "tls": { "title": "인증서 제시", "text": "인버터가 전력 회사 서버로 TLS 1.2 연결(암호화된 링크)을 열어요. 양쪽이 인증서를 보여 줘요. 암호 스위트, 즉 정해진 암호화 방식 묶음은 하나만 허용돼요. 이제 서로가 누구인지 알아요." },
+        "discover": { "title": "자기 항목 찾기", "text": "인버터가 아는 주소는 서버의 시작점인 /dcap 하나뿐이에요. 거기서 링크를 따라 엔드 디바이스 목록, 즉 서버가 아는 기기 목록으로 가요. lFDI가 자기 인증서와 일치하는 항목을 찾아요. lFDI(long-form device identifier)는 인증서의 지문이에요." },
+        "control": { "title": "지시 받기", "text": "인버터가 자기 DER 프로그램, 즉 기기 그룹에 내리는 지시 묶음을 거쳐 DERControl을 읽어요: 11:00 UTC(협정 세계시)부터 두 시간 동안 출력을 50 %로 제한." },
+        "received": { "title": "수신 확인", "text": "제어가 기기에 응답을 요구해요. 인버터가 첫 응답을 POST해요: 상태 1, 수신." },
+        "start": { "title": "출력 제한", "text": "자기 시계로 11:00이 되면 인버터가 출력을 9.6 kW에서 5.0 kW로 줄여요: 최대 출력 10 kW의 50 %예요. 상태 2, 시작을 POST해요." },
+        "report": { "title": "출력 보고", "text": "인버터가 측정한 전력을 자기 미러에 POST해요. 미러는 서버가 보관하는 인버터 계량기의 사본이에요. 전력 회사는 제한이 지켜지는 걸 확인해요." }
     },
     "frames": {
         "client-hello": "안녕하세요. TLS 1.2를 쓰고, 암호 스위트는 이것 하나예요",
@@ -25,34 +26,34 @@
         "post-reading": "지금 유효 전력은 5000 W예요"
     },
     "notes": {
-        "server-hello": "메시지 네 개를 한 번에 보내요. ServerHello가 0xC0AE를 골라요. Certificate에는 서버의 인증서 체인이 담겨요. ServerKeyExchange에는 ECDHE 키 합의의 서버 몫이 담겨요. CertificateRequest는 클라이언트의 인증서를 요구해요: 이게 없으면 TLS는 서버만 검사해요.",
+        "server-hello": "메시지 네 개를 한꺼번에 보내요. ServerHello가 암호 스위트 0xC0AE를 골라요. Certificate에는 서버의 인증서 체인이 담겨요: 서버 자신의 인증서와 이를 보증하는 인증서들이에요. ServerKeyExchange에는 ECDHE 키 합의의 서버 몫이 담겨요. CertificateRequest는 클라이언트의 인증서를 요구해요: 이게 없으면 TLS는 서버만 검사해요.",
         "client-finished": "인버터가 기기 인증서와 키 합의의 자기 몫을 보내요. 그다음 개인 키로 핸드셰이크 전체에 서명해요(CertificateVerify): 인증서의 진짜 주인만 할 수 있는 일이에요. 인증서는 공장에서 IEEE 2030.5 PKI에 따라 넣었고, 만료되지 않아요.",
         "server-finished": "서버가 인버터의 인증서 체인을 자기가 신뢰하는 루트까지 검사한 뒤, 자기 Finished를 보내요. 여기서부터는 모든 레코드가 암호화돼요. 그 안으로 HTTP가 오가고, 중간의 누구도 읽거나 바꿀 수 없어요.",
         "get-dcap": "TLS 안에서: GET /dcap HTTP/1.1, Accept: application/sep+xml. /dcap는 클라이언트가 받는 유일한 주소예요. 다른 주소는 모두 링크로 찾아요.",
-        "dcap": "DeviceCapability 리소스예요: EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\", TimeLink href=\"/tm\" 같은 링크가 있어요. pollRate=\"900\": 이 리소스들을 900초마다 폴링하라는 뜻이에요.",
+        "dcap": "DeviceCapability 리소스예요: EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\", TimeLink href=\"/tm\" 같은 링크가 있어요. pollRate=\"900\": 이 리소스들을 900초마다 다시 읽으라는 뜻이에요.",
         "get-edev": "엔드 디바이스 목록. 서버는 이 인증서가 볼 수 있는 기기만 보여 줄 수도 있어요.",
-        "edev": "EndDevice마다 lFDI와 sFDI가 있어요. /edev/3에는 인버터 자신의 BB1309569EF761C13E620EA80AA3E84D2B6B553D가 있어요. 설치 기사가 인버터를 설치할 때 그 SFDI를 전력 회사에 전달했어요.",
+        "edev": "EndDevice마다 lFDI와 sFDI가 있어요: 식별자의 긴 형식과 짧은 형식이에요. /edev/3에는 인버터 자신의 BB1309569EF761C13E620EA80AA3E84D2B6B553D가 있어요. 설치 기사가 인버터를 설치할 때 그 SFDI를 전력 회사에 전달했어요.",
         "get-derc": "그 전에 비슷한 GET이 두 번 더 있었어요: /edev/3에서 FunctionSetAssignments로, 이어서 DER 프로그램 목록으로. 프로그램 /derp/1이 자기 제어로 링크해요.",
         "derc": "DERControl 하나, '직접 해 보기'에서 한 줄씩 볼 수 있어요: 1781694000(11:00 UTC)부터 7200초 동안 opModMaxLimW 5000(50.00 %).",
-        "post-received": "제어의 replyTo 주소로 POST한 DERControlResponse예요. 인버터의 lFDI, subject로 제어의 mRID, 그리고 상태 1: 수신이 담겨요.",
+        "post-received": "제어의 replyTo 주소로 POST한 DERControlResponse예요. 인버터의 lFDI, subject로 제어의 mRID(고유 ID), 그리고 상태 1: 수신이 담겨요.",
         "created": "HTTP 201 Created. Location 헤더에 저장된 응답의 주소가 있어요.",
         "post-started": "상태 2: 시작인 같은 응답이에요. 13:00에 인버터는 상태 3, 완료를 POST하고 기본 제어로 돌아갈 거예요.",
         "post-reading": "MirrorMeterReading이에요. 서버는 인버터 계량기의 미러(MirrorUsagePoint)를 두고, 인버터가 이를 채워요. 단위는 ReadingType에 있어요: uom 38은 와트예요."
     },
     "fields": {
-        "record-type": { "name": "레코드 유형", "note": "22(0x16): 핸드셰이크 메시지." },
+        "record-type": { "name": "레코드 유형", "note": "22(0x16): 연결을 준비하는 핸드셰이크 메시지." },
         "record-version": { "name": "버전", "note": "0x0303: TLS 1.2. IEEE 2030.5는 TLS 1.2를 요구해요." },
         "record-length": { "name": "레코드 길이", "note": "이 레코드에 69바이트가 이어져요." },
-        "client-hello": { "name": "ClientHello", "note": "핸드셰이크 유형 1." },
+        "client-hello": { "name": "ClientHello", "note": "핸드셰이크 유형 1: 클라이언트의 첫 메시지." },
         "hello-length": { "name": "길이", "note": "ClientHello 65바이트가 이어져요." },
         "client-version": { "name": "클라이언트 버전", "note": "인버터가 쓸 수 있는 최고 버전: TLS 1.2." },
         "random": { "name": "랜덤", "note": "무작위 32바이트. 양쪽이 이를 세션 키에 섞어 넣어요." },
         "session-id": { "name": "세션 ID", "note": "길이 0: 재개할 이전 세션이 없어요." },
         "suites-length": { "name": "암호 스위트", "note": "암호 스위트 2바이트가 이어져요: 하나뿐이에요." },
-        "suite": { "name": "0xC0AE", "note": "TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8, IEEE 2030.5가 요구하는 스위트예요. ECDHE로 키를 합의하고, ECDSA로 인증서에 서명하고, CCM 모드 AES-128로 데이터를 암호화하며 태그는 8바이트예요." },
+        "suite": { "name": "0xC0AE", "note": "TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8, IEEE 2030.5가 요구하는 스위트예요. ECDHE로 키를 합의해요. ECDSA로 인증서에 서명해요. CCM 모드 AES-128로 데이터를 암호화하고, 데이터가 바뀌지 않았음을 보여 주는 8바이트 태그를 붙여요." },
         "compression": { "name": "압축", "note": "방법 하나: 0, 압축 없음." },
         "extensions-length": { "name": "확장", "note": "확장 22바이트가 이어져요." },
-        "groups": { "name": "supported_groups", "note": "확장 0x000A: secp256r1(0x0017), 즉 P-256 곡선만." },
+        "groups": { "name": "supported_groups", "note": "확장 0x000A: secp256r1(0x0017), 즉 P-256 타원 곡선만." },
         "point-formats": { "name": "ec_point_formats", "note": "확장 0x000B: 곡선 점을 압축하지 않고 보내요(0)." },
         "signatures": { "name": "signature_algorithms", "note": "확장 0x000D: 0x0403, SHA-256을 쓰는 ECDSA만." },
         "a-first36": { "name": "처음 36비트", "note": "처음 16진수 9자리. 이것으로 SFDI를 만들어요." },
@@ -62,8 +63,8 @@
         "s-check": { "name": "검사 숫자", "note": "모든 자릿수의 합을 10의 배수로 만들어요: 5+0+2+1+7+3+9+1+4+6+5 = 43, 43 + 7 = 50. 잘못 입력하면 합이 맞지 않아요." }
     },
     "devices": {
-        "pv": "PV 어레이",
-        "inverter": "PV 인버터",
+        "pv": "태양광 패널",
+        "inverter": "태양광 인버터",
         "router": "현장 라우터",
         "server": "전력 회사 서버"
     },
@@ -78,7 +79,7 @@
         "LFDI는 인증서에서 나와요. 인증서가 바뀌면 LFDI와 SFDI도 바뀌니, 기기를 다시 등록해야 해요.",
         "제어는 UTC 기준 Unix 시간을 써요. 시계가 틀린 인버터는 엉뚱한 시각에 출력을 제한하니, 서버의 Time 리소스(/tm)에 맞춰 두세요.",
         "매번 /dcap에서 시작해서 링크를 따라가세요. 다른 주소는 모두 서버 소관이라 바뀔 수 있어요.",
-        "대부분의 인버터는 들어오는 연결을 막는 라우터 뒤에 있어서 폴링을 해요. pollRate보다 빨리 폴링하지 마세요: 수천 대의 기기가 서버 하나를 함께 써요."
+        "대부분의 인버터는 들어오는 연결을 막는 라우터 뒤에 있어서 폴링을 해요: 서버에 묻고 또 물어요. pollRate보다 빨리 폴링하지 마세요: 수천 대의 기기가 서버 하나를 함께 써요."
     ],
     "points": {
         "limit": "출력 제한",
@@ -98,7 +99,7 @@
         "file": "인버터가 3단계에서 읽는 DERControl이에요. 표시된 줄을 골라 의미를 확인해 보세요.",
         "href": "이 제어 자신의 주소. 네임스페이스 urn:ieee:std:2030.5:ns가 모든 IEEE 2030.5 문서를 표시해요.",
         "reply": "응답을 POST할 곳(replyTo)과 요구하는 응답: responseRequired 03은 수신, 그리고 시작과 완료를 요구해요.",
-        "mrid": "전 세계에서 고유한 128비트 ID로, 응답이 이를 가리켜요. 마지막 16진수 8자리는 발행자의 IANA 기업 번호예요: 32473(0x7ED9)은 예시용으로 남겨 둔 번호예요.",
+        "mrid": "전 세계에서 고유한 128비트 ID예요. 응답이 이를 가리켜요. 마지막 16진수 8자리는 발행자의 IANA 기업 번호예요: 32473(0x7ED9)은 예시용으로 남겨 둔 번호예요.",
         "created": "시각은 UTC 기준 Unix 초예요: 1781686800은 2026-06-17 09:00이에요.",
         "status": "0: 예약됨. 1이면 활성, 2면 취소예요.",
         "duration": "7200초: 두 시간.",

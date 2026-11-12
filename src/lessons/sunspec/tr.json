@@ -1,11 +1,12 @@
 {
-    "intro": "Her Modbus cihazının kendi register haritası vardır; yani her yeni cihaz yeni bir kılavuz demektir. SunSpec haritayı sabitler: cihaz verisini, her birinde değerlerin sırası bilinen numaralı modellere yerleştirir. Bir kontrolör modelleri birbiri ardınca kendi bulur ve her SunSpec inverterini, bataryasını ya da sayacını aynı şekilde okur.",
+    "intro": "Bir Modbus cihazı değerlerini register'larda tutar: numaralı, 16 bitlik kutular. Her cihazın kendi register haritası, yani hangi register'ın neyi tuttuğunu gösteren listesi vardır; bu yüzden her yeni cihaz yeni bir kılavuz demektir. SunSpec haritayı sabitler. Cihaz verisini numaralı modellere yerleştirir: her birinde değerlerin sırası bilinen register blokları. Bir kontrolör modelleri birbiri ardınca kendi bulur ve her SunSpec inverterini, bataryasını ya da sayacını aynı şekilde okur.",
+    "plain": "SunSpec, güneş enerjisi dönüştürücülerinin, bataryaların ve sayaçların içindeki ölçümler için ortak bir düzendir. O olmadan her üretici ölçümleri kendi sırasıyla dizer; bu yüzden her yeni cihaz için ayrı bir kılavuz gerekir. SunSpec ile her cihaz aynı formu aynı sırayla doldurur ve her sayfanın başında bir etiket bulunur. Böylece tek bir program, hangi üreticiden olursa olsun cihazları aynı şekilde okuyabilir.",
     "steps": {
-        "find": { "title": "İşareti bul", "text": "Kontrolör bu inverter hakkında henüz hiçbir şey bilmiyor. 40000'deki iki register'ı okur. İçlerinde \"SunS\" yazar: bu cihaz SunSpec'e uyuyor ve haritası elle girilmek yerine bulunabilir." },
-        "common": { "title": "Sen kimsin?", "text": "İlk model her zaman ortak model, yani ID 1'dir: cihazı kimin yaptığı, ne olduğu, seri numarası. Her model iki register'la başlar: ID'si ve uzunluğu." },
-        "walk": { "title": "Sonraki model", "text": "Kontrolör ortak modelin uzunluğu kadar atlar: 40002 + 2 + 66 = 40070. Orada model 103'ü bulur: 50 register uzunluğunda, üç fazlı bir inverter." },
-        "read": { "title": "Ölçek çarpanlarıyla oku", "text": "Register'lar 16 bitlik tam sayılar tutar. Bu yüzden her değerin bir ölçek çarpanı vardır: başka bir register'daki onun bir kuvveti. W = 4820 ve W_SF = 0 ise 4820 W eder. Hz = 5001 ve Hz_SF = −2 ise 50.01 Hz eder." },
-        "end": { "title": "Son", "text": "Kontrolör yeniden atlar, 40070 + 2 + 50 = 40122'ye, ve ID 0xFFFF'i bulur: başka model yok. Artık inverterdeki her modeli ve her değerin nerede durduğunu biliyor." }
+        "find": { "title": "SunSpec işaretini bul", "text": "Santral kontrolörü bu inverter hakkında henüz hiçbir şey bilmiyor. Bakılacak olağan yer olan 40000 adresindeki iki register'ı okur. İçlerinde \"SunS\" harfleri yazar: bu cihaz SunSpec'e uyuyor ve haritası elle girilmek yerine bulunabilir." },
+        "common": { "title": "Sen kimsin?", "text": "İlk model her zaman ortak model, yani ID 1'dir: cihazı kimin yaptığı, ne olduğu, seri numarası. Her model iki register'lık bir başlıkla başlar: ne tür bir model olduğunu söyleyen ID'si ve register cinsinden uzunluğu." },
+        "walk": { "title": "Sonraki modeli bul", "text": "Kontrolör ortak modelin uzunluğu kadar atlar: 40002 + 2 + 66 = 40070. Orada model 103'ü bulur: 50 register uzunluğunda, üç fazlı bir inverter (şebekenin gerilim taşıyan üç telini de besleyen bir inverter)." },
+        "read": { "title": "Gücü ve frekansı oku", "text": "Register'lar yalnızca 16 bitlik tam sayılar tutar. Bu yüzden her değer, başka bir register'daki bir ölçek çarpanıyla birlikte gelir: değerin çarpılacağı onun kuvveti. W (aktif güç) = 4820 ve W_SF = 0 ise 4820 × 1 = 4820 W eder. Hz (şebeke frekansı) = 5001 ve Hz_SF = −2 ise 5001 × 0.01 = 50.01 Hz eder." },
+        "end": { "title": "Listenin sonu", "text": "Kontrolör yeniden atlar, 40070 + 2 + 50 = 40122'ye, ve ID 0xFFFF'i bulur: başka model yok. Artık inverterdeki her modeli ve her değerin nerede durduğunu biliyor." }
     },
     "frames": {
         "sid-req": "Bana 40000 ve 40001 numaralı register'ları gönder",
@@ -20,7 +21,7 @@
         "end-resp": "0xFFFF: son model oydu"
     },
     "fields": {
-        "tid-1": { "name": "Transaction ID 1", "note": "Kontrolörün seçtiği bir numara. Yanıt da aynısını taşır." },
+        "tid-1": { "name": "Transaction ID 1", "note": "Kontrolörün seçtiği bir numara. Yanıt da aynısını taşır; böylece kontrolör ikisini eşleştirebilir." },
         "tid-2": { "name": "Transaction ID 2", "note": "Sonraki istek, sonraki numara." },
         "tid-3": { "name": "Transaction ID 3", "note": "Üçüncü istek." },
         "tid-4": { "name": "Transaction ID 4", "note": "Dördüncü istek." },
@@ -49,17 +50,17 @@
         "mn": { "name": "Mn", "note": "Üretici: \"Example\". Bir metin her zaman tüm register'larını kaplar, burada 16; her birinde iki karakter. Gerisini sıfırlar doldurur." },
         "md": { "name": "Md", "note": "Model: \"EX-5K-3P\", 16 register." },
         "opt": { "name": "Opt", "note": "Seçenekler, 8 register: hepsi sıfır, yani kullanılmıyor." },
-        "vr": { "name": "Vr", "note": "Sürüm, 8 register: yazılım \"3.4.1\"." },
+        "vr": { "name": "Vr", "note": "Sürüm, 8 register: firmware (cihazın kendi yazılımı) \"3.4.1\"." },
         "sn": { "name": "SN", "note": "Seri numarası, 16 register: \"24110042\"." },
         "fill": { "name": "Sıfırlar", "note": "Metinden sonraki sıfırlar." },
         "da": { "name": "DA", "note": "Cihaz adresi: yanıt verdiği unit ID, 1." },
         "pad": { "name": "Pad", "note": "Uzunluğu çift yapan bir dolgu register'ı. Değerinin bir anlamı yoktur." },
         "id-103": { "name": "ID 103", "note": "0x0067 = 103: tam sayılar ve ölçek çarpanlarıyla üç fazlı bir inverter." },
         "l-50": { "name": "L 50", "note": "0x0032 = 50 register: 40072'den 40121'e." },
-        "w": { "name": "W", "note": "0x12D4 = 4820: ölçeklemeden önce AC güç. W işaretli bir sayıdır." },
+        "w": { "name": "W", "note": "0x12D4 = 4820: ölçeklemeden önce AC güç. W işaretlidir: negatif olabilir." },
         "w-sf": { "name": "W_SF", "note": "0: W'yi 10⁰ = 1 ile çarp. Güç 4820 W." },
         "hz": { "name": "Hz", "note": "0x1389 = 5001: ölçeklemeden önce şebeke frekansı." },
-        "hz-sf": { "name": "Hz_SF", "note": "0xFFFE = −2: Hz'i 10⁻² ile çarp. Frekans 50.01 Hz." },
+        "hz-sf": { "name": "Hz_SF", "note": "0xFFFE, işaretli bir sayı olarak okununca −2'dir: Hz'i 10⁻² = 0.01 ile çarp. Frekans 50.01 Hz." },
         "id-end": { "name": "ID 0xFFFF", "note": "Bitiş modeli: ardından başka model gelmez." },
         "l-0": { "name": "L 0", "note": "Bitiş modelinin verisi yoktur." },
         "a-at": { "name": "Başlık", "note": "Modelin ilk register'ı: ID'si." },
@@ -85,7 +86,7 @@
         "frames": "Düz Modbus: FC 03 ile okuma, FC 06 ve FC 16 ile yazma"
     },
     "tips": [
-        "Register numaralarını bir cihazdan diğerine kopyalamayın. Taban adresinden başlayarak modelleri dolaşın: aynı model bir sonraki cihazda başka bir yerde olabilir.",
+        "Register numaralarını bir cihazdan diğerine kopyalamayın. Modelleri taban adresinden, yani \"SunS\" yazan yerden başlayarak dolaşın: aynı model bir sonraki cihazda başka bir yerde olabilir.",
         "Bazı cihazlar ortak modelin uzunluğunu pad olmadan 65 olarak verir. Her zaman cihazın gönderdiği uzunluk kadar atlayın.",
         "İşaretli bir register'da ya da ölçek çarpanında 0x8000, işaretsiz bir register'da 0xFFFF \"uygulanmadı\" demektir. Bunları −32768 ya da 65535 olarak göstermeyin.",
         "Bir değeri ve ölçek çarpanını tek istekte okuyun. Ayrı iki okuma, yeni bir değeri eski bir ölçek çarpanıyla eşleştirebilir."

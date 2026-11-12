@@ -1,11 +1,12 @@
 {
-    "intro": "Bir fazör ölçüm birimi (PMU), gerilimi ve akımı fazör olarak ölçer: sinüs dalgasının büyüklüğü ve her UTC saniyesinde başlayan kusursuz bir 50 Hz dalgaya göre açısı. Saatini GPS'ten alır; bu yüzden her değerin kesin bir zaman damgası vardır. Bir yoğunlaştırıcı (PDC), birçok PMU'nun akışını toplar ve tüm şebekeyi aynı anda görmek için onları zamana göre hizalar.",
+    "intro": "Bir fazör ölçüm birimi (PMU), gerilimi ve akımı fazör olarak ölçer. Fazör, alternatif dalga için iki sayı verir: büyüklüğünü ve açısını. Açı, dalganın her UTC saniyesinde (UTC: dünyanın standart saati) başlayan kusursuz bir 50 Hz referans dalgasının ne kadar önünde ya da gerisinde olduğunu söyler. PMU'nun saati GPS uydularından gelir; bu yüzden her değerin kesin bir zaman damgası vardır. Bir fazör veri yoğunlaştırıcısı (PDC), birçok PMU'nun akışını toplar ve tüm şebekeyi aynı anda görmek için onları zamana göre hizalar.",
+    "plain": "Şebeke elektriği, ülkeye göre saniyede 50 ya da 60 kez ileri geri salınır. C37.118, şebekenin dört bir yanındaki ölçüm cihazlarının bu salınımın ne kadar güçlü olduğunu ve ritminin tam olarak neresinde bulunduğunu saniyede birçok kez bildirmesini sağlar. Her cihaz saatini uyduya göre ayarlar; böylece birbirinden uzak okumalar, aynı anda birçok kameranın çektiği fotoğraflar gibi yan yana konabilir. Hepsi birlikte tüm şebekeyi tek bir anda ve yayılan sorunları gösterir.",
     "steps": {
-        "connect": { "title": "Bağlan", "text": "Kontrol merkezindeki PDC, PMU'ya 4712 portundan TCP bağlantısı açar. PMU, istenmedikçe hiçbir şey göndermez." },
-        "config": { "title": "Konfigürasyonu iste", "text": "Veri çerçeveleri yalnızca sayı taşır: ad yok, birim yok. Bu yüzden PDC önce konfigürasyon çerçevesi 2'yi (CFG-2) ister: hangi değerler, hangi formatta, hangi hızla gelecek." },
+        "connect": { "title": "Bağlantıyı aç", "text": "Kontrol merkezindeki PDC, PMU'ya 4712 portundan bir TCP bağlantısı (iki bilgisayar arasında güvenilir bir hat) açar. PMU, istenmedikçe hiçbir şey göndermez." },
+        "config": { "title": "Konfigürasyonu iste", "text": "Ölçümleri taşıyan mesajlar olan veri çerçeveleri yalnızca sayı içerir: ad yok, birim yok. Bu yüzden PDC önce konfigürasyon çerçevesi 2'yi (CFG-2) ister. O da hangi değerlerin, hangi formatta, hangi hızla geleceğini söyler." },
         "start": { "title": "Akışı başlat", "text": "Komut 2 veri çerçevelerini açar. PMU, PDC komut 1'i gönderene ya da bağlantıyı kapatana kadar göndermeye devam eder." },
-        "stream": { "title": "Saniyede 50 çerçeve", "text": "Her 20 ms'de bir veri çerçevesi: zaman damgası, durum, iki fazör ve frekans. 20 ms içinde iki açı da +0.144° kaydı, çünkü şebeke 50.020 Hz'te, yani 50 Hz referansından biraz hızlı çalışıyor." },
-        "event": { "title": "Bir jeneratör açıyor", "text": "Şebekenin bir yerinde büyük bir jeneratör devre dışı kalır. Frekans düşer: 49.946 Hz, saniyede −0.12 Hz hızla. Tüm PMU'lar aynı GPS saniyesine göre zaman damgası bastığı için PDC değerlerini örnek örnek karşılaştırabilir." }
+        "stream": { "title": "Saniyede 50 çerçeve", "text": "Her 20 ms'de bir zaman damgası, bir durum, iki fazör ve frekansla bir veri çerçevesi gelir. 20 ms içinde iki açı da +0.144° kaydı. Nedeni: şebeke 50.020 Hz'te, yani 50 Hz referans dalgasından biraz hızlı çalışıyor." },
+        "event": { "title": "Bir jeneratör açıyor", "text": "Şebekenin bir yerinde büyük bir jeneratör açar: aniden devreden çıkar. Frekans düşer: 49.946 Hz, saniyede −0.12 Hz hızla. Tüm PMU'lar aynı GPS saniyesine göre zaman damgası bastığı için PDC değerlerini örnek örnek karşılaştırabilir." }
     },
     "frames": {
         "tcp": "4712 portuna TCP aç",
@@ -17,10 +18,10 @@
         "data-event": "Frekans 49.946 Hz, 0.12 Hz/s hızla düşüyor"
     },
     "notes": {
-        "tcp": "Düz TCP. Komutlar ve veri, buradaki gibi bu tek bağlantıyı paylaşabilir. Bir PMU verisini UDP üzerinden de, genellikle 4713 portuna gönderebilir; bu, birkaç PDC'ye multicast yapmaya da izin verir."
+        "tcp": "Düz TCP. Komutlar ve veri, buradaki gibi bu tek bağlantıyı paylaşabilir. Bir PMU verisini UDP üzerinden de, genellikle 4713 portuna gönderebilir. UDP multicast'e de izin verir: tek bir akış aynı anda birkaç PDC'ye gönderilir."
     },
     "fields": {
-        "sync-cmd": { "name": "SYNC", "note": "Her çerçeve 0xAA ile başlar. 0x41: çerçeve türü 4 (komut), sürüm 1." },
+        "sync-cmd": { "name": "SYNC", "note": "Her çerçeve 0xAA ile başlar. 0x41: çerçeve türü 4 (komut), sürüm 1 (2005 standardının çerçeve formatı; 2011 bu çerçeveler için onu korur)." },
         "sync-cfg2": { "name": "SYNC", "note": "0x31: çerçeve türü 3 (konfigürasyon çerçevesi 2), sürüm 1." },
         "sync-data": { "name": "SYNC", "note": "0x01: çerçeve türü 0 (veri çerçevesi), sürüm 1." },
         "size-18": { "name": "FRAMESIZE", "note": "18 bayt: denetim dahil tüm çerçeve." },
@@ -31,7 +32,7 @@
         "soc-07": { "name": "SOC", "note": "0x6AF597C3 = 10:41:07 UTC." },
         "soc-12": { "name": "SOC", "note": "0x6AF597C8 = 10:41:12 UTC." },
         "tq-0": { "name": "Zaman kalitesi", "note": "0: saat UTC'ye kilitli ve yaklaşan bir artık saniye yok. GPS kesilirse bu kod, saatin ne kadar kaymış olabileceğini söyler." },
-        "frac-954": { "name": "FRACSEC", "note": "0x0E8E90 = 954 000 µs: 10:41:06.954." },
+        "frac-954": { "name": "FRACSEC", "note": "Saniyenin kesri, milyonda bir cinsinden: 0x0E8E90 = 954 000 µs: 10:41:06.954." },
         "frac-961": { "name": "FRACSEC", "note": "0x0EA9E8 = 961 000 µs: 10:41:06.961." },
         "frac-970": { "name": "FRACSEC", "note": "0x0ECD10 = 970 000 µs: 10:41:06.970." },
         "frac-0": { "name": "FRACSEC", "note": "0: tam saniyede. Bu, çerçevenin çıktığı an değil, değerlerin ölçüldüğü andır." },
@@ -39,23 +40,23 @@
         "frac-460": { "name": "FRACSEC", "note": "0x0704E0 = 460 000 µs: 10:41:12.460." },
         "cmd-5": { "name": "CMD 5", "note": "Konfigürasyon çerçevesi 2'yi gönder. Diğer komutlar: 1 veriyi durdurur, 2 başlatır, 3 başlık çerçevesini, 4 de CFG-1'i ister." },
         "cmd-2": { "name": "CMD 2", "note": "Veri çerçevelerini aç." },
-        "chk": { "name": "CHK", "note": "Kendinden önceki tüm baytların CRC-CCITT'si: polinom 0x1021, başlangıç değeri 0xFFFF. Denetimi tutmayan çerçeve atılır." },
+        "chk": { "name": "CHK", "note": "Kendinden önceki tüm baytlar üzerinden bir hata denetimi (CRC-CCITT): polinom 0x1021, başlangıç değeri 0xFFFF. Denetimi tutmayan çerçeve atılır." },
         "timebase": { "name": "TIME_BASE", "note": "1 000 000 (0x0F4240): FRACSEC saniyenin milyonda birlerini sayar." },
         "numpmu": { "name": "NUM_PMU", "note": "Bu akışta 1 PMU var. Birçok PMU'yu ileten bir PDC hepsini burada listeler; veri çerçeveleri de her biri için bir blok taşır." },
         "stn": { "name": "STN", "note": "İstasyon adı: ALPHA PMU1." },
         "pad": { "name": "Dolgu", "note": "Boşluklar: CFG-2'deki her ad tam 16 karakter uzunluğundadır." },
         "pmuid": { "name": "IDCODE", "note": "Bu PMU'nun verisinin kimliği: 7." },
-        "format": { "name": "FORMAT", "note": "0x000B: fazörler kutupsal biçimde (büyüklük ve açı) float, FREQ ve DFREQ de float." },
+        "format": { "name": "FORMAT", "note": "0x000B: fazörler kutupsal biçimde (büyüklük ve açı) float. FREQ ve DFREQ (frekans ve değişim hızı) de float." },
         "counts": { "name": "PHNMR · ANNMR · DGNMR", "note": "2 fazör, 0 analog değer, 0 dijital durum sözcüğü. FORMAT ile birlikte bu, her veri çerçevesinin boyutunu belirler." },
-        "chnam-v": { "name": "CHNAM", "note": "Fazör 1'in adı: V1 POS SEQ, pozitif bileşen gerilimi." },
+        "chnam-v": { "name": "CHNAM", "note": "Fazör 1'in adı: V1 POS SEQ, pozitif bileşen gerilimi (üç fazın tek bir dengeli değerde birleştirilmiş hâli)." },
         "chnam-i": { "name": "CHNAM", "note": "Fazör 2: I1 POS SEQ, pozitif bileşen akımı." },
         "phunit-v": { "name": "PHUNIT", "note": "İlk bayt 0: fazör 1 bir gerilim. Diğer 3 bayt 16 bit tam sayıları ölçekler (bit başına 300 000 × 10⁻⁵ V); float'larda dikkate alınmaz." },
         "phunit-i": { "name": "PHUNIT", "note": "İlk bayt 1: fazör 2 bir akım. Bit başına 3 000 × 10⁻⁵ A; float'larda bu da kullanılmaz." },
-        "fnom": { "name": "FNOM", "note": "Bit 0 kurulu: 50 Hz'lik bir şebeke. Temiz olsaydı 60 Hz anlamına gelirdi." },
+        "fnom": { "name": "FNOM", "note": "Nominal frekans. Bit 0 kurulu: 50 Hz'lik bir şebeke. Temiz olsaydı 60 Hz anlamına gelirdi." },
         "cfgcnt": { "name": "CFGCNT", "note": "3: PMU'nun konfigürasyonu 3 kez değiştirildi. PDC, kendi kopyasının güncel olup olmadığını bunu karşılaştırarak anlar." },
         "rate": { "name": "DATA_RATE", "note": "Saniyede 50 çerçeve: her 20 ms'de bir." },
         "stat": { "name": "STAT", "note": "0x0000: veri iyi, PMU UTC ile senkron, zaman damgasına göre sıralı, tetikleme yok, yaklaşan konfigürasyon değişikliği yok." },
-        "v1-mag-0": { "name": "V1 büyüklüğü", "note": "89 120 V, bir float. Faz-nötr: fazlar arasında yaklaşık 154 kV." },
+        "v1-mag-0": { "name": "V1 büyüklüğü", "note": "89 120 V, bir float, fazdan nötre ölçülmüş. İki faz arasında bu yaklaşık 154 kV eder." },
         "v1-ang-0": { "name": "V1 açısı", "note": "50 Hz referans dalgasına göre −0.21642 rad = −12.400°." },
         "i1-mag-0": { "name": "I1 büyüklüğü", "note": "412.0 A." },
         "i1-ang-0": { "name": "I1 açısı", "note": "−0.54454 rad = −31.200°." },
@@ -88,7 +89,7 @@
         "speed": "50 Hz'lik bir şebekede saniyede 10 ile 50 çerçeve. Zaman, UTC'ye yaklaşık 1 µs yakın: 50 Hz'te 1 µs, 0.018° eder."
     },
     "tips": [
-        "Veri çerçeveleri ad ve birim taşımaz. PMU'nun ayarları değişir de PDC eski CFG-2'yi tutarsa, hata vermeden yanlış değerler okur. STAT bit 10 bir değişiklikten önce uyarır: CFG-2'yi yeniden okuyun.",
+        "Veri çerçeveleri ad ve birim taşımaz. PMU'nun ayarları değişir de PDC eski CFG-2'yi tutarsa, hata vermeden yanlış değerler okur. STAT bit 10 bir değişiklikten önce uyarır: o zaman CFG-2'yi yeniden okuyun.",
         "Bir açıya güvenmeden önce zaman kalitesine bakın. GPS kaybolunca STAT bit 13 kurulur ve açılar kayar: 50 Hz'te 1 ms'lik saat hatası 18° eder.",
         "IDCODE iki tarafta aynı olmalı. Akış 7 için ayarlanmış bir PDC, başka bir numara taşıyan çerçeveleri yok sayar.",
         "Açılar yalnızca aynı zaman damgasında karşılaştırılabilir. Bir PDC geç kalan çerçeveler için belirli bir süre bekler: çok kısa olursa veri düşürür, çok uzun olursa her ekran geriden gelir."
@@ -111,6 +112,6 @@
         "latency": "+30 ms"
     },
     "playground": {
-        "encoder": "C37.118, float'ları en anlamlı bayt önce gönderir (ABCD). 89120, ilk veri çerçevesindeki V1 büyüklüğüdür: 47 AE 10 00."
+        "encoder": "C37.118, float'ları en anlamlı (en yüksek) bayt önce gönderir (ABCD). 89120, ilk veri çerçevesindeki V1 büyüklüğüdür: 47 AE 10 00."
     }
 }

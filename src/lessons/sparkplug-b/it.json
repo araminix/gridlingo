@@ -1,12 +1,13 @@
 {
-    "intro": "Sparkplug B è un insieme di regole sopra MQTT per lo SCADA. Nomi di topic fissi dicono chi invia cosa. Un messaggio di birth elenca ogni metrica una volta, con un nome, un alias e un tipo di dato; dopo, viaggiano solo le variazioni, tramite alias. Un messaggio di death dice subito allo SCADA quando un gateway è sparito.",
+    "intro": "Sparkplug B è un insieme di regole sopra MQTT, il protocollo publish/subscribe, pensato per lo SCADA: i sistemi che sorvegliano e comandano un impianto. Nomi di topic fissi (i nomi sotto cui si pubblicano i messaggi) dicono chi invia cosa. Un messaggio di birth elenca una volta ogni metrica (un valore con un nome, come la potenza). Ognuna arriva con un nome, un alias (un numero breve al posto del nome) e un tipo di dato. Dopo, viaggiano solo le variazioni, tramite alias. Un messaggio di death dice allo SCADA quando un gateway è sparito, anche se il gateway non ha potuto dirlo da sé.",
+    "plain": "Sono regole comuni per centrali e fabbriche che si scambiano dati attraverso un ufficio postale dei messaggi. Quando un dispositivo si collega, per prima cosa si presenta per intero: tutte le letture che ha, ognuna con un nome e un numero breve. Da lì in poi manda solo ciò che è cambiato, usando i numeri brevi, come dire \"la voce 2 adesso vale tanto\". Se il dispositivo sparisce, l'ufficio postale lo annuncia, così la sala controllo sa che i suoi valori non sono più aggiornati.",
     "steps": {
-        "host": { "title": "SCADA online", "text": "Lo SCADA, il primary host, si connette al broker con un will, si iscrive a tutti i topic Sparkplug, poi pubblica il suo STATE: online, retained." },
-        "connect": { "title": "L'edge node si connette", "text": "L'edge node GW1 si connette con il proprio will, NDEATH, numerato bdSeq 0. Legge lo STATE retained dello SCADA: lo SCADA è online, quindi può iniziare." },
-        "birth": { "title": "Birth", "text": "NBIRTH elenca ogni metrica dell'edge node, DBIRTH ogni metrica dell'inverter dietro di esso: nome, alias, tipo di dato e valore. Ora lo SCADA conosce tutto il modello." },
-        "data": { "title": "Report by exception", "text": "È cambiata solo la potenza dell'inverter. DDATA porta solo quella metrica, tramite il suo alias, con il numero di sequenza successivo." },
-        "rebirth": { "title": "Rebirth", "text": "Lo SCADA riceve seq 4 dopo seq 2: il messaggio 3 è perso. Lo SCADA non può più fidarsi della sua copia, quindi chiede un rebirth. L'edge node invia di nuovo NBIRTH e DBIRTH." },
-        "death": { "title": "Death", "text": "Il collegamento dell'edge node cade dopo 300 s. 45 s dopo (1.5 × il suo keep alive di 30 s) il broker pubblica il suo will, NDEATH. Lo SCADA segna GW1 offline e i suoi valori STALE." }
+        "host": { "title": "Lo SCADA va online", "text": "Lo SCADA, il primary host (l'applicazione principale che riceve i dati), si connette al broker, il server MQTT che inoltra ogni messaggio. Lascia un will: un messaggio che il broker pubblica per lui se scompare. Si iscrive a tutti i topic Sparkplug. Poi pubblica il suo STATE, online, come messaggio retained: il broker lo conserva per chiunque si iscriva in seguito." },
+        "connect": { "title": "Il gateway GW1 si connette", "text": "L'edge node GW1, il gateway che raccoglie i dati dai dispositivi dell'impianto, si connette con il proprio will: NDEATH, il suo messaggio di death. Il will porta bdSeq 0, il numero di sequenza di birth e death di questa sessione. GW1 legge lo STATE retained dello SCADA: lo SCADA è online, quindi può iniziare." },
+        "birth": { "title": "Birth: elenca tutte le metriche", "text": "NBIRTH (node birth) elenca ogni metrica dell'edge node. DBIRTH (device birth) elenca ogni metrica dell'inverter dietro di esso. Ogni metrica arriva con nome, alias, tipo di dato e valore. Ora lo SCADA conosce tutto il modello." },
+        "data": { "title": "Invia solo le variazioni", "text": "È cambiata solo la potenza dell'inverter. DDATA (device data) porta solo quella metrica, tramite il suo alias, con il numero di sequenza successivo. Questo si chiama report by exception: si invia solo ciò che è cambiato." },
+        "rebirth": { "title": "Messaggio perso, rebirth", "text": "Ogni messaggio porta un numero di sequenza, seq. Lo SCADA riceve seq 4 dopo seq 2: il messaggio 3 è perso. Lo SCADA non può più fidarsi della sua copia dei valori, quindi chiede un rebirth con NCMD, un comando rivolto al nodo. L'edge node invia di nuovo NBIRTH e DBIRTH." },
+        "death": { "title": "Il gateway tace", "text": "Il collegamento dell'edge node cade a 300 s, subito dopo il suo ultimo pacchetto. Il broker aspetta 1.5 × il keep alive di 30 s, contati dall'ultimo pacchetto che ha sentito. Quindi 45 s dopo pubblica il will, NDEATH. Lo SCADA segna GW1 offline e i suoi valori STALE: ancora visibili, ma non aggiornati." }
     },
     "frames": {
         "host-connect": "Sono SCADA1. Se scompaio, pubblica che sono offline",
@@ -38,13 +39,13 @@
         "publish-q1-retain": { "name": "MQTT PUBLISH", "note": "0x33: QoS 1 e retained. Il broker lo conserva per ogni edge node che si iscriverà dopo." },
         "rl-65": { "name": "Remaining length", "note": "Seguono 65 byte." },
         "state-topic": { "name": "Topic", "note": "spBv1.0/STATE/SCADA1: il topic STATE dell'host con ID SCADA1." },
-        "packet-id": { "name": "Packet id 1", "note": "Per il PUBACK del broker, come in ogni messaggio QoS 1." },
-        "state-online": { "name": "online", "note": "{\"online\":true, lo SCADA è online. STATE è l'unico messaggio Sparkplug in JSON; tutti gli altri sono protobuf." },
+        "packet-id": { "name": "Packet id 1", "note": "1: il PUBACK (la ricevuta) del broker cita questo numero, come per ogni messaggio QoS 1." },
+        "state-online": { "name": "online", "note": "{\"online\":true, lo SCADA è online. STATE è l'unico messaggio Sparkplug in JSON; tutti gli altri sono protobuf, un formato binario compatto." },
         "state-time": { "name": "timestamp", "note": "1794480000000 ms dal 1970 = 10:40:00.000 UTC. Lo stesso valore del will del suo CONNECT: gli edge node lo usano per distinguere questa sessione da una precedente." },
         "publish-q0": { "name": "MQTT PUBLISH", "note": "0x30: QoS 0, non retained. Un host che si connette dopo impara i valori da un birth, non da dati vecchi." },
         "rl-59": { "name": "Remaining length", "note": "Seguono 59 byte: il topic e il payload." },
         "ddata-topic": { "name": "Topic", "note": "spBv1.0/SolarPark/DDATA/GW1/INV1, 32 byte (0x0020). Da qui in poi, i byte sono un Payload protobuf." },
-        "payload-time": { "name": "timestamp", "note": "Tag 0x08: campo 1, un varint. Quando il messaggio è stato inviato: 1794480067280 ms dal 1970 = 10:41:07.280 UTC. Un varint contiene 7 bit per byte, prima i più bassi; un bit alto a 1 significa che ne seguono altri." },
+        "payload-time": { "name": "timestamp", "note": "Tag 0x08: campo 1, un varint (un numero intero di lunghezza variabile). Quando il messaggio è stato inviato: 1794480067280 ms dal 1970 = 10:41:07.280 UTC. Un varint contiene 7 bit per byte, prima i più bassi; un bit alto a 1 significa che seguono altri byte." },
         "metric": { "name": "metrics", "note": "Tag 0x12: campo 2, una metrica. 0x0E = seguono 14 byte." },
         "alias": { "name": "alias", "note": "Tag 0x10: campo 2 della metrica, l'alias 2. Il birth ha detto che 2 è AC/Power, quindi il nome non viene inviato." },
         "metric-time": { "name": "timestamp", "note": "Tag 0x18: campo 3 della metrica, quando il valore è stato letto: 1794480067250, 30 ms prima dell'invio del messaggio." },
@@ -72,7 +73,7 @@
     },
     "tips": [
         "Ogni edge node ha bisogno di un edge_node_id unico nel suo gruppo e di un proprio client ID MQTT. Due gateway con gli stessi ID si buttano fuori a vicenda, e lo SCADA vede birth e death tutto il giorno.",
-        "Un alias vale solo fino al birth successivo. Uno strumento che tiene i vecchi alias dopo un rebirth archivia i valori sotto la metrica sbagliata.",
+        "Un alias vale solo fino al birth successivo. Uno strumento che tiene i vecchi alias dopo un rebirth salva i valori sotto la metrica sbagliata.",
         "Una metrica che non è nel birth per lo SCADA non esiste. Dopo averne aggiunta una, pubblica un nuovo birth.",
         "Imposta il primary host ID su ogni edge node. Così aspetta lo STATE dello SCADA prima del suo birth. Senza, i birth partono mentre lo SCADA è assente, e lo SCADA deve chiedere dei rebirth."
     ],

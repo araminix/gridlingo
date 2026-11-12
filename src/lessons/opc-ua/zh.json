@@ -1,12 +1,13 @@
 {
-    "intro": "OPC UA 是现代工业软件的客户端–服务器协议。服务器提供一个地址空间：由名称、类型和值组成的节点，通过引用相互连接。客户端先打开安全通道和会话，然后浏览、读取、写入或订阅。",
+    "intro": "OPC UA（Open Platform Communications Unified Architecture，开放平台通信统一架构）是工业软件中广泛使用的客户端–服务器协议。服务器提供一个地址空间：一个个节点（文件夹、对象、变量……），各有名称、类型和值，通过引用相互连接。客户端是发问的程序。它先打开安全通道，确定报文的保护方式。然后打开会话，把它的操作和一个用户关联起来。之后它就可以浏览、读取、写入，或者订阅变化。",
+    "plain": "这个协议让控制程序能看到机器控制器的内部，并按名称找到任何一个值，就像在电脑上翻文件夹。程序先和控制器商量好怎样保护双方的对话，并说明自己是谁。然后它就可以读一个值、改一项设置，或者要求每次值变化时都通知它。",
     "steps": {
-        "hello": { "title": "Hello", "text": "TCP 连上 4840 端口后，客户端发出 Hello：它的缓冲区大小和它要连接的端点。服务器用自己的限值确认。" },
-        "channel": { "title": "安全通道", "text": "OpenSecureChannel 决定报文的保护方式。这里的策略是 None：不签名，不加密。服务器把这个通道编为 5 号。" },
-        "session": { "title": "会话", "text": "CreateSession 和 ActivateSession 把用户和通道绑在一起。客户端得到一个认证令牌，之后每个请求都要带上它。" },
-        "browse": { "title": "浏览", "text": "客户端从 Objects 文件夹开始遍历地址空间，找到对象 PV1 和其中的变量 TotW。" },
-        "read": { "title": "读取一个值", "text": "Read 请求 ns=2;s=PV1.TotW 的属性 13（Value）。应答是一个 Float，4820.0，带两个时间戳。" },
-        "subscribe": { "title": "订阅", "text": "客户端请服务器监视 TotW。它在服务器那里一直挂着一个 Publish 请求；值一变化，服务器就应答它。" }
+        "hello": { "title": "打招呼", "text": "客户端向 4840 端口建立网络连接（TCP）。它发出 Hello：它能接收的最大数据块（缓冲区大小），以及它要连接的端点，也就是它呼叫的服务器地址。服务器用自己的限值确认。" },
+        "channel": { "title": "打开安全通道", "text": "OpenSecureChannel 决定报文的保护方式。签名用来证明报文是谁发的、没有人改动过；加密用来隐藏报文的内容。这里的安全策略是 None：不签名，不加密。服务器把这个通道编为 5 号。" },
+        "session": { "title": "开始会话", "text": "CreateSession 和 ActivateSession 把用户和通道绑在一起。客户端得到一个认证令牌，这是一个保密的 ID，像访客证一样。之后每个请求都要带上它。" },
+        "browse": { "title": "浏览服务器", "text": "客户端从 Objects 文件夹开始翻看地址空间，就像打开磁盘上的文件夹。它找到对象 PV1（一台逆变器）和其中的变量 TotW：总有功功率，即逆变器输出的功率。" },
+        "read": { "title": "读取一个值", "text": "Read 请求节点 ns=2;s=PV1.TotW 的属性 13，即 Value。这个 NodeId 是节点的地址，意思是：在命名空间 2（控制器厂家自己的一套名称）中，字符串 PV1.TotW。应答是一个 Float，即 4 字节的小数：4820.0。它带两个时间戳：值是何时测得的，服务器又是何时读到它的。" },
+        "subscribe": { "title": "订阅变化", "text": "客户端请服务器监视 TotW。它在服务器那里一直挂着一个 Publish 请求，就像一个悬而未答的问题。值一变化，服务器就应答它。" }
     },
     "frames": {
         "hel": "Hello：这是我的缓冲区大小",
@@ -25,21 +26,21 @@
         "publish": "TotW 现在是 4790.5"
     },
     "notes": {
-        "create-req": "一个装着 CreateSessionRequest 的 MSG：客户端的名称和证书、一个随机数（nonce），以及会话允许空闲多久。",
+        "create-req": "一个装着 CreateSessionRequest 的 MSG：客户端的名称和证书、一个 nonce（只用一次的随机数），以及会话允许空闲多久。",
         "create-resp": "服务器返回会话 ID、认证令牌、它的端点和证书。令牌是机密：谁拿到它，谁就能使用这个会话。",
         "activate-req": "使用匿名身份令牌的 ActivateSession。真实用户会发送用户名和为服务器加密的密码，或者一个用户证书。",
         "activate-resp": "会话已激活。如果空闲时间超过 CreateSession 中约定的时长，服务器会关闭它。",
-        "browse-req": "从节点 i=85（Objects 文件夹）开始，沿着它的层次引用浏览。",
+        "browse-req": "从节点 i=85（Objects 文件夹）开始，沿着它的层次引用浏览：层次引用就是从文件夹指向其中内容的链接。",
         "browse-resp": "一个引用列表，每项带 NodeId、浏览名称和节点类别。ns=2;s=PV1 是一个对象；ns=2;s=PV1.TotW 是它里面的一个变量。",
-        "monitor": "两个请求，各有自己的响应。CreateSubscription 把发布间隔设为 1000 ms。CreateMonitoredItems 让服务器每 500 ms 采样一次 TotW。然后客户端提前发出 Publish 请求。",
-        "publish": "一个带数据变化通知的 PublishResponse：客户端给 TotW 的句柄、它的新值和时间戳。客户端在下一个 Publish 请求中确认它。"
+        "monitor": "两个请求，各有自己的响应。CreateSubscription 把发布间隔设为 1000 ms：每秒一次，服务器把有变化的内容发出来，如果有的话。CreateMonitoredItems 让服务器每 500 ms 采样一次 TotW。然后客户端提前发出 Publish 请求。",
+        "publish": "一个带数据变化通知的 PublishResponse：客户端给 TotW 的句柄（它为这一项选的编号）、它的新值和时间戳。客户端在下一个 Publish 请求中确认它。"
     },
     "fields": {
         "hel": { "name": "HEL", "note": "报文类型 Hello，ASCII 编码。" },
         "ack": { "name": "ACK", "note": "报文类型 Acknowledge。" },
         "opn": { "name": "OPN", "note": "报文类型 OpenSecureChannel。" },
         "msg": { "name": "MSG", "note": "报文类型：已打开通道上的服务报文。" },
-        "final": { "name": "F", "note": "报文的最后一个分块。这里它也是唯一的一块。" },
+        "final": { "name": "F", "note": "报文的最后一个分块（片段）。这里它也是唯一的一块。" },
         "size-56": { "name": "报文大小", "note": "0x38 = 56 字节，整条报文。OPC UA 的每个数都是低字节在前。" },
         "size-28": { "name": "报文大小", "note": "0x1C = 28 字节。" },
         "size-132": { "name": "报文大小", "note": "0x84 = 132 字节。" },
@@ -59,7 +60,7 @@
         "channel-0": { "name": "安全通道 ID", "note": "0：还没有通道。编号由服务器选定。" },
         "policy": { "name": "安全策略", "note": "长度 47，然后是 http://opcfoundation.org/UA/SecurityPolicy#None：不签名，不加密。" },
         "no-cert": { "name": "发送方证书", "note": "长度 -1：没有。使用真正的安全策略时，这里放发送方的 X.509 证书。" },
-        "no-thumb": { "name": "接收方指纹", "note": "没有。使用真正的安全策略时：接收方证书的指纹。" },
+        "no-thumb": { "name": "接收方指纹", "note": "长度 -1：没有。使用真正的安全策略时：接收方证书的指纹（一段短哈希）。" },
         "seq-1": { "name": "序号", "note": "1：客户端给它在这个通道上发出的每个分块计数。" },
         "req-1": { "name": "请求 ID", "note": "1。响应带同一个 ID。" },
         "type-446": { "name": "类型", "note": "4 字节的 NodeId：命名空间 0，编号 446（0x01BE）：OpenSecureChannelRequest。" },
@@ -68,12 +69,12 @@
         "handle-1": { "name": "请求句柄", "note": "1：客户端用来匹配应答的编号。" },
         "diag-audit": { "name": "诊断 · 审计", "note": "返回诊断 0（不需要），然后是长度为 -1 的审计条目 ID（没有）。" },
         "timeout": { "name": "超时提示", "note": "0x2710 = 10000 ms：客户端会等待多久。" },
-        "no-header": { "name": "附加报头", "note": "一个空的扩展对象。" },
-        "ua-version": { "name": "协议版本", "note": "0。" },
+        "no-header": { "name": "附加报头", "note": "一个空的扩展对象：没有额外的报头字段。" },
+        "ua-version": { "name": "协议版本", "note": "0：发送方的协议版本。" },
         "issue": { "name": "请求类型", "note": "0：签发新的安全令牌。1 表示续期。" },
         "mode-none": { "name": "安全模式", "note": "1：None。2 为 Sign，3 为 SignAndEncrypt。" },
-        "client-nonce": { "name": "客户端随机数", "note": "长度 0：用 None 时不需要生成密钥。" },
-        "lifetime": { "name": "请求的有效期", "note": "0x0036EE80 = 3600000 ms：客户端会在一小时内为令牌续期。" },
+        "client-nonce": { "name": "客户端随机数", "note": "长度 0：策略为 None 时不生成密钥，所以不需要随机数。" },
+        "lifetime": { "name": "请求的有效期", "note": "0x0036EE80 = 3600000 ms：令牌的有效期应为一小时。客户端会在到期前续期。" },
         "channel-5": { "name": "安全通道 ID", "note": "5：服务器给这个通道的编号。" },
         "seq-1-server": { "name": "序号", "note": "1：服务器给自己的分块计数。" },
         "req-1-resp": { "name": "请求 ID", "note": "1：这是对请求 1 的应答。" },
@@ -109,7 +110,7 @@
         "handle-5-resp": { "name": "请求句柄", "note": "5，与请求中相同。" },
         "results-1": { "name": "结果", "note": "只含一个结果的数组，对应请求的那一个节点。" },
         "mask": { "name": "DataValue 掩码", "note": "0x0D：后面是一个值、一个源时间戳和一个服务器时间戳。没有状态码表示 Good。" },
-        "float": { "name": "Variant 类型", "note": "0x0A = 10：Float，4 字节。" },
+        "float": { "name": "Variant 类型", "note": "0x0A = 10：Float，4 字节的小数。" },
         "value": { "name": "数值", "note": "4820.0，低字节在前。单位 kW 是节点的一个属性（EngineeringUnits）。" },
         "source-time": { "name": "源时间戳", "note": "10:41:06.000 UTC：控制器测得这个值的时间。" },
         "server-time": { "name": "服务器时间戳", "note": "10:41:06.302 UTC：服务器读取它的时间。" },
@@ -122,7 +123,7 @@
         "scada": "SCADA",
         "ctrl": "电站控制器",
         "inv": "PV1 逆变器",
-        "pv": "光伏阵列",
+        "pv": "光伏板",
         "meter": "并网点电表"
     },
     "facts": {
@@ -133,10 +134,10 @@
         "model": "地址空间：命名空间中的节点，通过引用相连"
     },
     "tips": [
-        "本课用安全模式 None，是为了让字节能看得懂。在现场，请使用 SignAndEncrypt，并选用 Basic256Sha256 这样的现行策略。只用 Sign 能防止篡改，但网络上的任何人仍然能读到数值。",
+        "本课用安全模式 None，是为了让字节能看得懂。在现场，请使用 SignAndEncrypt，并选用 Basic256Sha256 这样的现行策略。只用 Sign 能防止任何人篡改报文，但网络上的任何人仍然能读到数值。",
         "双方必须信任对方的证书。很多首次连接失败，是因为服务器把客户端的证书放进了拒绝列表。需要管理员把它移到信任列表。",
         "服务器重启或升级后，命名空间索引可能会变。为每个 NodeId 保存命名空间 URI，连接后再查出它的索引。",
-        "不要每秒多次用 Read 轮询。带采样间隔和发布间隔的订阅，给服务器带来的负担要小得多。"
+        "不要轮询，也就是不要每秒多次发送 Read。带采样间隔和发布间隔的订阅，给服务器带来的负担要小得多。"
     ],
     "points": {
         "channel": "安全通道",

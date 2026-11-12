@@ -1,12 +1,13 @@
 {
-    "intro": "La façon dont les centres de conduite échangent des données en temps réel : un gestionnaire de réseau de transport (GRT, ou TSO) avec les gestionnaires de réseau de distribution (GRD, ou DSO), les centrales et les GRT voisins. ICCP, aussi appelé TASE.2, fonctionne sur MMS. Une table bilatérale, convenue entre les deux entreprises, liste exactement ce que chaque partenaire peut lire, et le serveur la fait respecter.",
+    "intro": "La façon dont les centres de conduite échangent des données en temps réel : un GRT (gestionnaire de réseau de transport, qui exploite le réseau haute tension) avec les GRD (gestionnaires de réseau de distribution, qui exploitent les réseaux locaux), les centrales et les GRT voisins. ICCP, aussi appelé TASE.2, fonctionne sur MMS (Manufacturing Message Specification), la même messagerie qu'utilise IEC 61850. Une table bilatérale, convenue entre les deux entreprises, liste exactement ce que chaque partenaire peut lire, et le serveur la fait respecter.",
+    "plain": "ICCP permet aux salles de conduite de différentes entreprises d'électricité de partager des mesures en temps réel, comme la puissance qui circule entre leurs réseaux. Les deux entreprises conviennent d'abord d'une liste de ce que chacune peut voir, comme une liste d'invités à l'entrée. Le côté émetteur envoie ensuite les valeurs convenues toutes les quelques secondes, et aussitôt quand quelque chose change. Toute demande hors de la liste est refusée.",
     "steps": {
-        "connect": { "title": "Connexion et association", "text": "Le client ICCP du GRD ouvre TCP 102 vers le serveur du GRT, à travers un VPN. MMS établit ensuite l'association : le client se nomme par un AP title, et le serveur n'accepte que les noms présents dans l'une de ses tables bilatérales." },
-        "check": { "title": "Vérifier l'ID de table", "text": "Le client lit Bilateral_Table_ID dans son propre domaine sur le serveur et le compare à sa copie. Ils concordent : les deux côtés travaillent sur le même accord." },
-        "subscribe": { "title": "Demander des rapports", "text": "Le client crée un jeu de données, DS_TIELINES, dans son domaine : les valeurs qu'il veut recevoir ensemble. Un transfer set indique au serveur quand l'envoyer. Le client en demande un libre (Next_DSTransfer_Set), puis écrit dedans : toutes les 4 s, et aussitôt à chaque changement." },
+        "connect": { "title": "Se connecter et s'identifier", "text": "Le client ICCP du GRD ouvre une connexion TCP sur le port 102 vers le serveur du GRT, à travers un VPN (un tunnel chiffré entre les deux entreprises). MMS établit ensuite une association : une session entre les deux programmes. Le client se nomme par un AP title, son nom d'application unique. Le serveur n'accepte que les noms présents dans l'une de ses tables bilatérales." },
+        "check": { "title": "Vérifier la version de la table", "text": "Le client lit Bilateral_Table_ID, la version de l'accord. Il la lit dans son propre domaine sur le serveur : la zone qui contient ce que ce partenaire peut voir. Il compare l'ID à sa propre copie. Ils concordent : les deux côtés travaillent sur le même accord." },
+        "subscribe": { "title": "Demander des rapports", "text": "Le client crée un jeu de données, DS_TIELINES, dans son domaine : une liste des valeurs qu'il veut recevoir ensemble. Un transfer set indique au serveur quand envoyer cette liste. Le client demande un transfer set libre (Next_DSTransfer_Set), puis y écrit ses réglages : toutes les 4 s, et aussitôt à chaque changement." },
         "interval": { "title": "Rapport toutes les 4 s", "text": "Le serveur envoie tout le jeu de données toutes les 4 secondes, sous forme d'InformationReport. Personne ne le demande et personne n'y répond." },
-        "change": { "title": "Rapport sur changement", "text": "Le disjoncteur de la ligne d'interconnexion 2 s'ouvre dans le poste. Le serveur n'attend pas l'intervalle suivant : il envoie un rapport aussitôt. Le transit est passé sur la ligne 1." },
-        "denied": { "title": "Hors de la table", "text": "Un opérateur du GRD demande GEN_K1_MW, la production d'un groupe du GRT. Cette valeur n'est pas dans la table bilatérale de DSO_EAST : le serveur répond par une erreur d'accès au lieu d'une valeur." }
+        "change": { "title": "Rapport sur changement", "text": "Le disjoncteur de la ligne d'interconnexion 2, une ligne qui relie les deux réseaux, s'ouvre dans le poste. Le serveur n'attend pas l'intervalle suivant : il envoie un rapport aussitôt. Le transit de puissance est passé sur la ligne 1." },
+        "denied": { "title": "Accès refusé", "text": "Un opérateur du GRD demande GEN_K1_MW, la production d'un groupe du GRT. Cette valeur n'est pas dans la table bilatérale de DSO_EAST : le serveur répond par une erreur d'accès au lieu d'une valeur." }
     },
     "frames": {
         "connect": "Ouvrir TCP 102 et une connexion de transport ISO",
@@ -25,23 +26,23 @@
         "denied-resp": "Erreur d'accès : absent de ta table"
     },
     "notes": {
-        "connect": "TCP vers le port 102, puis une connexion COTP par-dessus, exactement comme pour IEC 61850 MMS. Entre deux entreprises, cela passe en général dans un VPN IPsec, car ICCP lui-même ne chiffre rien.",
-        "initiate-req": "Les couches session, présentation et ACSE enveloppent le MMS Initiate. ACSE porte les AP titles des deux côtés. Le serveur cherche l'AP title de l'appelant pour savoir quelle table bilatérale, et donc quel domaine, appartient à ce client.",
+        "connect": "TCP vers le port 102, puis une connexion COTP (la couche transport ISO) par-dessus, exactement comme pour IEC 61850 MMS. Entre deux entreprises, cela passe en général dans un VPN IPsec, car ICCP lui-même ne chiffre rien.",
+        "initiate-req": "Les couches session, présentation et ACSE enveloppent le MMS Initiate. ACSE, la couche qui établit l'association, porte les AP titles des deux côtés. Le serveur cherche l'AP title de l'appelant pour savoir quelle table bilatérale, et donc quel domaine, appartient à ce client.",
         "initiate-resp": "Un AP title absent de toute table bilatérale est refusé ici, avant qu'aucune donnée ne puisse être lue. La partie MMS fixe les tailles de message et les services.",
-        "define-ds": "MMS DefineNamedVariableList, dans le domaine DSO_EAST. Le jeu de données d'un transfer set peut commencer par trois membres spéciaux, Transfer_Set_Name, Transfer_Set_Time_Stamp et DSConditions_Detected : chaque rapport dit ainsi quel transfer set l'a envoyé, quand et pourquoi.",
+        "define-ds": "MMS DefineNamedVariableList, dans le domaine DSO_EAST. Le jeu de données d'un transfer set peut commencer par trois membres spéciaux : Transfer_Set_Name, Transfer_Set_Time_Stamp et DSConditions_Detected. Grâce à eux, chaque rapport dit quel transfer set l'a envoyé, quand et pourquoi.",
         "define-ok": "Le serveur vérifie chaque nom dans la table bilatérale avant de créer la liste. Un seul nom que le client n'a pas le droit de lire fait échouer la requête.",
         "next-ts": "Un Read de la variable spéciale Next_DSTransfer_Set dans le domaine DSO_EAST. Chaque lecture attribue un transfer set libre, pris dans la réserve du serveur.",
         "next-ts-resp": "Le nom d'un transfer set que le client peut maintenant utiliser : DSTS_07.",
         "ts-start": "Un Write des attributs du transfer set : DataSetName DSO_EAST/DS_TIELINES, Interval 4 s, conditions IntervalTimeOut et ObjectChange, Status enabled. Le serveur confirme l'écriture, puis commence à envoyer des rapports.",
-        "report-interval": "Un InformationReport MMS non confirmé, au nom du jeu de données. Il porte le nom du transfer set, l'heure, le motif (fin d'intervalle) et toutes les valeurs, chacune avec des indicateurs de qualité : valide, figée (held), douteuse (suspect) ou non valide.",
+        "report-interval": "Un InformationReport MMS non confirmé, au nom du jeu de données. Il porte le nom du transfer set, l'heure, le motif (fin d'intervalle) et toutes les valeurs. Chaque valeur a des indicateurs de qualité qui disent à quel point on peut s'y fier : valide, figée (held), douteuse (suspect) ou non valide.",
         "report-change": "Envoyé entre deux rapports périodiques parce qu'une valeur a changé (motif : changement d'objet). Il ne reçoit pas de réponse non plus, sauf si le transfer set est marqué critique : le client doit alors l'acquitter.",
-        "denied-req": "Un Read d'une valeur du périmètre propre du GRT (VCC), hors du domaine DSO_EAST. D'autres partenaires ont peut-être le droit de la lire ; pas DSO_EAST.",
+        "denied-req": "Un Read d'une valeur du périmètre propre du GRT (VCC, la partie du serveur commune à tous les partenaires), hors du domaine DSO_EAST. D'autres partenaires ont peut-être le droit de la lire ; pas DSO_EAST.",
         "denied-resp": "Le résultat de la lecture est une erreur d'accès MMS au lieu d'une valeur. La solution n'est pas logicielle : les deux entreprises ajoutent la valeur à la table et en augmentent l'ID."
     },
     "fields": {
-        "tpkt-67": { "name": "TPKT", "note": "Version 3, puis la longueur du message entier : 0x0043 = 67 octets." },
+        "tpkt-67": { "name": "TPKT", "note": "L'en-tête qui transporte les messages ISO sur TCP : version 3, puis la longueur du message entier : 0x0043 = 67 octets." },
         "tpkt-46": { "name": "TPKT", "note": "Version 3, puis la longueur : 0x002E = 46 octets." },
-        "cotp-dt": { "name": "COTP", "note": "Une unité de données (0xF0), la dernière de son message (0x80)." },
+        "cotp-dt": { "name": "COTP", "note": "L'en-tête de transport ISO : une unité de données (0xF0), la dernière de son message (0x80)." },
         "session": { "name": "Session", "note": "Deux courts en-têtes de session : give tokens, transfert de données." },
         "presentation": { "name": "Présentation", "note": "Données entièrement encodées, contexte de présentation 3 : la suite est du MMS." },
         "confirmed-req": { "name": "Requête confirmée", "note": "Tag A0, 45 octets : une requête qui attend une réponse." },
@@ -101,7 +102,7 @@
         "table": "Le nom de la table. Sur le serveur, c'est aussi le domaine du client : DSO_EAST.",
         "table-id": "La version convenue par les deux côtés. Le client la relit sur le serveur après chaque association.",
         "client-ap": "L'AP title du client (avec son AE qualifier en dessous) : c'est ainsi que le serveur sait qui appelle.",
-        "blocks": "Les blocs de conformité utilisés par les partenaires : 1, les services de base, et 2, les rapports sur changement.",
+        "blocks": "Les blocs de conformité (groupes de fonctions) utilisés par les partenaires : 1, les services de base, et 2, les rapports sur changement.",
         "read": "Les valeurs que le GRD peut lire. Elles se trouvent dans son domaine, DSO_EAST (périmètre ICC). Tout le reste donne une erreur d'accès.",
         "data-value": "Data_RealQ : un flottant avec indicateurs de qualité.",
         "state": "Data_State : un état comme ouvert ou fermé, avec indicateurs de qualité.",

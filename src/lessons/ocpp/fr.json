@@ -1,12 +1,13 @@
 {
-    "intro": "Le langage entre une borne de recharge et le serveur qui la pilote, le CSMS (système de supervision des bornes). La borne garde un WebSocket ouvert et envoie des messages JSON : qui elle est, l'état de ses connecteurs, quelle carte veut recharger, et le compteur pendant chaque recharge. Le CSMS répond à chaque message, et peut envoyer ses propres requêtes sur la même connexion.",
+    "intro": "Le langage entre une borne de recharge et le serveur qui la pilote : le CSMS (charging station management system, le système de supervision de l'opérateur). La borne garde un WebSocket ouvert : une connexion web durable. Par elle, la borne envoie de courts messages JSON (du texte structuré) : qui elle est, l'état de ses connecteurs (ses prises), quelle carte veut recharger, et le relevé du compteur pendant chaque recharge. Le CSMS répond à chaque message, et peut envoyer ses propres requêtes sur la même connexion.",
+    "plain": "Une borne publique de recharge pour voitures électriques ne travaille pas seule. Elle reste connectée au système informatique de son exploitant, un peu comme un terminal de paiement dans un magasin reste en contact avec la banque. La borne dit quand elle est libre, demande si votre carte a le droit de recharger et indique combien d'énergie vous avez prise, pour que vous puissiez être facturé.",
     "steps": {
-        "connect": { "title": "Connexion", "text": "La borne ouvre un WebSocket sécurisé vers son CSMS. La connexion reste ouverte : chaque côté peut émettre à tout moment." },
-        "boot": { "title": "Démarrage", "text": "Le premier message après la mise sous tension dit qui est la borne. Le CSMS l'accepte, donne l'heure et fixe l'intervalle de heartbeat. Puis la borne signale chaque connecteur : le connecteur 1 est Available." },
-        "authorize": { "title": "Badger", "text": "Un conducteur présente une carte RFID au lecteur. La borne demande au CSMS si cette carte a le droit de recharger. Elle l'a." },
-        "start": { "title": "Début", "text": "La voiture est branchée et commence à prendre de l'énergie. La borne ouvre une transaction et envoie le relevé du compteur au départ." },
-        "charge": { "title": "Valeurs du compteur", "text": "Pendant la recharge, la borne envoie le compteur toutes les 15 minutes. Le CSMS voit l'énergie augmenter." },
-        "stop": { "title": "Fin", "text": "Le conducteur badge de nouveau. La transaction se termine après une heure et 11040 Wh. Le CSMS peut maintenant la facturer." }
+        "connect": { "title": "Se connecter au serveur", "text": "La borne ouvre un WebSocket sécurisé, chiffré, vers son CSMS. La connexion reste ouverte : chaque côté peut émettre à tout moment." },
+        "boot": { "title": "La borne démarre", "text": "Le premier message après la mise sous tension dit qui est la borne. Le CSMS l'accepte, envoie l'heure actuelle et fixe l'intervalle de heartbeat : la fréquence à laquelle la borne doit dire « je suis toujours là ». Puis la borne signale chaque connecteur : le connecteur 1 est Available." },
+        "authorize": { "title": "Badger", "text": "Un conducteur présente une carte RFID (une carte sans contact, comme un badge d'accès) au lecteur. La borne demande au CSMS si cette carte a le droit de recharger. La réponse est oui." },
+        "start": { "title": "La recharge commence", "text": "La voiture est branchée et commence à prendre de l'énergie. La borne ouvre une transaction : l'enregistrement de cette recharge précise. Elle envoie le relevé du compteur au départ." },
+        "charge": { "title": "Transmettre le compteur", "text": "Pendant la recharge, la borne envoie le relevé de son compteur toutes les 15 minutes. Le CSMS voit l'énergie augmenter." },
+        "stop": { "title": "La recharge s'arrête", "text": "Le conducteur badge de nouveau. La transaction se termine après une heure et 11040 Wh (environ 11 kWh). Le CSMS peut maintenant facturer le conducteur." }
     },
     "frames": {
         "upgrade": "Passe en WebSocket, sous-protocole ocpp2.0.1",
@@ -17,37 +18,37 @@
         "status-conf": "Noté",
         "authorize": "La carte 04A2B3C4D5E6F7 peut-elle recharger ?",
         "authorize-conf": "Oui : Accepted",
-        "started": "Transaction TX-0187 commencée à 12840 Wh",
+        "started": "Transaction TX-0187 commencée, compteur à 12840 Wh",
         "started-conf": "Noté, la carte est toujours Accepted",
-        "updated": "Maintenant 15600 Wh, appel de 11040 W",
+        "updated": "Compteur maintenant à 15600 Wh, appel de 11040 W",
         "updated-conf": "Noté",
-        "ended": "TX-0187 terminée à 23880 Wh",
+        "ended": "TX-0187 terminée, compteur à 23880 Wh",
         "ended-conf": "Noté"
     },
     "notes": {
-        "upgrade": "Dans TLS, la borne demande à transformer cette connexion HTTP en WebSocket. L'adresse se termine par son identité, CS-0042. L'en-tête Sec-WebSocket-Protocol demande ocpp2.0.1, et l'authentification HTTP Basic porte le mot de passe de la borne.",
+        "upgrade": "Dans la connexion TLS chiffrée, la borne demande à transformer cette connexion HTTP en WebSocket. L'adresse web se termine par l'identité de la borne, CS-0042. L'en-tête Sec-WebSocket-Protocol demande ocpp2.0.1. L'authentification HTTP Basic porte le mot de passe de la borne.",
         "switch": "Le CSMS accepte et nomme le sous-protocole choisi : ocpp2.0.1. Désormais, les deux côtés envoient des trames WebSocket, chacune contenant un message OCPP en JSON.",
-        "status": "Un CALL avec timestamp, connectorStatus Available, evseId 1 et connectorId 1. Un EVSE est un point de recharge ; il peut avoir plusieurs connecteurs.",
-        "status-conf": "Un CALLRESULT avec un payload vide : [3,\"1002\",{}]. Chaque CALL reçoit une réponse, même quand il n'y a rien à dire.",
-        "authorize": "idToken 04A2B3C4D5E6F7, type ISO14443 : le numéro de série de 7 octets de la carte RFID. Beaucoup de bornes gardent aussi une liste locale de cartes, pour décider sans demander.",
+        "status": "Un CALL (une requête) avec timestamp, connectorStatus Available, evseId 1 et connectorId 1. Un EVSE est un point de recharge : il recharge une voiture à la fois. Il peut avoir plusieurs connecteurs (prises).",
+        "status-conf": "Un CALLRESULT (une réponse) avec un payload vide : [3,\"1002\",{}]. Chaque CALL reçoit une réponse, même quand il n'y a rien à dire.",
+        "authorize": "idToken 04A2B3C4D5E6F7, type ISO14443 (la norme des cartes sans contact) : le numéro de série de 7 octets de la carte RFID. Beaucoup de bornes gardent aussi une liste locale de cartes, pour pouvoir décider sans demander au CSMS.",
         "authorize-conf": "idTokenInfo avec le statut Accepted. D'autres réponses, comme Blocked, Expired, Invalid ou Unknown, signifient que la borne ne doit pas démarrer.",
-        "started": "eventType Started, triggerReason ChargingStateChanged, seqNo 0. La borne choisit le transactionId, TX-0187. L'événement porte l'idToken de la carte, chargingState Charging, et une valeur de compteur de contexte Transaction.Begin : 12840 Wh.",
+        "started": "eventType Started, triggerReason ChargingStateChanged, seqNo 0 : le premier événement de cette transaction. C'est la borne elle-même qui choisit le transactionId, TX-0187. L'événement porte aussi l'idToken de la carte, chargingState Charging, et le relevé du compteur au départ (contexte Transaction.Begin) : 12840 Wh.",
         "started-conf": "L'événement portait la carte : la réponse en redonne donc le statut, idTokenInfo Accepted.",
-        "updated": "eventType Updated, triggerReason MeterValuePeriodic, seqNo 1, avec deux mesures : le registre d'énergie et la puissance. Le bac à sable montre le message complet.",
+        "updated": "eventType Updated, triggerReason MeterValuePeriodic (la minuterie du compteur), seqNo 1. Il porte deux mesures : le registre d'énergie (le total cumulé du compteur) et la puissance (la vitesse à laquelle l'énergie circule à cet instant). Le bac à sable montre le message complet.",
         "updated-conf": "Un payload vide : le CSMS n'a rien à ajouter.",
-        "ended": "eventType Ended, triggerReason StopAuthorized, seqNo 2, stoppedReason Local, chargingState EVConnected (le câble est toujours branché), et la dernière valeur de compteur, de contexte Transaction.End : 23880 Wh.",
+        "ended": "eventType Ended, triggerReason StopAuthorized (une carte a été présentée pour l'arrêter), seqNo 2, stoppedReason Local (arrêtée sur la borne). chargingState vaut EVConnected : le câble est toujours branché. Le dernier relevé du compteur (contexte Transaction.End) est 23880 Wh.",
         "ended-conf": "Un payload vide. Le CSMS facture 23880 − 12840 = 11040 Wh au titulaire de la carte."
     },
     "fields": {
-        "ws-text": { "name": "FIN · opcode", "note": "0x81 : le bit FIN (0x80) indique que tout le message tient dans cette trame. L'opcode 0x1 indique du texte, en UTF-8." },
-        "ws-mask-126": { "name": "Masque · longueur", "note": "0xFE : le bit de masque (0x80) est levé, car un client doit masquer ce qu'il envoie. Le reste, 126 (0x7E), indique que la longueur suit sur 2 octets." },
+        "ws-text": { "name": "FIN · opcode", "note": "0x81. Le bit FIN (0x80) indique que tout le message tient dans cette seule trame. L'opcode 0x1 indique que la trame porte du texte (UTF-8)." },
+        "ws-mask-126": { "name": "Masque · longueur", "note": "0xFE. Le bit de masque (0x80) est levé, car un client doit toujours masquer (brouiller) ce qu'il envoie. Les autres bits contiennent 126 (0x7E), ce qui signifie : la vraie longueur suit sur 2 octets." },
         "ws-len-170": { "name": "Longueur", "note": "0x00AA = 170 octets de JSON suivent. Le bac à sable les montre." },
         "ws-key": { "name": "Clé de masquage", "note": "4 octets aléatoires. Chaque octet du JSON est combiné par XOR avec eux, à tour de rôle : \"[\" (0x5B) voyage sous la forme 0x61. Ce n'est pas du chiffrement ; c'est le rôle de TLS." },
-        "ws-len-88": { "name": "Longueur", "note": "0x58 = 88 octets de JSON suivent. Le bit de masque vaut 0, car un serveur ne masque jamais : aucune clé de masquage ne suit." },
-        "a-type": { "name": "MessageTypeId", "note": "2 est un CALL, une requête. Sa réponse est un 3 (CALLRESULT) ou un 4 (CALLERROR)." },
+        "ws-len-88": { "name": "Longueur", "note": "0x58 = 88 octets de JSON suivent. Le bit de masque vaut 0, car un serveur ne masque jamais. Aucune clé de masquage ne suit donc." },
+        "a-type": { "name": "MessageTypeId", "note": "2 signifie CALL : une requête. Sa réponse est un 3 (CALLRESULT, réussite) ou un 4 (CALLERROR, échec)." },
         "a-id": { "name": "MessageId", "note": "Choisi par l'émetteur, unique sur cette connexion. La réponse porte le même id ; rien d'autre ne relie les deux." },
         "a-action": { "name": "Action", "note": "De quel message il s'agit. Une réponse n'a pas d'action : son id indique à quel CALL elle répond." },
-        "a-payload": { "name": "Payload", "note": "La requête elle-même, un objet JSON. Ses champs sont vérifiés par rapport au schéma JSON de BootNotificationRequest." }
+        "a-payload": { "name": "Payload", "note": "La requête elle-même, un objet JSON. Le destinataire vérifie ses champs par rapport au schéma JSON (la liste officielle des champs autorisés) de BootNotificationRequest." }
     },
     "devices": {
         "car": "Voiture",
@@ -59,11 +60,11 @@
         "standard": "OCPP 2.0.1 (Open Charge Alliance, 2020). OCPP 1.6J reste courant.",
         "between": "Borne de recharge → CSMS (système de supervision des bornes)",
         "transport": "WebSocket (RFC 6455) sur TLS, sous-protocole ocpp2.0.1 : un message JSON par trame texte",
-        "security": "TLS. Le profil de sécurité 2 ajoute un mot de passe (HTTP Basic), le profil 3 un certificat client.",
+        "security": "Chiffrement TLS. Le profil de sécurité 2 ajoute un mot de passe (HTTP Basic). Le profil 3 utilise à la place un certificat client.",
         "frames": "CALL [2, …] · CALLRESULT [3, …] · CALLERROR [4, …]"
     },
     "tips": [
-        "Si le CSMS ne répond pas avec le sous-protocole demandé par la borne, la borne doit fermer la connexion. « Elle se connecte, puis décroche » vient souvent de là.",
+        "Si le CSMS ne répond pas avec le sous-protocole demandé par la borne, la borne doit fermer la connexion. Une borne qui « se connecte, puis décroche » a souvent ce problème.",
         "Envoyez un seul CALL à la fois et attendez sa réponse, ou un timeout, avant le suivant. Un second CALL envoyé trop tôt peut être perdu.",
         "Le moment où une transaction commence est un paramètre (TxStartPoint) : au branchement, à l'autorisation, ou quand l'énergie circule. Mettez-vous d'accord avec l'équipe du CSMS, sinon les transactions paraissent trop longues ou trop courtes.",
         "Les horodatages sont en UTC. Réglez l'horloge de la borne avec currentTime de la réponse au BootNotification, sinon les valeurs de compteur tombent dans la mauvaise période tarifaire."
@@ -83,16 +84,16 @@
         "action": "L'action : de quel message il s'agit. Son payload suit.",
         "reason": "Pourquoi la borne a démarré : PowerUp. Il existe aussi FirmwareUpdate, RemoteReset, Watchdog, etc.",
         "model": "model et vendorName sont les seuls champs obligatoires de chargingStation.",
-        "firmware": "Le firmware en service. Le CSMS s'en sert pour planifier les mises à jour.",
+        "firmware": "La version du firmware (le logiciel intégré de la borne) en service. Le CSMS s'en sert pour planifier les mises à jour.",
         "event-type": "Started, Updated ou Ended. Une transaction a exactement un Started et un Ended.",
-        "timestamp": "En UTC, avec Z. C'est l'heure de l'événement, pas de l'envoi : un événement stocké hors ligne garde son heure.",
+        "timestamp": "Heure UTC, signalée par le Z final. C'est l'heure de l'événement, pas de l'envoi : un événement stocké hors ligne garde sa propre heure.",
         "trigger": "Pourquoi cet événement a été envoyé : l'intervalle de compteur (TxUpdatedInterval) est écoulé.",
         "seq": "seqNo compte les événements de cette transaction à partir de 0. Un trou signale au CSMS qu'un message manque.",
         "transaction-id": "Choisi par la borne au départ. Chaque événement de cette recharge le porte.",
-        "charging-state": "Charging : l'énergie circule. Les autres états sont EVConnected, SuspendedEV, SuspendedEVSE et Idle.",
+        "charging-state": "Charging : l'énergie circule. Les autres états sont EVConnected, SuspendedEV (la voiture a mis en pause), SuspendedEVSE (la borne a mis en pause) et Idle.",
         "energy": "15600 Wh au registre du compteur, comme l'index d'un compteur domestique. Il ne repart pas à 0 pour une nouvelle transaction.",
         "measurand": "Ce qui a été mesuré. Sans measurand, une valeur signifie Energy.Active.Import.Register.",
-        "unit": "Wh, l'unité par défaut pour l'énergie.",
+        "unit": "Wh (wattheures), l'unité par défaut pour l'énergie.",
         "power": "11040 W : 16 A sur chacune des 3 phases à 230 V."
     }
 }

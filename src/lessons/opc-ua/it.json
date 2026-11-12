@@ -1,12 +1,13 @@
 {
-    "intro": "OPC UA è il protocollo client–server del software industriale moderno. Un server offre un address space: nodi con nomi, tipi e valori, collegati da riferimenti. Un client apre un secure channel e una sessione, poi esplora, legge, scrive o si iscrive.",
+    "intro": "OPC UA (Open Platform Communications Unified Architecture) è un protocollo client–server usato in tutto il software industriale. Un server offre un address space: nodi (cartelle, oggetti, variabili …) con nomi, tipi e valori, collegati da riferimenti. Un client, il programma che chiede, apre prima un secure channel, che stabilisce come vengono protetti i messaggi. Poi apre una sessione, che lega il suo lavoro a un utente. A quel punto può esplorare, leggere, scrivere o iscriversi alle variazioni.",
+    "plain": "Questo protocollo permette a un programma di controllo di guardare dentro il controllore di una macchina e trovare qualsiasi valore per nome, come quando si sfogliano le cartelle di un computer. Il programma prima si accorda con il controllore su come proteggere la conversazione, e dice chi è. Poi può leggere un valore, cambiare un'impostazione o chiedere di essere avvisato ogni volta che un valore cambia.",
     "steps": {
-        "hello": { "title": "Hello", "text": "Dopo la connessione TCP alla porta 4840, il client dice Hello: le dimensioni dei suoi buffer e l'endpoint che vuole. Il server conferma con i propri limiti." },
-        "channel": { "title": "Secure channel", "text": "OpenSecureChannel stabilisce come vengono protetti i messaggi. Qui la policy è None: niente firma, niente cifratura. Il server dà al canale il numero 5." },
-        "session": { "title": "Sessione", "text": "CreateSession e ActivateSession legano un utente al canale. Il client riceve un token di autenticazione che inserisce in ogni richiesta successiva." },
-        "browse": { "title": "Esplora", "text": "Il client percorre l'address space dalla cartella Objects e trova l'oggetto PV1 e la sua variabile TotW." },
-        "read": { "title": "Leggi un valore", "text": "Read chiede l'attributo 13 (Value) di ns=2;s=PV1.TotW. La risposta è un Float, 4820.0, con due timestamp." },
-        "subscribe": { "title": "Iscriviti", "text": "Il client chiede al server di sorvegliare TotW. Tiene una richiesta Publish in attesa presso il server; quando il valore cambia, il server le risponde." }
+        "hello": { "title": "Saluta", "text": "Il client apre una connessione di rete (TCP) verso la porta 4840. Dice Hello: i blocchi di dati più grandi che può ricevere (le dimensioni dei suoi buffer) e l'endpoint che vuole, cioè l'indirizzo del server che sta chiamando. Il server conferma con i propri limiti." },
+        "channel": { "title": "Apri un secure channel", "text": "OpenSecureChannel stabilisce come vengono protetti i messaggi. La firma dimostra chi ha inviato un messaggio e che nessuno l'ha modificato; la cifratura nasconde ciò che dice. Qui la security policy è None: niente firma, niente cifratura. Il server dà al canale il numero 5." },
+        "session": { "title": "Avvia una sessione", "text": "CreateSession e ActivateSession legano un utente al canale. Il client riceve un token di autenticazione, un ID segreto simile al pass di un visitatore. Inserisce il token in ogni richiesta successiva." },
+        "browse": { "title": "Esplora il server", "text": "Il client scorre l'address space partendo dalla cartella Objects, come quando si aprono le cartelle di un disco. Trova l'oggetto PV1, un inverter, e la sua variabile TotW: la potenza attiva totale, cioè la potenza che l'inverter eroga." },
+        "read": { "title": "Leggi un valore", "text": "Read chiede l'attributo 13, il Value, del nodo ns=2;s=PV1.TotW. Questo NodeId, l'indirizzo del nodo, significa: nel namespace 2 (l'insieme di nomi proprio del costruttore del controllore), la stringa PV1.TotW. La risposta è un Float, un numero decimale in 4 byte: 4820.0. Arriva con due timestamp: quando il valore è stato misurato e quando il server lo ha letto." },
+        "subscribe": { "title": "Iscriviti alle variazioni", "text": "Il client chiede al server di sorvegliare TotW. Tiene una richiesta Publish in attesa presso il server, come una domanda lasciata aperta. Quando il valore cambia, il server le risponde." }
     },
     "frames": {
         "hel": "Hello: queste sono le dimensioni dei miei buffer",
@@ -25,21 +26,21 @@
         "publish": "TotW ora vale 4790.5"
     },
     "notes": {
-        "create-req": "Un MSG con una CreateSessionRequest: il nome e il certificato del client, un nonce casuale e per quanto tempo la sessione può restare inattiva.",
+        "create-req": "Un MSG con una CreateSessionRequest: il nome e il certificato del client, un nonce (un numero casuale usato una volta sola) e per quanto tempo la sessione può restare inattiva.",
         "create-resp": "Il server restituisce un ID di sessione, il token di autenticazione, i suoi endpoint e il suo certificato. Il token è segreto: chi lo possiede può usare la sessione.",
         "activate-req": "ActivateSession con un identity token anonimo. Un utente vero invia un nome e una password cifrati per il server, oppure un certificato utente.",
         "activate-resp": "La sessione è attiva. Se resta inattiva più a lungo del tempo concordato in CreateSession, il server la chiude.",
-        "browse-req": "Browse dal nodo i=85, la cartella Objects, seguendo i suoi riferimenti gerarchici.",
+        "browse-req": "Browse dal nodo i=85, la cartella Objects, seguendo i suoi riferimenti gerarchici: i collegamenti da una cartella a ciò che contiene.",
         "browse-resp": "Una lista di riferimenti, ciascuno con un NodeId, un browse name e una node class. ns=2;s=PV1 è un oggetto; ns=2;s=PV1.TotW è una variabile al suo interno.",
-        "monitor": "Due richieste, ciascuna con la sua risposta. CreateSubscription imposta un publishing interval di 1000 ms. CreateMonitoredItems fa campionare TotW al server ogni 500 ms. Poi il client invia in anticipo le richieste Publish.",
-        "publish": "Una PublishResponse con una notifica di variazione dei dati: l'handle del client per TotW, il nuovo valore e i timestamp. Il client la conferma nella sua richiesta Publish successiva."
+        "monitor": "Due richieste, ciascuna con la sua risposta. CreateSubscription imposta un publishing interval di 1000 ms: una volta al secondo il server invia ciò che è cambiato, se qualcosa è cambiato. CreateMonitoredItems fa campionare TotW al server ogni 500 ms. Poi il client invia in anticipo le richieste Publish.",
+        "publish": "Una PublishResponse con una notifica di variazione dei dati: l'handle del client per TotW (il numero che ha scelto per questo elemento), il nuovo valore e i timestamp. Il client la conferma nella sua richiesta Publish successiva."
     },
     "fields": {
         "hel": { "name": "HEL", "note": "Tipo di messaggio Hello, in ASCII." },
         "ack": { "name": "ACK", "note": "Tipo di messaggio Acknowledge." },
         "opn": { "name": "OPN", "note": "Tipo di messaggio OpenSecureChannel." },
         "msg": { "name": "MSG", "note": "Tipo di messaggio: un messaggio di servizio su un canale aperto." },
-        "final": { "name": "F", "note": "Il chunk finale del messaggio. Qui è anche l'unico." },
+        "final": { "name": "F", "note": "Il chunk (pezzo) finale del messaggio. Qui è anche l'unico." },
         "size-56": { "name": "Dimensione del messaggio", "note": "0x38 = 56 byte, l'intero messaggio. In OPC UA ogni numero viaggia con il byte meno significativo per primo." },
         "size-28": { "name": "Dimensione del messaggio", "note": "0x1C = 28 byte." },
         "size-132": { "name": "Dimensione del messaggio", "note": "0x84 = 132 byte." },
@@ -59,7 +60,7 @@
         "channel-0": { "name": "Secure channel ID", "note": "0: non c'è ancora un canale. Il numero lo sceglie il server." },
         "policy": { "name": "Security policy", "note": "Una lunghezza di 47, poi http://opcfoundation.org/UA/SecurityPolicy#None: niente firma, niente cifratura." },
         "no-cert": { "name": "Certificato del mittente", "note": "Lunghezza -1: nessuno. Con una policy vera, qui va il certificato X.509 del mittente." },
-        "no-thumb": { "name": "Thumbprint del destinatario", "note": "Nessuno. Con una policy vera: il thumbprint del certificato del destinatario." },
+        "no-thumb": { "name": "Thumbprint del destinatario", "note": "Lunghezza -1: nessuno. Con una policy vera: il thumbprint (un breve hash) del certificato del destinatario." },
         "seq-1": { "name": "Numero di sequenza", "note": "1: il client conta ogni chunk che invia su questo canale." },
         "req-1": { "name": "Request ID", "note": "1. La risposta porta lo stesso ID." },
         "type-446": { "name": "Tipo", "note": "Un NodeId in 4 byte: namespace 0, numero 446 (0x01BE): OpenSecureChannelRequest." },
@@ -68,12 +69,12 @@
         "handle-1": { "name": "Request handle", "note": "1: un numero che il client usa per abbinare la risposta." },
         "diag-audit": { "name": "Diagnostica · audit", "note": "Return diagnostics 0 (nessuna richiesta), poi un audit entry ID di lunghezza -1 (nessuno)." },
         "timeout": { "name": "Timeout hint", "note": "0x2710 = 10000 ms: quanto aspetterà il client." },
-        "no-header": { "name": "Additional header", "note": "Un extension object vuoto." },
-        "ua-version": { "name": "Versione del protocollo", "note": "0." },
+        "no-header": { "name": "Additional header", "note": "Un extension object vuoto: nessun campo di intestazione aggiuntivo." },
+        "ua-version": { "name": "Versione del protocollo", "note": "0: la versione del protocollo di chi invia." },
         "issue": { "name": "Tipo di richiesta", "note": "0: emetti un nuovo security token. 1 ne rinnoverebbe uno." },
         "mode-none": { "name": "Security mode", "note": "1: None. 2 è Sign, 3 è SignAndEncrypt." },
-        "client-nonce": { "name": "Client nonce", "note": "Lunghezza 0: con None non ci sono chiavi da generare." },
-        "lifetime": { "name": "Durata richiesta", "note": "0x0036EE80 = 3600000 ms: il client rinnoverà il token entro un'ora." },
+        "client-nonce": { "name": "Client nonce", "note": "Lunghezza 0: con la policy None non si generano chiavi, quindi non serve nessun numero casuale." },
+        "lifetime": { "name": "Durata richiesta", "note": "0x0036EE80 = 3600000 ms: il token deve durare un'ora. Il client lo rinnoverà prima." },
         "channel-5": { "name": "Secure channel ID", "note": "5: il numero che il server ha dato a questo canale." },
         "seq-1-server": { "name": "Numero di sequenza", "note": "1: il server conta i propri chunk." },
         "req-1-resp": { "name": "Request ID", "note": "1: questa risponde alla richiesta 1." },
@@ -109,7 +110,7 @@
         "handle-5-resp": { "name": "Request handle", "note": "5, come nella richiesta." },
         "results-1": { "name": "Risultati", "note": "Un array di un solo risultato, per l'unico nodo richiesto." },
         "mask": { "name": "DataValue mask", "note": "0x0D: seguono un valore, un timestamp della sorgente e un timestamp del server. Nessuno status code significa Good." },
-        "float": { "name": "Tipo del Variant", "note": "0x0A = 10: Float, 4 byte." },
+        "float": { "name": "Tipo del Variant", "note": "0x0A = 10: Float, un numero decimale in 4 byte." },
         "value": { "name": "Valore", "note": "4820.0, prima il byte meno significativo. L'unità, kW, è una proprietà del nodo (EngineeringUnits)." },
         "source-time": { "name": "Timestamp della sorgente", "note": "10:41:06.000 UTC: quando il controllore ha misurato il valore." },
         "server-time": { "name": "Timestamp del server", "note": "10:41:06.302 UTC: quando il server lo ha letto." },
@@ -122,7 +123,7 @@
         "scada": "SCADA",
         "ctrl": "Controllore d'impianto",
         "inv": "Inverter PV1",
-        "pv": "Campo FV",
+        "pv": "Pannelli solari",
         "meter": "Contatore di rete"
     },
     "facts": {
@@ -133,10 +134,10 @@
         "model": "Address space: nodi in namespace, collegati da riferimenti"
     },
     "tips": [
-        "Questa lezione usa la security mode None perché i byte si possano leggere. In impianto, usa SignAndEncrypt con una policy attuale come Basic256Sha256. Sign da sola impedisce le modifiche, ma chiunque sia in rete può ancora leggere i valori.",
+        "Questa lezione usa la security mode None perché i byte si possano leggere. In impianto, usa SignAndEncrypt con una policy attuale come Basic256Sha256. Sign da sola impedisce a chiunque di modificare i messaggi, ma chiunque sia in rete può ancora leggere i valori.",
         "Entrambe le parti devono fidarsi del certificato dell'altra. Molte prime connessioni falliscono perché il server ha messo il certificato del client nella sua lista dei rifiutati. Un amministratore deve spostarlo nella lista dei fidati.",
         "Gli indici dei namespace possono cambiare quando il server si riavvia o viene aggiornato. Salva il namespace URI con ogni NodeId, e cercane l'indice dopo la connessione.",
-        "Non fare polling con Read molte volte al secondo. Una subscription con un sampling interval e un publishing interval costa molto meno al server."
+        "Non fare polling, cioè non inviare Read molte volte al secondo. Una subscription con un sampling interval e un publishing interval costa molto meno al server."
     ],
     "points": {
         "channel": "Secure channel",

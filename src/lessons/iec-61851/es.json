@@ -1,11 +1,12 @@
 {
-    "intro": "El piloto de control (CP) es un hilo de todo cable de carga. El cargador le aplica una tensión, y el vehículo la baja con resistencias. Por el nivel, ambos lados saben si hay un vehículo conectado y si quiere potencia. Una onda cuadrada de 1 kHz en el mismo hilo le dice al vehículo cuánta corriente puede tomar.",
+    "intro": "El piloto de control (CP) es un hilo de señal delgado presente en todo cable de carga de vehículos eléctricos. El cargador le aplica una tensión, y el vehículo la baja con resistencias (componentes sencillos que reducen una tensión). Por el nivel, ambos lados saben si hay un vehículo conectado y si quiere potencia. El cargador además hace subir y bajar la tensión 1000 veces por segundo: una onda cuadrada de 1 kHz. El tiempo que se queda en alto en cada ciclo le dice al vehículo cuánta corriente puede tomar.",
+    "plain": "Un vehículo eléctrico y un punto de carga se ponen de acuerdo para cargar a través de un hilo delgado del cable, sin ningún mensaje informático. El vehículo cambia la tensión de ese hilo para decir \"estoy enchufado\" y \"estoy listo\", como quien acciona un interruptor. El cargador responde con pulsos en el hilo, y la duración de cada pulso le dice al vehículo cuánta potencia puede tomar. No circula potencia por el cable hasta que ambos lados están de acuerdo.",
     "steps": {
-        "plug": { "title": "Enchufar", "text": "Antes de enchufar, el cargador mantiene CP a +12 V: estado A. La resistencia del vehículo lo baja a +9 V: estado B. El cargador lee además la capacidad del cable en el pin PP." },
-        "offer": { "title": "Ofrecer corriente", "text": "El cargador inicia una onda cuadrada de 1 kHz en CP. La fracción del tiempo que está en alto, el ciclo de trabajo, es la corriente que el vehículo puede tomar. La casa permite 24 A, así que el cargador de 32 A ofrece 24 A: 40 %." },
-        "charge": { "title": "Cargar", "text": "El vehículo conecta una segunda resistencia: CP baja a +6 V, estado C. Solo entonces el cargador cierra su contactor. El vehículo toma hasta 24 A por fase." },
-        "reduce": { "title": "Menos corriente", "text": "La casa necesita su potencia para otra cosa. Su gestor de energía avisa al cargador, y el cargador baja el ciclo de trabajo al 10 %: 6 A. El vehículo tiene 5 s para seguirlo." },
-        "stop": { "title": "Fin", "text": "La batería está llena. El vehículo abre su interruptor: CP vuelve a +9 V, estado B. El cargador abre el contactor." },
+        "plug": { "title": "Enchufar", "text": "Antes de enchufar, el cargador mantiene CP a +12 V: estado A, sin vehículo. La resistencia del vehículo lo baja a +9 V: estado B, hay un vehículo conectado. El cargador lee además la capacidad del cable (la corriente máxima que puede llevar) en el pin PP: el proximity pilot, un segundo pin pequeño del conector." },
+        "offer": { "title": "Ofrecer corriente", "text": "El cargador inicia una onda cuadrada de 1 kHz en CP. La fracción de cada ciclo en que la señal se queda en alto es el ciclo de trabajo. Le dice al vehículo cuánta corriente puede tomar. La casa permite 24 A, así que el cargador de 32 A ofrece 24 A: un ciclo de trabajo del 40 %." },
+        "charge": { "title": "Hay potencia", "text": "El vehículo conecta una segunda resistencia: CP baja a +6 V, estado C, listo para recibir potencia. Solo entonces el cargador cierra su contactor (un interruptor de potencia robusto). El vehículo toma hasta 24 A por fase, en cada uno de los tres hilos activos." },
+        "reduce": { "title": "Bajar la corriente", "text": "La casa necesita su potencia para otra cosa. Su gestor de energía, la caja que reparte la potencia de la casa entre los aparatos, avisa al cargador. El cargador baja el ciclo de trabajo al 10 %: 6 A. El vehículo tiene 5 s para seguirlo." },
+        "stop": { "title": "Termina la carga", "text": "La batería está llena. El vehículo abre su interruptor: CP vuelve a +9 V, estado B. El cargador abre el contactor y se corta la potencia." },
         "unplug": { "title": "Desenchufar", "text": "Se saca el conector. CP vuelve a +12 V, estado A, y el cargador detiene la onda cuadrada." }
     },
     "frames": {
@@ -21,14 +22,14 @@
         "a": "El vehículo se ha ido"
     },
     "notes": {
-        "b1": "El cargador alimenta +12 V a través de una resistencia de 1 kΩ. El vehículo conecta 2.74 kΩ entre CP y la tierra de protección (PE), detrás de un diodo, y la tensión baja a +9 V. B1 es el estado B con tensión fija; B2 es el mismo estado con la onda cuadrada.",
-        "pp": "El proximity pilot (PP) no es una señal. Es una resistencia en el conector del cable, entre PP y PE, y su valor indica la capacidad del cable: 1.5 kΩ son 13 A, 680 Ω son 20 A, 220 Ω son 32 A y 100 Ω son 63 A.",
+        "b1": "El cargador alimenta +12 V a través de una resistencia de 1 kΩ. El vehículo conecta 2.74 kΩ entre CP y la tierra de protección (PE), detrás de un diodo (un componente que deja pasar la corriente en un solo sentido). La tensión baja a +9 V. B1 es el estado B con tensión fija. B2 es el mismo estado con la onda cuadrada.",
+        "pp": "El proximity pilot (PP) no es una señal. Es una resistencia en el conector del cable, entre PP y PE. Su valor indica la capacidad del cable: 1.5 kΩ son 13 A, 680 Ω son 20 A, 220 Ω son 32 A y 100 Ω son 63 A.",
         "pwm": "Un periodo dura 1 ms. CP está a +9 V durante el 40 % (0.4 ms) y a −12 V el resto. Entre el 10 % y el 85 %, la corriente es el ciclo de trabajo × 0.6 A: 40 × 0.6 = 24 A.",
-        "c": "El vehículo cierra su interruptor S2 y añade 1.3 kΩ en paralelo con los 2.74 kΩ. El nivel alto de la onda cuadrada baja a +6 V. Con 270 Ω, bajaría a +3 V: estado D, que pide ventilación.",
-        "contactor": "No es una señal en CP. El contactor del cargador conecta L1, L2, L3 y N al vehículo, y el cargador de a bordo del vehículo convierte la CA en CC para la batería.",
-        "limit": "No es IEC 61851: un gestor de energía habla Modbus, OCPP o cierra un contacto. El vehículo nunca ve este mensaje, solo el nuevo ciclo de trabajo.",
+        "c": "El vehículo cierra su interruptor S2 y añade 1.3 kΩ en paralelo con los 2.74 kΩ. El nivel alto de la onda cuadrada baja a +6 V. Con 270 Ω, bajaría a +3 V: estado D. Pide ventilación, para baterías que desprenden gas al cargar.",
+        "contactor": "Esto no es una señal en CP. El contactor del cargador conecta las tres fases L1, L2, L3 y el neutro N al vehículo. El cargador de a bordo del vehículo convierte la CA en CC para la batería.",
+        "limit": "Esta parte no es IEC 61851. Un gestor de energía avisa al cargador por Modbus u OCPP, o simplemente cierra un contacto. El vehículo nunca ve este mensaje, solo el nuevo ciclo de trabajo.",
         "pwm-10": "10 × 0.6 = 6 A, la corriente más baja que puede ofrecer un ciclo de trabajo. El vehículo debe bajar su corriente en 5 s como máximo.",
-        "b2": "El vehículo abre S2 y el nivel alto vuelve a +9 V. Un buen vehículo baja antes su corriente, para que el contactor no se abra en carga.",
+        "b2": "El vehículo abre S2 y el nivel alto vuelve a +9 V. Un buen vehículo baja antes su corriente, para que el contactor no se abra en carga (mientras circula corriente).",
         "open": "En el estado B el cargador no debe dar potencia, así que abre el contactor. La onda cuadrada sigue: el vehículo podría volver a pedir potencia.",
         "a": "Ya nada baja CP: +12 V, estado A. El cargador detiene la onda cuadrada (A1) y espera al siguiente vehículo."
     },
@@ -50,7 +51,7 @@
         "Comprueba también el nivel bajo. Una onda cuadrada que no llega a −12 V significa que el diodo del vehículo falta o está en cortocircuito, y el cargador no debe conectar.",
         "El 5 % no es una corriente. Significa \"habla primero en digital\" (ISO 15118): el límite viene entonces de los mensajes, no del ciclo de trabajo.",
         "El cable también limita la corriente. Con un cable de 20 A (680 Ω), un cargador de 32 A ofrece como mucho 20 A: un ciclo de trabajo del 33.3 %.",
-        "El estado D (+3 V) pide ventilación. Un cargador sin ventilador para el recinto no debe cargar en el estado D. E (0 V) es un cortocircuito o falta de alimentación; F (−12 V) significa que el cargador no está disponible."
+        "El estado D (+3 V) pide ventilación. Un cargador sin ventilador para el recinto no debe cargar en el estado D. El estado E (0 V) significa un cortocircuito o falta de alimentación. El estado F (−12 V) significa que el cargador no está disponible."
     ],
     "points": {
         "state": "Estado CP",
@@ -60,7 +61,7 @@
     },
     "timing": {
         "title": "El piloto de control, 3 ms de cada estado",
-        "note": "Cada línea es la tensión de CP: −12 V abajo, +12 V arriba (nivel = (V + 12) / 24). La onda cuadrada se repite cada 1 ms. Su ciclo de trabajo es la corriente: 40 % son 24 A, 10 % son 6 A. Por encima del 85 %, la corriente es (ciclo − 64) × 2.5 A, hasta 80 A al 96 %. El 5 % pide comunicación digital. El nivel bajo se queda en −12 V, porque el diodo del vehículo lo bloquea.",
+        "note": "Cada línea es la tensión de CP: −12 V abajo, +12 V arriba (nivel = (V + 12) / 24). La onda cuadrada se repite cada 1 ms. Su ciclo de trabajo es la corriente: 40 % son 24 A, 10 % son 6 A. Por encima del 85 %, la corriente es (ciclo − 64) × 2.5 A, hasta 80 A al 96 %. El 5 % pide comunicación digital. El nivel bajo se queda en −12 V en todos los estados, porque el diodo del vehículo no deja pasar corriente en ese sentido.",
         "a": "A · sin vehículo",
         "b1": "B1 · vehículo",
         "b2": "B2 · 40 %",

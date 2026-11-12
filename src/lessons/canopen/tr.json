@@ -1,11 +1,12 @@
 {
-    "intro": "Bir batarya sisteminin içinde batarya yönetim sistemi (BMS) ile güç dönüşüm sistemi (PCS) çoğu zaman bir CAN veri yolunu paylaşır. Bir CAN çerçevesi kısadır: bir tanımlayıcı ve en fazla 8 veri baytı; gönderen adresi yoktur. CANopen tanımlayıcılara bir anlam verir: hangi düğüm gönderiyor ve bu ne tür bir mesaj.",
+    "intro": "Bir batarya sisteminin içinde iki cihaz sürekli konuşur: bataryanın kendi bekçisi olan batarya yönetim sistemi (BMS) ve bataryayı şarj edip deşarj eden güç dönüşüm sistemi (PCS). Çoğu zaman bir CAN veri yolunu paylaşırlar: ilk olarak otomobiller için geliştirilmiş, her cihazın her mesajı duyduğu tek bir tel çifti. Bir CAN çerçevesi kısadır: bir tanımlayıcı ve en fazla 8 veri baytı; gönderen adresi yoktur. CANopen tanımlayıcılara bir anlam verir: hangi düğüm (veri yolundaki cihaz) gönderiyor ve bu ne tür bir mesaj.",
+    "plain": "Büyük bir bataryanın içinde küçük bir bilgisayar her hücreyi izler, bir güç dönüştürücü de enerjiyi içeri alır ve dışarı verir. İkisi ortak bir tel çifti üzerinden konuşur; tıpkı herkesin her şeyi duyduğu bir odadaki insanlar gibi. Her mesaj, kimin gönderdiğini ve neyle ilgili olduğunu söyleyen bir etiketle başlar; böylece her dinleyen kendisini ilgilendireni seçer. Ölçümlerin çoğu kimse sormadan belli aralıklarla gönderilir, alarmlar ise hemen çıkar.",
     "steps": {
-        "boot": { "title": "Açılış", "text": "BMS (düğüm 5) enerjilenir ve bir boot-up mesajı gönderir. Artık pre-operational durumundadır: SDO isteklerine yanıt verir ama proses verisi göndermez." },
-        "identify": { "title": "Kimliği denetle", "text": "PCS, NMT master'dır: diğer düğümleri başlatır ve denetler. BMS'in seri numarasını bir SDO ile okur: nesne 0x1018, alt indeks 4." },
-        "start": { "title": "Başlat", "text": "PCS, düğüm 5'e operational durumuna geçmesini söyler. Bundan sonra BMS her saniye bir heartbeat ve proses verisini gönderir." },
-        "data": { "title": "Proses verisi", "text": "TPDO1 her 100 ms'de paket gerilimini, akımı, şarj durumunu ve en sıcak hücreyi taşır. Kimse istemez, kimse yanıt vermez: PCS yalnızca dinler. Her baytın ne anlama geldiğini BMS üreticisinin EDS dosyası söyler." },
-        "alarm": { "title": "Hücre çok sıcak", "text": "Modül 3'teki bir hücre 61 °C'ye ulaşır. BMS hemen bir acil durum mesajı gönderir. PCS akımı 40 A'e düşürür." },
+        "boot": { "title": "BMS açılıyor", "text": "Veri yolundaki 5 numaralı düğüm olan BMS enerjilenir ve bir boot-up mesajı gönderir. Artık pre-operational durumundadır: bir bekleme durumu. SDO isteklerine, yani tek bir değer hakkındaki tek seferlik sorulara yanıt verir; ama proses verisi, yani canlı ölçümleri göndermez." },
+        "identify": { "title": "Kimliği denetle", "text": "PCS, NMT master'dır (NMT: ağ yönetimi): diğer düğümleri başlatır ve denetler. BMS'in seri numarasını bir SDO ile okur. Bir CANopen cihazındaki her değerin nesne sözlüğünde, yani numaralı bir listede bir adresi vardır: seri numarası nesne 0x1018, alt indeks 4'tür." },
+        "start": { "title": "BMS'i başlat", "text": "PCS, düğüm 5'e operational durumuna, yani çalışma durumuna geçmesini söyler. Bundan sonra BMS proses verisini ve her saniye bir heartbeat gönderir: kısa bir \"hayattayım\" mesajı." },
+        "data": { "title": "Canlı ölçümler", "text": "TPDO1, BMS'in ilk gönderim PDO'sudur: bir proses veri nesnesi, yani canlı değerlerden oluşan tek bir mesaj. Her 100 ms'de paket gerilimini, akımı, şarj durumunu (bataryanın ne kadar dolu olduğunu) ve en sıcak hücrenin sıcaklığını taşır. Kimse istemez, kimse yanıt vermez: PCS yalnızca dinler. Her baytın ne anlama geldiğini BMS üreticisinin EDS dosyası, yani elektronik veri sayfası söyler." },
+        "alarm": { "title": "Hücre çok sıcak", "text": "Modül 3'teki bir hücre 61 °C'ye ulaşır. BMS hemen bir acil durum mesajı (EMCY) gönderir. PCS akımı 40 A'e düşürür." },
         "recover": { "title": "Her şey yolunda", "text": "Hücre soğur. BMS, hata kodu 0x0000 olan bir acil durum mesajı gönderir: hata giderildi." }
     },
     "frames": {
@@ -23,12 +24,12 @@
         "id-705": { "name": "Tanımlayıcı 0x705", "note": "0x700 + düğüm 5: düğüm 5'in boot-up ve heartbeat mesajı. Hatta 11 bit, burada 2 baytta gösteriliyor." },
         "id-605": { "name": "Tanımlayıcı 0x605", "note": "0x600 + düğüm 5: düğüm 5'e bir SDO isteği. Hatta 11 bit." },
         "id-585": { "name": "Tanımlayıcı 0x585", "note": "0x580 + düğüm 5: düğüm 5'ten bir SDO yanıtı. Hatta 11 bit." },
-        "id-000": { "name": "Tanımlayıcı 0x000", "note": "NMT: en düşük tanımlayıcı, bu yüzden veri yolunu diğer her çerçeveye karşı kazanır. Yalnızca NMT master gönderir." },
+        "id-000": { "name": "Tanımlayıcı 0x000", "note": "NMT. İki düğüm aynı anda gönderirse düşük tanımlayıcı önce geçer; bu yüzden bu çerçeve diğer her çerçeveye karşı kazanır. Yalnızca NMT master gönderir." },
         "id-185": { "name": "Tanımlayıcı 0x185", "note": "0x180 + düğüm 5: TPDO1, düğüm 5'in gönderdiği ilk proses veri nesnesi. Hatta 11 bit." },
-        "id-085": { "name": "Tanımlayıcı 0x085", "note": "0x080 + düğüm 5: düğüm 5'in acil durum mesajı. Düşük tanımlayıcısı sayesinde veri yolunu PDO'lara karşı kazanır." },
+        "id-085": { "name": "Tanımlayıcı 0x085", "note": "0x080 + düğüm 5: düğüm 5'in acil durum mesajı. Düşük tanımlayıcısı ona PDO'lara, yani proses verisine karşı öncelik verir." },
         "dlc-1": { "name": "DLC 1", "note": "Bir veri baytı. Veri uzunluk kodu hatta 4 bittir, burada 1 baytta gösteriliyor." },
         "dlc-2": { "name": "DLC 2", "note": "İki veri baytı." },
-        "dlc-6": { "name": "DLC 6", "note": "BMS'in PDO eşlemesinin (nesne 0x1A00) yerleştirdiği şekliyle altı veri baytı." },
+        "dlc-6": { "name": "DLC 6", "note": "Altı veri baytı. Hangi değerin hangi baytlara gireceğini BMS'in PDO eşlemesi, nesne 0x1A00, söyler." },
         "dlc-8": { "name": "DLC 8", "note": "Sekiz veri baytı: SDO ve acil durum mesajlarında her zaman 8 vardır." },
         "state-boot": { "name": "Durum 0x00", "note": "Boot-up: düğüm 5 başladı ve artık pre-operational." },
         "state-op": { "name": "Durum 0x05", "note": "Operational. 0x7F pre-operational, 0x04 stopped olurdu." },
@@ -42,20 +43,20 @@
         "nmt-node": { "name": "Düğüm 5", "note": "Başlaması gereken düğüm. 0 olsaydı veri yolundaki her düğümü başlatırdı." },
         "volt": { "name": "Paket gerilimi", "note": "0x1FBC = 8124, 0.1 V'luk adımlarla: 812.4 V. Tüm CANopen sayıları gibi düşük bayt önce." },
         "amp": { "name": "Paket akımı", "note": "0x05F3 = 1523, 0.1 A'lik adımlarla: 152.3 A. Bu BMS için pozitif, deşarj demektir." },
-        "soc": { "name": "Şarj durumu", "note": "0x44 = %68." },
+        "soc": { "name": "Şarj durumu", "note": "0x44 = %68: bataryanın ne kadar dolu olduğu." },
         "tmax": { "name": "En sıcak hücre", "note": "0x1F = 31 °C." },
         "volt-low": { "name": "Paket gerilimi", "note": "0x1FA2 = 8098: 809.8 V." },
         "amp-low": { "name": "Paket akımı", "note": "0x0190 = 400: 40.0 A. PCS akımı düşürdü." },
         "soc-low": { "name": "Şarj durumu", "note": "0x43 = %67." },
         "tmax-hot": { "name": "En sıcak hücre", "note": "0x3A = 58 °C: soğuyor, ama hâlâ sıcak." },
         "err-4200": { "name": "Hata kodu 0x4200", "note": "Düşük bayt önce: cihaz sıcaklığı, sıcaklık hataları sınıfında (0x4xxx)." },
-        "errreg-09": { "name": "Hata register'ı 0x09", "note": "Nesne 0x1001'in değeri: bit 0 (bir hata) ve bit 3 (sıcaklık)." },
+        "errreg-09": { "name": "Hata register'ı 0x09", "note": "Etkin hataların bir özeti; nesne 0x1001'de de tutulur: bit 0 (herhangi bir hata) ve bit 3 (sıcaklık) kurulu." },
         "emcy-maker": { "name": "Üreticiye özel veri", "note": "BMS üreticisinin tanımladığı beş bayt. Bu üretici modül 3'ü, hücre 12'yi (0x0C) ve 61 °C'yi (0x3D) gönderiyor." },
         "err-0000": { "name": "Hata kodu 0x0000", "note": "Hata sıfırlama: artık etkin bir hata yok." },
         "errreg-00": { "name": "Hata register'ı 0x00", "note": "Hiçbir hata biti kurulu değil." },
         "emcy-maker-0": { "name": "Üreticiye özel veri", "note": "Hepsi sıfır." },
-        "a-function": { "name": "Fonksiyon kodu", "note": "Üst 4 bit. 0011 = 3: TPDO1, tanımlayıcıda 0x180." },
-        "a-node": { "name": "Düğüm kimliği", "note": "Alt 7 bit. 0000101 = 5: BMS. Bir veri yolunda 1 ile 127 arası düğümlere yer vardır." }
+        "a-function": { "name": "Fonksiyon kodu", "note": "Üst 4 bit: mesajın türü. 0011 = 3: TPDO1, tanımlayıcıda 0x180." },
+        "a-node": { "name": "Düğüm kimliği", "note": "Alt 7 bit: hangi düğüm. 0000101 = 5: BMS. Bir veri yolunda 1 ile 127 arası düğümlere yer vardır." }
     },
     "devices": {
         "rack": "Batarya rafı",
@@ -73,7 +74,7 @@
     "tips": [
         "Birçok batarya üreticisi CANopen yerine kendi tanımlayıcıları ve ölçeklemesiyle kendi CAN mesajlarını kullanır. CANopen, yaygın standart yollardan biridir. Bağlamadan önce üreticinin EDS dosyasını ya da CAN mesaj listesini isteyin.",
         "İki düğüm asla aynı tanımlayıcıyı göndermemelidir. CANopen'da veri yolundaki her düğüm kimliği benzersiz olmalıdır.",
-        "Heartbeat'i izleyin. PCS'in consumer heartbeat süresini (nesne 0x1016), BMS'in heartbeat periyodundan (0x1017) biraz uzun ayarlayın; böylece susan bir BMS, PCS'i durdurur.",
+        "Heartbeat'i izleyin. PCS'in onu ne kadar bekleyeceğini, yani consumer heartbeat süresini (nesne 0x1016), BMS'in heartbeat periyodundan (0x1017) biraz uzun ayarlayın. Böylece susan bir BMS, PCS'i durdurur.",
         "Veri yolunun her iki ucuna birer 120 Ω direnç koyun, başka hiçbir yere değil. Hiç direnç yoksa ya da bir fazlası varsa, kablo uzadıkça çerçeveler bozulur."
     ],
     "points": {
@@ -88,11 +89,11 @@
         "operational": "operational"
     },
     "anatomy": {
-        "cobid": "Bir tanımlayıcı: bir fonksiyon kodu ve bir düğüm kimliği"
+        "cobid": "Bir tanımlayıcı (COB-ID): bir fonksiyon kodu ve bir düğüm kimliği"
     },
     "timing": {
         "title": "Veri yolunun iki saniyede taşıdıkları",
-        "note": "TPDO1 her 100 ms'de (olay zamanlayıcısı), heartbeat her 1000 ms'de çıkar. Bir acil durum mesajı, arıza ortaya çıktığında bir kez ve giderildiğinde bir kez daha çıkar. CAN kontrolör çipi her çerçeveye başlangıç bitini, CRC'yi, onay yuvasını ve dolgu (stuffing) bitlerini ekler; burada gösterilen baytlar yazılımın gördükleridir.",
+        "note": "TPDO1 her 100 ms'de (olay zamanlayıcısı), heartbeat her 1000 ms'de çıkar. Bir acil durum mesajı, arıza ortaya çıktığında bir kez ve giderildiğinde bir kez daha çıkar. CAN kontrolör çipi her çerçeveye başlangıç bitini, CRC'yi, onay yuvasını ve dolgu (stuffing) bitlerini (alıcıları senkron tutan ek bitler) ekler. Burada gösterilen baytlar yazılımın gördükleridir.",
         "tpdo": "TPDO1 · 0x185",
         "heartbeat": "Heartbeat · 0x705",
         "emcy": "EMCY · 0x085",

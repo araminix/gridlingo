@@ -1,12 +1,13 @@
 {
-    "intro": "Así se ordenan los relés de protección el disparo unos a otros, en pocos milisegundos, por la red de la subestación en lugar de por cables de cobre. Un relé publica sus datos en una dirección multicast; cada relé que los necesita se suscribe. Nadie responde, así que el publicador repite cada cambio, primero rápido y luego más despacio.",
+    "intro": "GOOSE es la forma en que los relés de protección, los equipos que abren un interruptor cuando una línea tiene una falla, se avisan entre sí para disparar en pocos milisegundos. Funciona por la red de la subestación en lugar de por cables de cobre. Un relé publica sus datos en una dirección multicast: un mensaje que oyen todos los equipos de la red. Cada relé que necesita los datos se suscribe a ellos. Nadie responde, así que el publicador repite cada cambio, rápido al principio y después más despacio.",
+    "plain": "Cuando falla una línea eléctrica, los equipos de seguridad de una subestación deben reaccionar en unas pocas milésimas de segundo. Este mensaje funciona como una alarma de incendio que se oye en todas las salas: un equipo anuncia la noticia una vez, a todos, y los equipos a los que les importa actúan. Nadie responde, así que el emisor repite el aviso varias veces, rápido al principio, para asegurarse de que se oye.",
     "steps": {
-        "heartbeat": { "title": "Heartbeat", "text": "Todo va bien. Cada segundo, el relé repite su último estado a quien esté escuchando." },
-        "fault": { "title": "Falla", "text": "Un cortocircuito en el alimentador F1. El relé ve 2.8 kA y cierra su contacto de disparo hacia el interruptor." },
-        "publish": { "title": "Publicar", "text": "En ese mismo instante envía el nuevo estado. El número de estado sube en uno y el número de secuencia vuelve a empezar en 0." },
-        "repeat": { "title": "Repetir rápido", "text": "Ningún suscriptor responde a GOOSE, así que el relé envía el mismo mensaje otra vez 2 ms después, luego a los 4, 8, 16 … hasta volver a una vez por segundo." },
-        "act": { "title": "Actúan los suscriptores", "text": "F2 PROT arranca su temporizador de fallo de interruptor. El gateway pasa el disparo al SCADA." },
-        "open": { "title": "Abre el interruptor", "text": "48 ms después de la falla, Q1 está abierto y la corriente de falla se corta." }
+        "heartbeat": { "title": "Todo en orden", "text": "No pasa nada. Cada segundo, el relé repite su último estado a quien esté escuchando. Este heartbeat les dice a los suscriptores que el relé y la red siguen funcionando." },
+        "fault": { "title": "Un cortocircuito", "text": "Un cortocircuito en el alimentador F1, una de las líneas que salen de la subestación. El relé mide 2.8 kA. Cierra su contacto de disparo, una señal cableada que hace abrir el interruptor Q1." },
+        "publish": { "title": "Anunciar el disparo", "text": "En ese mismo momento, el relé envía su nuevo estado a todos los suscriptores. El número de estado (stNum) sube en uno. El número de secuencia (sqNum), que cuenta las copias de un mismo estado, vuelve a empezar en 0." },
+        "repeat": { "title": "Repetir rápido", "text": "Ningún suscriptor responde a GOOSE, así que el relé vuelve a enviar el mismo mensaje 2 ms después del cambio, y luego a los 4, 8 y 16 ms, y así sucesivamente, hasta volver a una vez por segundo." },
+        "act": { "title": "Reaccionan los suscriptores", "text": "F2 PROT vigila el interruptor Q1 por si Q1 falla. Arranca un temporizador: si Q1 no se ha abierto cuando se acaba el tiempo, F2 PROT dispara los demás interruptores que alimentan la falla. El gateway pasa el disparo al SCADA, el sistema del centro de control." },
+        "open": { "title": "Abre el interruptor", "text": "48 ms después del disparo, Q1 está abierto y la corriente de falla se detiene." }
     },
     "frames": {
         "heartbeat": "Sigue sin haber disparo (heartbeat)",
@@ -19,26 +20,26 @@
     "notes": {
         "trip-wire": "Un cable de cobre, no un mensaje de red: el relé cierra un contacto y la corriente circula hacia la bobina de disparo del interruptor.",
         "to-scada": "Esto es IEC 104, no GOOSE: el gateway traduce entre los dos. La lección de IEC 104 muestra estos bytes.",
-        "opened": "Un contacto auxiliar del interruptor le dice al relé que ya se abrió."
+        "opened": "Un contacto auxiliar, un contacto que se mueve con el interruptor, le dice al relé que el interruptor se ha abierto."
     },
     "fields": {
         "dst": { "name": "Destino", "note": "Una dirección multicast del rango que IEC 61850 reserva para GOOSE (01-0C-CD-01-…). Todos los equipos de la red la oyen; solo los suscriptores se la quedan." },
         "src": { "name": "Origen", "note": "La dirección MAC del propio relé." },
         "vlan": { "name": "Etiqueta VLAN", "note": "0x8100, luego prioridad 4 y VLAN 10. La prioridad permite a los switches enviar la trama antes que el resto del tráfico." },
         "ethertype": { "name": "EtherType", "note": "0x88B8 significa GOOSE. En esta trama no hay IP ni TCP." },
-        "appid": { "name": "APPID", "note": "0x0001: un número por el que filtran los suscriptores." },
+        "appid": { "name": "APPID", "note": "0x0001: un ID para este flujo de mensajes. Los suscriptores filtran por él." },
         "length": { "name": "Longitud", "note": "115 bytes, desde el APPID hasta el final." },
         "reserved": { "name": "Reservado", "note": "Dos campos reservados, aquí a cero. IEC 62351-6 los usa cuando la trama va firmada." },
         "pdu": { "name": "Mensaje GOOSE", "note": "0x61 inicia el mensaje; siguen 105 bytes (0x69). Cada campo que viene después es una etiqueta, una longitud y un valor." },
-        "gocbref": { "name": "gocbRef", "note": "Etiqueta 0x80, 25 bytes: el nombre del bloque de control, F1PROTLD0/LLN0$GO$gcbTrip." },
+        "gocbref": { "name": "gocbRef", "note": "Etiqueta 0x80, 25 bytes: el nombre del bloque de control que envía este mensaje, F1PROTLD0/LLN0$GO$gcbTrip." },
         "tal": { "name": "Tiempo de vida permitido", "note": "2000 ms. Si no llega ninguna copia en este tiempo, los suscriptores dan los datos por no válidos." },
-        "datset": { "name": "datSet", "note": "El conjunto de datos que lleva el mensaje: F1PROTLD0/LLN0$dsTrip." },
-        "goid": { "name": "goID", "note": "F1PROT_Trip, un ID que los suscriptores pueden comprobar." },
+        "datset": { "name": "datSet", "note": "El conjunto de datos: la lista de valores que lleva este mensaje, F1PROTLD0/LLN0$dsTrip." },
+        "goid": { "name": "goID", "note": "F1PROT_Trip: un ID que los suscriptores pueden comprobar." },
         "t-old": { "name": "t", "note": "Cuándo cambiaron los datos por última vez: hoy a las 08:00:00, UTC. Un heartbeat conserva la hora del último cambio." },
         "t-event": { "name": "t", "note": "Cuándo cambiaron los datos: 10:41:07.232 UTC. 4 bytes de segundos, 3 de fracciones de segundo y 1 de calidad del reloj." },
-        "stnum-12": { "name": "stNum 12", "note": "El número de estado: sin cambios desde el último cambio." },
+        "stnum-12": { "name": "stNum 12", "note": "El número de estado: sigue siendo 12, así que los datos no han cambiado." },
         "stnum-13": { "name": "stNum 13", "note": "El número de estado subió en uno: los datos cambiaron." },
-        "sqnum-3": { "name": "sqNum 3", "note": "El número de secuencia: la cuarta copia del mismo estado." },
+        "sqnum-3": { "name": "sqNum 3", "note": "El número de secuencia cuenta las copias de un mismo estado, desde 0: esta es la cuarta copia." },
         "sqnum-0": { "name": "sqNum 0", "note": "La primera copia del nuevo estado." },
         "sqnum-1": { "name": "sqNum 1", "note": "El mismo estado, enviado otra vez." },
         "simulation": { "name": "simulation", "note": "Falso. Verdadero marca los mensajes de prueba, que los suscriptores ignoran salvo que estén en modo de prueba." },
@@ -48,10 +49,10 @@
         "data-idle": { "name": "allData", "note": "Los valores: Tr.general = FALSE (sin disparo) y su calidad: buena." },
         "data-trip": { "name": "allData", "note": "Los valores: Tr.general = TRUE (¡disparo!) y su calidad: buena." },
         "a-ied": { "name": "IED", "note": "El nombre del equipo en el archivo SCL." },
-        "a-ld": { "name": "Dispositivo lógico", "note": "LD0, un grupo de funciones dentro del IED." },
-        "a-ln": { "name": "Nodo lógico", "note": "LLN0, donde están los bloques de control." },
-        "a-fc": { "name": "Restricción funcional", "note": "GO: un bloque de control GOOSE." },
-        "a-cb": { "name": "Bloque de control", "note": "gcbTrip, su nombre." }
+        "a-ld": { "name": "Dispositivo lógico", "note": "LD0: un dispositivo lógico, un grupo de funciones dentro del IED." },
+        "a-ln": { "name": "Nodo lógico", "note": "LLN0: el nodo lógico del propio dispositivo, donde viven los bloques de control." },
+        "a-fc": { "name": "Restricción funcional", "note": "GO: lo que sigue es un bloque de control GOOSE." },
+        "a-cb": { "name": "Bloque de control", "note": "gcbTrip: el nombre del bloque de control." }
     },
     "devices": {
         "q1": "Interruptor Q1",
@@ -85,7 +86,7 @@
     },
     "timing": {
         "title": "Por qué GOOSE nunca espera respuesta",
-        "note": "GOOSE no tiene confirmación. El publicador repite cada cambio rápidamente y luego va más despacio hasta llegar al heartbeat. Si un suscriptor no oye nada dentro del tiempo de vida permitido, marca los datos como no válidos. Los tiempos de repetición de aquí son típicos; cada fabricante fija los suyos.",
+        "note": "GOOSE no tiene acuse de recibo. El publicador repite cada cambio rápidamente y después va más despacio hasta llegar a un heartbeat. Si un suscriptor no oye nada dentro del tiempo de vida permitido, marca los datos como inválidos. Los tiempos de repetición de aquí son típicos; cada fabricante fija los suyos.",
         "publisher": "F1 PROT",
         "event": "stNum 12 → 13",
         "repeats": "sqNum 1, 2, 3 …",

@@ -1,11 +1,12 @@
 {
-    "intro": "A IEC 61850-7-420 leva o modelo de dados da IEC 61850 aos recursos energéticos distribuídos: baterias, inversores, geradores e as funções que os controlam. Um controlador de usina os lê e controla com os mesmos serviços MMS de um relé de subestação. Só os nomes são novos.",
+    "intro": "A IEC 61850 é a norma que as subestações usam para descrever e controlar os seus equipamentos: cada equipamento guarda os seus valores com nomes padronizados, numa árvore fixa. A IEC 61850-7-420 leva esse modelo de dados aos recursos energéticos distribuídos, as muitas fontes menores espalhadas pela rede: baterias, inversores, geradores e as funções que os controlam. Um controlador de usina os lê e controla com MMS, as mesmas mensagens de rede que atendem os relés de proteção de uma subestação. Só os nomes são novos.",
+    "plain": "Nas subestações da rede, os pátios cercados cheios de chaves e transformadores, cada equipamento se descreve com os mesmos nomes combinados, como salas que têm todas uma placa padrão na porta. Esta norma estende esses nomes a baterias, conversores de energia solar e geradores. Assim, o computador de controle de uma usina encontra \"carga da bateria\" ou \"limite de potência\" pelo nome no equipamento de qualquer fabricante. Ele lê valores, recebe atualizações quando eles mudam e envia comandos como \"não forneça mais que esta potência\".",
     "steps": {
-        "associate": { "title": "Associar", "text": "O controlador da usina abre a porta TCP 102 do inversor da bateria e estabelece uma associação MMS, como em qualquer conexão IEC 61850." },
-        "read": { "title": "Ler carga e potência", "text": "Um único Read pede dois valores: o estado de carga no DSTO1 e a potência ativa no MMXU1. A resposta traz os dois, na mesma ordem." },
-        "subscribe": { "title": "Pedir relatórios", "text": "O controlador habilita um relatório com os mesmos dois valores. A partir de agora, o inversor os envia quando eles mudam." },
-        "limit": { "title": "Limitar a potência", "text": "O operador da rede permite no máximo 2000 kW. O controlador opera o WMaxSpt, o setpoint do DWMX1, a função que limita a potência ativa. O inversor aceita e começa a reduzir em rampa." },
-        "report": { "title": "A potência se estabiliza", "text": "O inversor reporta enquanto o TotW cai. O último relatório diz 2000.0 kW: o limite está valendo." }
+        "associate": { "title": "Estabelecer o link", "text": "O controlador da usina, o computador que opera a usina, abre uma conexão TCP com o inversor da bateria na porta 102. O inversor da bateria liga a bateria à rede. Depois os dois estabelecem uma associação MMS: combinam tamanhos de mensagem e serviços, como em qualquer conexão IEC 61850." },
+        "read": { "title": "Ler carga e potência", "text": "Uma única requisição Read pede dois valores. O estado de carga, o quanto a bateria está cheia, fica no DSTO1: o nó lógico da unidade de armazenamento, um grupo de valores com nome para uma função. A potência ativa fica no MMXU1, o nó de medição. A resposta traz os dois, na mesma ordem." },
+        "subscribe": { "title": "Pedir relatórios", "text": "O controlador liga um relatório com os mesmos dois valores. A partir de agora, o inversor os envia sozinho quando eles mudam." },
+        "limit": { "title": "Limitar a potência", "text": "O operador da rede, a empresa que opera as linhas de energia, permite no máximo 2000 kW. O controlador envia um comando ao WMaxSpt, o setpoint (valor alvo) do DWMX1, a função que limita a potência ativa. O inversor aceita e começa a reduzir a potência passo a passo." },
+        "report": { "title": "A potência se estabiliza", "text": "O inversor envia relatórios enquanto o TotW, a sua potência ativa total, cai. O último relatório diz 2000.0 kW: o limite está valendo." }
     },
     "frames": {
         "tcp": "Abrir TCP com a porta 102 e depois uma conexão de transporte",
@@ -13,7 +14,7 @@
         "initiate-resp": "Combinado: estes são os meus",
         "read-req": "Qual é o seu estado de carga e a sua potência ativa?",
         "read-resp": "68.5 % e 3000.0 kW",
-        "enable": "Habilite o relatório urcbDER01",
+        "enable": "Ligue o relatório urcbDER01",
         "oper-req": "Limite a sua potência ativa a 2000 kW",
         "oper-resp": "Feito",
         "report": "TotW agora é 2000.0 kW"
@@ -22,7 +23,7 @@
         "tcp": "TCP puro para a porta 102 e, por cima, uma conexão de transporte ISO (COTP). A lição de MMS da IEC 61850 mostra essas etapas.",
         "initiate-req": "Um Initiate do MMS dentro das camadas de sessão, apresentação e ACSE. O controlador propõe o maior tamanho de mensagem e os serviços que quer. A autenticação, quando usada, acontece aqui (IEC 62351-4).",
         "initiate-resp": "O inversor responde com os seus próprios tamanhos e serviços. A partir de agora, toda requisição identifica uma variável pelo dispositivo lógico e pelo item.",
-        "enable": "Um Write de TRUE no RptEna do bloco de controle de relatório LLN0$RP$urcbDER01. O data set dele, dsDER, contém DSTO1.UseSocPct e MMXU1.TotW.",
+        "enable": "Um Write de TRUE no RptEna (report enable) do bloco de controle de relatório LLN0$RP$urcbDER01, as configurações de um relatório. O data set dele, dsDER, a lista de valores que o relatório leva, contém DSTO1.UseSocPct e MMXU1.TotW.",
         "report": "Um InformationReport não solicitado: o inversor o envia sem ser perguntado, sempre que um valor do dsDER muda."
     },
     "fields": {
@@ -42,14 +43,14 @@
         "read": { "name": "Read", "note": "Tag A4: o serviço Read." },
         "spec": { "name": "Lista de variáveis", "note": "Uma lista de variáveis, cada uma dada pelo nome. Aqui são duas." },
         "var": { "name": "Variável", "note": "Uma entrada da lista. O nome dela vem em seguida." },
-        "domain-specific": { "name": "Nome específico de domínio", "note": "Um nome em duas partes: o domínio e o item." },
+        "domain-specific": { "name": "Nome específico de domínio", "note": "Um nome em duas partes: o domínio (o dispositivo lógico) e o item (o caminho dentro dele)." },
         "domain": { "name": "Domínio", "note": "\"BESS1DER\": o dispositivo lógico DER do IED BESS1." },
         "item-soc": { "name": "Item", "note": "\"DSTO1$MX$UseSocPct$mag$f\": o estado de carga da unidade de armazenamento, em porcentagem da energia utilizável." },
         "item-totw": { "name": "Item", "note": "\"MMXU1$MX$TotW$mag$f\": a potência ativa total no lado CA do inversor." },
         "results": { "name": "Resultados", "note": "Um resultado por variável, na ordem em que foram pedidas." },
         "float-tag": { "name": "Ponto flutuante", "note": "Tag 0x87 (um float), 5 bytes. 08: segue um float IEEE 754 de precisão simples." },
         "soc": { "name": "UseSocPct", "note": "68.5 (%), byte mais significativo primeiro." },
-        "totw": { "name": "TotW", "note": "3000.0. A unidade, kW, fica no atributo units (CF)." },
+        "totw": { "name": "TotW", "note": "3000.0. A unidade, kW, é definida no atributo units, sob CF (configuração)." },
         "write": { "name": "Write", "note": "Tag A5: o serviço Write. A IEC 61850 envia um comando como um Write no Oper." },
         "write-spec": { "name": "Variável", "note": "Uma lista de uma variável, dada pelo nome." },
         "item-oper": { "name": "Item", "note": "\"DWMX1$CO$WMaxSpt$Oper\": a estrutura Oper do setpoint WMaxSpt. CO significa controle." },
@@ -60,7 +61,7 @@
         "ctlnum": { "name": "ctlNum", "note": "1: o cliente numera os seus comandos, para que cada um possa ser distinguido." },
         "oper-t": { "name": "T", "note": "Quando o controlador o enviou: 10:41:12.250 UTC. 4 bytes de segundos, 3 de frações de segundo, 1 de qualidade do relógio." },
         "test": { "name": "Test", "note": "FALSE: um comando real, não um teste." },
-        "check": { "name": "Check", "note": "Dois bits: verificação de sincronismo e de intertravamento. Os dois estão desligados: um setpoint não precisa de nenhuma delas." },
+        "check": { "name": "Check", "note": "Dois bits: verificação de sincronismo (esperar até os dois lados de um disjuntor estarem em fase) e verificação de intertravamento (recusar se as regras de segurança da usina proibirem). Os dois estão desligados: um setpoint não precisa de nenhuma delas." },
         "write-resp": { "name": "Resposta do Write", "note": "Tag A5: a resposta a um Write, um resultado por variável." },
         "success": { "name": "Sucesso", "note": "Tag 0x81, vazia: a escrita funcionou. Com controle direto, o novo limite vale na hora." },
         "a-ld": { "name": "Dispositivo lógico", "note": "BESS1DER: nome do IED BESS1 e instância DER." },
@@ -84,7 +85,7 @@
     },
     "tips": [
         "A edição 1 (2009) e a edição 2 (2021) usam nomes diferentes. A edição 1 tem ZINV, ZBAT e DRCT; a edição 2 tem DINV, DBAT, DSTO e funções como DWMX. Verifique qual edição o arquivo SCL do equipamento usa antes de mapear qualquer coisa.",
-        "Leia o ctlModel (CF) antes de operar. Com direct-with-normal-security, a resposta do Write encerra tudo. Com enhanced security, um CommandTermination vem depois, quando o equipamento termina.",
+        "Leia o ctlModel (CF), o modelo de controle, antes de enviar um comando. Com direct-with-normal-security, a resposta do Write encerra tudo. Com enhanced security, um CommandTermination vem depois, quando o equipamento termina.",
         "As funções da edição 2 podem voltar aos valores padrão depois de um tempo definido em RvrtTms. Um controlador que envia um limite uma vez e nunca mais pode ver esse limite sumir.",
         "Combinem o sinal da potência. Alguns equipamentos contam a descarga como positiva, outros como negativa. Teste primeiro com um setpoint pequeno."
     ],
@@ -97,7 +98,7 @@
         "control": "O nome de um setpoint, e como o MMS o escreve"
     },
     "playground": {
-        "scl": "A descrição configurada do inversor da bateria (.cid). Abra DER, depois DSTO1 e MMXU1 para os dois valores lidos aqui, e DWMX1 para o WMaxSpt: a estrutura Oper e o ctlModel dele. Depois abra o seu próprio arquivo, se tiver um.",
+        "scl": "A descrição configurada do inversor da bateria (.cid), um arquivo SCL. Abra DER, depois DSTO1 e MMXU1 para os dois valores lidos aqui, e DWMX1 para o WMaxSpt: a estrutura Oper e o ctlModel dele. Depois abra o seu próprio arquivo, se tiver um.",
         "encoder": "O MMS envia um float com o byte mais significativo primeiro (ABCD). O limite, 2000.0, trafega como 44 FA 00 00."
     }
 }

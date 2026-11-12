@@ -1,14 +1,15 @@
 {
-    "intro": "IEC 61400-25, c'est IEC 61850 pour les parcs éoliens. La norme ajoute des nœuds logiques pour l'éolienne, son rotor, sa génératrice et son convertisseur, la météo, et la conduite de tout le parc. IEC 61400-25-4 associe le modèle à des protocoles ; avec le mapping MMS, une éolienne parle comme n'importe quel serveur IEC 61850.",
+    "intro": "IEC 61400-25 étend IEC 61850, la norme des données et des messages des postes, aux parcs éoliens. Elle ajoute des nœuds logiques : des groupes nommés de données, un par fonction. Ils couvrent l'éolienne, son rotor, sa génératrice et son convertisseur, la météo, et la conduite de tout le parc. La partie IEC 61400-25-4 dit comment ce modèle circule sur de vrais protocoles. Avec le mapping MMS (MMS : Manufacturing Message Specification, le protocole qui lit et écrit les données IEC 61850), une éolienne parle comme n'importe quel serveur IEC 61850.",
+    "plain": "Un parc éolien compte de nombreuses éoliennes et une salle de conduite qui doit les surveiller et leur dire combien de puissance produire. Cette norme donne à chaque éolienne le même ensemble de mesures nommées. C'est comme un formulaire imprimé avec les mêmes cases aux mêmes endroits : la puissance ici, la vitesse du rotor là, la vitesse du vent là. Un système de conduite qui connaît le formulaire peut lire une éolienne et lui envoyer une limite sans apprendre la langue propre à chaque fabricant.",
     "steps": {
-        "associate": { "title": "Association", "text": "Le contrôleur de parc ouvre le port TCP 102 de l'éolienne WT01 et établit une association MMS. Avec le mapping MMS, une éolienne est un serveur IEC 61850 ordinaire." },
-        "read": { "title": "Lire l'éolienne", "text": "Un seul Read demande trois valeurs : la puissance active dans WTUR1, la vitesse du rotor dans WROT1 et la vitesse du vent dans WMET1. WTUR contient aussi l'état de fonctionnement de l'éolienne, TurSt." },
-        "subscribe": { "title": "Demander des rapports", "text": "Le contrôleur active le rapport urcbWTG01. L'éolienne envoie désormais son jeu de données quand une valeur change, et toutes les 10 s dans tous les cas." },
-        "limit": { "title": "Une limite pour le parc", "text": "Le SCADA du gestionnaire de réseau commande WAPC1, le contrôle de puissance active du parc : 5.4 MW au plus pour toute la centrale." },
-        "follow": { "title": "Les éoliennes suivent", "text": "Le contrôleur de parc donne à chacune des trois éoliennes sa part : 1800 kW. WT01 oriente ses pales, réduit sa puissance progressivement et rapporte sa nouvelle puissance." }
+        "associate": { "title": "Se connecter à WT01", "text": "Le contrôleur de parc, l'ordinateur qui pilote tout le parc éolien, ouvre une connexion réseau (TCP) vers le port 102 de l'éolienne WT01. Puis il établit une association MMS : une session dans laquelle les deux côtés conviennent de la façon de dialoguer. Avec le mapping MMS, l'éolienne est un serveur IEC 61850 ordinaire, un équipement qui détient des données et répond aux requêtes." },
+        "read": { "title": "Lire l'éolienne", "text": "Une seule requête Read demande trois valeurs, chacune dans son propre nœud logique. La puissance active (la puissance électrique que fournit l'éolienne) vient de WTUR1, l'éolienne dans son ensemble. La vitesse du rotor vient de WROT1, le rotor. La vitesse du vent vient de WMET1, les capteurs météo. WTUR contient aussi l'état de fonctionnement de l'éolienne, TurSt." },
+        "subscribe": { "title": "Demander des rapports", "text": "Le contrôleur active le bloc de contrôle de rapport urcbWTG01 : un réglage de l'éolienne qui dit quoi envoyer et quand. Désormais, l'éolienne envoie son jeu de données, une liste fixe de valeurs, chaque fois que l'une d'elles change, et toutes les 10 s dans tous les cas." },
+        "limit": { "title": "Une limite pour le parc", "text": "Le SCADA du gestionnaire de réseau (le système de supervision de son centre de conduite) envoie une commande à WAPC1. Ce nœud logique pilote la puissance active de tout le parc. L'ordre : 5.4 MW au plus pour toute la centrale." },
+        "follow": { "title": "Les éoliennes suivent", "text": "Le contrôleur de parc répartit la limite et donne à chacune des trois éoliennes sa part : 1800 kW. WT01 tourne ses pales pour capter moins de vent (elle les met en drapeau partiel), réduit sa puissance progressivement et rapporte sa nouvelle puissance." }
     },
     "frames": {
-        "initiate-req": "Parlons MMS : voici mes tailles et mes services",
+        "initiate-req": "Parlons MMS : voici mes limites de taille et mes services",
         "initiate-resp": "D'accord : voici les miens",
         "read-req": "Ta puissance, la vitesse du rotor et celle du vent ?",
         "read-resp": "2350.0 kW, 12.75 tr/min, 9.5 m/s",
@@ -16,61 +17,61 @@
         "enable-resp": "C'est fait",
         "oper": "Le parc peut injecter 5.4 MW au plus",
         "share": "Chaque éolienne : 1800 kW au plus",
-        "report": "W vaut maintenant 1800.0 kW"
+        "report": "Ma puissance W vaut maintenant 1800.0 kW"
     },
     "notes": {
-        "initiate-req": "D'abord TCP vers le port 102 et une connexion COTP, comme dans la leçon IEC 61850 MMS. Puis le MMS Initiate propose des tailles et des services.",
-        "initiate-resp": "L'éolienne répond avec ses propres tailles et services. Son modèle peut maintenant être parcouru, ou lu dans son fichier SCL.",
-        "oper": "Une commande sur WAPC, le nœud logique de la puissance active du parc : une nouvelle valeur de consigne pour la production de la centrale. Le contrôleur de parc répond par une réponse au Write.",
+        "initiate-req": "D'abord une connexion TCP vers le port 102 et une connexion COTP, comme dans la leçon IEC 61850 MMS. Puis la requête MMS Initiate propose les limites de taille de message du contrôleur et les services qu'il prend en charge.",
+        "initiate-resp": "L'éolienne répond avec ses propres limites de taille et services. Le contrôleur peut maintenant parcourir le modèle de données de l'éolienne, ou le lire dans son fichier SCL.",
+        "oper": "Un Operate sur WAPC1, le nœud logique de la puissance active du parc : une nouvelle cible pour la production de la centrale. Le contrôleur de parc répond par une réponse au Write.",
         "share": "La façon dont la limite parvient à chaque éolienne dépend du contrôleur de parc. À l'intérieur du parc, beaucoup utilisent pour cela le protocole propre au fabricant des éoliennes.",
-        "report": "Un InformationReport non sollicité de urcbWTG01 avec W, RotSpd et HorWdSpd. Son code de motif indique ce qui l'a déclenché : un changement de données."
+        "report": "Un InformationReport de urcbWTG01 avec W, RotSpd et HorWdSpd. L'éolienne l'envoie d'elle-même, sans requête. Son code de motif indique ce qui l'a déclenché : un changement de données."
     },
     "fields": {
         "tpkt-143": { "name": "TPKT", "note": "Version 3, puis la longueur du message entier : 0x008F = 143 octets." },
         "tpkt-50": { "name": "TPKT", "note": "Version 3, puis la longueur : 0x0032 = 50 octets." },
         "tpkt-75": { "name": "TPKT", "note": "Version 3, puis la longueur : 0x004B = 75 octets." },
         "tpkt-29": { "name": "TPKT", "note": "Version 3, puis la longueur : 0x001D = 29 octets." },
-        "cotp-dt": { "name": "COTP", "note": "Une unité de données (0xF0), la dernière de son message (0x80)." },
-        "session": { "name": "Session", "note": "Deux courts en-têtes de session : give tokens, transfert de données." },
-        "presentation": { "name": "Présentation", "note": "Données entièrement encodées, contexte de présentation 3 : la suite est du MMS." },
-        "presentation-long": { "name": "Présentation", "note": "Données entièrement encodées, contexte 3 : du MMS suit. 81 81 est une longueur longue : 0x81 annonce qu'un octet de longueur suit, et cet octet, 0x81, vaut 129." },
+        "cotp-dt": { "name": "COTP", "note": "02 : deux octets d'en-tête suivent. 0xF0 : une unité de données. 0x80 : la dernière unité de son message." },
+        "session": { "name": "Session", "note": "Deux courts en-têtes de session : Give Tokens, puis Data Transfer. Chacun fait 2 octets, sans contenu." },
+        "presentation": { "name": "Présentation", "note": "Données entièrement encodées dans le contexte de présentation 3. Le contexte 3 a été convenu à la connexion pour désigner MMS : la suite est donc du MMS." },
+        "presentation-long": { "name": "Présentation", "note": "Données entièrement encodées dans le contexte 3 : du MMS suit. 81 81 est une longueur longue : 0x81 annonce qu'un octet de longueur suit, et cet octet, 0x81, vaut 129." },
         "confirmed-req": { "name": "Requête confirmée", "note": "Tag A0 : une requête qui attend une réponse. L'octet suivant compte les octets qu'elle contient." },
         "confirmed-resp": { "name": "Réponse confirmée", "note": "Tag A1 : la réponse à une requête." },
         "invoke-3": { "name": "Invoke ID 3", "note": "Un numéro choisi par le contrôleur. La réponse porte le même." },
         "invoke-3-resp": { "name": "Invoke ID 3", "note": "Le même numéro que la requête : ceci y répond." },
         "invoke-4": { "name": "Invoke ID 4", "note": "Une nouvelle requête, un nouveau numéro." },
         "invoke-4-resp": { "name": "Invoke ID 4", "note": "Ceci répond à l'écriture dans RptEna." },
-        "read": { "name": "Read", "note": "Tag A4 : le service Read." },
+        "read": { "name": "Read", "note": "Tag A4 : le service Read, qui demande des valeurs." },
         "spec": { "name": "Liste de variables", "note": "Une liste de variables, chacune donnée par son nom. Ici, il y en a trois." },
         "var": { "name": "Variable", "note": "Une entrée de la liste. Son nom suit." },
-        "domain-specific": { "name": "Nom propre à un domaine", "note": "Un nom en deux parties : le domaine et l'item." },
-        "domain": { "name": "Domaine", "note": "\"WT01WTG\" : l'équipement logique WTG de l'IED WT01." },
+        "domain-specific": { "name": "Nom propre à un domaine", "note": "Un nom en deux parties : le domaine (l'équipement logique) et l'item (la donnée qu'il contient)." },
+        "domain": { "name": "Domaine", "note": "\"WT01WTG\" : l'équipement logique WTG de l'IED WT01, le contrôleur de l'éolienne." },
         "item-w": { "name": "Item", "note": "\"WTUR1$MX$W$mag$f\" : la puissance active produite par l'éolienne." },
         "item-rotspd": { "name": "Item", "note": "\"WROT1$MX$RotSpd$mag$f\" : la vitesse du rotor." },
-        "item-wdspd": { "name": "Item", "note": "\"WMET1$MX$HorWdSpd$mag$f\" : la vitesse horizontale du vent, mesurée par l'anémomètre de la nacelle." },
+        "item-wdspd": { "name": "Item", "note": "\"WMET1$MX$HorWdSpd$mag$f\" : la vitesse horizontale du vent, mesurée par l'anémomètre de la nacelle, le carter au sommet du mât." },
         "results": { "name": "Résultats", "note": "Trois résultats, dans l'ordre où ils ont été demandés." },
-        "float-tag": { "name": "Virgule flottante", "note": "Tag 0x87 (un flottant), 5 octets. 08 : un flottant IEEE 754 simple précision suit." },
-        "w": { "name": "W", "note": "2350.0. L'unité, kW, se trouve dans l'attribut units (CF)." },
+        "float-tag": { "name": "Virgule flottante", "note": "Tag 0x87 (un flottant), 5 octets. 08 : l'exposant a 8 bits, un flottant IEEE 754 simple précision suit donc." },
+        "w": { "name": "W", "note": "2350.0, ici en kW. La valeur est envoyée sans son unité : l'unité se trouve dans l'attribut units (CF)." },
         "rotspd": { "name": "RotSpd", "note": "12.75 (tr/min), octet de poids fort en premier." },
         "wdspd": { "name": "HorWdSpd", "note": "9.5 (m/s)." },
-        "write": { "name": "Write", "note": "Tag A5 : le service Write." },
+        "write": { "name": "Write", "note": "Tag A5 : le service Write, qui fixe des valeurs." },
         "write-spec": { "name": "Variable", "note": "Une liste d'une seule variable, donnée par son nom." },
-        "item-rptena": { "name": "Item", "note": "\"LLN0$RP$urcbWTG01$RptEna\" : l'indicateur d'activation de urcbWTG01, la première instance du bloc de contrôle de rapport urcbWTG. RP désigne un rapport sans mémoire tampon." },
+        "item-rptena": { "name": "Item", "note": "\"LLN0$RP$urcbWTG01$RptEna\" : RptEna, l'interrupteur marche/arrêt de urcbWTG01. urcbWTG01 est la première instance du bloc de contrôle de rapport urcbWTG. RP désigne un rapport sans mémoire tampon : ce qui change pendant qu'aucun client n'est connecté n'est pas conservé." },
         "data-list": { "name": "Données", "note": "Les valeurs à écrire, une par variable." },
         "true": { "name": "TRUE", "note": "Tag 0x83, un booléen, 1 octet : TRUE. Les rapports commencent maintenant." },
         "write-resp": { "name": "Réponse au Write", "note": "Tag A5 : la réponse à un Write, un résultat par variable." },
         "success": { "name": "Succès", "note": "Tag 0x81, vide : l'écriture a réussi." },
-        "a-ld": { "name": "Équipement logique", "note": "WT01WTG : nom d'IED WT01 et instance WTG." },
-        "a-ln": { "name": "Nœud logique", "note": "WMET1 : les capteurs météo de cette éolienne. Un mât de mesure a son propre WMET." },
+        "a-ld": { "name": "Équipement logique", "note": "WT01WTG : nom d'IED WT01 et instance d'équipement logique WTG." },
+        "a-ln": { "name": "Nœud logique", "note": "WMET1 : les capteurs météo de cette éolienne. Un mât météo a son propre WMET." },
         "a-fc": { "name": "Contrainte fonctionnelle", "note": "MX : valeurs mesurées." },
         "a-hor": { "name": "Horizontal", "note": "Hor. Les noms d'objets de données sont formés de mots courts comme celui-ci, accolés sans espace." },
         "a-wd": { "name": "Vent", "note": "Wd. Autres mots courts : Tmp pour la température, Dir pour la direction." },
         "a-spd": { "name": "Vitesse", "note": "Spd. Ensemble : HorWdSpd, la vitesse horizontale du vent." },
-        "a-da": { "name": "Attribut de données", "note": "mag.f : l'amplitude, en flottant." }
+        "a-da": { "name": "Attribut de données", "note": "mag.f : l'amplitude (la valeur elle-même), en nombre à virgule flottante." }
     },
     "devices": {
         "scada": "Centre de conduite",
-        "met": "Mât de mesure",
+        "met": "Mât météo",
         "ppc": "Contrôleur de parc",
         "wt01": "WT01",
         "wt02": "WT02",
@@ -78,14 +79,14 @@
     },
     "facts": {
         "standard": "IEC 61400-25-2 édition 2 (2015) : le modèle. IEC 61400-25-4 : les mappings",
-        "between": "Contrôleur de parc, SCADA ou propriétaire → éolienne, mât de mesure, parc",
+        "between": "Contrôleur de parc, SCADA ou propriétaire → éolienne, mât météo, parc",
         "transport": "MMS sur TCP 102, comme dans IEC 61850-8-1. OPC UA dans IEC 61400-25-41",
         "security": "Avec MMS : TLS (IEC 62351-4), TCP 3782",
         "model": "Nœuds logiques éoliens : WTUR, WROT, WGEN, WCNV, WMET, WAPC …"
     },
     "tips": [
         "L'édition 2 (2015) a déplacé les capteurs de vent et de météo de la nacelle de WNAC vers WMET, et changé plusieurs abréviations. Un client écrit pour l'édition 1 cherche au mauvais endroit.",
-        "Une valeur ne porte aucune unité. W peut être en W ou en kW : lisez units (CF) une fois après la connexion, et gardez-le.",
+        "Une valeur ne porte aucune unité. La puissance W peut être en watts ou en kilowatts : lisez son attribut units (CF) une fois après la connexion, et gardez-le.",
         "Les fabricants d'éoliennes remplissent le modèle différemment : objets de données facultatifs, numéros d'instance, jeux de données. Lisez le fichier SCL de chaque type d'éolienne ; ne recopiez pas une même table pour toutes.",
         "Beaucoup de parcs parlent IEC 61400-25 vers l'exploitant, mais le protocole propre au fabricant vers les éoliennes. Demandez quelle interface vous aurez."
     ],
@@ -98,7 +99,7 @@
         "dataname": "Un nom d'objet de données, formé de mots courts"
     },
     "playground": {
-        "scl": "La description configurée de l'éolienne (.cid). Ouvrez WTG : chaque partie de l'éolienne est un nœud logique. WTUR1, WROT1 et WMET1 contiennent les trois valeurs lues ici. Ouvrez ensuite votre propre fichier, si vous en avez un.",
+        "scl": "Le fichier de configuration de l'éolienne (.cid, écrit en SCL). Ouvrez WTG : chaque partie de l'éolienne est un nœud logique. WTUR1, WROT1 et WMET1 contiennent les trois valeurs lues ici. Ouvrez ensuite votre propre fichier, si vous en avez un.",
         "encoder": "MMS envoie un flottant octet de poids fort en premier (ABCD). 2350.0 voyage sous la forme 45 12 E0 00."
     }
 }

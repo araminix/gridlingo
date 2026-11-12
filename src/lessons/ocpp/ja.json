@@ -1,12 +1,13 @@
 {
-    "intro": "充電ステーションと、それを運用するサーバ、CSMS（充電管理システム）のあいだの言葉です。充電器はWebSocketを1本開いたままにして、JSONメッセージを送ります。自分が何者か、コネクタの状態、どのカードで充電したいか、そして充電中のメーター値です。CSMSはすべてのメッセージに応答し、同じ接続で自分から要求を送ることもできます。",
+    "intro": "充電ステーションと、それを運用するサーバのあいだの言葉です。サーバはCSMS（充電ステーション管理システム。運営事業者のバックオフィス）と呼ばれます。充電器はWebSocket（つないだままにするウェブ接続）を1本開いたままにします。その上で、短いJSONメッセージ（構造化されたテキスト）を送ります。自分が何者か、コネクタ（プラグ）の状態、どのカードで充電したいか、そして充電中のメーター値です。CSMSはすべてのメッセージに応答し、同じ接続で自分から要求を送ることもできます。",
+    "plain": "電気自動車の公共充電器は、単独で動いているわけではありません。お店のカード端末が銀行とつながっているのと同じように、運営会社のコンピュータシステムとつながったままになっています。充電器は、空いているときはそう伝え、あなたのカードで充電してよいかを尋ね、あなたが使った電気の量を報告します。これで料金を請求できます。",
     "steps": {
-        "connect": { "title": "接続", "text": "充電器がCSMSへのセキュアなWebSocketを開きます。接続は開いたままなので、どちらの側からもいつでも送信できます。" },
-        "boot": { "title": "起動", "text": "電源投入後の最初のメッセージで、充電器が自分は何者かを伝えます。CSMSはそれを受け入れ、時刻を伝え、ハートビートの間隔を決めます。続いて充電器は各コネクタの状態を報告します。コネクタ1はAvailable（使用可能）です。" },
-        "authorize": { "title": "カードをかざす", "text": "ドライバーがRFIDカードをリーダーにかざします。充電器はこのカードで充電してよいかをCSMSに問い合わせます。答えは「よい」です。" },
-        "start": { "title": "開始", "text": "車両がつながり、電力を受け取り始めます。充電器はトランザクションを開始し、開始時のメーター値を送ります。" },
-        "charge": { "title": "メーター値", "text": "車両の充電中、充電器は15分ごとにメーター値を送ります。CSMSには電力量が増えていくのが見えます。" },
-        "stop": { "title": "停止", "text": "ドライバーがもう一度カードをかざします。トランザクションは1時間、11040 Whで終了します。これでCSMSは課金できます。" }
+        "connect": { "title": "サーバに接続", "text": "充電器が、暗号化された安全なWebSocketをCSMSに向けて開きます。接続は開いたままなので、どちらの側からもいつでも送信できます。" },
+        "boot": { "title": "充電器の起動", "text": "電源投入後の最初のメッセージで、充電器が自分は何者かを伝えます。CSMSはそれを受け入れ、現在時刻を送り、ハートビートの間隔を決めます。充電器が「まだここにいます」と伝える頻度です。続いて充電器は各コネクタの状態を報告します。コネクタ1はAvailable（使用可能）です。" },
+        "authorize": { "title": "カードをかざす", "text": "ドライバーがRFIDカード（入館証のような非接触カード）をリーダーにかざします。充電器はこのカードで充電してよいかをCSMSに問い合わせます。答えは「よい」です。" },
+        "start": { "title": "充電の開始", "text": "車両がつながり、電力を受け取り始めます。充電器はトランザクション（この1回の充電の記録）を開始します。そして開始時のメーター値を送ります。" },
+        "charge": { "title": "メーター値の報告", "text": "車両の充電中、充電器は15分ごとにメーター値を送ります。CSMSには電力量が増えていくのが見えます。" },
+        "stop": { "title": "充電の終了", "text": "ドライバーがもう一度カードをかざします。トランザクションは1時間、11040 Wh（約11 kWh）で終了します。これでCSMSはドライバーに課金できます。" }
     },
     "frames": {
         "upgrade": "WebSocketに切り替えて、サブプロトコルはocpp2.0.1",
@@ -17,37 +18,37 @@
         "status-conf": "了解",
         "authorize": "カード04A2B3C4D5E6F7で充電してよいですか？",
         "authorize-conf": "はい：Accepted",
-        "started": "トランザクションTX-0187を12840 Whで開始",
+        "started": "トランザクションTX-0187を開始、メーターは12840 Wh",
         "started-conf": "了解、カードは引き続きAccepted",
-        "updated": "現在15600 Wh、11040 Wで受電中",
+        "updated": "メーターは現在15600 Wh、11040 Wで受電中",
         "updated-conf": "了解",
-        "ended": "TX-0187を23880 Whで終了",
+        "ended": "TX-0187を終了、メーターは23880 Wh",
         "ended-conf": "了解"
     },
     "notes": {
-        "upgrade": "TLSの中で、充電器はこのHTTP接続をWebSocketに切り替えるよう求めます。アドレスの末尾は充電器のID、CS-0042です。ヘッダSec-WebSocket-Protocolでocpp2.0.1を求め、HTTP Basic認証で充電器のパスワードを送ります。",
+        "upgrade": "暗号化されたTLS接続の中で、充電器はこのHTTP接続をWebSocketに切り替えるよう求めます。ウェブアドレスの末尾は充電器のID、CS-0042です。ヘッダSec-WebSocket-Protocolでocpp2.0.1を求めます。HTTP Basic認証で充電器のパスワードを送ります。",
         "switch": "CSMSは同意し、選んだサブプロトコルocpp2.0.1を示します。ここからは両側がWebSocketフレームを送り、各フレームにJSONのOCPPメッセージが1つ入ります。",
-        "status": "timestamp、connectorStatus Available、evseId 1、connectorId 1を持つCALLです。EVSEは1つの充電ポイントで、複数のコネクタを持つことがあります。",
-        "status-conf": "ペイロードが空のCALLRESULT：[3,\"1002\",{}]。伝えることがなくても、すべてのCALLに応答が返ります。",
-        "authorize": "idToken 04A2B3C4D5E6F7、type ISO14443：RFIDカードの7バイトのシリアル番号です。多くの充電器は、問い合わせずに判断できるよう、カードのローカルリストも持っています。",
+        "status": "timestamp、connectorStatus Available、evseId 1、connectorId 1を持つCALL（要求）です。EVSEは1つの充電ポイントで、一度に1台の車両を充電します。複数のコネクタ（プラグ）を持つことがあります。",
+        "status-conf": "ペイロードが空のCALLRESULT（応答）：[3,\"1002\",{}]。伝えることがなくても、すべてのCALLに応答が返ります。",
+        "authorize": "idToken 04A2B3C4D5E6F7、type ISO14443（非接触カードの規格）：RFIDカードの7バイトのシリアル番号です。多くの充電器は、CSMSに問い合わせずに判断できるよう、カードのローカルリストも持っています。",
         "authorize-conf": "status AcceptedのidTokenInfoです。Blocked、Expired、Invalid、Unknownなど、ほかの答えなら充電器は充電を始めてはいけません。",
-        "started": "eventType Started、triggerReason ChargingStateChanged、seqNo 0。transactionId（TX-0187）は充電器が決めます。イベントにはカードのidToken、chargingState Charging、context Transaction.Beginのメーター値（12840 Wh）が入っています。",
+        "started": "eventType Started、triggerReason ChargingStateChanged、seqNo 0：このトランザクションの最初のイベントです。transactionId（TX-0187）は充電器自身が決めます。イベントにはほかに、カードのidToken、chargingState Charging、開始時のメーター値（context Transaction.Begin）12840 Whが入っています。",
         "started-conf": "イベントにカードが入っていたので、応答にもそのステータスが再び入ります：idTokenInfo Accepted。",
-        "updated": "eventType Updated、triggerReason MeterValuePeriodic、seqNo 1。電力量レジスタと電力の2つの読み値が入っています。メッセージ全体は「試してみる」で見られます。",
+        "updated": "eventType Updated、triggerReason MeterValuePeriodic（メーターのタイマ）、seqNo 1。2つの読み値が入っています。電力量レジスタ（メーターの積算値）と、電力（いま電気が流れている速さ）です。メッセージ全体は「試してみる」で見られます。",
         "updated-conf": "ペイロードは空です。CSMSから付け加えることはありません。",
-        "ended": "eventType Ended、triggerReason StopAuthorized、seqNo 2、stoppedReason Local、chargingState EVConnected（ケーブルはまだ挿さったまま）、そしてcontext Transaction.Endの最後のメーター値：23880 Wh。",
+        "ended": "eventType Ended、triggerReason StopAuthorized（停止のためにカードがかざされた）、seqNo 2、stoppedReason Local（充電器側で停止）。chargingStateはEVConnectedで、ケーブルはまだ挿さったままです。最後のメーター値（context Transaction.End）は23880 Whです。",
         "ended-conf": "ペイロードは空です。CSMSは23880 − 12840 = 11040 Whをカードの持ち主に課金します。"
     },
     "fields": {
-        "ws-text": { "name": "FIN · opcode", "note": "0x81：FINビット（0x80）は、メッセージ全体がこのフレームに入っていることを示します。opcode 0x1はテキスト（UTF-8）であることを示します。" },
-        "ws-mask-126": { "name": "マスク · 長さ", "note": "0xFE：マスクビット（0x80）が立っています。クライアントは送るデータを必ずマスクするためです。残りの126（0x7E）は、長さが続く2バイトに入っていることを示します。" },
+        "ws-text": { "name": "FIN · opcode", "note": "0x81。FINビット（0x80）は、メッセージ全体がこの1つのフレームに入っていることを示します。opcode 0x1は、フレームがテキスト（UTF-8）を運ぶことを示します。" },
+        "ws-mask-126": { "name": "マスク · 長さ", "note": "0xFE。マスクビット（0x80）が立っています。クライアントは送るデータを必ずマスクする（かき混ぜる）ためです。残りのビットは126（0x7E）で、実際の長さが続く2バイトに入っているという意味です。" },
         "ws-len-170": { "name": "長さ", "note": "0x00AA = 170バイトのJSONが続きます。中身は「試してみる」で見られます。" },
         "ws-key": { "name": "マスキングキー", "note": "ランダムな4バイト。JSONの各バイトに順にXORをかけます。「[」（0x5B）は0x61として送られます。これは暗号化ではありません。暗号化はTLSが担います。" },
-        "ws-len-88": { "name": "長さ", "note": "0x58 = 88バイトのJSONが続きます。サーバはマスクしないのでマスクビットは0で、マスキングキーは続きません。" },
-        "a-type": { "name": "MessageTypeId", "note": "2はCALL、つまり要求です。その応答は3（CALLRESULT）か4（CALLERROR）です。" },
+        "ws-len-88": { "name": "長さ", "note": "0x58 = 88バイトのJSONが続きます。サーバはマスクしないので、マスクビットは0です。そのためマスキングキーは続きません。" },
+        "a-type": { "name": "MessageTypeId", "note": "2はCALL、つまり要求です。その応答は3（CALLRESULT：成功）か4（CALLERROR：失敗）です。" },
         "a-id": { "name": "MessageId", "note": "送信側が決め、この接続の中で一意です。応答にも同じidが入ります。要求と応答を結び付けるのはこれだけです。" },
         "a-action": { "name": "Action", "note": "どのメッセージかを表します。応答にはactionがありません。idを見れば、どのCALLへの応答かがわかります。" },
-        "a-payload": { "name": "ペイロード", "note": "要求の本体で、JSONオブジェクトです。各フィールドはBootNotificationRequestのJSONスキーマで検証されます。" }
+        "a-payload": { "name": "ペイロード", "note": "要求の本体で、JSONオブジェクトです。受信側は各フィールドを、BootNotificationRequestのJSONスキーマ（使ってよいフィールドの公式な一覧）と照合します。" }
     },
     "devices": {
         "car": "車両",
@@ -59,11 +60,11 @@
         "standard": "OCPP 2.0.1（Open Charge Alliance、2020）。OCPP 1.6Jもまだ広く使われています。",
         "between": "充電ステーション → CSMS（充電管理システム）",
         "transport": "TLS上のWebSocket（RFC 6455）、サブプロトコルocpp2.0.1：テキストフレーム1つにJSONメッセージ1つ",
-        "security": "TLS。セキュリティプロファイル2でパスワード（HTTP Basic）、プロファイル3でクライアント証明書が加わります。",
+        "security": "TLSによる暗号化。セキュリティプロファイル2ではパスワード（HTTP Basic）が加わります。プロファイル3では代わりにクライアント証明書を使います。",
         "frames": "CALL [2, …] · CALLRESULT [3, …] · CALLERROR [4, …]"
     },
     "tips": [
-        "充電器が求めたサブプロトコルでCSMSが応答しないと、充電器は接続を閉じなければなりません。「つながってもすぐ切れる」原因はたいていこれです。",
+        "充電器が求めたサブプロトコルでCSMSが応答しないと、充電器は接続を閉じなければなりません。「つながってもすぐ切れる」充電器は、たいていこれが原因です。",
         "CALLは1つずつ送り、応答かタイムアウトを待ってから次を送ってください。早すぎる2つ目のCALLは失われることがあります。",
         "トランザクションをいつ開始とみなすかは設定（TxStartPoint）で決まります。プラグ接続時、認証時、電力が流れ始めた時のいずれかです。CSMSの担当チームと合わせておかないと、トランザクションが長すぎたり短すぎたりします。",
         "タイムスタンプはUTCです。BootNotificationの応答にあるcurrentTimeで充電器の時計を合わせてください。でないと、メーター値が間違った料金時間帯に入ります。"
@@ -83,16 +84,16 @@
         "action": "action：どのメッセージかを表します。続いてそのペイロードが来ます。",
         "reason": "充電器が起動した理由：PowerUp。ほかにFirmwareUpdate、RemoteReset、Watchdogなどがあります。",
         "model": "chargingStationで必須のフィールドは、modelとvendorNameだけです。",
-        "firmware": "いま動いているファームウェア。CSMSはこれをもとに更新を計画します。",
+        "firmware": "いま動いているファームウェア（充電器に組み込まれたソフトウェア）のバージョン。CSMSはこれをもとに更新を計画します。",
         "event-type": "Started、Updated、Endedのいずれか。1つのトランザクションに、StartedとEndedはちょうど1つずつです。",
-        "timestamp": "UTCで、末尾にZが付きます。送信時刻ではなくイベントの時刻です。オフライン中に保存したイベントも、その時刻を保ちます。",
+        "timestamp": "UTCの時刻で、末尾のZがその印です。送信時刻ではなくイベントの時刻です。オフライン中に保存したイベントも、自分の時刻を保ちます。",
         "trigger": "このイベントを送った理由：メーター値の送信間隔（TxUpdatedInterval）が経過しました。",
         "seq": "seqNoは、このトランザクションのイベントを0から数えます。番号が飛んでいれば、CSMSはメッセージの欠落に気づけます。",
         "transaction-id": "開始時に充電器が決めます。この充電のすべてのイベントに入っています。",
-        "charging-state": "Charging：電力が流れています。ほかの状態はEVConnected、SuspendedEV、SuspendedEVSE、Idleです。",
+        "charging-state": "Charging：電力が流れています。ほかの状態はEVConnected、SuspendedEV（車両が一時停止）、SuspendedEVSE（充電器が一時停止）、Idleです。",
         "energy": "メーターのレジスタ上で15600 Wh。家庭用メーターの積算値と同じで、新しいトランザクションのたびに0には戻りません。",
         "measurand": "何を測ったか。measurandがなければ、値はEnergy.Active.Import.Registerを意味します。",
-        "unit": "Wh：電力量の既定の単位です。",
+        "unit": "Wh（ワット時）：電力量の既定の単位です。",
         "power": "11040 W：3相それぞれ230 Vで16 A。"
     }
 }

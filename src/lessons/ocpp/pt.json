@@ -1,12 +1,13 @@
 {
-    "intro": "A língua entre uma estação de recarga e o servidor que a gerencia, o CSMS (sistema de gestão de estações de recarga). O carregador mantém um WebSocket aberto e envia mensagens JSON: quem ele é, o estado dos conectores, qual cartão quer carregar e o medidor durante cada recarga. O CSMS responde a cada mensagem e pode enviar requisições próprias pela mesma conexão.",
+    "intro": "A língua entre uma estação de recarga e o servidor que a gerencia: o CSMS (charging station management system: sistema de gestão de estações de recarga, a retaguarda do operador). O carregador mantém um WebSocket aberto: uma conexão web duradoura. Por ela, o carregador envia mensagens JSON curtas (texto estruturado): quem ele é, o estado dos conectores (plugues), qual cartão quer carregar e a leitura do medidor durante cada recarga. O CSMS responde a cada mensagem e pode enviar requisições próprias pela mesma conexão.",
+    "plain": "Um carregador público de carros elétricos não trabalha sozinho. Ele fica conectado ao sistema do seu operador, como uma maquininha de cartão numa loja fica em contato com o banco. O carregador avisa quando está livre, pergunta se o seu cartão pode carregar e informa quanta energia você consumiu, para que você possa ser cobrado.",
     "steps": {
-        "connect": { "title": "Conectar", "text": "O carregador abre um WebSocket seguro com o seu CSMS. A conexão fica aberta, então qualquer um dos lados pode enviar a qualquer momento." },
-        "boot": { "title": "Inicialização", "text": "A primeira mensagem depois de ligar diz quem o carregador é. O CSMS a aceita, informa a hora e define o intervalo de heartbeat. Depois o carregador informa cada conector: o conector 1 está Available." },
-        "authorize": { "title": "Aproximar o cartão", "text": "Um motorista aproxima um cartão RFID do leitor. O carregador pergunta ao CSMS se este cartão pode carregar. Pode." },
-        "start": { "title": "Início", "text": "O carro é conectado e começa a receber energia. O carregador abre uma transação e envia a leitura do medidor no início dela." },
-        "charge": { "title": "Valores do medidor", "text": "Enquanto o carro carrega, o carregador envia o medidor a cada 15 minutos. O CSMS vê a energia aumentar." },
-        "stop": { "title": "Fim", "text": "O motorista aproxima o cartão de novo. A transação termina depois de uma hora e 11040 Wh. Agora o CSMS pode faturá-la." }
+        "connect": { "title": "Conectar ao servidor", "text": "O carregador abre um WebSocket seguro, criptografado, com o seu CSMS. A conexão fica aberta, então qualquer um dos lados pode enviar a qualquer momento." },
+        "boot": { "title": "O carregador liga", "text": "A primeira mensagem depois de ligar diz quem o carregador é. O CSMS a aceita, envia a hora atual e define o intervalo de heartbeat: de quanto em quanto tempo o carregador precisa dizer \"continuo aqui\". Depois o carregador informa cada conector: o conector 1 está Available." },
+        "authorize": { "title": "Aproximar o cartão", "text": "Um motorista aproxima um cartão RFID (um cartão sem contato, como um crachá de acesso) do leitor. O carregador pergunta ao CSMS se este cartão pode carregar. A resposta é sim." },
+        "start": { "title": "A recarga começa", "text": "O carro é conectado e começa a receber energia. O carregador abre uma transação: o registro desta recarga específica. Ele envia a leitura do medidor no início." },
+        "charge": { "title": "Informar o medidor", "text": "Enquanto o carro carrega, o carregador envia a leitura do medidor a cada 15 minutos. O CSMS vê a energia aumentar." },
+        "stop": { "title": "A recarga para", "text": "O motorista aproxima o cartão de novo. A transação termina depois de uma hora e 11040 Wh (cerca de 11 kWh). Agora o CSMS pode cobrar o motorista." }
     },
     "frames": {
         "upgrade": "Mudar para WebSocket, subprotocolo ocpp2.0.1",
@@ -17,37 +18,37 @@
         "status-conf": "Anotado",
         "authorize": "O cartão 04A2B3C4D5E6F7 pode carregar?",
         "authorize-conf": "Sim: Accepted",
-        "started": "Transação TX-0187 iniciada em 12840 Wh",
+        "started": "Transação TX-0187 iniciada, medidor em 12840 Wh",
         "started-conf": "Anotado, o cartão continua Accepted",
-        "updated": "Agora 15600 Wh, recebendo 11040 W",
+        "updated": "Medidor agora em 15600 Wh, recebendo 11040 W",
         "updated-conf": "Anotado",
-        "ended": "TX-0187 encerrada em 23880 Wh",
+        "ended": "TX-0187 encerrada, medidor em 23880 Wh",
         "ended-conf": "Anotado"
     },
     "notes": {
-        "upgrade": "Dentro do TLS, o carregador pede para transformar esta conexão HTTP num WebSocket. O endereço termina com a identidade dele, CS-0042. O cabeçalho Sec-WebSocket-Protocol pede ocpp2.0.1, e a autenticação HTTP Basic leva a senha do carregador.",
+        "upgrade": "Dentro da conexão TLS criptografada, o carregador pede para transformar esta conexão HTTP num WebSocket. O endereço web termina com a identidade do carregador, CS-0042. O cabeçalho Sec-WebSocket-Protocol pede ocpp2.0.1. A autenticação HTTP Basic leva a senha do carregador.",
         "switch": "O CSMS concorda e informa o subprotocolo que escolheu: ocpp2.0.1. A partir de agora os dois lados enviam quadros WebSocket, cada um com uma mensagem OCPP em JSON.",
-        "status": "Um CALL com timestamp, connectorStatus Available, evseId 1 e connectorId 1. Um EVSE é um ponto de recarga; ele pode ter vários conectores.",
-        "status-conf": "Um CALLRESULT com payload vazio: [3,\"1002\",{}]. Todo CALL recebe resposta, mesmo quando não há nada a dizer.",
-        "authorize": "idToken 04A2B3C4D5E6F7, tipo ISO14443: o número de série de 7 bytes do cartão RFID. Muitos carregadores também guardam uma lista local de cartões, para decidir sem perguntar.",
+        "status": "Um CALL (uma requisição) com timestamp, connectorStatus Available, evseId 1 e connectorId 1. Um EVSE é um ponto de recarga: ele carrega um carro de cada vez. Ele pode ter vários conectores (plugues).",
+        "status-conf": "Um CALLRESULT (uma resposta) com payload vazio: [3,\"1002\",{}]. Todo CALL recebe resposta, mesmo quando não há nada a dizer.",
+        "authorize": "idToken 04A2B3C4D5E6F7, tipo ISO14443 (a norma dos cartões sem contato): o número de série de 7 bytes do cartão RFID. Muitos carregadores também guardam uma lista local de cartões, para poder decidir sem perguntar ao CSMS.",
         "authorize-conf": "idTokenInfo com status Accepted. Outras respostas, como Blocked, Expired, Invalid ou Unknown, significam que o carregador não pode iniciar.",
-        "started": "eventType Started, triggerReason ChargingStateChanged, seqNo 0. O carregador escolhe o transactionId, TX-0187. O evento leva o idToken do cartão, chargingState Charging e um valor de medidor com contexto Transaction.Begin: 12840 Wh.",
+        "started": "eventType Started, triggerReason ChargingStateChanged, seqNo 0: o primeiro evento desta transação. O próprio carregador escolhe o transactionId, TX-0187. O evento também leva o idToken do cartão, chargingState Charging e a leitura do medidor no início (contexto Transaction.Begin): 12840 Wh.",
         "started-conf": "O evento levava o cartão, então a resposta traz de novo o status dele: idTokenInfo Accepted.",
-        "updated": "eventType Updated, triggerReason MeterValuePeriodic, seqNo 1, com duas leituras: o registrador de energia e a potência. A seção Experimente mostra a mensagem inteira.",
+        "updated": "eventType Updated, triggerReason MeterValuePeriodic (o temporizador do medidor), seqNo 1. Ele leva duas leituras: o registrador de energia (o total acumulado do medidor) e a potência (a rapidez com que a energia flui agora). A seção Experimente mostra a mensagem inteira.",
         "updated-conf": "Um payload vazio: o CSMS não tem nada a acrescentar.",
-        "ended": "eventType Ended, triggerReason StopAuthorized, seqNo 2, stoppedReason Local, chargingState EVConnected (o cabo continua conectado) e o último valor do medidor com contexto Transaction.End: 23880 Wh.",
+        "ended": "eventType Ended, triggerReason StopAuthorized (um cartão foi apresentado para parar), seqNo 2, stoppedReason Local (parada no próprio carregador). O chargingState é EVConnected: o cabo continua conectado. A última leitura do medidor (contexto Transaction.End) é 23880 Wh.",
         "ended-conf": "Um payload vazio. O CSMS fatura 23880 − 12840 = 11040 Wh para o dono do cartão."
     },
     "fields": {
-        "ws-text": { "name": "FIN · opcode", "note": "0x81: o bit FIN (0x80) diz que a mensagem inteira está neste quadro. O opcode 0x1 diz que é texto, UTF-8." },
-        "ws-mask-126": { "name": "Máscara · comprimento", "note": "0xFE: o bit de máscara (0x80) está ativo, porque um cliente precisa mascarar o que envia. O resto, 126 (0x7E), diz que o comprimento vem em 2 bytes." },
+        "ws-text": { "name": "FIN · opcode", "note": "0x81. O bit FIN (0x80) diz que a mensagem inteira está neste único quadro. O opcode 0x1 diz que o quadro leva texto (UTF-8)." },
+        "ws-mask-126": { "name": "Máscara · comprimento", "note": "0xFE. O bit de máscara (0x80) está ativo, porque um cliente sempre precisa mascarar (embaralhar) o que envia. Os outros bits trazem 126 (0x7E), que significa: o comprimento real vem em 2 bytes." },
         "ws-len-170": { "name": "Comprimento", "note": "Seguem 0x00AA = 170 bytes de JSON. A seção Experimente os mostra." },
         "ws-key": { "name": "Chave de máscara", "note": "4 bytes aleatórios. Cada byte do JSON passa por um XOR com eles, em sequência: \"[\" (0x5B) trafega como 0x61. Isto não é criptografia; quem faz isso é o TLS." },
-        "ws-len-88": { "name": "Comprimento", "note": "Seguem 0x58 = 88 bytes de JSON. O bit de máscara é 0, porque um servidor nunca mascara, então não vem chave de máscara." },
-        "a-type": { "name": "MessageTypeId", "note": "2 é um CALL, uma requisição. A resposta é um 3 (CALLRESULT) ou um 4 (CALLERROR)." },
+        "ws-len-88": { "name": "Comprimento", "note": "Seguem 0x58 = 88 bytes de JSON. O bit de máscara é 0, porque um servidor nunca mascara. Então não vem chave de máscara." },
+        "a-type": { "name": "MessageTypeId", "note": "2 significa CALL: uma requisição. A resposta é um 3 (CALLRESULT, deu certo) ou um 4 (CALLERROR, falhou)." },
         "a-id": { "name": "MessageId", "note": "Escolhido por quem envia, único nesta conexão. A resposta traz o mesmo id; nada mais liga as duas." },
         "a-action": { "name": "Action", "note": "Qual mensagem é esta. Uma resposta não tem action: o id dela diz a qual CALL ela responde." },
-        "a-payload": { "name": "Payload", "note": "A requisição em si, um objeto JSON. Os campos dele são conferidos com o JSON schema do BootNotificationRequest." }
+        "a-payload": { "name": "Payload", "note": "A requisição em si, um objeto JSON. O receptor confere os campos dele com o JSON schema (a lista oficial de campos permitidos) do BootNotificationRequest." }
     },
     "devices": {
         "car": "Carro",
@@ -59,11 +60,11 @@
         "standard": "OCPP 2.0.1 (Open Charge Alliance, 2020). O OCPP 1.6J ainda é comum.",
         "between": "Estação de recarga → CSMS (sistema de gestão de estações de recarga)",
         "transport": "WebSocket (RFC 6455) sobre TLS, subprotocolo ocpp2.0.1: uma mensagem JSON por quadro de texto",
-        "security": "TLS. O perfil de segurança 2 acrescenta uma senha (HTTP Basic), o perfil 3 um certificado de cliente.",
+        "security": "Criptografia TLS. O perfil de segurança 2 acrescenta uma senha (HTTP Basic). O perfil 3 usa, no lugar dela, um certificado de cliente.",
         "frames": "CALL [2, …] · CALLRESULT [3, …] · CALLERROR [4, …]"
     },
     "tips": [
-        "Se o CSMS não responder com o subprotocolo que o carregador pediu, o carregador precisa fechar a conexão. \"Conecta e depois cai\" muitas vezes é isso.",
+        "Se o CSMS não responder com o subprotocolo que o carregador pediu, o carregador precisa fechar a conexão. Um carregador que \"conecta e depois cai\" muitas vezes tem este problema.",
         "Envie um CALL de cada vez e espere a resposta, ou um timeout, antes do próximo. Um segundo CALL enviado cedo demais pode se perder.",
         "O momento em que uma transação começa é uma configuração (TxStartPoint): ao conectar, ao autorizar ou quando a energia começa a fluir. Combine isso com a equipe do CSMS, senão as transações parecem longas ou curtas demais.",
         "As estampas de tempo são UTC. Acerte o relógio do carregador pelo currentTime da resposta ao BootNotification, senão os valores do medidor caem no posto tarifário errado."
@@ -83,16 +84,16 @@
         "action": "A action: qual mensagem é esta. O payload dela vem em seguida.",
         "reason": "Por que o carregador iniciou: PowerUp. Outros motivos são FirmwareUpdate, RemoteReset, Watchdog e mais.",
         "model": "model e vendorName são os únicos campos obrigatórios de chargingStation.",
-        "firmware": "O firmware que roda agora. O CSMS o usa para planejar atualizações.",
+        "firmware": "A versão do firmware (o software embarcado do carregador) que roda agora. O CSMS a usa para planejar atualizações.",
         "event-type": "Started, Updated ou Ended. Uma transação tem exatamente um Started e um Ended.",
-        "timestamp": "UTC, com Z. É o horário do evento, não do envio: um evento guardado durante uma queda de conexão mantém o seu horário.",
+        "timestamp": "Horário UTC, marcado pelo Z no fim. É o horário do evento, não do envio: um evento guardado durante uma queda de conexão mantém o seu próprio horário.",
         "trigger": "Por que este evento foi enviado: o intervalo do medidor (TxUpdatedInterval) passou.",
         "seq": "O seqNo conta os eventos desta transação a partir de 0. Uma lacuna avisa o CSMS de que falta uma mensagem.",
         "transaction-id": "Escolhido pelo carregador no início. Todo evento desta recarga o traz.",
-        "charging-state": "Charging: a energia está fluindo. Outros estados são EVConnected, SuspendedEV, SuspendedEVSE e Idle.",
+        "charging-state": "Charging: a energia está fluindo. Outros estados são EVConnected, SuspendedEV (o carro pausou), SuspendedEVSE (o carregador pausou) e Idle.",
         "energy": "15600 Wh no registrador do medidor, como o contador de um medidor residencial. Ele não volta a 0 numa nova transação.",
         "measurand": "O que foi medido. Sem measurand, um valor significa Energy.Active.Import.Register.",
-        "unit": "Wh, a unidade padrão de energia.",
+        "unit": "Wh (watt-hora), a unidade padrão de energia.",
         "power": "11040 W: 16 A em cada uma das 3 fases a 230 V."
     }
 }

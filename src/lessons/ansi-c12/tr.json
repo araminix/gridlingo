@@ -1,11 +1,12 @@
 {
-    "intro": "Kuzey Amerika sayaçlarının nasıl okunduğu. C12.19, bir sayacın bildiği her şeyi numaralı tablolarda tutar. C12.18, bir oturum açma (logon) ve paroladan sonra bu tabloları optik port üzerinden okur ve yazar. C12.22 aynı tablo servislerini bir ağ üzerinden taşır.",
+    "intro": "Kuzey Amerika sayaçlarının nasıl okunduğu. Üç standart birlikte çalışır. C12.19, bir sayacın bildiği her şeyi bir klasörün sayfaları gibi numaralı tablolarda tutar: standart tablo 23 (ST 23), enerji toplamları gibi güncel okumaları içerir. C12.18, bir oturum açma (logon) ve paroladan sonra bu tabloları optik port, yani sayacın ön yüzündeki kızılötesi pencere üzerinden okur ve yazar. C12.22 aynı tablo isteklerini bir ağ üzerinden taşır.",
+    "plain": "Kuzey Amerika'da bir sayaç tüm bilgilerini, bir klasörün sayfaları gibi numaralı tablolarda tutar: bir sayfada onu kimin ürettiği yazar, bir başkasında enerji toplamları durur. Bir teknisyen sayacın önüne bir okuyucu tutar, bir ad ve bir parola verir, sonra istediği sayfayı numarasıyla ister. Elektrik şirketi aynı sayfaları uzaktan, bir ağ üzerinden isteyebilir.",
     "steps": {
-        "identify": { "title": "Tanıt", "text": "Dizüstü 9600 baud, 8N1 ile Identification gönderir. Sayaç her paketi tek bir baytla, 0x06 (ACK) ile onaylar, sonra yanıt verir. Her paket, bu dersin göstermediği 2 baytlık bir CRC ile biter." },
-        "logon": { "title": "Oturum aç", "text": "Logon, sayacın kaydı için kullanıcıyı belirtir. Security 20 baytlık parolayı gönderir. Dizüstü korumalı tabloları ancak şimdi okuyabilir ya da yazabilir." },
-        "read": { "title": "Tablo 23'ü oku", "text": "Tablo 23'ün (Current Register Data) tam okunması: 12 bayt ve bir sağlama toplamı. Baytların ne anlama geldiği başka tablolardadır: ST 0 sayıların nasıl kodlandığını, ST 21 kaç tane olduklarını, ST 12 ve ST 22 neyi ölçtüklerini söyler." },
-        "end": { "title": "Oturumu kapat", "text": "Logoff oturumu, Terminate konuşmayı bitirir. Bunlar olmazsa sayaç oturumu bir zaman aşımına kadar açık tutar." },
-        "network": { "title": "Ağ üzerinden", "text": "Daha sonra head-end aynı tabloyu C12.22 ile okur. Aynı servis, 30 00 17, artık 1153 portunda bir ACSE mesajı içinde taşınır. Oturum açmak gerekmez: her mesaj kendi güvenliğini taşır." }
+        "identify": { "title": "Merhaba de", "text": "Dizüstü 9600 baud, 8N1 (8 veri biti, eşlik biti yok, 1 dur biti) ile bir Identification isteği gönderir. Sayaç her paketi tek bir baytla, 0x06 (ACK, yani onay) ile onaylar, sonra yanıt verir. Her paket 2 baytlık bir CRC ile biter: bozulan baytları ortaya çıkaran bir kontrol değeri. Bu ders onu göstermiyor." },
+        "logon": { "title": "Oturum aç", "text": "Logon isteği, sayacın olay kaydı için kullanıcının adını bildirir. Ardından Security isteği 20 baytlık parolayı gönderir. Dizüstü korumalı tabloları ancak şimdi okuyabilir ya da yazabilir." },
+        "read": { "title": "Enerji tablosunu oku", "text": "Tablo 23'ün (Current Register Data) tam okunması: sayacın enerji toplamları. Yanıt 12 bayt ve bir sağlama toplamıdır. Baytların ne anlama geldiği başka tablolarda yazar. ST 0 sayıların nasıl kodlandığını, ST 21 kaç tane olduklarını, ST 12 ve ST 22 ise neyi ölçtüklerini söyler." },
+        "end": { "title": "Oturumu kapat", "text": "Logoff oturumu bitirir. Terminate optik porttaki konuşmayı bitirir. Bunlar olmazsa sayaç oturumu bir zaman aşımına kadar açık tutar." },
+        "network": { "title": "Ağ üzerinden", "text": "Daha sonra head-end, yani elektrik şirketinin merkezî bilgisayarı, aynı tabloyu C12.22 ile okur. Aynı istek, 30 00 17, artık bir ACSE mesajının içinde taşınır: göndereni ve alıcıyı belirten standart bir zarf. 1153 portunu kullanır. Oturum açmak gerekmez: her mesaj kendi güvenliğini taşır." }
     },
     "frames": {
         "ident": "Kendini tanıt",
@@ -24,12 +25,12 @@
         "c1222-table": "Tablo 23: aynı 12 bayt"
     },
     "notes": {
-        "ident-ok": "Yanıt 0x00 (OK) ile başlar, ardından protokol (0x00: C12.18), sürümü ve revizyonu gelir. Yeni sayaçlar isteğe bağlı özellikleri de listeler. Ardından dizüstü daha yüksek bir hız ya da daha büyük paketler için Negotiate (0x60 ile 0x6B arası) gönderebilirdi; burada varsayılanları korur.",
-        "c1222-read": "UDP ya da TCP 1153 portunda bir ACSE mesajı (etiket 0x60). Başlığı sayacı (called AP title), head-end'i (calling AP title) ve bu isteği (calling AP invocation ID) belirtir. Kullanıcı bilgisi EPSEM'i taşır: güvenlik modunu belirleyen bir kontrol baytı, ardından optik porttaki servisin aynısı, 30 00 17. Güvenli modlarda EAX' modunda AES-128, sayacın bildiği bir anahtarla mesajın kimliğini doğrular ya da hem doğrular hem şifreler.",
+        "ident-ok": "Yanıt 0x00 (OK) ile başlar, ardından protokol (0x00: C12.18), sürümü ve revizyonu gelir. Yeni sayaçlar isteğe bağlı özellikleri de listeler. Ardından dizüstü daha yüksek bir hız ya da daha büyük paketler için Negotiate (0x60 ile 0x6B arası) gönderebilirdi. Burada varsayılanları korur.",
+        "c1222-read": "UDP ya da TCP 1153 portunda bir ACSE mesajı (etiket 0x60). Başlığı sayacı (called AP title, bir ağ adı), head-end'i (calling AP title) ve bu isteği (calling AP invocation ID) belirtir. Kullanıcı bilgisi EPSEM'i taşır: güvenlik modunu belirleyen bir kontrol baytı, ardından optik porttaki servisin aynısı, 30 00 17. Güvenli modlarda EAX' modunda AES-128, mesajı sayacın bildiği bir anahtarla korur. Ya mesajı kimin gönderdiğini ve kimsenin değiştirmediğini kanıtlar ya da bunu yapar ve mesajı ayrıca şifreler.",
         "c1222-table": "Head-end'e geri dönen bir ACSE mesajı. Başlığı, head-end'in onu istekle eşleştirmesini sağlar. İçinde optik porttaki yanıtın aynısı vardır: 0x00 (OK), sayı, tablo 23'ün 12 baytı ve sağlama toplamları."
     },
     "fields": {
-        "stp": { "name": "STP", "note": "Her paket 0xEE ile başlar. 2 baytlık bir CRC (CCITT polinomu) onu bitirir; burada gösterilmiyor." },
+        "stp": { "name": "STP", "note": "0xEE, yani paket başlangıcı (start of packet), her paketi başlatır. 2 baytlık bir CRC (CCITT polinomu) onu bitirir; burada gösterilmiyor." },
         "identity": { "name": "Identity", "note": "Burada 0x00." },
         "ctrl-0": { "name": "Kontrol", "note": "0x00: tek paket, toggle biti 0." },
         "ctrl-1": { "name": "Kontrol", "note": "0x20: toggle biti 1. Her taraf her yeni pakette onu tersine çevirir; böylece iki kez gönderilen bir paket fark edilebilir." },
@@ -45,12 +46,12 @@
         "user": { "name": "Kullanıcı", "note": "\"TECH01\", boşluklarla 10 bayta tamamlanmış." },
         "security": { "name": "Security", "note": "0x51: ardından parola gelir." },
         "password": { "name": "Parola", "note": "20 bayt: \"tech2026\" ve 12 boşluk. Optik porttan açık metin olarak geçer." },
-        "ok": { "name": "OK", "note": "Yanıt kodu 0x00: OK. 0x01 bir hatadır; 0x03 bu parolanın buna izin vermediği demektir." },
+        "ok": { "name": "OK", "note": "Yanıt kodu 0x00: OK. 0x01 genel bir hatadır; 0x03 kullanılan parolanın buna izin vermediği demektir." },
         "read-full": { "name": "Tam okuma", "note": "0x30: bir tablonun tamamını oku." },
         "table-23": { "name": "Tablo 23", "note": "0x0017 = 23: ST 23, Current Register Data. Üretici tabloları 2048 ekler: MT 23, 0x0817'dir." },
         "ok-read": { "name": "OK", "note": "0x00: OK, ardından tablo gelir." },
         "count": { "name": "Sayı", "note": "0x000C: 12 bayt tablo verisi." },
-        "sum-0": { "name": "Toplam 0", "note": "Bu sayacın ST 0'ının söylediği gibi 6 bayt, düşük bayt önce. 0x00BC614E = 12 345 678 Wh çekilen." },
+        "sum-0": { "name": "Toplam 0", "note": "Birikimli bir toplam; bu sayacın ST 0'ının söylediği gibi 6 bayt, düşük bayt önce. 0x00BC614E = 12 345 678 Wh çekilen enerji: şebekeden eve giden enerji." },
         "sum-1": { "name": "Toplam 1", "note": "0x01E240 = 123 456 Wh verilen: evin şebekeye gönderdiği enerji." },
         "cksum": { "name": "Sağlama toplamı", "note": "0x72: tablo baytları ve bu bayt toplanınca mod 256'da 0 eder." },
         "logoff": { "name": "Logoff", "note": "0x52: oturumu bitir." },
@@ -92,7 +93,7 @@
         "procedures": "Talep sıfırlama ya da saati ayarlama gibi prosedürler ST 7'ye bir yazmayla başlar. Sonuçları ST 8'de geri gelir.",
         "st12": "Her kaynağın neyi ölçtüğü: burada Wh cinsinden çekilen ve verilen enerji.",
         "st21": "Register tablolarının kaç değer tuttuğu. ST 23'ün boyutunu belirler.",
-        "st22": "ST 23'teki her toplamın hangi kaynaktan geldiği.",
+        "st22": "ST 23'teki her toplamın (birikimli toplamın) hangi kaynaktan geldiği.",
         "st23": "Bu dersin okuduğu tablo: her biri 6 baytlık iki toplam.",
         "mt": "Üretici tabloları: numaraları artı 2048. İçlerinde ne olacağına üretici karar verir."
     }

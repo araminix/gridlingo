@@ -1,12 +1,13 @@
 {
-    "intro": "Sparkplug B 是建立在 MQTT 之上、面向 SCADA 的一套规则。固定的主题名说明谁发送什么。上线（Birth）消息把每个指标列出一次，带名称、别名和数据类型；此后只传变化，用别名指代。离线（Death）消息让 SCADA 在网关失联时立即知道。",
+    "intro": "Sparkplug B 是建立在 MQTT（发布/订阅协议）之上、面向 SCADA 的一套规则。SCADA 是监视和控制电站的系统。固定的主题名（消息发布时所用的名称）说明谁发送什么。上线（Birth）消息把每个指标（一个有名称的值，比如功率）列出一次。每个指标都带名称、别名（代替名称的一个短编号）和数据类型。此后只传变化，用别名指代。离线（Death）消息让 SCADA 知道网关已经失联，即使网关自己来不及说。",
+    "plain": "这是发电厂和工厂通过“消息邮局”共享数据时遵守的一套内部规矩。设备上线时，先做一次完整的自我介绍：它有哪些读数，每个读数叫什么名字、对应哪个短编号。此后它只发送变化的内容，并用短编号指代，就像说“第 2 项现在是这个值”。如果设备不见了，邮局会发出通告，控制室就知道它的数值已经过时。",
     "steps": {
-        "host": { "title": "SCADA 上线", "text": "SCADA 作为主主机连接 Broker，留下遗嘱，订阅所有 Sparkplug 主题，然后发布它的 STATE：online，保留。" },
-        "connect": { "title": "边缘节点连接", "text": "边缘节点 GW1 带着自己的遗嘱 NDEATH 连接，编号 bdSeq 0。它读到 SCADA 保留的 STATE：SCADA 在线，所以它可以开始了。" },
-        "birth": { "title": "上线", "text": "NBIRTH 列出边缘节点的每个指标，DBIRTH 列出它后面那台逆变器的每个指标：名称、别名、数据类型和数值。现在 SCADA 掌握了整个模型。" },
-        "data": { "title": "变化上报", "text": "只有逆变器的功率变了。DDATA 只携带这一个指标，用它的别名，并带下一个序号。" },
-        "rebirth": { "title": "重新上线", "text": "SCADA 在 seq 2 之后收到了 seq 4：消息 3 丢了。SCADA 再也不能信任手里的副本，于是请求重新上线。边缘节点再次发送 NBIRTH 和 DBIRTH。" },
-        "death": { "title": "离线", "text": "边缘节点的链路在 300 s 时断开。45 s 后（30 s 保活时间的 1.5 倍），Broker 发布它的遗嘱 NDEATH。SCADA 把 GW1 标为离线，把它的值标为 STALE（过时）。" }
+        "host": { "title": "SCADA 上线", "text": "SCADA 是主主机（接收数据的主应用），它连接 Broker，即转发每条消息的 MQTT 服务器。它留下一条遗嘱：如果它突然消失，Broker 就替它发布这条消息。它订阅所有 Sparkplug 主题。然后它把自己的 STATE（online）作为保留消息发布：Broker 会留着它，发给以后来订阅的每一方。" },
+        "connect": { "title": "网关 GW1 连接", "text": "边缘节点 GW1 是从电站设备收集数据的网关。它带着自己的遗嘱连接：NDEATH，即它的离线消息。遗嘱里带 bdSeq 0，即本次会话的上线/离线序号。GW1 读到 SCADA 保留的 STATE：SCADA 在线，所以它可以开始了。" },
+        "birth": { "title": "上线：列出全部指标", "text": "NBIRTH（节点上线）列出边缘节点的每个指标。DBIRTH（设备上线）列出它后面那台逆变器的每个指标。每个指标都带名称、别名、数据类型和数值。现在 SCADA 掌握了整个模型。" },
+        "data": { "title": "只发送变化", "text": "只有逆变器的功率变了。DDATA（设备数据）只携带这一个指标，用它的别名，并带下一个序号。这叫变化上报：只发送变了的内容。" },
+        "rebirth": { "title": "消息丢失，重新上线", "text": "每条消息都带一个序号 seq。SCADA 在 seq 2 之后收到了 seq 4：消息 3 丢了。SCADA 再也不能信任手里的数值副本，于是用 NCMD（发给节点的命令）请求重新上线。边缘节点再次发送 NBIRTH 和 DBIRTH。" },
+        "death": { "title": "网关失联", "text": "边缘节点的链路在 300 s 时断开，就在它发出最后一个报文之后。Broker 从它听到的最后一个报文算起，等 30 s 保活时间的 1.5 倍。所以 45 s 后它发布遗嘱 NDEATH。SCADA 把 GW1 标为离线，把它的值标为 STALE：仍然显示，但已过时。" }
     },
     "frames": {
         "host-connect": "我是 SCADA1。如果我消失了，就发布我已离线",
@@ -38,13 +39,13 @@
         "publish-q1-retain": { "name": "MQTT PUBLISH", "note": "0x33：QoS 1，保留。Broker 为之后订阅的每个边缘节点保存它。" },
         "rl-65": { "name": "剩余长度", "note": "后面跟 65 个字节。" },
         "state-topic": { "name": "主题", "note": "spBv1.0/STATE/SCADA1：ID 为 SCADA1 的主机的 STATE 主题。" },
-        "packet-id": { "name": "报文 id 1", "note": "供 Broker 的 PUBACK 使用，和任何 QoS 1 消息一样。" },
-        "state-online": { "name": "online", "note": "{\"online\":true，SCADA 在线。STATE 是唯一用 JSON 的 Sparkplug 消息；其他都是 protobuf。" },
+        "packet-id": { "name": "报文 id 1", "note": "1：Broker 的 PUBACK（回执）会指明这个编号，和任何 QoS 1 消息一样。" },
+        "state-online": { "name": "online", "note": "{\"online\":true，SCADA 在线。STATE 是唯一用 JSON 的 Sparkplug 消息；其他都是 protobuf，一种紧凑的二进制格式。" },
         "state-time": { "name": "timestamp", "note": "自 1970 年起 1794480000000 ms = 10:40:00.000 UTC。与它 CONNECT 中遗嘱里的值相同：边缘节点据此区分本次会话和之前的会话。" },
         "publish-q0": { "name": "MQTT PUBLISH", "note": "0x30：QoS 0，不保留。之后连接的主机从上线消息中得知各个值，而不是从旧数据中。" },
         "rl-59": { "name": "剩余长度", "note": "后面跟 59 个字节：主题和载荷。" },
         "ddata-topic": { "name": "主题", "note": "spBv1.0/SolarPark/DDATA/GW1/INV1，32 字节（0x0020）。从这里开始，字节是一个 protobuf Payload。" },
-        "payload-time": { "name": "timestamp", "note": "标签 0x08：字段 1，varint。消息发送的时间：自 1970 年起 1794480067280 ms = 10:41:07.280 UTC。varint 每个字节装 7 位，低位在前；最高位为 1 表示后面还有。" },
+        "payload-time": { "name": "timestamp", "note": "标签 0x08：字段 1，varint（长度可变的整数）。消息发送的时间：自 1970 年起 1794480067280 ms = 10:41:07.280 UTC。varint 每个字节装 7 位，低位在前；最高位为 1 表示后面还有字节。" },
         "metric": { "name": "metrics", "note": "标签 0x12：字段 2，一个指标。后面跟 0x0E = 14 个字节。" },
         "alias": { "name": "alias", "note": "标签 0x10：指标的字段 2，别名 2。上线消息已说明 2 是 AC/Power，所以不发名称。" },
         "metric-time": { "name": "timestamp", "note": "标签 0x18：指标的字段 3，读取这个值的时间：1794480067250，比消息发送早 30 ms。" },

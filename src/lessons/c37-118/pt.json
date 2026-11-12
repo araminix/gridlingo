@@ -1,11 +1,12 @@
 {
-    "intro": "Uma unidade de medição fasorial (PMU) mede tensão e corrente como fasores: o tamanho da senoide e o ângulo dela em relação a uma onda perfeita de 50 Hz que começa a cada segundo UTC. O relógio dela vem do GPS, então cada valor tem uma estampa de tempo exata. Um concentrador (PDC) junta os fluxos de muitas PMUs e os alinha pelo horário, para ver a rede inteira num mesmo instante.",
+    "intro": "Uma unidade de medição fasorial (PMU) mede tensão e corrente como fasores. Um fasor dá dois números para a onda alternada: o tamanho dela e o ângulo, que diz o quanto ela está adiantada ou atrasada em relação a uma onda de referência perfeita de 50 Hz que começa a cada segundo UTC (UTC: a hora padrão mundial). O relógio da PMU vem dos satélites GPS, então cada valor tem uma estampa de tempo exata. Um concentrador de dados fasoriais (PDC) junta os fluxos de muitas PMUs e os alinha pelo horário, para ver a rede inteira num mesmo instante.",
+    "plain": "A eletricidade da tomada oscila para lá e para cá 50 ou 60 vezes por segundo, dependendo do país. O C37.118 permite que equipamentos de medição espalhados pela rede informem, muitas vezes por segundo, a força dessa oscilação e o ponto exato em que ela está no seu ritmo. Cada equipamento acerta o relógio por satélite, então leituras de lugares distantes podem ser postas lado a lado, como fotos tiradas por muitas câmeras no mesmo instante. Juntas, elas mostram a rede inteira num momento, e os problemas enquanto se espalham.",
     "steps": {
-        "connect": { "title": "Conectar", "text": "O PDC do centro de controle abre uma conexão TCP com a PMU na porta 4712. A PMU não envia nada até ser pedida." },
-        "config": { "title": "Pedir a configuração", "text": "Os quadros de dados levam só números: sem nomes, sem unidades. Por isso o PDC primeiro pede o quadro de configuração 2 (CFG-2): quais valores vêm, em que formato e a que taxa." },
+        "connect": { "title": "Abrir a conexão", "text": "O PDC do centro de controle abre uma conexão TCP (um link confiável entre dois computadores) com a PMU na porta 4712. A PMU não envia nada até ser pedida." },
+        "config": { "title": "Pedir a configuração", "text": "Os quadros de dados, as mensagens que levam as medições, trazem só números: sem nomes, sem unidades. Por isso o PDC primeiro pede o quadro de configuração 2 (CFG-2). Ele diz quais valores vêm, em que formato e a que taxa." },
         "start": { "title": "Iniciar o fluxo", "text": "O comando 2 liga os quadros de dados. A PMU os envia até o PDC mandar o comando 1 ou fechar a conexão." },
-        "stream": { "title": "50 quadros por segundo", "text": "A cada 20 ms, um quadro de dados: estampa de tempo, estado, dois fasores e a frequência. Em 20 ms os dois ângulos andaram +0.144°, porque a rede está em 50.020 Hz, um pouco mais rápida que a referência de 50 Hz." },
-        "event": { "title": "Um gerador desarma", "text": "Em algum ponto da rede um grande gerador desarma. A frequência cai: 49.946 Hz, a −0.12 Hz por segundo. Todas as PMUs marcam o tempo pelo mesmo segundo GPS, então o PDC pode comparar os valores delas amostra por amostra." }
+        "stream": { "title": "50 quadros por segundo", "text": "A cada 20 ms chega um quadro de dados com uma estampa de tempo, um estado, dois fasores e a frequência. Em 20 ms os dois ângulos andaram +0.144°. O motivo: a rede está em 50.020 Hz, um pouco mais rápida que a onda de referência de 50 Hz." },
+        "event": { "title": "Um gerador desarma", "text": "Em algum ponto da rede um grande gerador desarma: ele se desconecta de repente. A frequência cai: 49.946 Hz, a −0.12 Hz por segundo. Todas as PMUs marcam o tempo pelo mesmo segundo GPS, então o PDC pode comparar os valores delas amostra por amostra." }
     },
     "frames": {
         "tcp": "Abrir TCP com a porta 4712",
@@ -17,10 +18,10 @@
         "data-event": "Frequência 49.946 Hz, caindo 0.12 Hz/s"
     },
     "notes": {
-        "tcp": "TCP puro. Comandos e dados podem dividir esta única conexão, como aqui. Uma PMU também pode enviar os dados por UDP, normalmente para a porta 4713, o que permite também multicast para vários PDCs."
+        "tcp": "TCP puro. Comandos e dados podem dividir esta única conexão, como aqui. Uma PMU também pode enviar os dados por UDP, normalmente para a porta 4713. O UDP também permite multicast: um fluxo enviado a vários PDCs ao mesmo tempo."
     },
     "fields": {
-        "sync-cmd": { "name": "SYNC", "note": "0xAA inicia todo quadro. 0x41: quadro do tipo 4 (um comando), versão 1." },
+        "sync-cmd": { "name": "SYNC", "note": "0xAA inicia todo quadro. 0x41: quadro do tipo 4 (um comando), versão 1 (o formato de quadro da norma de 2005, que a de 2011 mantém para estes quadros)." },
         "sync-cfg2": { "name": "SYNC", "note": "0x31: quadro do tipo 3 (quadro de configuração 2), versão 1." },
         "sync-data": { "name": "SYNC", "note": "0x01: quadro do tipo 0 (um quadro de dados), versão 1." },
         "size-18": { "name": "FRAMESIZE", "note": "18 bytes: o quadro inteiro, incluindo a verificação." },
@@ -31,7 +32,7 @@
         "soc-07": { "name": "SOC", "note": "0x6AF597C3 = 10:41:07 UTC." },
         "soc-12": { "name": "SOC", "note": "0x6AF597C8 = 10:41:12 UTC." },
         "tq-0": { "name": "Qualidade do tempo", "note": "0: o relógio está travado no UTC e não há segundo bissexto previsto. Se o GPS falhar, este código diz o quanto o relógio pode estar desviado." },
-        "frac-954": { "name": "FRACSEC", "note": "0x0E8E90 = 954 000 µs: 10:41:06.954." },
+        "frac-954": { "name": "FRACSEC", "note": "A fração do segundo, em milionésimos: 0x0E8E90 = 954 000 µs: 10:41:06.954." },
         "frac-961": { "name": "FRACSEC", "note": "0x0EA9E8 = 961 000 µs: 10:41:06.961." },
         "frac-970": { "name": "FRACSEC", "note": "0x0ECD10 = 970 000 µs: 10:41:06.970." },
         "frac-0": { "name": "FRACSEC", "note": "0: exatamente no segundo. É o momento em que os valores foram medidos, não o da saída do quadro." },
@@ -39,23 +40,23 @@
         "frac-460": { "name": "FRACSEC", "note": "0x0704E0 = 460 000 µs: 10:41:12.460." },
         "cmd-5": { "name": "CMD 5", "note": "Enviar o quadro de configuração 2. Outros comandos: 1 para os dados, 2 inicia, 3 pede o quadro de cabeçalho, 4 pede o CFG-1." },
         "cmd-2": { "name": "CMD 2", "note": "Ligar os quadros de dados." },
-        "chk": { "name": "CHK", "note": "CRC-CCITT de todos os bytes anteriores: polinômio 0x1021, valor inicial 0xFFFF. Um quadro com verificação errada é descartado." },
+        "chk": { "name": "CHK", "note": "Uma verificação de erro (CRC-CCITT) sobre todos os bytes anteriores: polinômio 0x1021, valor inicial 0xFFFF. Um quadro com verificação errada é descartado." },
         "timebase": { "name": "TIME_BASE", "note": "1 000 000 (0x0F4240): o FRACSEC conta milionésimos de segundo." },
         "numpmu": { "name": "NUM_PMU", "note": "1 PMU neste fluxo. Um PDC que repassa muitas PMUs lista todas aqui, e os quadros de dados dele levam um bloco para cada uma." },
         "stn": { "name": "STN", "note": "O nome da estação: ALPHA PMU1." },
         "pad": { "name": "Preenchimento", "note": "Espaços: todo nome no CFG-2 tem exatamente 16 caracteres." },
         "pmuid": { "name": "IDCODE", "note": "O ID dos dados desta PMU: 7." },
-        "format": { "name": "FORMAT", "note": "0x000B: fasores em float na forma polar (módulo e ângulo), FREQ e DFREQ também em float." },
+        "format": { "name": "FORMAT", "note": "0x000B: fasores em float na forma polar (módulo e ângulo). FREQ e DFREQ (a frequência e a sua taxa de variação) também são float." },
         "counts": { "name": "PHNMR · ANNMR · DGNMR", "note": "2 fasores, 0 valores analógicos, 0 palavras de estado digital. Junto com o FORMAT, isso fixa o tamanho de cada quadro de dados." },
-        "chnam-v": { "name": "CHNAM", "note": "O nome do fasor 1: V1 POS SEQ, a tensão de sequência positiva." },
+        "chnam-v": { "name": "CHNAM", "note": "O nome do fasor 1: V1 POS SEQ, a tensão de sequência positiva (as três fases combinadas num único valor equilibrado)." },
         "chnam-i": { "name": "CHNAM", "note": "Fasor 2: I1 POS SEQ, a corrente de sequência positiva." },
         "phunit-v": { "name": "PHUNIT", "note": "Primeiro byte 0: o fasor 1 é uma tensão. Os outros 3 bytes dão a escala de inteiros de 16 bits (300 000 × 10⁻⁵ V por bit); com float, são ignorados." },
         "phunit-i": { "name": "PHUNIT", "note": "Primeiro byte 1: o fasor 2 é uma corrente. 3 000 × 10⁻⁵ A por bit, também sem uso com float." },
-        "fnom": { "name": "FNOM", "note": "Bit 0 ativo: uma rede de 50 Hz. Em zero, significaria 60 Hz." },
+        "fnom": { "name": "FNOM", "note": "A frequência nominal. Bit 0 ativo: uma rede de 50 Hz. Em zero, significaria 60 Hz." },
         "cfgcnt": { "name": "CFGCNT", "note": "3: a configuração da PMU foi alterada 3 vezes. O PDC compara este número para saber se a sua cópia está atualizada." },
         "rate": { "name": "DATA_RATE", "note": "50 quadros por segundo: um a cada 20 ms." },
         "stat": { "name": "STAT", "note": "0x0000: dados bons, PMU sincronizada com o UTC, ordenados por estampa de tempo, sem trigger, sem mudança de configuração a caminho." },
-        "v1-mag-0": { "name": "Módulo de V1", "note": "89 120 V, em float. Fase-neutro: cerca de 154 kV entre fases." },
+        "v1-mag-0": { "name": "Módulo de V1", "note": "89 120 V, em float, medido entre fase e neutro. Entre duas fases, isso dá cerca de 154 kV." },
         "v1-ang-0": { "name": "Ângulo de V1", "note": "−0.21642 rad = −12.400°, em relação à onda de referência de 50 Hz." },
         "i1-mag-0": { "name": "Módulo de I1", "note": "412.0 A." },
         "i1-ang-0": { "name": "Ângulo de I1", "note": "−0.54454 rad = −31.200°." },
@@ -88,7 +89,7 @@
         "speed": "10 a 50 quadros por segundo numa rede de 50 Hz. Tempo a cerca de 1 µs do UTC: 1 µs equivale a 0.018° em 50 Hz."
     },
     "tips": [
-        "Os quadros de dados não levam nomes nem unidades. Se a configuração da PMU mudar e o PDC continuar com o CFG-2 antigo, ele lê valores errados sem nenhum erro. O bit 10 do STAT avisa antes de uma mudança: leia o CFG-2 de novo.",
+        "Os quadros de dados não levam nomes nem unidades. Se a configuração da PMU mudar e o PDC continuar com o CFG-2 antigo, ele lê valores errados sem nenhum erro. O bit 10 do STAT avisa antes de uma mudança: então leia o CFG-2 de novo.",
         "Verifique a qualidade do tempo antes de confiar num ângulo. Quando o GPS se perde, o bit 13 do STAT é ativado e os ângulos derivam: 1 ms de erro no relógio equivale a 18° em 50 Hz.",
         "O IDCODE precisa ser igual nos dois lados. Um PDC configurado para o fluxo 7 ignora quadros que trazem outro número.",
         "Os ângulos só podem ser comparados na mesma estampa de tempo. Um PDC espera um tempo fixo pelos quadros atrasados: curto demais e ele descarta dados, longo demais e todas as telas ficam atrasadas."
@@ -111,6 +112,6 @@
         "latency": "+30 ms"
     },
     "playground": {
-        "encoder": "O C37.118 envia os floats com o byte mais significativo primeiro (ABCD). 89120 é o módulo de V1 do primeiro quadro de dados: 47 AE 10 00."
+        "encoder": "O C37.118 envia os floats com o byte mais significativo (o mais alto) primeiro (ABCD). 89120 é o módulo de V1 do primeiro quadro de dados: 47 AE 10 00."
     }
 }

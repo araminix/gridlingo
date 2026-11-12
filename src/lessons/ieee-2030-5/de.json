@@ -1,12 +1,13 @@
 {
-    "intro": "So sagt ein Netzbetreiber smarten Wechselrichtern, Batterien und Ladestationen über das Internet, was sie tun sollen. Das Gerät ist der Client: Es holt XML-Ressourcen per HTTPS vom Server des Netzbetreibers, folgt den Links darin und sendet seine Antworten und Messwerte zurück. Ein Zertifikat auf jeder Seite beweist, wer spricht.",
+    "intro": "So sagt ein Netzbetreiber (das Unternehmen, das das Stromnetz betreibt) Solar-Wechselrichtern, Heimspeichern und Ladestationen über das Internet, was sie tun sollen. Solche Geräte, die über das Netz verteilt sind, heißen DER (Distributed Energy Resources, dezentrale Energieanlagen). Das Gerät ist der Client: Es holt XML-Dokumente (strukturierten Text) per HTTPS, dem sicheren Web, vom Server des Netzbetreibers. Es folgt den Links darin, wie ein Browser, und sendet seine Antworten und Messwerte zurück. Ein Zertifikat auf jeder Seite, eine Art digitaler Ausweis, beweist, wer spricht.",
+    "plain": "Viele Haushalte erzeugen heute ihren eigenen Strom mit Solarmodulen oder speichern ihn in Batterien. Manchmal kann das Netz all diesen Strom nicht aufnehmen, dann bittet der Netzbetreiber diese Geräte, sich eine Zeit lang zurückzuhalten. Jedes Gerät fragt regelmäßig nach Anweisungen, etwa „von 11:00 bis 13:00 nur die halbe Leistung einspeisen“, und befolgt sie, wie ein Thermostat seinem Zeitplan folgt. Jede Seite zeigt einen digitalen Ausweis, damit kein Fremder Befehle geben kann.",
     "steps": {
-        "tls": { "title": "Zertifikate zeigen", "text": "Der Wechselrichter baut eine TLS-1.2-Verbindung zum Server des Netzbetreibers auf. Beide Seiten zeigen ein Zertifikat, und nur eine Cipher Suite ist erlaubt. Jetzt weiß jede Seite, wer die andere ist." },
-        "discover": { "title": "Sich selbst finden", "text": "Der Wechselrichter kennt eine einzige Adresse: /dcap. Von dort folgt er Links zur Liste der End Devices und findet das eine, dessen lFDI zu seinem eigenen Zertifikat passt." },
-        "control": { "title": "Steuerbefehl holen", "text": "Über sein Programm liest der Wechselrichter ein DERControl: Leistung ab 11:00 UTC für zwei Stunden auf 50 % begrenzen." },
-        "received": { "title": "Empfang bestätigen", "text": "Der Steuerbefehl verlangt Antworten. Der Wechselrichter sendet eine: Status 1, empfangen." },
-        "start": { "title": "Leistung begrenzen", "text": "Um 11:00 nach seiner eigenen Uhr senkt der Wechselrichter seine Leistung von 9.6 kW auf 5.0 kW (50 % seiner 10 kW) und sendet Status 2, begonnen." },
-        "report": { "title": "Leistung melden", "text": "Der Wechselrichter schreibt seine gemessene Leistung in sein Spiegelbild auf dem Server. Der Netzbetreiber sieht, dass die Grenze eingehalten wird." }
+        "tls": { "title": "Zertifikate zeigen", "text": "Der Wechselrichter baut eine TLS-1.2-Verbindung (eine verschlüsselte Verbindung) zum Server des Netzbetreibers auf. Beide Seiten zeigen ein Zertifikat. Nur eine Cipher Suite, ein fester Satz von Verschlüsselungsverfahren, ist erlaubt. Jetzt weiß jede Seite, wer die andere ist." },
+        "discover": { "title": "Den eigenen Eintrag finden", "text": "Der Wechselrichter kennt nur eine Adresse: /dcap, den Einstiegspunkt des Servers. Von dort folgt er Links zur Liste der End Devices, der Geräte, die der Server kennt. Er findet das eine, dessen lFDI zu seinem eigenen Zertifikat passt. Die lFDI (Long-Form Device Identifier) ist ein Fingerabdruck des Zertifikats." },
+        "control": { "title": "Anweisung holen", "text": "Über sein DER-Programm, einen Satz von Anweisungen für eine Gruppe von Geräten, liest der Wechselrichter ein DERControl: Leistung ab 11:00 UTC (Weltzeit) für zwei Stunden auf 50 % begrenzen." },
+        "received": { "title": "Empfang bestätigen", "text": "Der Steuerbefehl verlangt eine Rückmeldung vom Gerät. Der Wechselrichter sendet seine erste Antwort: Status 1, empfangen." },
+        "start": { "title": "Leistung begrenzen", "text": "Um 11:00 nach seiner eigenen Uhr senkt der Wechselrichter seine Leistung von 9.6 kW auf 5.0 kW: 50 % seiner maximalen 10 kW. Er sendet Status 2, begonnen." },
+        "report": { "title": "Leistung melden", "text": "Der Wechselrichter sendet seine gemessene Leistung an sein Spiegelbild (Mirror): eine Kopie seines Zählers, die der Server führt. Der Netzbetreiber sieht, dass die Grenze eingehalten wird." }
     },
     "frames": {
         "client-hello": "Hallo. Ich spreche TLS 1.2, mit genau dieser Cipher Suite",
@@ -25,34 +26,34 @@
         "post-reading": "Meine Wirkleistung beträgt jetzt 5000 W"
     },
     "notes": {
-        "server-hello": "Vier Nachrichten in einem Flight. ServerHello wählt 0xC0AE. Certificate trägt die Zertifikatskette des Servers. ServerKeyExchange trägt seine Hälfte der ECDHE-Schlüsselvereinbarung. CertificateRequest verlangt das Zertifikat des Clients: Ohne das würde TLS nur den Server prüfen.",
+        "server-hello": "Vier Nachrichten, zusammen gesendet. ServerHello wählt die Cipher Suite 0xC0AE. Certificate trägt die Zertifikatskette des Servers: sein eigenes Zertifikat und die, die dafür bürgen. ServerKeyExchange trägt seine Hälfte der ECDHE-Schlüsselvereinbarung. CertificateRequest verlangt das Zertifikat des Clients: Ohne das würde TLS nur den Server prüfen.",
         "client-finished": "Der Wechselrichter sendet sein Gerätezertifikat und seine Hälfte der Schlüsselvereinbarung. Dann signiert er den ganzen Handshake mit seinem privaten Schlüssel (CertificateVerify): Das kann nur der echte Besitzer des Zertifikats. Das Zertifikat wurde im Werk eingespielt, unter der PKI von IEEE 2030.5, und es läuft nie ab.",
         "server-finished": "Der Server prüft die Zertifikatskette des Wechselrichters bis zu der Wurzel, der er vertraut, und sendet dann sein eigenes Finished. Ab hier ist jeder Record verschlüsselt. HTTP läuft darin, und niemand auf dem Weg kann es lesen oder ändern.",
         "get-dcap": "Innerhalb von TLS: GET /dcap HTTP/1.1, mit Accept: application/sep+xml. /dcap ist die einzige Adresse, die ein Client vorgegeben bekommt. Jede andere Adresse findet er über Links.",
-        "dcap": "Eine DeviceCapability-Ressource: Links wie EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\" und TimeLink href=\"/tm\". pollRate=\"900\": diese Ressourcen alle 900 s abfragen.",
+        "dcap": "Eine DeviceCapability-Ressource: Links wie EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\" und TimeLink href=\"/tm\". pollRate=\"900\": diese Ressourcen alle 900 s neu lesen.",
         "get-edev": "Die Liste der End Devices. Der Server darf nur die Geräte auflisten, die dieses Zertifikat sehen darf.",
-        "edev": "Jedes EndDevice enthält eine lFDI und eine sFDI. /edev/3 enthält BB1309569EF761C13E620EA80AA3E84D2B6B553D, die des Wechselrichters. Der Installateur hat seine SFDI bei der Installation an den Netzbetreiber gemeldet.",
+        "edev": "Jedes EndDevice enthält eine lFDI und eine sFDI: die lange und die kurze Form seiner Kennung. /edev/3 enthält BB1309569EF761C13E620EA80AA3E84D2B6B553D, die des Wechselrichters. Der Installateur hat seine SFDI bei der Installation an den Netzbetreiber gemeldet.",
         "get-derc": "Davor kamen zwei weitere GETs dieser Art: von /edev/3 zu seinen FunctionSetAssignments, dann zur Liste der DER-Programme. Programm /derp/1 verlinkt auf seine Steuerbefehle.",
         "derc": "Ein DERControl, Zeile für Zeile unter „Ausprobieren“ zu sehen: opModMaxLimW 5000 (50.00 %) für 7200 s, ab 1781694000 (11:00 UTC).",
-        "post-received": "Eine DERControlResponse, gesendet an die replyTo-Adresse des Steuerbefehls. Sie enthält die lFDI des Wechselrichters, die mRID des Steuerbefehls als subject und Status 1: empfangen.",
+        "post-received": "Eine DERControlResponse, gesendet an die replyTo-Adresse des Steuerbefehls. Sie enthält die lFDI des Wechselrichters, die mRID des Steuerbefehls (seine eindeutige ID) als subject und Status 1: empfangen.",
         "created": "HTTP 201 Created. Der Header Location nennt die Adresse der gespeicherten Antwort.",
         "post-started": "Dieselbe Antwort mit Status 2: begonnen. Um 13:00 sendet der Wechselrichter Status 3, abgeschlossen, und kehrt zu seiner Standardsteuerung zurück.",
         "post-reading": "Ein MirrorMeterReading. Der Server hält ein Spiegelbild des Zählers des Wechselrichters (einen MirrorUsagePoint), und der Wechselrichter füllt es. Sein ReadingType gibt die Einheit an: uom 38 bedeutet Watt."
     },
     "fields": {
-        "record-type": { "name": "Record-Typ", "note": "22 (0x16): eine Handshake-Nachricht." },
+        "record-type": { "name": "Record-Typ", "note": "22 (0x16): eine Handshake-Nachricht, die die Verbindung aufbaut." },
         "record-version": { "name": "Version", "note": "0x0303: TLS 1.2. IEEE 2030.5 verlangt TLS 1.2." },
         "record-length": { "name": "Record-Länge", "note": "In diesem Record folgen 69 Bytes." },
-        "client-hello": { "name": "ClientHello", "note": "Handshake-Typ 1." },
+        "client-hello": { "name": "ClientHello", "note": "Handshake-Typ 1: die Eröffnungsnachricht des Clients." },
         "hello-length": { "name": "Länge", "note": "Es folgen 65 Bytes ClientHello." },
         "client-version": { "name": "Client-Version", "note": "Die höchste Version, die der Wechselrichter spricht: TLS 1.2." },
         "random": { "name": "Random", "note": "32 Zufallsbytes. Beide Seiten mischen sie in die Sitzungsschlüssel." },
         "session-id": { "name": "Session ID", "note": "Länge 0: keine frühere Sitzung, die fortgesetzt werden soll." },
         "suites-length": { "name": "Cipher Suites", "note": "Es folgen 2 Bytes Cipher Suites: genau eine." },
-        "suite": { "name": "0xC0AE", "note": "TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8, die Suite, die IEEE 2030.5 verlangt. ECDHE vereinbart die Schlüssel, ECDSA signiert die Zertifikate, und AES-128 im CCM-Modus verschlüsselt die Daten, mit einem Tag von 8 Bytes." },
+        "suite": { "name": "0xC0AE", "note": "TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8, die Suite, die IEEE 2030.5 verlangt. ECDHE vereinbart die Schlüssel. ECDSA signiert die Zertifikate. AES-128 im CCM-Modus verschlüsselt die Daten und ergänzt ein Tag von 8 Bytes, das zeigt, dass sie nicht verändert wurden." },
         "compression": { "name": "Kompression", "note": "Ein Verfahren: 0, keine Kompression." },
         "extensions-length": { "name": "Extensions", "note": "Es folgen 22 Bytes Extensions." },
-        "groups": { "name": "supported_groups", "note": "Extension 0x000A: nur secp256r1 (0x0017), die Kurve P-256." },
+        "groups": { "name": "supported_groups", "note": "Extension 0x000A: nur secp256r1 (0x0017), die elliptische Kurve P-256." },
         "point-formats": { "name": "ec_point_formats", "note": "Extension 0x000B: Kurvenpunkte werden unkomprimiert gesendet (0)." },
         "signatures": { "name": "signature_algorithms", "note": "Extension 0x000D: nur 0x0403, ECDSA mit SHA-256." },
         "a-first36": { "name": "Erste 36 Bits", "note": "Die ersten 9 Hex-Ziffern. Aus ihnen entsteht die SFDI." },
@@ -62,8 +63,8 @@
         "s-check": { "name": "Prüfziffer", "note": "Sie macht die Summe aller Ziffern zu einem Vielfachen von 10: 5+0+2+1+7+3+9+1+4+6+5 = 43, und 43 + 7 = 50. Ein Tippfehler stört die Summe." }
     },
     "devices": {
-        "pv": "PV-Module",
-        "inverter": "PV-Wechselrichter",
+        "pv": "Solarmodule",
+        "inverter": "Solar-Wechselrichter",
         "router": "Router vor Ort",
         "server": "Server des Netzbetreibers"
     },
@@ -78,7 +79,7 @@
         "Die LFDI kommt aus dem Zertifikat. Ein neues Zertifikat bedeutet eine neue LFDI und SFDI, und das Gerät muss neu registriert werden.",
         "Steuerbefehle verwenden Unix-Zeit in UTC. Ein Wechselrichter mit falscher Uhr begrenzt zur falschen Zeit, deshalb seine Uhr mit der Time-Ressource des Servers (/tm) abgleichen.",
         "Jedes Mal bei /dcap beginnen und den Links folgen. Jede andere Adresse gehört dem Server und kann sich ändern.",
-        "Die meisten Wechselrichter stehen hinter einem Router, der eingehende Verbindungen blockiert, also fragen sie zyklisch ab. Mit pollRate abfragen, nicht schneller: Tausende Geräte teilen sich einen Server."
+        "Die meisten Wechselrichter stehen hinter einem Router, der eingehende Verbindungen blockiert, also pollen sie: Sie fragen den Server immer wieder ab. Mit pollRate abfragen, nicht schneller: Tausende Geräte teilen sich einen Server."
     ],
     "points": {
         "limit": "Leistungsgrenze",
@@ -98,7 +99,7 @@
         "file": "Das DERControl, das der Wechselrichter in Schritt 3 liest. Wähle eine markierte Zeile, um zu sehen, was sie bedeutet.",
         "href": "Die eigene Adresse des Steuerbefehls. Der Namespace urn:ieee:std:2030.5:ns kennzeichnet jedes Dokument nach IEEE 2030.5.",
         "reply": "Wohin Antworten gesendet werden (replyTo) und welche: responseRequired 03 verlangt empfangen, dann begonnen und abgeschlossen.",
-        "mrid": "Eine weltweit eindeutige 128-Bit-ID; Antworten nennen sie. Ihre letzten 8 Hex-Ziffern sind die IANA Enterprise Number des Herausgebers: 32473 (0x7ED9) ist die für Beispiele reservierte.",
+        "mrid": "Eine weltweit eindeutige 128-Bit-ID. Antworten nennen sie. Ihre letzten 8 Hex-Ziffern sind die IANA Enterprise Number des Herausgebers: 32473 (0x7ED9) ist die für Beispiele reservierte.",
         "created": "Zeiten sind Unix-Sekunden in UTC: 1781686800 ist 2026-06-17 09:00.",
         "status": "0: geplant. 1 hieße aktiv, 2 abgesagt.",
         "duration": "7200 s: zwei Stunden.",

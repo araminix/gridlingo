@@ -1,11 +1,12 @@
 {
-    "intro": "La lingua dell'automazione degli edifici: riscaldamento, raffrescamento, illuminazione e contatori. Ogni dispositivo contiene oggetti (un ingresso analogico, un'uscita binaria, un calendario) e ogni oggetto ha proprietà, come il suo valore attuale. Su una rete IP, BACnet viaggia in datagrammi UDP verso la porta 47808 e i dispositivi si trovano a vicenda con un broadcast.",
+    "intro": "BACnet (Building Automation and Control Networks) è la lingua comune dell'automazione degli edifici: riscaldamento, raffrescamento, illuminazione e contatori. Ogni dispositivo contiene oggetti, come un ingresso analogico (un numero misurato), un'uscita binaria (un comando acceso/spento) o un calendario. Ogni oggetto ha proprietà, come il suo valore attuale. Su una rete IP, BACnet viaggia in datagrammi UDP, singoli pacchetti inviati senza connessione, verso la porta 47808. I dispositivi si trovano con un broadcast: un messaggio che sente ogni dispositivo della rete.",
+    "plain": "È la lingua comune con cui le macchine di un edificio parlano tra loro: riscaldamento, aria condizionata, luci e contatori elettrici. Ogni dispositivo è descritto come un insieme di caselle con un'etichetta, come \"temperatura della stanza\" o \"ventilatore acceso o spento\". Gli altri dispositivi possono leggere o cambiare il contenuto di quelle caselle. Un computer di controllo può chiedere a tutto l'edificio chi c'è, leggere un contatore, impostare un limite e chiedere di essere avvisato quando un valore cambia.",
     "steps": {
-        "discover": { "title": "Trova il dispositivo", "text": "Il BMS conosce il controllore dal suo numero di dispositivo, 2001, ma non dal suo indirizzo IP. Invia in broadcast un Who-Is. Risponde solo il dispositivo 2001, con I-Am. Il BMS ricava il suo indirizzo IP dal pacchetto." },
-        "read": { "title": "Leggi il contatore", "text": "Il BMS legge il present-value di analog-input 1: la potenza dell'edificio al contatore generale. La risposta è un REAL: 268.5 kW." },
-        "write": { "title": "Imposta un limite", "text": "L'operatore abbassa il limite di potenza a 250 kW. La scrittura ha priorità 8, quindi il valore finisce nello slot 8 del priority array." },
-        "subscribe": { "title": "Sottoscrivi", "text": "Invece di leggere di continuo, il BMS chiede al controllore di segnalare ogni variazione del valore del contatore, per un'ora." },
-        "cov": { "title": "Il carico scende", "text": "L'edificio supera il limite, quindi il controllore distacca carico: spegne uno stadio del gruppo frigo. La potenza scende a 243.5 kW. La variazione supera il COV increment di 5 kW, quindi il controllore avvisa il BMS." }
+        "discover": { "title": "Trova il dispositivo", "text": "Il BMS (building management system, il computer degli operatori) conosce il controllore dal suo numero di dispositivo, 2001, ma non dal suo indirizzo IP. Invia in broadcast un Who-Is, una domanda a tutti i dispositivi: c'è il dispositivo 2001? Risponde solo il dispositivo 2001, con I-Am. Il BMS ricava da quel pacchetto l'indirizzo IP del controllore." },
+        "read": { "title": "Leggi il contatore", "text": "Il BMS legge il present-value di analog-input 1: la potenza dell'edificio al contatore generale. La risposta è un REAL, un numero decimale in 4 byte: 268.5 kW." },
+        "write": { "title": "Imposta un limite", "text": "L'operatore abbassa il limite di potenza, la potenza massima che l'edificio può prelevare, a 250 kW. Un valore comandabile ha un priority array: 16 slot, di cui lo slot 1 è il più importante. Vince lo slot più importante che contiene un valore. Questa scrittura ha priorità 8, quindi il valore finisce nello slot 8." },
+        "subscribe": { "title": "Iscriviti alle variazioni", "text": "Invece di leggere di continuo, il BMS si iscrive al COV (change of value, variazione del valore). Chiede al controllore di segnalare ogni variazione del valore del contatore, per un'ora." },
+        "cov": { "title": "La potenza scende", "text": "L'edificio supera il limite, quindi il controllore distacca carico: spegne uno stadio del gruppo frigo, una parte dell'impianto di raffrescamento. La potenza scende a 243.5 kW. Il COV increment è la variazione minima che vale la pena segnalare, qui 5 kW. Questa variazione è maggiore, quindi il controllore avvisa il BMS." }
     },
     "frames": {
         "who-is": "C'è il dispositivo 2001?",
@@ -36,11 +37,11 @@
         "unconfirmed": { "name": "Unconfirmed-Request", "note": "0x10: tipo di PDU 1, nei 4 bit alti. Nessuno lo conferma." },
         "who-is": { "name": "Who-Is", "note": "Servizio 8." },
         "low-limit": { "name": "Limite inferiore", "note": "Context tag 0, 2 byte: 0x07D1 = 2001, il numero di dispositivo più basso che deve rispondere." },
-        "high-limit": { "name": "Limite superiore", "note": "Context tag 1: di nuovo 2001. Risponde solo il dispositivo 2001. Il controllore UTA, dispositivo 2002, resta in silenzio." },
+        "high-limit": { "name": "Limite superiore", "note": "Context tag 1: di nuovo 2001. Risponde solo il dispositivo 2001. Il controllore dell'unità di trattamento aria (UTA), dispositivo 2002, resta in silenzio." },
         "i-am": { "name": "I-Am", "note": "Servizio 0." },
         "device-id": { "name": "Dispositivo", "note": "Application tag 12 (un identificatore di oggetto), 4 byte: dispositivo 2001. L'anatomia qui sotto lo scompone." },
         "max-apdu": { "name": "Max APDU", "note": "Unsigned, 2 byte: accetta messaggi fino a 1476 byte." },
-        "segmentation": { "name": "Segmentazione", "note": "Enumerated, 1 byte: 3 = nessuna. Ogni messaggio deve stare in un solo datagramma." },
+        "segmentation": { "name": "Segmentazione", "note": "Enumerated, 1 byte: 3 = nessuna segmentazione. Un messaggio non si può dividere in pezzi, quindi deve stare in un solo datagramma." },
         "vendor": { "name": "Vendor ID", "note": "Unsigned: costruttore 4000. ASHRAE assegna un numero a ogni costruttore; questo è inventato." },
         "confirmed": { "name": "Confirmed-Request", "note": "0x00: tipo di PDU 0, in un solo pezzo. Richiede una risposta." },
         "max-resp": { "name": "Risposta massima", "note": "Codice 5: il BMS accetta risposte fino a 1476 byte." },
@@ -58,7 +59,7 @@
         "invoke2-ack": { "name": "Invoke ID 2", "note": "La risposta alla richiesta 2." },
         "write-property": { "name": "WriteProperty", "note": "Servizio 15 (0x0F)." },
         "write-property-ack": { "name": "WriteProperty", "note": "Servizio 15: la scrittura è fatta." },
-        "obj-av1": { "name": "Oggetto", "note": "Context tag 0: analog-value, istanza 1, il setpoint del limite di potenza. 0x00800001: tipo di oggetto 2 nei 10 bit alti." },
+        "obj-av1": { "name": "Oggetto", "note": "Context tag 0: analog-value, istanza 1, l'impostazione del limite di potenza. 0x00800001: tipo di oggetto 2 nei 10 bit alti." },
         "real-250": { "name": "REAL", "note": "250.0: il nuovo limite, in kW." },
         "priority8": { "name": "Priorità 8", "note": "Context tag 4: scrive nello slot 8 di 16, quello dell'operatore. Vince lo slot con il numero più basso che contiene un valore." },
         "simple-ack": { "name": "SimpleACK", "note": "0x20: tipo di PDU 2. Fatto, senza dati." },
@@ -90,7 +91,7 @@
         "bms": "Postazione BMS",
         "switch": "Switch dell'edificio",
         "controller": "Controllore energia",
-        "ahu": "Controllore UTA",
+        "ahu": "Controllore trattamento aria",
         "meter": "Contatore generale"
     },
     "facts": {

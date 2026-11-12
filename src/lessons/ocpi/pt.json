@@ -1,17 +1,18 @@
 {
-    "intro": "O roaming permite que um motorista carregue, com um único cartão, nos carregadores de muitas empresas. O OCPI liga o operador de pontos de recarga (CPO), que opera os carregadores, ao provedor de serviços de mobilidade elétrica (eMSP), que dá aos motoristas os cartões e aplicativos. Cada lado oferece uma API REST, e o outro a chama: para locais, cartões, sessões e a conta de cada recarga.",
+    "intro": "O roaming permite que um motorista carregue, com um único cartão, nos carregadores de muitas empresas, como um celular que funciona em outras redes no exterior. O OCPI liga o operador de pontos de recarga (CPO), que opera os carregadores, ao provedor de serviços de mobilidade elétrica (eMSP), que dá aos motoristas os cartões e aplicativos. Cada lado oferece uma API REST: um conjunto de endereços web que o outro lado chama para ler ou enviar dados. Por elas, os dois compartilham os locais dos carregadores, os cartões, as sessões de recarga e a conta de cada recarga.",
+    "plain": "Com um único cartão ou aplicativo, você pode carregar o seu carro elétrico em carregadores operados por muitas empresas diferentes, do mesmo jeito que o seu celular funciona em outras redes quando você viaja para o exterior. Para isso, a empresa que opera o carregador e a empresa que deu o seu cartão precisam trabalhar juntas. Esta é a língua que os sistemas das duas usam para informar onde ficam os carregadores, conferir se o seu cartão é válido e enviar a conta uma à outra.",
     "steps": {
-        "discover": { "title": "Descobrir", "text": "Duas empresas se conectam uma vez, antes de qualquer motorista fazer roaming. O eMSP lê quais versões de OCPI o CPO oferece e onde fica cada parte da API dele." },
-        "register": { "title": "Trocar tokens", "text": "O eMSP se registra com um token temporário, o A. No fim, cada lado tem o seu próprio token para chamar o outro: o eMSP chama o CPO com o token C, e o CPO chama o eMSP com o token B." },
-        "location": { "title": "Publicar um carregador", "text": "O CPO envia o seu local com um EVSE, um ponto de recarga, para que o aplicativo do eMSP possa mostrá-lo aos motoristas." },
-        "authorize": { "title": "Conferir um cartão", "text": "Um motorista com um cartão do eMSP o aproxima do carregador. O CPO não conhece este cartão, então pergunta ao eMSP." },
-        "session": { "title": "Sessão", "text": "A recarga começa. O CPO informa a sessão e depois envia atualizações enquanto o carro carrega." },
-        "cdr": { "title": "Conta", "text": "Depois da recarga, o CPO envia o CDR, o registro detalhado da recarga: o que o eMSP deve por esta recarga." }
+        "discover": { "title": "Primeiro contato", "text": "Duas empresas se conectam uma vez, antes de qualquer motorista fazer roaming. O eMSP lê quais versões de OCPI o CPO oferece e o endereço web de cada parte (módulo) da API dele." },
+        "register": { "title": "Trocar tokens de acesso", "text": "Um token é um texto secreto, como uma senha, enviado em toda requisição. O eMSP se registra com um token temporário, o A. Depois cada lado tem o seu próprio token para chamar o outro: o eMSP chama o CPO com o token C, e o CPO chama o eMSP com o token B." },
+        "location": { "title": "Publicar um carregador", "text": "O CPO envia um local (um ponto de parada para recarga) com um EVSE: um ponto de recarga. Agora o aplicativo do eMSP pode mostrá-lo aos motoristas." },
+        "authorize": { "title": "Conferir um cartão", "text": "Um motorista com um cartão do eMSP o aproxima do carregador. O CPO não conhece este cartão, então pergunta ao eMSP se ele pode carregar." },
+        "session": { "title": "Sessão de recarga", "text": "A recarga começa. O CPO informa a sessão (esta recarga específica) e depois envia atualizações enquanto o carro carrega." },
+        "cdr": { "title": "Enviar a conta", "text": "Depois da recarga, o CPO envia o CDR (charge detail record: registro detalhado da recarga): o registro final do que o eMSP deve por esta recarga." }
     },
     "frames": {
         "versions": "Quais versões de OCPI você fala, e onde?",
         "endpoints": "2.2.1, e estes são os meus endpoints",
-        "post-credentials": "Aqui está o meu token B e o meu endereço",
+        "post-credentials": "Aqui está o token B para me chamar, e o meu endereço",
         "check": "Quais versões você fala? (com o token B)",
         "credentials": "Registrado. De agora em diante, me chame com o token C",
         "put-location": "Local LOC-0042, com o EVSE NL*ABC*E12345*1",
@@ -24,26 +25,26 @@
         "cdr-ok": "Guardado, neste endereço"
     },
     "notes": {
-        "versions": "O eMSP recebeu duas coisas do CPO por e-mail ou por um portal: a URL da lista de versões e o token A. Ele envia GET com o cabeçalho Authorization: Token, seguido do token A em Base64. Depois envia GET para a URL da versão 2.2.1.",
-        "endpoints": "Toda resposta OCPI tem o mesmo envelope: data, status_code, status_message e timestamp. Aqui o data primeiro lista as versões e depois os endpoints da 2.2.1: uma URL por módulo, cada uma marcada como SENDER ou RECEIVER. O CPO é o sender de locais, sessões e CDRs, e o receiver de tokens.",
-        "post-credentials": "Ainda com o token A, o eMSP envia as suas próprias credenciais: um token B novo para o CPO usar, a URL da sua própria lista de versões e o seu papel: EMSP, country_code DE, party_id XYZ.",
+        "versions": "O eMSP recebeu duas coisas do CPO por e-mail ou por um portal: a URL da lista de versões e o token A. Ele lê a lista com GET. O cabeçalho Authorization: Token, seguido do token A em Base64, prova quem está perguntando. Depois envia GET para a URL da versão 2.2.1.",
+        "endpoints": "Toda resposta OCPI tem o mesmo envelope (os mesmos campos externos): data, status_code, status_message e timestamp. Aqui o data primeiro lista as versões e depois os endpoints da 2.2.1: uma URL por módulo, cada uma marcada como SENDER (dono dos dados) ou RECEIVER. O CPO é o sender de locais, sessões e CDRs, e o receiver de tokens.",
+        "post-credentials": "Ainda com o token A, o eMSP envia as suas próprias credenciais: um token B novo para o CPO usar, a URL da sua própria lista de versões e o seu papel: EMSP, country_code DE, party_id XYZ (o código da empresa).",
         "check": "Antes de responder, o CPO confere o eMSP do mesmo jeito: GET nas versões dele e depois nos endpoints da 2.2.1, com o token B.",
         "credentials": "O CPO responde com as suas credenciais: o token C, a URL das suas versões e o seu papel: CPO, country_code NL, party_id ABC. O token A deixa de funcionar. De agora em diante, o eMSP chama com o token C e o CPO com o token B.",
-        "put-location": "O CPO coloca o local no endpoint de locais do eMSP. A URL indica o dono e o id; a anatomia a desmonta e a seção Experimente mostra o corpo.",
-        "location-ok": "status_code 1000 é sucesso. Leia este código, não só o status HTTP: 2xxx é erro do cliente, 3xxx erro do servidor.",
-        "authorize": "Autorização em tempo real. O cartão é do eMSP, então o CPO envia ao endpoint de tokens do eMSP: o uid do cartão na URL, ?type=RFID, e o local e o EVSE no corpo.",
+        "put-location": "O CPO grava o local no endpoint de locais do eMSP com PUT (criar ou substituir). A URL indica o dono e o id do local. A anatomia a desmonta, e a seção Experimente mostra o corpo.",
+        "location-ok": "status_code 1000 é sucesso. Leia este código, não só o status HTTP: 2xxx é erro do cliente (a requisição estava errada), 3xxx erro do servidor.",
+        "authorize": "Autorização em tempo real: o CPO pergunta enquanto o motorista espera. O cartão é do eMSP, então o CPO envia ao endpoint de tokens do eMSP: o uid do cartão na URL, ?type=RFID, e o local e o EVSE no corpo.",
         "allowed": "data.allowed é ALLOWED, com o objeto token completo do cartão. Outras respostas são BLOCKED, EXPIRED, NO_CREDIT e NOT_ALLOWED. O CPO manda o carregador iniciar, via OCPP.",
         "put-session": "O CPO cria a sessão do lado do eMSP: start_date_time, kwh 0, o cartão como cdr_token, auth_method AUTH_REQUEST, o local, o EVSE e o conector, moeda EUR, status ACTIVE.",
-        "patch-session": "Só o que mudou trafega: kwh 6.25 e last_updated. Agora o aplicativo do eMSP pode mostrar ao motorista a energia até o momento.",
+        "patch-session": "Com PATCH, só o que mudou trafega: kwh 6.25 e last_updated. Agora o aplicativo do eMSP pode mostrar ao motorista a energia até o momento.",
         "post-cdr": "O CDR é a conta entre as duas empresas: quando, onde, qual cartão, quanta energia e tempo, e o preço. A seção Experimente o mostra.",
         "cdr-ok": "O eMSP guarda o CDR e devolve no cabeçalho Location a sua própria URL para ele. Agora ele pode cobrar o motorista."
     },
     "fields": {
         "a-country": { "name": "País", "note": "NL: o código ISO 3166 de duas letras do país do operador." },
         "a-operator": { "name": "Operador", "note": "ABC: o ID do operador, único no seu país. No OCPI, é o party_id do CPO." },
-        "a-type": { "name": "Tipo", "note": "E: este ID identifica um EVSE." },
+        "a-type": { "name": "Tipo", "note": "E: este ID identifica um EVSE, um ponto de recarga." },
         "a-evse": { "name": "EVSE", "note": "12345*1: o número próprio do operador para este ponto de recarga." },
-        "u-endpoint": { "name": "Endpoint", "note": "O endpoint de locais do eMSP, tirado da lista de endpoints dele. Nunca montado pelo CPO." },
+        "u-endpoint": { "name": "Endpoint", "note": "O endereço web do eMSP para locais, tirado da lista de endpoints dele. O CPO nunca o monta por conta própria." },
         "u-country": { "name": "country_code", "note": "O país da parte dona do objeto: o CPO." },
         "u-party": { "name": "party_id", "note": "O party ID do CPO. Junto com o country_code, ele identifica uma empresa em todo objeto OCPI." },
         "u-location": { "name": "location_id", "note": "O id do CPO para este local. Acrescentar /1 endereçaria o EVSE de uid 1 dentro dele." }
@@ -63,9 +64,9 @@
     },
     "tips": [
         "Use as URLs que o outro lado lista nos endpoints dele. Nunca as monte a partir de um padrão: cada plataforma tem as suas.",
-        "O token A só serve para o registro. Uma causa comum de erros 401 depois do registro é trocar os tokens B e C.",
+        "O token A só serve para o registro. Uma causa comum de erros 401 (acesso negado) depois do registro é trocar os tokens B e C.",
         "HTTP 200 não basta: leia o status_code no corpo. 1000 é sucesso, 2xxx erro do cliente, 3xxx erro do servidor.",
-        "Um CDR é definitivo. Um CDR errado não é alterado: o CPO envia um CDR de crédito e depois um novo."
+        "Um CDR é definitivo. Um CDR errado não é alterado: o CPO envia um CDR de crédito que o cancela e depois um novo."
     ],
     "points": {
         "to-cpo": "Token para chamar o CPO",
@@ -91,13 +92,13 @@
         "coordinates": "Latitude e longitude são strings, não números, com 5 a 7 casas decimais.",
         "evse-uid": "uid: o id interno do CPO para o EVSE, usado em URLs e em sessões.",
         "evse-id": "evse_id: o ID impresso no carregador, para os motoristas. A anatomia o desmonta.",
-        "status": "AVAILABLE. Quando ele muda, o CPO envia um PATCH com o novo status.",
+        "status": "AVAILABLE: livre para uso. Quando ele muda, o CPO envia um PATCH com o novo status.",
         "standard": "IEC_62196_T2: uma tomada Tipo 2. format SOCKET significa que o motorista traz o cabo.",
         "max-voltage": "230 V: em CA trifásica, a tensão entre uma fase e o neutro.",
         "max-power": "22080 W = 3 × 230 V × 32 A.",
-        "tariff": "A tarifa que vale aqui. O CPO a publica no módulo tariffs.",
+        "tariff": "A tarifa (tabela de preços) que vale aqui. O CPO a publica no módulo tariffs.",
         "time-zone": "O fuso horário local. Os horários no OCPI são UTC; isto diz ao aplicativo o que o relógio local marca.",
-        "last-updated": "Quando este objeto mudou pela última vez. Uma parte que perdeu atualizações pede tudo o que mudou desde a sua última sincronização.",
+        "last-updated": "Quando este objeto mudou pela última vez. Uma parte que perdeu atualizações pede tudo o que mudou desde a última vez em que ficou em dia.",
         "cdr-id": "O id do CPO para este CDR.",
         "session-id": "A sessão que este CDR encerra: a que o eMSP viu crescer.",
         "cdr-token": "O cartão que carregou. Ele pertence ao eMSP XYZ, da Alemanha (DE).",

@@ -1,11 +1,12 @@
 {
-    "intro": "La façon dont on relève les compteurs nord-américains. C12.19 range tout ce que sait un compteur dans des tables numérotées. C12.18 lit et écrit ces tables par le port optique, après une ouverture de session et un mot de passe. C12.22 transporte les mêmes services de tables sur un réseau.",
+    "intro": "La façon dont on relève les compteurs nord-américains. Trois normes travaillent ensemble. C12.19 range tout ce que sait un compteur dans des tables numérotées, comme les pages d'un classeur : la table standard 23 (ST 23) contient les relevés actuels, comme les totaux d'énergie. C12.18 lit et écrit ces tables par le port optique, la fenêtre infrarouge en façade du compteur, après une ouverture de session et un mot de passe. C12.22 transporte les mêmes requêtes de tables sur un réseau.",
+    "plain": "En Amérique du Nord, un compteur range toutes ses informations dans des tables numérotées, comme les pages d'un classeur : une page dit qui l'a fabriqué, une autre contient les totaux d'énergie. Un technicien peut poser un lecteur sur la face avant du compteur et demander une page par son numéro, après avoir donné un nom et un mot de passe. Le distributeur d'électricité peut demander les mêmes pages à distance, par un réseau.",
     "steps": {
-        "identify": { "title": "Identification", "text": "Le PC portable envoie Identification à 9600 bauds, 8N1. Le compteur confirme chaque paquet par un octet, 0x06 (ACK), puis répond. Chaque paquet se termine par un CRC de 2 octets, que cette leçon omet." },
-        "logon": { "title": "Ouvrir la session", "text": "Logon nomme l'utilisateur, pour le journal du compteur. Security envoie le mot de passe de 20 octets. Ce n'est qu'alors que le PC peut lire ou écrire les tables protégées." },
-        "read": { "title": "Lire la table 23", "text": "Une lecture complète de la table 23, Current Register Data : 12 octets et une somme de contrôle. Le sens des octets se trouve dans d'autres tables : ST 0 dit comment les nombres sont codés, ST 21 combien il y en a, ST 12 et ST 22 ce qu'ils mesurent." },
-        "end": { "title": "Fermer la session", "text": "Logoff termine la session, Terminate termine la conversation. Sans eux, le compteur garde la session ouverte jusqu'à un timeout." },
-        "network": { "title": "Par le réseau", "text": "Plus tard, le système central lit la même table avec C12.22. Le même service, 30 00 17, voyage maintenant dans un message ACSE sur le port 1153. Aucune ouverture de session n'est nécessaire : chaque message porte sa propre sécurité." }
+        "identify": { "title": "Dire bonjour", "text": "Le PC portable envoie une requête Identification à 9600 bauds, 8N1 (8 bits de données, pas de bit de parité, 1 bit de stop). Le compteur confirme chaque paquet par un octet, 0x06 (ACK, pour acknowledge), puis répond. Chaque paquet se termine par un CRC de 2 octets, une valeur de contrôle qui révèle les octets abîmés. Cette leçon l'omet." },
+        "logon": { "title": "Ouvrir la session", "text": "La requête Logon nomme l'utilisateur, pour le journal d'événements du compteur. La requête Security envoie ensuite le mot de passe de 20 octets. Ce n'est qu'alors que le PC peut lire ou écrire les tables protégées." },
+        "read": { "title": "Lire la table d'énergie", "text": "Une lecture complète de la table 23, Current Register Data : les totaux d'énergie du compteur. La réponse fait 12 octets, plus une somme de contrôle. Le sens des octets est écrit dans d'autres tables. ST 0 dit comment les nombres sont codés, ST 21 combien il y en a, ST 12 et ST 22 ce qu'ils mesurent." },
+        "end": { "title": "Fermer la session", "text": "Logoff termine la session. Terminate termine la conversation sur le port optique. Sans eux, le compteur garde la session ouverte jusqu'à un timeout." },
+        "network": { "title": "Par le réseau", "text": "Plus tard, le système central, l'ordinateur central du distributeur, lit la même table avec C12.22. La même requête, 30 00 17, voyage maintenant dans un message ACSE : une enveloppe normalisée qui nomme l'émetteur et le destinataire. Il passe par le port 1153. Aucune ouverture de session n'est nécessaire : chaque message porte sa propre sécurité." }
     },
     "frames": {
         "ident": "Identifie-toi",
@@ -24,12 +25,12 @@
         "c1222-table": "Table 23 : les mêmes 12 octets"
     },
     "notes": {
-        "ident-ok": "La réponse commence par 0x00 (OK), puis le protocole (0x00 : C12.18), sa version et sa révision. Les compteurs récents listent aussi des fonctions optionnelles. Ensuite, le PC pourrait envoyer Negotiate (0x60 à 0x6B) pour une vitesse plus élevée ou des paquets plus grands ; ici, il garde les valeurs par défaut.",
-        "c1222-read": "Un message ACSE (tag 0x60) sur le port UDP ou TCP 1153. Son en-tête nomme le compteur (called AP title), le système central (calling AP title) et cette requête (calling AP invocation ID). Ses informations utilisateur contiennent l'EPSEM : un octet de contrôle qui fixe le mode de sécurité, puis le même service que sur le port optique, 30 00 17. Dans les modes sécurisés, AES-128 en mode EAX' authentifie le message, ou l'authentifie et le chiffre, avec une clé que connaît le compteur.",
+        "ident-ok": "La réponse commence par 0x00 (OK), puis le protocole (0x00 : C12.18), sa version et sa révision. Les compteurs récents listent aussi des fonctions optionnelles. Ensuite, le PC pourrait envoyer Negotiate (0x60 à 0x6B) pour une vitesse plus élevée ou des paquets plus grands. Ici, il garde les valeurs par défaut.",
+        "c1222-read": "Un message ACSE (tag 0x60) sur le port UDP ou TCP 1153. Son en-tête nomme le compteur (le called AP title, un nom de réseau), le système central (le calling AP title) et cette requête (le calling AP invocation ID). Ses informations utilisateur contiennent l'EPSEM : un octet de contrôle qui fixe le mode de sécurité, puis le même service que sur le port optique, 30 00 17. Dans les modes sécurisés, AES-128 en mode EAX' protège le message avec une clé que connaît le compteur. Soit il prouve qui l'a envoyé et que personne ne l'a modifié, soit il fait cela et le chiffre en plus.",
         "c1222-table": "Un message ACSE en retour vers le système central. Son en-tête permet au système central de l'associer à la requête. À l'intérieur se trouve la même réponse que sur le port optique : 0x00 (OK), le nombre d'octets, les 12 octets de la table 23 et leur somme de contrôle."
     },
     "fields": {
-        "stp": { "name": "STP", "note": "0xEE ouvre chaque paquet. Un CRC de 2 octets (polynôme CCITT) le termine ; il n'est pas montré ici." },
+        "stp": { "name": "STP", "note": "0xEE, le début de paquet (start of packet), ouvre chaque paquet. Un CRC de 2 octets (polynôme CCITT) le termine ; il n'est pas montré ici." },
         "identity": { "name": "Identité", "note": "Ici 0x00." },
         "ctrl-0": { "name": "Contrôle", "note": "0x00 : un seul paquet, bit de bascule à 0." },
         "ctrl-1": { "name": "Contrôle", "note": "0x20 : le bit de bascule vaut 1. Chaque côté l'inverse à chaque nouveau paquet : un paquet envoyé deux fois peut ainsi être repéré." },
@@ -45,12 +46,12 @@
         "user": { "name": "Utilisateur", "note": "\"TECH01\", complété par des espaces jusqu'à 10 octets." },
         "security": { "name": "Security", "note": "0x51 : le mot de passe suit." },
         "password": { "name": "Mot de passe", "note": "20 octets : \"tech2026\" et 12 espaces. Il traverse le port optique en clair." },
-        "ok": { "name": "OK", "note": "Code de réponse 0x00 : OK. 0x01 est une erreur ; 0x03 signifie que ce mot de passe ne le permet pas." },
+        "ok": { "name": "OK", "note": "Code de réponse 0x00 : OK. 0x01 est une erreur générale ; 0x03 signifie que le mot de passe utilisé ne le permet pas." },
         "read-full": { "name": "Lecture complète", "note": "0x30 : lire une table entière." },
         "table-23": { "name": "Table 23", "note": "0x0017 = 23 : ST 23, Current Register Data. Les tables fabricant ajoutent 2048 : MT 23 vaut 0x0817." },
         "ok-read": { "name": "OK", "note": "0x00 : OK, la table suit." },
         "count": { "name": "Nombre", "note": "0x000C : 12 octets de données de table." },
-        "sum-0": { "name": "Summation 0", "note": "6 octets, octet de poids faible en premier, comme l'indique la ST 0 de ce compteur. 0x00BC614E = 12 345 678 Wh fournis." },
+        "sum-0": { "name": "Summation 0", "note": "Un total cumulé, 6 octets, octet de poids faible en premier, comme l'indique la ST 0 de ce compteur. 0x00BC614E = 12 345 678 Wh fournis : de l'énergie allant du réseau vers la maison." },
         "sum-1": { "name": "Summation 1", "note": "0x01E240 = 123 456 Wh reçus : l'énergie que la maison a injectée dans le réseau." },
         "cksum": { "name": "Somme de contrôle", "note": "0x72 : les octets de la table et cet octet totalisent 0, modulo 256." },
         "logoff": { "name": "Logoff", "note": "0x52 : fermer la session." },
@@ -92,7 +93,7 @@
         "procedures": "Les procédures, comme une remise à zéro de la puissance maximale ou le réglage de l'horloge, commencent par une écriture dans ST 7. Leurs résultats reviennent dans ST 8.",
         "st12": "Ce que mesure chaque source : ici, l'énergie fournie et reçue, en Wh.",
         "st21": "Combien de valeurs contiennent les tables de registres. Cela fixe la taille de ST 23.",
-        "st22": "De quelle source vient chaque totalisation de ST 23.",
+        "st22": "De quelle source vient chaque totalisation (total cumulé) de ST 23.",
         "st23": "La table que lit cette leçon : deux totaux de 6 octets chacun.",
         "mt": "Les tables fabricant : leur numéro plus 2048. C'est le fabricant qui décide de leur contenu."
     }

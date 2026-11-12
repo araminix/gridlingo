@@ -1,12 +1,13 @@
 {
-    "intro": "É assim que os relés de proteção mandam uns aos outros dar trip, em poucos milissegundos, pela rede da subestação em vez de fios de cobre. Um relé publica os seus dados num endereço multicast; todo relé que precisa deles os assina. Ninguém responde, então quem publica repete cada mudança, rápido no início e depois mais devagar.",
+    "intro": "O GOOSE é como os relés de proteção, os equipamentos que abrem um disjuntor quando uma linha tem uma falta, mandam uns aos outros dar trip em poucos milissegundos. Ele roda pela rede da subestação em vez de fios de cobre. Um relé publica os seus dados num endereço multicast: uma mensagem que todo equipamento da rede recebe. Todo relé que precisa desses dados os assina. Ninguém responde, então quem publica repete cada mudança, rápido no início e depois mais devagar.",
+    "plain": "Quando uma linha de energia falha, os equipamentos de segurança de uma subestação precisam reagir em poucos milésimos de segundo. Esta mensagem funciona como um alarme de incêndio que todas as salas ouvem: um equipamento anuncia a notícia uma vez, para todos, e os equipamentos interessados agem. Ninguém responde, então quem avisa repete o anúncio várias vezes, rápido no início, para ter certeza de que foi ouvido.",
     "steps": {
-        "heartbeat": { "title": "Heartbeat", "text": "Está tudo normal. A cada segundo, o relé repete o seu último estado para quem estiver ouvindo." },
-        "fault": { "title": "Falta", "text": "Um curto-circuito no alimentador F1. O relé mede 2.8 kA e fecha o contato de trip para o disjuntor." },
-        "publish": { "title": "Publicar", "text": "No mesmo instante ele envia o novo estado. O número de estado sobe um e o número de sequência volta a 0." },
-        "repeat": { "title": "Repetir rápido", "text": "Nenhum assinante responde ao GOOSE, então o relé envia a mesma mensagem de novo 2 ms depois, depois 4, 8, 16 … até voltar a uma vez por segundo." },
-        "act": { "title": "Os assinantes agem", "text": "O F2 PROT dispara o temporizador de falha de disjuntor. O gateway repassa o trip ao SCADA." },
-        "open": { "title": "O disjuntor abre", "text": "48 ms depois da falta, o Q1 está aberto e a corrente de falta se interrompe." }
+        "heartbeat": { "title": "Tudo bem", "text": "Está tudo normal. A cada segundo, o relé repete o seu último estado para quem estiver ouvindo. Esse heartbeat diz aos assinantes que o relé e a rede continuam funcionando." },
+        "fault": { "title": "Um curto-circuito", "text": "Um curto-circuito no alimentador F1, uma das linhas que saem da subestação. O relé mede 2.8 kA. Ele fecha o contato de trip, um sinal por fio que faz o disjuntor Q1 abrir." },
+        "publish": { "title": "Anunciar o trip", "text": "No mesmo instante, o relé envia o novo estado para todos os assinantes. O número de estado (stNum) sobe um. O número de sequência (sqNum), que conta as cópias de um mesmo estado, volta a 0." },
+        "repeat": { "title": "Repetir rápido", "text": "Nenhum assinante responde ao GOOSE, então o relé envia a mesma mensagem de novo 2 ms depois da mudança, depois aos 4, 8 e 16 ms, e assim por diante, até voltar a uma vez por segundo." },
+        "act": { "title": "Os assinantes reagem", "text": "O F2 PROT vigia o disjuntor Q1 para o caso de o Q1 falhar. Ele dispara um temporizador: se o Q1 não tiver aberto quando o tempo acabar, o F2 PROT abre os outros disjuntores que alimentam a falta. O gateway repassa o trip ao SCADA, o sistema do centro de controle." },
+        "open": { "title": "O disjuntor abre", "text": "48 ms depois do trip, o Q1 está aberto e a corrente de falta se interrompe." }
     },
     "frames": {
         "heartbeat": "Continua sem trip (heartbeat)",
@@ -19,26 +20,26 @@
     "notes": {
         "trip-wire": "Um fio de cobre, não uma mensagem de rede: o relé fecha um contato e a corrente flui para a bobina de abertura do disjuntor.",
         "to-scada": "Isto é IEC 104, não GOOSE: o gateway traduz entre os dois. A lição de IEC 104 mostra estes bytes.",
-        "opened": "Um contato auxiliar do disjuntor informa ao relé que ele abriu."
+        "opened": "Um contato auxiliar, uma chave que se move junto com o disjuntor, informa ao relé que o disjuntor abriu."
     },
     "fields": {
         "dst": { "name": "Destino", "note": "Um endereço multicast da faixa que a IEC 61850 reserva para o GOOSE (01-0C-CD-01-…). Todo equipamento da rede o recebe; só os assinantes o aproveitam." },
         "src": { "name": "Origem", "note": "O endereço MAC do próprio relé." },
         "vlan": { "name": "Tag de VLAN", "note": "0x8100, depois prioridade 4 e VLAN 10. A prioridade permite que os switches enviem o quadro na frente do resto do tráfego." },
         "ethertype": { "name": "EtherType", "note": "0x88B8 significa GOOSE. Não há IP nem TCP neste quadro." },
-        "appid": { "name": "APPID", "note": "0x0001: um número pelo qual os assinantes filtram." },
+        "appid": { "name": "APPID", "note": "0x0001: um ID deste fluxo de mensagens. Os assinantes filtram por ele." },
         "length": { "name": "Comprimento", "note": "115 bytes, do APPID até o fim." },
         "reserved": { "name": "Reservado", "note": "Dois campos reservados, aqui em zero. A IEC 62351-6 os usa quando o quadro é assinado." },
         "pdu": { "name": "Mensagem GOOSE", "note": "0x61 inicia a mensagem; seguem 105 bytes (0x69). Cada campo depois dele é uma tag, um comprimento e um valor." },
-        "gocbref": { "name": "gocbRef", "note": "Tag 0x80, 25 bytes: o nome do bloco de controle, F1PROTLD0/LLN0$GO$gcbTrip." },
+        "gocbref": { "name": "gocbRef", "note": "Tag 0x80, 25 bytes: o nome do bloco de controle que envia esta mensagem, F1PROTLD0/LLN0$GO$gcbTrip." },
         "tal": { "name": "Time allowed to live", "note": "2000 ms. Se nenhuma cópia chegar dentro desse tempo, os assinantes tratam os dados como inválidos." },
-        "datset": { "name": "datSet", "note": "O data set que a mensagem leva: F1PROTLD0/LLN0$dsTrip." },
-        "goid": { "name": "goID", "note": "F1PROT_Trip, um ID que os assinantes podem conferir." },
+        "datset": { "name": "datSet", "note": "O data set: a lista de valores que esta mensagem leva, F1PROTLD0/LLN0$dsTrip." },
+        "goid": { "name": "goID", "note": "F1PROT_Trip: um ID que os assinantes podem conferir." },
         "t-old": { "name": "t", "note": "Quando os dados mudaram pela última vez: hoje às 08:00:00, UTC. Um heartbeat mantém o horário da última mudança." },
         "t-event": { "name": "t", "note": "Quando os dados mudaram: 10:41:07.232 UTC. 4 bytes de segundos, 3 de frações de segundo, 1 de qualidade do relógio." },
-        "stnum-12": { "name": "stNum 12", "note": "O número de estado: igual desde a última mudança." },
+        "stnum-12": { "name": "stNum 12", "note": "O número de estado: ainda 12, então os dados não mudaram." },
         "stnum-13": { "name": "stNum 13", "note": "O número de estado subiu um: os dados mudaram." },
-        "sqnum-3": { "name": "sqNum 3", "note": "O número de sequência: a quarta cópia do mesmo estado." },
+        "sqnum-3": { "name": "sqNum 3", "note": "O número de sequência conta as cópias de um mesmo estado, a partir de 0: esta é a quarta cópia." },
         "sqnum-0": { "name": "sqNum 0", "note": "A primeira cópia do novo estado." },
         "sqnum-1": { "name": "sqNum 1", "note": "O mesmo estado, enviado de novo." },
         "simulation": { "name": "simulation", "note": "Falso. Verdadeiro marca mensagens de teste, que os assinantes ignoram a menos que estejam em modo de teste." },
@@ -48,10 +49,10 @@
         "data-idle": { "name": "allData", "note": "Os valores: Tr.general = FALSE (sem trip), e a qualidade dele: boa." },
         "data-trip": { "name": "allData", "note": "Os valores: Tr.general = TRUE (trip!), e a qualidade dele: boa." },
         "a-ied": { "name": "IED", "note": "O nome do equipamento no arquivo SCL." },
-        "a-ld": { "name": "Dispositivo lógico", "note": "LD0, um grupo de funções dentro do IED." },
-        "a-ln": { "name": "Nó lógico", "note": "LLN0, onde ficam os blocos de controle." },
-        "a-fc": { "name": "Restrição funcional", "note": "GO: um bloco de controle GOOSE." },
-        "a-cb": { "name": "Bloco de controle", "note": "gcbTrip, o nome dele." }
+        "a-ld": { "name": "Dispositivo lógico", "note": "LD0: um dispositivo lógico, um grupo de funções dentro do IED." },
+        "a-ln": { "name": "Nó lógico", "note": "LLN0: o nó lógico do próprio dispositivo, onde ficam os blocos de controle." },
+        "a-fc": { "name": "Restrição funcional", "note": "GO: o que vem a seguir é um bloco de controle GOOSE." },
+        "a-cb": { "name": "Bloco de controle", "note": "gcbTrip: o nome do bloco de controle." }
     },
     "devices": {
         "q1": "Disjuntor Q1",
