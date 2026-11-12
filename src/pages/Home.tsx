@@ -15,7 +15,7 @@ const FILTERS: readonly DeviceKind[] = ["inverter", "battery", "turbine", "relay
 const START = ["iec-104", "iec-61850-goose", "modbus-tcp"];
 
 /** A small grid for the top of the page: plants and a charger talking to a control room, one message at a time. */
-const HERO: Scene = {
+export const HERO: Scene = {
     devices: [
         { id: "turbine", kind: "turbine", at: [0, 0] },
         { id: "pv", kind: "pv", at: [4.2, -1.6] },

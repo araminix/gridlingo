@@ -5,13 +5,16 @@ import english from "@/lessons/iec-61850-goose/en.json";
 import { lesson as goose } from "@/lessons/iec-61850-goose/lesson";
 import { lesson as iec104 } from "@/lessons/iec-104/lesson";
 import english104 from "@/lessons/iec-104/en.json";
-import type { LessonText } from "@/lessons/types";
+import type { Lesson, LessonText } from "@/lessons/types";
 import { wordsOf } from "@/lessons/words";
+import { HERO } from "@/pages/Home";
 import { ByteInspector, byteCount, sizeOf } from "./ByteInspector";
 import { valuesAt } from "./DeviceState";
 import { SequenceDiagram } from "./SequenceDiagram";
 import { stateAt } from "./SingleLine";
-import { SiteScene } from "./SiteScene";
+import { bodyOf } from "./devices";
+import { GRID } from "./iso";
+import { groundOf, SiteScene } from "./SiteScene";
 import { StepCaption, StepControls, StepStrip } from "./StepPlayer";
 
 const words104 = wordsOf(english104 as LessonText, english104 as LessonText);
@@ -107,5 +110,21 @@ describe("state by step", () => {
     it("opens the breaker in the single-line diagram once it has tripped", () => {
         expect(stateAt(goose.singleLine!, goose.steps, 1).fault).toBe("f1");
         expect(stateAt(goose.singleLine!, goose.steps, 5).open).toEqual(["f1"]);
+    });
+});
+
+describe("the ground", () => {
+    const lessons = import.meta.glob<Lesson>("../lessons/*/lesson.ts", { eager: true, import: "lesson" });
+    const scenes = [{ name: "the home page's plate", scene: HERO, margin: 0.75 }, ...Object.entries(lessons).map(([path, lesson]) => ({ name: path, scene: lesson.scene, margin: 1.5 }))];
+
+    it.each(scenes)("holds every device of $name", ({ scene, margin }) => {
+        const { x0, x1, y0, y1 } = groundOf(scene, margin);
+        for (const device of scene.devices)
+            for (const part of bodyOf(device.kind, device.at[0] * GRID, device.at[1] * GRID)) {
+                expect(part.cx - part.w / 2, device.id).toBeGreaterThanOrEqual(x0 * GRID);
+                expect(part.cx + part.w / 2, device.id).toBeLessThanOrEqual(x1 * GRID);
+                expect(part.cy - part.d / 2, device.id).toBeGreaterThanOrEqual(y0 * GRID);
+                expect(part.cy + part.d / 2, device.id).toBeLessThanOrEqual(y1 * GRID);
+            }
     });
 });

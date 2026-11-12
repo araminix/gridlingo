@@ -13,6 +13,18 @@ const subscribeReduced = (onChange: () => void) => {
 /** Whether the reader asked for less motion: frames then sit at their destination instead of travelling. */
 export const useReducedMotion = () => useSyncExternalStore(subscribeReduced, () => reducedQuery()?.matches ?? false, () => false);
 
+/**
+ * The ground under a scene, in grid cells: its lines a whole number of cells from the devices, and wide enough to hold
+ * every part of every device (bodyOf) with `margin` cells to spare.
+ */
+export function groundOf(scene: Scene, margin: number) {
+    const parts = scene.devices.flatMap((device) => bodyOf(device.kind, device.at[0] * GRID, device.at[1] * GRID));
+    const span = (low: number, high: number, anchor: number) => [anchor + Math.floor(low / GRID - margin - anchor), anchor + Math.ceil(high / GRID + margin - anchor)] as const;
+    const [x0, x1] = span(Math.min(...parts.map((p) => p.cx - p.w / 2)), Math.max(...parts.map((p) => p.cx + p.w / 2)), Math.min(...scene.devices.map((device) => device.at[0])));
+    const [y0, y1] = span(Math.min(...parts.map((p) => p.cy - p.d / 2)), Math.max(...parts.map((p) => p.cy + p.d / 2)), Math.min(...scene.devices.map((device) => device.at[1])));
+    return { x0, x1, y0, y1 };
+}
+
 const targetsOf = (frame: Frame) => (typeof frame.to === "string" ? [frame.to] : [...frame.to]);
 
 type Leg = { link: Scene["links"][number]; path: ReturnType<typeof groundPath> };
@@ -71,14 +83,10 @@ export function SiteScene({ scene, frame, words, plate = false }: { scene: Scene
         : [];
     const busy = new Set(travels.flatMap((travel) => travel.ids));
 
-    // The ground's grid, two cells around the devices (one and a half on a plate), and the slab under it
+    // The ground's grid, around every device (closer on a plate), and the slab under it
     const ground = useMemo(() => {
-        const xs = scene.devices.map((device) => device.at[0]);
-        const ys = scene.devices.map((device) => device.at[1]);
-        const around = plate ? 1.5 : 2;
-        const [x0, y0] = [Math.min(...xs) - around, Math.min(...ys) - around];
-        const [nx, ny] = [Math.floor(Math.max(...xs) + around - x0), Math.floor(Math.max(...ys) + around - y0)];
-        const [x1, y1] = [x0 + nx, y0 + ny];
+        const { x0, x1, y0, y1 } = groundOf(scene, plate ? 0.75 : 1.5);
+        const [nx, ny] = [Math.round(x1 - x0), Math.round(y1 - y0)];
         const at = (x: number, y: number, z = 0) => project(x * GRID, y * GRID, z);
         const line = (a: [number, number], b: [number, number]) => `M${a.map(round).join(",")} L${b.map(round).join(",")}`;
         const list: string[] = [];

@@ -56,11 +56,25 @@ function inverterParts(cx: number, cy: number) {
     return { body, posts };
 }
 
-/** The boxes a device fills, standing on the ground at (cx, cy) (some raised by z): what casts its shadow. */
+/** A battery container on its concrete pad. */
+function batteryParts(cx: number, cy: number) {
+    const { w, d, h } = SIZE.battery;
+    return { pad: { cx, cy, w: w + 4, d: d + 4, h: 2 } satisfies Box, container: { cx, cy, w, d, h: h - 4, z: 2 } satisfies Box };
+}
+
+/**
+ * The boxes a device fills, standing on the ground at (cx, cy) (some raised by z): what casts its shadow, and what the
+ * ground under a scene is sized from. Every part that reaches out on the ground must be here, or it can stand off the
+ * edge of the home page's plate (a test checks every scene).
+ */
 export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
     if (kind === "scada") {
         const { desk, screens } = scadaParts(cx, cy);
         return [desk, ...screens];
+    }
+    if (kind === "battery") {
+        const { pad, container } = batteryParts(cx, cy);
+        return [pad, container];
     }
     if (kind === "inverter") {
         const { body, posts } = inverterParts(cx, cy);
@@ -312,14 +326,14 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
         case "battery": {
             // A battery container on a concrete pad: corrugated walls, double doors with lock bars at its end, two air
             // conditioners on its long side and a warning light on the roof
-            const box: Box = { cx, cy, w: size.w, d: size.d, h: size.h - 4, z: 2 };
+            const { pad, container: box } = batteryParts(cx, cy);
             const wall = faces(box).onLeft;
             const doors = faces(box).onRight;
             const coolers = [0.22, 0.6].map((u): Box => ({ cx: cx - size.w / 2 + u * size.w, cy: cy + size.d / 2 + 2, w: 13, d: 4, h: 15, z: 12 }));
             const [bx, by] = project(cx + size.w / 2 - 7, cy - size.d / 2 + 6, size.h - 1);
             return (
                 <g>
-                    <Solid box={{ cx, cy, w: size.w + 4, d: size.d + 4, h: 2 }} active={active} fine />
+                    <Solid box={pad} active={active} fine />
                     <Solid box={box} active={active} />
                     <Lines list={Array.from({ length: 23 }, (_, i) => 0.04 + i * 0.04).map((u) => [wall(u, 0.06), wall(u, 0.94)])} width={0.5} />
                     <Lines
