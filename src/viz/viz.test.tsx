@@ -32,7 +32,7 @@ describe("the byte inspector", () => {
         const bytes = await screen.findByRole("list", { name: "Bytes" });
         expect(within(bytes).getAllByRole("listitem")).toHaveLength(9);
         expect(within(bytes).getByText("64")).toBeTruthy();
-        expect(screen.getByText(/C_IC_NA_1: interrogation command/)).toBeTruthy();
+        expect(screen.getByText(/C_IC_NA_1: the interrogation command/)).toBeTruthy();
         const legend = screen.getByRole("list", { name: "What the colors mean" });
         expect(within(legend).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["Framing", "Control", "Type", "Count", "Reason", "Address", "Value"]);
     });
@@ -77,7 +77,7 @@ describe("the step player", () => {
         inEnglish(<StepStrip steps={iec104.steps} current={2} onGo={onGo} words={words104} />);
         const current = screen.getByRole("button", { current: "step" });
         expect(current.textContent).toContain("Ask for everything");
-        fireEvent.click(screen.getByRole("button", { name: /Breaker trips/ }));
+        fireEvent.click(screen.getByRole("button", { name: /A breaker trips/ }));
         expect(onGo).toHaveBeenCalledWith(5);
     });
 
