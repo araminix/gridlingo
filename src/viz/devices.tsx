@@ -73,6 +73,12 @@ function turbineParts(cx: number, cy: number) {
     };
 }
 
+/** An EV charger: a slim pillar on a concrete base, capped on top. */
+function chargerParts(cx: number, cy: number) {
+    const { w, h } = SIZE.charger;
+    return { base: { cx, cy, w: w + 4, d: 18, h: 2 } satisfies Box, pillar: { cx, cy, w, d: 12, h: h - 4, z: 2 } satisfies Box, cap: { cx, cy, w: w + 1.5, d: 13.5, h: 2, z: h - 2 } satisfies Box };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -90,6 +96,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "charger") {
+        const { base, pillar } = chargerParts(cx, cy);
+        return [base, pillar];
+    }
     if (kind === "turbine") {
         const { pad, tower, nacelle } = turbineParts(cx, cy);
         return [pad, tower, nacelle];
@@ -417,14 +427,28 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             detail = <Panel on={f.onLeft} u0={0.14} v0={0.55} u1={0.86} v1={0.78} fill="var(--viz-screen)" />;
             break;
         case "charger": {
-            const [x, y] = f.onLeft(0.85, 0.45);
-            detail = (
-                <>
-                    <Panel on={f.onLeft} u0={0.12} v0={0.62} u1={0.88} v1={0.86} fill="var(--viz-screen)" />
-                    <path d={`M${round(x)},${round(y)} c10,6 10,22 2,30`} fill="none" stroke="var(--viz-edge)" strokeWidth={2.2} strokeLinecap="round" />
-                </>
+            // In front a green light bar (free to use), a screen with the charge and a card reader; on its side the
+            // plug rests in a holster, its cable hanging in a loop
+            const { base, pillar, cap } = chargerParts(cx, cy);
+            const front = faces(pillar).onLeft;
+            const x1 = cx + pillar.w / 2;
+            const holster: Box = { cx: x1 + 1.5, cy: cy + 3, w: 3, d: 4, h: 7, z: 20 };
+            const [a, b, c, d] = [project(x1, cy - 4, 36), project(x1 + 14, cy - 3, -6), project(x1 + 12, cy + 9, 2), project(x1 + 2, cy + 3, 22)];
+            const [rx, ry] = front(0.5, 0.48);
+            return (
+                <g>
+                    <Solid box={base} active={active} fine />
+                    <Solid box={pillar} active={active} />
+                    <Solid box={cap} active={active} fine />
+                    <Panel on={front} u0={0.15} v0={0.9} u1={0.85} v1={0.94} fill="var(--viz-ok)" />
+                    <Panel on={front} u0={0.15} v0={0.62} u1={0.85} v1={0.84} fill="var(--viz-screen)" />
+                    <Lines list={[[front(0.26, 0.72), front(0.6, 0.72)]]} stroke="var(--viz-ok)" width={1.6} />
+                    <Panel on={front} u0={0.36} v0={0.42} u1={0.64} v1={0.54} fill={tone.right} />
+                    <circle cx={round(rx)} cy={round(ry)} r={1.1} fill="none" stroke={tone.edge} strokeWidth={0.5} />
+                    <path d={`M${pair(a)} C${pair(b)} ${pair(c)} ${pair(d)}`} fill="none" stroke="var(--viz-edge)" strokeWidth={2} strokeLinecap="round" />
+                    <Solid box={holster} active={active} fine />
+                </g>
             );
-            break;
         }
         case "broker":
         case "cloud":
