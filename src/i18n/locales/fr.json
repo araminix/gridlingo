@@ -22,6 +22,7 @@
     "nav.progress": "Votre progression : {{done}} sur {{total}} leçons terminées",
     "nav.progressHint": "Une leçon compte comme terminée quand vous la jouez jusqu'à sa dernière étape. Conservé uniquement dans ce navigateur.",
     "lesson.loading": "Chargement de la leçon",
+    "lesson.technical": "Technique",
     "lesson.plain": "En termes simples",
     "notFound.title": "Cette page n'existe pas.",
     "notFound.back": "Voir tous les protocoles",

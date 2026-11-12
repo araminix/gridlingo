@@ -22,6 +22,7 @@
     "nav.progress": "내 진도: 레슨 {{total}}개 중 {{done}}개 완료",
     "nav.progressHint": "레슨은 마지막 단계까지 재생하면 완료로 쳐요. 기록은 이 브라우저에만 남아요.",
     "lesson.loading": "레슨을 불러오는 중",
+    "lesson.technical": "전문적으로 말하면",
     "lesson.plain": "쉽게 말하면",
     "notFound.title": "없는 페이지예요.",
     "notFound.back": "모든 프로토콜 보기",

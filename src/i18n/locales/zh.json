@@ -22,6 +22,7 @@
     "nav.progress": "学习进度：已学完 {{done}} / {{total}} 课",
     "nav.progressHint": "一课播放到最后一步，就算学完。进度只保存在本浏览器中。",
     "lesson.loading": "正在加载课程",
+    "lesson.technical": "专业地说",
     "lesson.plain": "通俗地说",
     "notFound.title": "此页面不存在。",
     "notFound.back": "查看全部协议",

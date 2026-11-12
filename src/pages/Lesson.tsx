@@ -1,4 +1,4 @@
-import { Lightbulb, ListTree } from "lucide-react";
+import { Binary, Lightbulb, ListTree } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -18,6 +18,7 @@ import { SampleFile } from "@/playground/SampleFile";
 import { SclExplorer } from "@/playground/SclExplorer";
 import { finish } from "@/progress";
 import { Link } from "@/router";
+import { usePersisted } from "@/settings";
 import { ByteInspector, frameSize } from "@/viz/ByteInspector";
 import { DeviceState } from "@/viz/DeviceState";
 import { FrameList } from "@/viz/FrameList";
@@ -77,6 +78,10 @@ function Section({ title, hint, children, action, testId }: { title: string; hin
     );
 }
 
+/** How the lesson is introduced: in the trade's words, or in plain ones. */
+type Level = "technical" | "plain";
+const isLevel = (value: unknown): value is Level => value === "technical" || value === "plain";
+
 function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
     const { t, dir } = useI18n();
     const { lesson } = loaded;
@@ -85,6 +90,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
     const [chosen, setChosen] = useState<string | undefined>(undefined);
     const [playing, setPlaying] = useState(false);
     const [navOpen, setNavOpen] = useState(false);
+    const [level, setLevel] = usePersisted<Level>("gridlingo.level", "technical", isLevel);
     const last = lesson.steps.length - 1;
 
     const stepIndex = useCallback((frame: Frame) => lesson.steps.findIndex((step) => step.id === frame.step), [lesson]);
@@ -178,19 +184,32 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                             {t(`group.${meta.group}` as MessageKey)}
                         </span>
                     </div>
-                    <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{meta.name}</h1>
-                    <p className="max-w-3xl text-[15px] text-muted-foreground">
-                        <Rich text={words.intro} />
-                    </p>
-                    <div className="flex max-w-3xl gap-2.5 rounded-xl border border-[color-mix(in_oklab,var(--gold)_45%,transparent)] bg-gold-soft px-3.5 py-3">
-                        <Lightbulb className="mt-0.5 size-5 shrink-0 text-gold-foreground" aria-hidden="true" />
-                        <div className="space-y-1">
-                            <p className="text-sm font-semibold text-gold-foreground">{t("lesson.plain")}</p>
+                    <Tabs value={level} onValueChange={(value) => isLevel(value) && setLevel(value)} className="max-w-3xl gap-2">
+                        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{meta.name}</h1>
+                            <TabsList>
+                                <TabsTrigger value="technical">
+                                    <Binary aria-hidden="true" />
+                                    {t("lesson.technical")}
+                                </TabsTrigger>
+                                <TabsTrigger value="plain">
+                                    <Lightbulb aria-hidden="true" className="text-gold-foreground" />
+                                    {t("lesson.plain")}
+                                </TabsTrigger>
+                            </TabsList>
+                        </div>
+                        <TabsContent value="technical">
+                            <p className="text-[15px]">
+                                <Rich text={words.intro} />
+                            </p>
+                        </TabsContent>
+                        <TabsContent value="plain" className="flex gap-2.5 rounded-xl border border-[color-mix(in_oklab,var(--gold)_45%,transparent)] bg-gold-soft px-3.5 py-3">
+                            <Lightbulb className="mt-0.5 size-5 shrink-0 text-gold-foreground" aria-hidden="true" />
                             <p className="text-[15px]">
                                 <Rich text={words.plain} />
                             </p>
-                        </div>
-                    </div>
+                        </TabsContent>
+                    </Tabs>
                 </header>
 
                 <Card className="gap-0 overflow-hidden py-0" data-testid="stage">
@@ -203,7 +222,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                             </TabsList>
                             <div className="flex items-center gap-3">
                                 <span className="text-xs text-muted-foreground max-lg:hidden">{t("player.keys")}</span>
-                                <StepControls current={current} last={lesson.steps.length - 1} playing={playing} onGo={(index) => (setPlaying(false), go(index))} onPlay={togglePlay} />
+                                <StepControls current={current} last={last} playing={playing} onGo={(index) => (setPlaying(false), go(index))} onPlay={togglePlay} />
                             </div>
                         </div>
                         <div className="border-b px-3 py-2">

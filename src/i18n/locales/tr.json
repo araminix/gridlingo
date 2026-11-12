@@ -22,6 +22,7 @@
     "nav.progress": "İlerlemeniz: {{total}} dersten {{done}} tanesi tamamlandı",
     "nav.progressHint": "Bir ders, son adımına kadar oynatıldığında tamamlanmış sayılır. Yalnızca bu tarayıcıda saklanır.",
     "lesson.loading": "Ders yükleniyor",
+    "lesson.technical": "Teknik",
     "lesson.plain": "Sade bir dille",
     "notFound.title": "Bu sayfa yok.",
     "notFound.back": "Tüm protokolleri gör",

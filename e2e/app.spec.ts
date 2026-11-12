@@ -77,11 +77,15 @@ test("choosing a frame shows its bytes, and the sequence view lists the frames s
 
 test("a beginner finds plain words, and what an abbreviation means", async ({ page }) => {
     await open(page, "/p/iec-104");
-    await expect(page.getByText("In plain words")).toBeVisible();
     await page.getByRole("button", { name: "RTU", exact: true }).first().click();
     await expect(page.getByRole("dialog").getByText("Remote terminal unit")).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toBeHidden();
+    const plain = page.getByRole("tab", { name: "In plain words" });
+    await plain.click();
+    await expect(page.getByText(/like a guard checking in by radio/)).toBeVisible();
+    await page.reload();
+    await expect(plain).toHaveAttribute("aria-selected", "true");
 });
 
 test("the theme and the language are kept, and Arabic reads right to left", async ({ page }) => {

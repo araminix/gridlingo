@@ -22,6 +22,7 @@
     "nav.progress": "تقدّمك: أنهيت {{done}} من {{total}} درسًا",
     "nav.progressHint": "يُحسب الدرس منتهيًا حين تشغّله حتى خطوته الأخيرة. يُحفظ ذلك في هذا المتصفح فقط.",
     "lesson.loading": "جارٍ تحميل الدرس",
+    "lesson.technical": "بلغة تقنية",
     "lesson.plain": "بكلمات بسيطة",
     "notFound.title": "هذه الصفحة غير موجودة.",
     "notFound.back": "اعرض كل البروتوكولات",

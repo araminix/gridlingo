@@ -22,6 +22,7 @@
     "nav.progress": "Tu progreso: {{done}} de {{total}} lecciones terminadas",
     "nav.progressHint": "Una lección cuenta como terminada cuando la reproduces hasta su último paso. Solo se guarda en este navegador.",
     "lesson.loading": "Cargando la lección",
+    "lesson.technical": "Técnico",
     "lesson.plain": "En palabras sencillas",
     "notFound.title": "Esta página no existe.",
     "notFound.back": "Ver todos los protocolos",

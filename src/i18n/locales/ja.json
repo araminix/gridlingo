@@ -22,6 +22,7 @@
     "nav.progress": "進み具合：{{total}}レッスン中{{done}}レッスン完了",
     "nav.progressHint": "レッスンは、最後のステップまで再生すると完了になります。記録はこのブラウザの中にだけ保存されます。",
     "lesson.loading": "レッスンを読み込んでいます",
+    "lesson.technical": "専門的に言うと",
     "lesson.plain": "やさしく言うと",
     "notFound.title": "このページは存在しません。",
     "notFound.back": "プロトコル一覧を見る",

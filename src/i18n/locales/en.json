@@ -22,6 +22,7 @@
     "nav.progress": "Your progress: {{done}} of {{total}} lessons finished",
     "nav.progressHint": "A lesson counts as finished when you play it to its last step. Kept only in this browser.",
     "lesson.loading": "Loading the lesson",
+    "lesson.technical": "Technical",
     "lesson.plain": "In plain words",
     "notFound.title": "This page does not exist.",
     "notFound.back": "See all protocols",
