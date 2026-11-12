@@ -27,6 +27,7 @@
 
     --viz-ground: #fcfbfe;
     --viz-shadow: color-mix(in oklab, #6d28d9 24%, transparent);
+    --viz-shade: rgb(42 31 77 / 0.2);
     --viz-grid: #ebe7f4;
     --viz-top: #ffffff;
     --viz-left: #ece8f6;
@@ -89,6 +90,7 @@
 
     --viz-ground: #100d1a;
     --viz-shadow: rgb(0 0 0 / 0.65);
+    --viz-shade: rgb(0 0 0 / 0.5);
     --viz-grid: #1f1a30;
     --viz-top: #221c35;
     --viz-left: #1a1529;

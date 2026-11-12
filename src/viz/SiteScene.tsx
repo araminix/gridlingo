@@ -1,8 +1,8 @@
-import { useMemo, useSyncExternalStore } from "react";
+import { Fragment, useId, useMemo, useSyncExternalStore } from "react";
 import type { Frame, Scene } from "@/lessons/types";
 import type { Words } from "@/lessons/words";
-import { DeviceShape, extentOf, labelAt } from "./devices";
-import { faces, GRID, groundPath, project, round } from "./iso";
+import { bodyOf, DeviceShape, extentOf, labelAt } from "./devices";
+import { faces, GRID, groundPath, project, round, shadowOf } from "./iso";
 
 const reducedQuery = () => (typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null);
 const subscribeReduced = (onChange: () => void) => {
@@ -99,6 +99,17 @@ export function SiteScene({ scene, frame, words, plate = false }: { scene: Scene
         return { minX, minY, width: maxX - minX, height: maxY - minY };
     }, [scene, plate, ground]);
 
+    // Each device's shadow on the ground, in the scene's one light, and a darker one just around its foot
+    const shadows = useMemo(
+        () =>
+            scene.devices.map((device) => {
+                const body = bodyOf(device.kind, device.at[0] * GRID, device.at[1] * GRID);
+                return { id: device.id, cast: shadowOf(body), foot: shadowOf({ ...body, w: body.w + 5, d: body.d + 5, h: 0 }) };
+            }),
+        [scene],
+    );
+    const soft = useId();
+
     // Devices further back are drawn first
     const devices = [...scene.devices].sort((a, b) => a.at[0] + a.at[1] - (b.at[0] + b.at[1]));
 
@@ -116,6 +127,11 @@ export function SiteScene({ scene, frame, words, plate = false }: { scene: Scene
                     <polygon points={ground.slab.top} fill="var(--viz-ground)" />
                 </g>
             )}
+            <defs>
+                <filter id={soft} x="-10%" y="-10%" width="120%" height="120%">
+                    <feGaussianBlur stdDeviation={2.2} />
+                </filter>
+            </defs>
             <path d={ground.grid} fill="none" stroke="var(--viz-grid)" strokeWidth={1} />
             {links.map(({ link, path }) => (
                 <path
@@ -129,6 +145,14 @@ export function SiteScene({ scene, frame, words, plate = false }: { scene: Scene
                     strokeLinejoin="round"
                 />
             ))}
+            <g fill="var(--viz-shade)" filter={`url(#${soft})`}>
+                {shadows.map((shadow) => (
+                    <Fragment key={shadow.id}>
+                        <polygon points={shadow.cast} />
+                        <polygon points={shadow.foot} />
+                    </Fragment>
+                ))}
+            </g>
             {devices.map((device) => {
                 const [cx, cy] = place.get(device.id)!;
                 const [lx, ly] = labelAt(device.kind, cx, cy);

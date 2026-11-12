@@ -1,4 +1,4 @@
-/** Isometric drawing: plan coordinates (x to the lower right, y to the lower left, z up) to the screen. */
+/** 3D drawing: plan coordinates (x to the lower right, y to the lower left, z up) to the screen. */
 
 /** One step of a scene's grid, in plan units. */
 export const GRID = 44;
@@ -7,7 +7,30 @@ const COS = Math.cos(Math.PI / 6);
 
 export type Point3 = readonly [x: number, y: number, z?: number];
 
-export const project = (x: number, y: number, z = 0): [number, number] => [(x - y) * COS, (x + y) * 0.5 - z];
+/** The isometric view, without depth: how the site looks from very far away. */
+const flat = (x: number, y: number, z: number): [number, number] => [(x - y) * COS, (x + y) * 0.5 - z];
+
+// The camera looks at the site from the front and above, along (1, 1, 1), from CAMERA plan units away: near enough that
+// what is in front is drawn a little bigger and parallel lines lean together, as the eye sees it, and far enough that
+// the picture still reads like a plan. It aims at the middle of a usual scene.
+const CAMERA = 2000;
+const AIM = [4.5 * GRID, 2.2 * GRID] as const;
+const [AIM_X, AIM_Y] = flat(AIM[0], AIM[1], 0);
+
+/** A point of the site on the screen, in perspective. */
+export function project(x: number, y: number, z = 0): [number, number] {
+    const [sx, sy] = flat(x, y, z);
+    const nearer = (x + y + z - AIM[0] - AIM[1]) / Math.sqrt(3);
+    const scale = CAMERA / (CAMERA - nearer);
+    return [AIM_X + (sx - AIM_X) * scale, AIM_Y + (sy - AIM_Y) * scale];
+}
+
+/**
+ * The sun, at the top left of the screen as in most drawings: on the -x side and a little toward +y, so tops are
+ * brightest, the faces turned to +y (left on the screen) half lit and those turned to +x (right) in shade. Shadows fall
+ * to the right on the screen; per unit of height, a shadow reaches this far on the plan.
+ */
+export const LIGHT = { x: 0.62, y: -0.18 } as const;
 
 /** Points for an SVG polygon or polyline. */
 export const points = (...list: Point3[]) =>
@@ -59,4 +82,34 @@ export function groundPath(from: readonly [number, number], to: readonly [number
     if (angle <= -90) angle += 180;
     const middle: [number, number] = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
     return { d: d(list), reverse: d([...list].reverse()), middle, angle, points: list };
+}
+
+/** The convex hull of some screen points, in order around it. */
+function hull(list: [number, number][]): [number, number][] {
+    const sorted = [...list].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const turn = (o: [number, number], a: [number, number], b: [number, number]) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    const half = (points: [number, number][]) => {
+        const out: [number, number][] = [];
+        for (const p of points) {
+            while (out.length >= 2 && turn(out.at(-2)!, out.at(-1)!, p) <= 0) out.pop();
+            out.push(p);
+        }
+        out.pop();
+        return out;
+    };
+    return [...half(sorted), ...half(sorted.reverse())];
+}
+
+/** The shadow a box casts on the ground in the LIGHT, as SVG polygon points (with h 0, just its footprint). */
+export function shadowOf({ cx, cy, w, d, h, z = 0 }: Box): string {
+    const corners: [number, number][] = [
+        [cx - w / 2, cy - d / 2],
+        [cx + w / 2, cy - d / 2],
+        [cx + w / 2, cy + d / 2],
+        [cx - w / 2, cy + d / 2],
+    ];
+    const at = (lift: number) => corners.map(([x, y]) => project(x + lift * LIGHT.x, y + lift * LIGHT.y));
+    return hull([...at(z), ...at(z + h)])
+        .map(([x, y]) => `${round(x)},${round(y)}`)
+        .join(" ");
 }

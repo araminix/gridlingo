@@ -31,6 +31,9 @@ const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     firewall: { w: 36, d: 22, h: 30 },
 };
 
+/** The box a device fills, standing on the ground at (cx, cy): what casts its shadow. */
+export const bodyOf = (kind: DeviceKind, cx: number, cy: number): Box => ({ cx, cy, ...SIZE[kind] });
+
 /** How high a device reaches above the ground. */
 export const heightOf = (kind: DeviceKind) => (kind === "turbine" ? SIZE.turbine.h + 44 : kind === "radio" ? SIZE.radio.h + 12 : kind === "sensor" ? SIZE.sensor.h + 10 : SIZE[kind].h);
 
