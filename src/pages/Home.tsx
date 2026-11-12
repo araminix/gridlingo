@@ -51,7 +51,7 @@ function HeroScene() {
         return () => clearInterval(timer);
     }, [reduced]);
     const words = useMemo(() => ({ device: (id: string) => t(`device.${HERO.devices.find((device) => device.id === id)!.kind}` as MessageKey) }), [t]);
-    return <SiteScene scene={HERO} frame={reduced ? undefined : HERO_FRAMES[index]} words={words} />;
+    return <SiteScene scene={HERO} frame={reduced ? undefined : HERO_FRAMES[index]} words={words} plate />;
 }
 
 export function Home() {
@@ -63,7 +63,7 @@ export function Home() {
     return (
         <main id="main">
             <section className="border-b bg-[radial-gradient(60rem_30rem_at_85%_-10%,color-mix(in_oklab,var(--primary)_18%,transparent),transparent),radial-gradient(40rem_24rem_at_0%_110%,color-mix(in_oklab,var(--gold)_18%,transparent),transparent)]">
-                <div className="mx-auto grid max-w-[1440px] items-center gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
+                <div className="mx-auto grid max-w-[1440px] items-center gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
                     <div className="max-w-3xl space-y-4">
                         <p className="inline-flex items-center gap-2 rounded-full border border-[color-mix(in_oklab,var(--gold)_45%,transparent)] bg-gold-soft px-3 py-1 text-sm font-medium text-gold-foreground">
                             {t("home.badge", { count: CATALOG.length })}
@@ -80,7 +80,7 @@ export function Home() {
                             ))}
                         </p>
                     </div>
-                    <div className="hidden rounded-2xl border bg-card/70 p-2 shadow-sm backdrop-blur lg:block" aria-hidden="true">
+                    <div className="hidden lg:block" aria-hidden="true">
                         <HeroScene />
                     </div>
                 </div>

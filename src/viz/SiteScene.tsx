@@ -2,7 +2,7 @@ import { useMemo, useSyncExternalStore } from "react";
 import type { Frame, Scene } from "@/lessons/types";
 import type { Words } from "@/lessons/words";
 import { DeviceShape, extentOf, labelAt } from "./devices";
-import { GRID, groundPath, project, round } from "./iso";
+import { faces, GRID, groundPath, project, round } from "./iso";
 
 const reducedQuery = () => (typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null);
 const subscribeReduced = (onChange: () => void) => {
@@ -36,8 +36,14 @@ function routeOf(legs: readonly Leg[], from: string, to: string): { leg: Leg; fo
     return route;
 }
 
-/** The site: devices on an isometric ground, the cables between them, and the frame on its way. */
-export function SiteScene({ scene, frame, words }: { scene: Scene; frame: Frame | undefined; words: Pick<Words, "device"> }) {
+/** How thick the ground is drawn when it floats as a plate. */
+const PLATE = 12;
+
+/**
+ * The site: devices on an isometric ground, the cables between them, and the frame on its way. With `plate`, the ground
+ * is a slab floating over the page (the home page), not a grid running to the picture's edges.
+ */
+export function SiteScene({ scene, frame, words, plate = false }: { scene: Scene; frame: Frame | undefined; words: Pick<Words, "device">; plate?: boolean }) {
     const reduced = useReducedMotion();
     const place = useMemo(() => new Map(scene.devices.map((device) => [device.id, [device.at[0] * GRID, device.at[1] * GRID] as const])), [scene]);
 
@@ -65,24 +71,33 @@ export function SiteScene({ scene, frame, words }: { scene: Scene; frame: Frame 
         : [];
     const busy = new Set(travels.flatMap((travel) => travel.ids));
 
-    const view = useMemo(() => {
-        const all = scene.devices.flatMap((device) => extentOf(device.kind, device.at[0] * GRID, device.at[1] * GRID));
-        const xs = all.map(([x]) => x);
-        const ys = all.map(([, y]) => y);
-        const [minX, maxX, minY, maxY] = [Math.min(...xs) - 70, Math.max(...xs) + 70, Math.min(...ys) - 48, Math.max(...ys) + 30];
-        return { minX, minY, width: maxX - minX, height: maxY - minY };
-    }, [scene]);
-
-    const grid = useMemo(() => {
+    // The ground's grid, two cells around the devices (one and a half on a plate), and the slab under it
+    const ground = useMemo(() => {
         const xs = scene.devices.map((device) => device.at[0]);
         const ys = scene.devices.map((device) => device.at[1]);
-        const [x0, x1, y0, y1] = [Math.min(...xs) - 2, Math.max(...xs) + 2, Math.min(...ys) - 2, Math.max(...ys) + 2];
+        const around = plate ? 1.5 : 2;
+        const [x0, y0] = [Math.min(...xs) - around, Math.min(...ys) - around];
+        const [nx, ny] = [Math.floor(Math.max(...xs) + around - x0), Math.floor(Math.max(...ys) + around - y0)];
+        const [x1, y1] = [x0 + nx, y0 + ny];
+        const at = (x: number, y: number, z = 0) => project(x * GRID, y * GRID, z);
         const line = (a: [number, number], b: [number, number]) => `M${a.map(round).join(",")} L${b.map(round).join(",")}`;
         const list: string[] = [];
-        for (let x = x0; x <= x1; x++) list.push(line(project(x * GRID, y0 * GRID), project(x * GRID, y1 * GRID)));
-        for (let y = y0; y <= y1; y++) list.push(line(project(x0 * GRID, y * GRID), project(x1 * GRID, y * GRID)));
-        return list.join(" ");
-    }, [scene]);
+        for (let i = 0; i <= nx; i++) list.push(line(at(x0 + i, y0), at(x0 + i, y1)));
+        for (let j = 0; j <= ny; j++) list.push(line(at(x0, y0 + j), at(x1, y0 + j)));
+        const slab = faces({ cx: ((x0 + x1) / 2) * GRID, cy: ((y0 + y1) / 2) * GRID, w: nx * GRID, d: ny * GRID, h: PLATE, z: -PLATE });
+        const corners = [at(x0, y0), at(x1, y0), at(x1, y1, -PLATE), at(x0, y1)];
+        return { grid: list.join(" "), slab, corners };
+    }, [scene, plate]);
+
+    // The picture frames the devices and their labels; a plate is shown whole
+    const view = useMemo(() => {
+        const all = [...scene.devices.flatMap((device) => extentOf(device.kind, device.at[0] * GRID, device.at[1] * GRID)), ...(plate ? ground.corners : [])];
+        const xs = all.map(([x]) => x);
+        const ys = all.map(([, y]) => y);
+        const [side, below] = plate ? [4, 4] : [70, 30];
+        const [minX, maxX, minY, maxY] = [Math.min(...xs) - side, Math.max(...xs) + side, Math.min(...ys) - 48, Math.max(...ys) + below];
+        return { minX, minY, width: maxX - minX, height: maxY - minY };
+    }, [scene, plate, ground]);
 
     // Devices further back are drawn first
     const devices = [...scene.devices].sort((a, b) => a.at[0] + a.at[1] - (b.at[0] + b.at[1]));
@@ -90,11 +105,18 @@ export function SiteScene({ scene, frame, words }: { scene: Scene; frame: Frame 
     return (
         <svg
             viewBox={`${round(view.minX)} ${round(view.minY)} ${round(view.width)} ${round(view.height)}`}
-            className="block h-auto max-h-[30rem] w-full"
+            className={plate ? "block h-auto w-full overflow-visible" : "block h-auto max-h-[30rem] w-full"}
             role="img"
             aria-label={scene.devices.map((device) => words.device(device.id)).join(", ")}
         >
-            <path d={grid} fill="none" stroke="var(--viz-grid)" strokeWidth={1} />
+            {plate && (
+                <g stroke="var(--viz-edge)" strokeOpacity={0.3} strokeLinejoin="round" style={{ filter: "drop-shadow(0 28px 26px var(--viz-shadow))" }}>
+                    <polygon points={ground.slab.left} fill="var(--viz-left)" />
+                    <polygon points={ground.slab.right} fill="var(--viz-right)" />
+                    <polygon points={ground.slab.top} fill="var(--viz-ground)" />
+                </g>
+            )}
+            <path d={ground.grid} fill="none" stroke="var(--viz-grid)" strokeWidth={1} />
             {links.map(({ link, path }) => (
                 <path
                     key={link.id}
