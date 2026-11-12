@@ -94,7 +94,7 @@
     "tips": [
         "A value without its scaler and unit is not a reading. Read attribute 3 once for each register and keep it: the same 1234567 can be Wh, tens of Wh or kWh.",
         "The client address picks the association, and the association sets the rights. The right password with the wrong client address is still refused.",
-        "LLS sends the password in clear. On any network you do not fully control, use HLS and ciphering (encryption).",
+        "LLS sends the password in clear text. On any network you do not fully control, use HLS and ciphering (encryption).",
         "An answer larger than the agreed message size comes in blocks. The client must ask for each next block (GET-Request-Next), or it gets only the first part."
     ],
     "points": {

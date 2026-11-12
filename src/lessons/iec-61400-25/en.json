@@ -13,7 +13,7 @@
         "initiate-resp": "Agreed: these are mine",
         "read-req": "Your power, rotor speed and wind speed?",
         "read-resp": "2350.0 kW, 12.75 rpm, 9.5 m/s",
-        "enable-req": "Switch on report urcbWTG01",
+        "enable-req": "Turn on report urcbWTG01",
         "enable-resp": "Done",
         "oper": "The park may export 5.4 MW at most",
         "share": "Each turbine: at most 1800 kW",

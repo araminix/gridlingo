@@ -40,7 +40,7 @@
         "rl-65": { "name": "Remaining length", "note": "65 bytes follow." },
         "state-topic": { "name": "Topic", "note": "spBv1.0/STATE/SCADA1: the STATE topic of the host with the ID SCADA1." },
         "packet-id": { "name": "Packet id 1", "note": "1: the broker's PUBACK (receipt) names this number, as for any QoS 1 message." },
-        "state-online": { "name": "online", "note": "{\"online\":true, SCADA is online. STATE is the only Sparkplug message in JSON; all others are protobuf, a compact binary format." },
+        "state-online": { "name": "online", "note": "The text {\"online\":true, which says SCADA is online. STATE is the only Sparkplug message in JSON; all others are protobuf, a compact binary format." },
         "state-time": { "name": "timestamp", "note": "1794480000000 ms since 1970 = 10:40:00.000 UTC. The same value as in the will of its CONNECT: edge nodes use it to tell this session from an older one." },
         "publish-q0": { "name": "MQTT PUBLISH", "note": "0x30: QoS 0, not retained. A host that connects later learns the values from a birth, not from old data." },
         "rl-59": { "name": "Remaining length", "note": "59 bytes follow: the topic and the payload." },

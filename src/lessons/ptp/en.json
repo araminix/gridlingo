@@ -95,7 +95,7 @@
         "standard": "IEC/IEEE 61850-9-3 (2016) and IEEE C37.238-2017, profiles of IEEE 1588-2008 (PTP version 2)",
         "between": "Grandmaster → transparent-clock switches → merging units, relays, PMUs",
         "transport": "Ethernet multicast, EtherType 0x88F7, no IP",
-        "security": "None in the power profiles: any device can announce itself as a better clock",
+        "security": "None in the power profiles (the PTP settings chosen for substations): any device can announce itself as a better clock",
         "speed": "Sync, Announce and Pdelay once a second; under 1 µs at every clock"
     },
     "tips": [

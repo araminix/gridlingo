@@ -91,7 +91,7 @@
     "DataValue": { "full": "DataValue", "plain": "An OPC UA value packed with its status code and timestamps." },
     "datSet": { "full": "Data set", "plain": "The list of values that a GOOSE message or a report carries." },
     "DBIRTH": { "full": "Device birth certificate", "plain": "Lists every metric of one device behind an edge node." },
-    "DC": { "full": "Direct current", "plain": "A steady voltage that does not alternate. A DC time code switches between two levels." },
+    "DC": { "full": "Direct current", "plain": "Electricity that flows one way at a steady level. A DC time code switches between two levels." },
     "DCBA": { "full": "Little-endian byte order", "plain": "A number's four bytes sent lowest byte first: the reverse of how they are written." },
     "DCMD": { "full": "Device command", "plain": "A command from the host to a device behind an edge node." },
     "DDATA": { "full": "Device data", "plain": "New values of a device's metrics, sent by alias: only what changed." },

@@ -32,7 +32,7 @@
         "long-42": { "name": "Start", "note": "A long frame: 0x68, the length twice, 0x68 again. 0x2A = 42 bytes from C to the last data byte." },
         "c-rsp": { "name": "C-field 0x08", "note": "RSP_UD: the meter's user data." },
         "a-5-rsp": { "name": "Address 5", "note": "The answer names its sender." },
-        "ci": { "name": "CI-field 0x72", "note": "Variable data (records of any type and length), after the long header that follows. Numbers come low byte first." },
+        "ci": { "name": "CI-field 0x72", "note": "Variable data: first a long header, then records of any type and length. Numbers come low byte first." },
         "id": { "name": "ID number", "note": "12345678 in BCD (two decimal digits in each byte), low byte first. It is printed on the meter, and it is its secondary address." },
         "maker": { "name": "Maker", "note": "0x1701 = EXA, a made-up code: three letters packed into 15 bits (taken apart below)." },
         "version": { "name": "Version", "note": "1: the version of this meter type." },

@@ -1,12 +1,13 @@
 {
-    "intro": "OPC UA आधुनिक इंडस्ट्रियल सॉफ़्टवेयर का क्लाइंट–सर्वर प्रोटोकॉल है। सर्वर एक address space देता है: नाम, टाइप और वैल्यू वाले नोड, जो reference से आपस में जुड़े होते हैं। क्लाइंट एक secure channel और एक सेशन खोलता है, फिर ब्राउज़ करता है, पढ़ता है, लिखता है या सब्सक्राइब करता है।",
+    "intro": "OPC UA (Open Platform Communications Unified Architecture) एक क्लाइंट–सर्वर प्रोटोकॉल है, जो इंडस्ट्रियल सॉफ़्टवेयर में हर जगह इस्तेमाल होता है। सर्वर एक address space देता है: नाम, टाइप और वैल्यू वाले नोड (फ़ोल्डर, ऑब्जेक्ट, वेरिएबल …), जो reference से आपस में जुड़े होते हैं। क्लाइंट, यानी पूछने वाला प्रोग्राम, पहले एक secure channel खोलता है, जो तय करता है कि मैसेज कैसे सुरक्षित होंगे। फिर वह एक सेशन खोलता है, जो उसके काम को एक यूज़र से जोड़ता है। अब वह ब्राउज़ कर सकता है, पढ़ सकता है, लिख सकता है या बदलावों को सब्सक्राइब कर सकता है।",
+    "plain": "इस प्रोटोकॉल से कोई कंट्रोल प्रोग्राम मशीन के कंट्रोलर के अंदर झाँककर कोई भी वैल्यू उसके नाम से ढूँढ सकता है, जैसे कंप्यूटर के फ़ोल्डर खोलकर देखना। प्रोग्राम पहले कंट्रोलर के साथ तय करता है कि उनकी बातचीत कैसे सुरक्षित रहेगी, और बताता है कि वह कौन है। फिर वह कोई वैल्यू पढ़ सकता है, कोई सेटिंग बदल सकता है, या कह सकता है कि वैल्यू जब भी बदले, उसे बता दिया जाए।",
     "steps": {
-        "hello": { "title": "Hello", "text": "पोर्ट 4840 पर TCP जुड़ने के बाद क्लाइंट Hello कहता है: अपने बफ़र साइज़ और वह endpoint जो उसे चाहिए। सर्वर अपनी सीमाओं के साथ पुष्टि करता है।" },
-        "channel": { "title": "Secure channel", "text": "OpenSecureChannel तय करता है कि मैसेज कैसे सुरक्षित होंगे। यहाँ policy None है: न साइनिंग, न एन्क्रिप्शन। सर्वर channel को नंबर 5 देता है।" },
-        "session": { "title": "सेशन", "text": "CreateSession और ActivateSession एक यूज़र को channel से जोड़ते हैं। क्लाइंट को एक authentication token मिलता है, जिसे वह आगे की हर रिक्वेस्ट में डालता है।" },
-        "browse": { "title": "ब्राउज़", "text": "क्लाइंट Objects फ़ोल्डर से address space में चलता है और ऑब्जेक्ट PV1 और उसका वेरिएबल TotW ढूँढ लेता है।" },
-        "read": { "title": "एक वैल्यू पढ़ें", "text": "Read, ns=2;s=PV1.TotW का एट्रिब्यूट 13 (Value) माँगता है। जवाब एक Float है, 4820.0, दो टाइमस्टैम्प के साथ।" },
-        "subscribe": { "title": "सब्सक्राइब", "text": "क्लाइंट सर्वर से TotW पर नज़र रखने को कहता है। वह सर्वर पर एक Publish रिक्वेस्ट इंतज़ार में रखता है; वैल्यू बदलने पर सर्वर उसका जवाब देता है।" }
+        "hello": { "title": "Hello कहें", "text": "क्लाइंट पोर्ट 4840 पर एक नेटवर्क कनेक्शन (TCP) खोलता है। वह Hello कहता है: डेटा के सबसे बड़े टुकड़े जो वह ले सकता है (उसके बफ़र साइज़), और वह endpoint जो उसे चाहिए, यानी सर्वर का वह एड्रेस जिसे वह कॉल कर रहा है। सर्वर अपनी सीमाओं के साथ पुष्टि करता है।" },
+        "channel": { "title": "Secure channel खोलें", "text": "OpenSecureChannel तय करता है कि मैसेज कैसे सुरक्षित होंगे। साइनिंग साबित करती है कि मैसेज किसने भेजा और किसी ने उसे बदला नहीं; एन्क्रिप्शन छिपाता है कि उसमें क्या लिखा है। यहाँ security policy None है: न साइनिंग, न एन्क्रिप्शन। सर्वर channel को नंबर 5 देता है।" },
+        "session": { "title": "सेशन शुरू करें", "text": "CreateSession और ActivateSession एक यूज़र को channel से जोड़ते हैं। क्लाइंट को एक authentication token मिलता है: एक गुप्त ID, जैसे आगंतुक का बैज। वह इस token को आगे की हर रिक्वेस्ट में डालता है।" },
+        "browse": { "title": "सर्वर ब्राउज़ करें", "text": "क्लाइंट Objects फ़ोल्डर से शुरू करके address space को देखता है, जैसे डिस्क पर फ़ोल्डर खोलना। उसे ऑब्जेक्ट PV1 मिलता है, जो एक इन्वर्टर है, और उसका वेरिएबल TotW: कुल एक्टिव पावर, यानी वह पावर जो इन्वर्टर देता है।" },
+        "read": { "title": "एक वैल्यू पढ़ें", "text": "Read, नोड ns=2;s=PV1.TotW का एट्रिब्यूट 13, यानी Value, माँगता है। यह NodeId, यानी नोड का एड्रेस, बताता है: namespace 2 में (कंट्रोलर निर्माता के अपने नामों का सेट), स्ट्रिंग PV1.TotW। जवाब एक Float है, यानी 4 बाइट में एक दशमलव संख्या: 4820.0। इसके साथ दो टाइमस्टैम्प आते हैं: वैल्यू कब मापी गई, और सर्वर ने उसे कब पढ़ा।" },
+        "subscribe": { "title": "बदलावों को सब्सक्राइब करें", "text": "क्लाइंट सर्वर से TotW पर नज़र रखने को कहता है। वह सर्वर पर एक Publish रिक्वेस्ट इंतज़ार में रखता है, जैसे एक खुला सवाल। वैल्यू बदलने पर सर्वर उसका जवाब देता है।" }
     },
     "frames": {
         "hel": "Hello: ये रहे मेरे बफ़र साइज़",
@@ -25,21 +26,21 @@
         "publish": "TotW अब 4790.5 है"
     },
     "notes": {
-        "create-req": "CreateSessionRequest वाला एक MSG: क्लाइंट का नाम और सर्टिफ़िकेट, एक रैंडम nonce, और सेशन कितनी देर ख़ाली रह सकता है।",
+        "create-req": "CreateSessionRequest वाला एक MSG: क्लाइंट का नाम और सर्टिफ़िकेट, एक nonce (एक बार इस्तेमाल होने वाला रैंडम नंबर), और सेशन कितनी देर ख़ाली रह सकता है।",
         "create-resp": "सर्वर एक session ID, authentication token, अपने endpoint और अपना सर्टिफ़िकेट लौटाता है। token गुप्त है: जिसके पास यह है, वह सेशन इस्तेमाल कर सकता है।",
         "activate-req": "anonymous identity token के साथ ActivateSession। असली यूज़र एक नाम और सर्वर के लिए एन्क्रिप्ट किया पासवर्ड भेजता है, या एक यूज़र सर्टिफ़िकेट।",
         "activate-resp": "सेशन चालू है। अगर यह CreateSession में तय समय से ज़्यादा ख़ाली रहे, तो सर्वर इसे बंद कर देता है।",
-        "browse-req": "नोड i=85, यानी Objects फ़ोल्डर, से ब्राउज़, उसके hierarchical reference फ़ॉलो करते हुए।",
+        "browse-req": "नोड i=85, यानी Objects फ़ोल्डर, से ब्राउज़, उसके hierarchical reference फ़ॉलो करते हुए: ये फ़ोल्डर से उसके अंदर की चीज़ों तक जाने वाले लिंक हैं।",
         "browse-resp": "reference की एक लिस्ट, हर एक के साथ एक NodeId, एक browse name और एक node class। ns=2;s=PV1 एक ऑब्जेक्ट है; ns=2;s=PV1.TotW उसके अंदर का वेरिएबल है।",
-        "monitor": "दो रिक्वेस्ट, हर एक का अपना रिस्पॉन्स। CreateSubscription, 1000 ms का publishing interval सेट करता है। CreateMonitoredItems सर्वर से हर 500 ms पर TotW सैंपल करवाता है। फिर क्लाइंट पहले से Publish रिक्वेस्ट भेज देता है।",
-        "publish": "data change notification वाला एक PublishResponse: TotW के लिए क्लाइंट का handle, उसकी नई वैल्यू और टाइमस्टैम्प। क्लाइंट अपनी अगली Publish रिक्वेस्ट में इसकी पुष्टि करता है।"
+        "monitor": "दो रिक्वेस्ट, हर एक का अपना रिस्पॉन्स। CreateSubscription, 1000 ms का publishing interval सेट करता है: सेकंड में एक बार सर्वर वह भेजता है जो बदला है, अगर कुछ बदला हो। CreateMonitoredItems सर्वर से हर 500 ms पर TotW सैंपल करवाता है। फिर क्लाइंट पहले से Publish रिक्वेस्ट भेज देता है।",
+        "publish": "data change notification वाला एक PublishResponse: TotW के लिए क्लाइंट का handle (इस आइटम के लिए उसका चुना नंबर), उसकी नई वैल्यू और टाइमस्टैम्प। क्लाइंट अपनी अगली Publish रिक्वेस्ट में इसकी पुष्टि करता है।"
     },
     "fields": {
         "hel": { "name": "HEL", "note": "मैसेज टाइप Hello, ASCII में।" },
         "ack": { "name": "ACK", "note": "मैसेज टाइप Acknowledge।" },
         "opn": { "name": "OPN", "note": "मैसेज टाइप OpenSecureChannel।" },
         "msg": { "name": "MSG", "note": "मैसेज टाइप: खुले channel पर एक सर्विस मैसेज।" },
-        "final": { "name": "F", "note": "मैसेज का आख़िरी chunk। यहाँ यही इकलौता भी है।" },
+        "final": { "name": "F", "note": "मैसेज का आख़िरी chunk (टुकड़ा)। यहाँ यही इकलौता भी है।" },
         "size-56": { "name": "मैसेज साइज़", "note": "0x38 = 56 बाइट, पूरा मैसेज। OPC UA में हर नंबर लो बाइट पहले भेजा जाता है।" },
         "size-28": { "name": "मैसेज साइज़", "note": "0x1C = 28 बाइट।" },
         "size-132": { "name": "मैसेज साइज़", "note": "0x84 = 132 बाइट।" },
@@ -59,7 +60,7 @@
         "channel-0": { "name": "Secure channel ID", "note": "0: अभी कोई channel नहीं। नंबर सर्वर चुनता है।" },
         "policy": { "name": "Security policy", "note": "लंबाई 47, फिर http://opcfoundation.org/UA/SecurityPolicy#None: न साइनिंग, न एन्क्रिप्शन।" },
         "no-cert": { "name": "भेजने वाले का सर्टिफ़िकेट", "note": "लंबाई -1: कोई नहीं। असली policy में यहाँ भेजने वाले का X.509 सर्टिफ़िकेट आता है।" },
-        "no-thumb": { "name": "पाने वाले का thumbprint", "note": "कोई नहीं। असली policy में: पाने वाले के सर्टिफ़िकेट का thumbprint।" },
+        "no-thumb": { "name": "पाने वाले का thumbprint", "note": "लंबाई -1: कोई नहीं। असली policy में: पाने वाले के सर्टिफ़िकेट का thumbprint (एक छोटा हैश)।" },
         "seq-1": { "name": "सीक्वेंस नंबर", "note": "1: क्लाइंट इस channel पर भेजा हर chunk गिनता है।" },
         "req-1": { "name": "Request ID", "note": "1। रिस्पॉन्स में यही ID आती है।" },
         "type-446": { "name": "टाइप", "note": "4 बाइट में एक NodeId: namespace 0, नंबर 446 (0x01BE): OpenSecureChannelRequest।" },
@@ -68,12 +69,12 @@
         "handle-1": { "name": "Request handle", "note": "1: एक नंबर जिससे क्लाइंट जवाब मिलाता है।" },
         "diag-audit": { "name": "Diagnostics · audit", "note": "Return diagnostics 0 (कुछ नहीं चाहिए), फिर लंबाई -1 वाली एक audit entry ID (कोई नहीं)।" },
         "timeout": { "name": "Timeout hint", "note": "0x2710 = 10000 ms: क्लाइंट कितनी देर इंतज़ार करेगा।" },
-        "no-header": { "name": "Additional header", "note": "एक ख़ाली extension object।" },
-        "ua-version": { "name": "प्रोटोकॉल वर्ज़न", "note": "0।" },
+        "no-header": { "name": "Additional header", "note": "एक ख़ाली extension object: कोई अतिरिक्त हेडर फ़ील्ड नहीं।" },
+        "ua-version": { "name": "प्रोटोकॉल वर्ज़न", "note": "0: भेजने वाले का प्रोटोकॉल वर्ज़न।" },
         "issue": { "name": "Request type", "note": "0: एक नया security token जारी करें। 1 का मतलब होता उसे रिन्यू करना।" },
         "mode-none": { "name": "Security mode", "note": "1: None। 2 यानी Sign, 3 यानी SignAndEncrypt।" },
-        "client-nonce": { "name": "Client nonce", "note": "लंबाई 0: None के साथ कोई कुंजी बनानी नहीं होती।" },
-        "lifetime": { "name": "Requested lifetime", "note": "0x0036EE80 = 3600000 ms: क्लाइंट एक घंटे के अंदर token रिन्यू करेगा।" },
+        "client-nonce": { "name": "Client nonce", "note": "लंबाई 0: policy None में कोई कुंजी नहीं बनती, इसलिए रैंडम नंबर की ज़रूरत नहीं।" },
+        "lifetime": { "name": "Requested lifetime", "note": "0x0036EE80 = 3600000 ms: token एक घंटा चलना चाहिए। क्लाइंट उससे पहले इसे रिन्यू करेगा।" },
         "channel-5": { "name": "Secure channel ID", "note": "5: वह नंबर जो सर्वर ने इस channel को दिया।" },
         "seq-1-server": { "name": "सीक्वेंस नंबर", "note": "1: सर्वर अपने chunk ख़ुद गिनता है।" },
         "req-1-resp": { "name": "Request ID", "note": "1: यह रिक्वेस्ट 1 का जवाब है।" },
@@ -109,7 +110,7 @@
         "handle-5-resp": { "name": "Request handle", "note": "5, रिक्वेस्ट की तरह।" },
         "results-1": { "name": "Results", "note": "एक नतीजे का array, माँगे गए एक नोड के लिए।" },
         "mask": { "name": "DataValue mask", "note": "0x0D: आगे एक वैल्यू, एक source टाइमस्टैम्प और एक server टाइमस्टैम्प है। status code न हो, तो मतलब Good।" },
-        "float": { "name": "Variant type", "note": "0x0A = 10: Float, 4 बाइट।" },
+        "float": { "name": "Variant type", "note": "0x0A = 10: Float, यानी 4 बाइट में एक दशमलव संख्या।" },
         "value": { "name": "वैल्यू", "note": "4820.0, लो बाइट पहले। यूनिट, kW, नोड की एक property (EngineeringUnits) है।" },
         "source-time": { "name": "Source टाइमस्टैम्प", "note": "10:41:06.000 UTC: कंट्रोलर ने वैल्यू कब मापी।" },
         "server-time": { "name": "Server टाइमस्टैम्प", "note": "10:41:06.302 UTC: सर्वर ने उसे कब पढ़ा।" },
@@ -122,7 +123,7 @@
         "scada": "SCADA",
         "ctrl": "प्लांट कंट्रोलर",
         "inv": "PV1 इन्वर्टर",
-        "pv": "PV ऐरे",
+        "pv": "सोलर पैनल",
         "meter": "ग्रिड मीटर"
     },
     "facts": {
@@ -133,10 +134,10 @@
         "model": "Address space: namespace में नोड, reference से जुड़े"
     },
     "tips": [
-        "यह पाठ security mode None इस्तेमाल करता है, ताकि बाइट पढ़े जा सकें। साइट पर Basic256Sha256 जैसी मौजूदा policy के साथ SignAndEncrypt इस्तेमाल करें। सिर्फ़ Sign बदलाव रोकता है, पर नेटवर्क पर कोई भी वैल्यू पढ़ सकता है।",
+        "यह पाठ security mode None इस्तेमाल करता है, ताकि बाइट पढ़े जा सकें। साइट पर Basic256Sha256 जैसी मौजूदा policy के साथ SignAndEncrypt इस्तेमाल करें। सिर्फ़ Sign किसी को मैसेज बदलने से रोकता है, पर नेटवर्क पर कोई भी वैल्यू पढ़ सकता है।",
         "दोनों तरफ़ को एक-दूसरे के सर्टिफ़िकेट पर भरोसा करना होगा। कई पहले कनेक्शन इसलिए फ़ेल होते हैं क्योंकि सर्वर ने क्लाइंट का सर्टिफ़िकेट अपनी rejected लिस्ट में डाल दिया है। किसी एडमिनिस्ट्रेटर को उसे trusted लिस्ट में ले जाना होगा।",
         "सर्वर रीस्टार्ट या अपडेट होने पर namespace index बदल सकते हैं। हर NodeId के साथ namespace URI सेव करें, और कनेक्ट होने के बाद उसका index ढूँढें।",
-        "सेकंड में कई बार Read से पोल न करें। sampling और publishing interval वाला subscription सर्वर पर कहीं कम बोझ डालता है।"
+        "पोल न करें, यानी सेकंड में कई बार Read न भेजें। sampling और publishing interval वाला subscription सर्वर पर कहीं कम बोझ डालता है।"
     ],
     "points": {
         "channel": "Secure channel",

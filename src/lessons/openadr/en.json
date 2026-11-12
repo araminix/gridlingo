@@ -32,7 +32,7 @@
     },
     "fields": {
         "a-host": { "name": "VTN", "note": "The utility's server. A VTN may put a path of its own before the rest." },
-        "a-transport": { "name": "Transport", "note": "Simple HTTP, with the VEN polling. Simple HTTP can also push, with the VTN posting to the VEN; OpenADR 2.0b can also run over XMPP, a messaging protocol." },
+        "a-transport": { "name": "Transport", "note": "Simple HTTP in pull mode: the VEN polls. OpenADR 2.0b also allows a push mode, where the VTN posts to the VEN, and XMPP, a messaging protocol." },
         "a-profile": { "name": "Profile", "note": "2.0b: events, reports and opt schedules. 2.0a is a smaller profile for simple devices, with events only." },
         "a-service": { "name": "Service", "note": "OadrPoll. Each message goes to its service: events to EiEvent, reports to EiReport, registration to EiRegisterParty, opt schedules to EiOpt." }
     },
