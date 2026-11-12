@@ -137,7 +137,7 @@
     "FCnt": { "full": "Frame counter (contatore dei frame)", "plain": "Conta i frame in ogni direzione; la rete rifiuta un numero vecchio, perché è un replay." },
     "FCtrl": { "full": "Frame control (controllo del frame)", "plain": "Un byte LoRaWAN di flag: data rate adattivo, conferma, altri dati in attesa, lunghezza delle opzioni." },
     "FCV": { "full": "Frame count valid (conteggio dei frame valido)", "plain": "Un bit che dice se in questo frame il frame count bit va considerato." },
-    "FIN": { "full": "Final (finale)", "plain": "Un bit che marca l'ultimo segmento o frammento di un messaggio DNP3." },
+ "FIN": { "full": "Final (finale)", "plain": "Un bit che marca l'ultimo segmento o frammento di un messaggio." },
     "FIR": { "full": "First (primo)", "plain": "Un bit che marca il primo segmento o frammento di un messaggio DNP3." },
     "FOptsLen": { "full": "Frame options length (lunghezza delle opzioni del frame)", "plain": "Quanti byte di comandi MAC viaggiano nell'intestazione del frame." },
     "FPort": { "full": "Frame port (porta del frame)", "plain": "Dice cos'è il payload: 0 per i comandi di rete, da 1 a 223 per i dati applicativi." },

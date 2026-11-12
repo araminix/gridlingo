@@ -137,7 +137,7 @@
     "FCnt": { "full": "Frame counter (contador de tramas)", "plain": "Cuenta las tramas en cada sentido; la red rechaza un número antiguo por ser una repetición." },
     "FCtrl": { "full": "Frame control (control de trama)", "plain": "Un byte de indicadores de LoRaWAN: velocidad de datos adaptativa, acuse de recibo, más datos en espera y longitud de las opciones." },
     "FCV": { "full": "Frame count valid (cuenta de tramas válida)", "plain": "Un bit que dice si el bit de cuenta de tramas cuenta en esta trama." },
-    "FIN": { "full": "Final (final)", "plain": "Un bit que marca el último segmento o fragmento de un mensaje DNP3." },
+ "FIN": { "full": "Final (final)", "plain": "Un bit que marca el último segmento o fragmento de un mensaje." },
     "FIR": { "full": "First (primero)", "plain": "Un bit que marca el primer segmento o fragmento de un mensaje DNP3." },
     "FOptsLen": { "full": "Frame options length (longitud de las opciones de trama)", "plain": "Cuántos bytes de comandos MAC viajan en la cabecera de la trama." },
     "FPort": { "full": "Frame port (puerto de trama)", "plain": "Dice qué es la carga útil: 0 para comandos de red, de 1 a 223 para datos de aplicación." },

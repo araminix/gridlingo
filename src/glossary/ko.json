@@ -137,7 +137,7 @@
     "FCnt": { "full": "Frame counter (프레임 카운터)", "plain": "방향별로 프레임을 세요. 네트워크는 옛 번호를 재전송 공격으로 보고 거부해요." },
     "FCtrl": { "full": "Frame control (프레임 제어)", "plain": "플래그를 담은 LoRaWAN 바이트예요: 적응형 데이터 속도, 수신 확인, 대기 중인 데이터, 옵션 길이." },
     "FCV": { "full": "Frame count valid (프레임 카운트 유효)", "plain": "이 프레임에서 프레임 카운트 비트가 유효한지 알려 주는 비트예요." },
-    "FIN": { "full": "Final (마지막)", "plain": "DNP3 메시지의 마지막 세그먼트나 프래그먼트를 표시하는 비트예요." },
+ "FIN": { "full": "Final (마지막)", "plain": "메시지의 마지막 세그먼트나 프래그먼트를 표시하는 비트예요." },
     "FIR": { "full": "First (처음)", "plain": "DNP3 메시지의 첫 세그먼트나 프래그먼트를 표시하는 비트예요." },
     "FOptsLen": { "full": "Frame options length (프레임 옵션 길이)", "plain": "프레임 헤더에 MAC 명령이 몇 바이트 실려 있는지 알려 줘요." },
     "FPort": { "full": "Frame port (프레임 포트)", "plain": "페이로드가 무엇인지 알려 줘요: 0은 네트워크 명령, 1~223은 애플리케이션 데이터예요." },

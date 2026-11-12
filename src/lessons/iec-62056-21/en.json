@@ -50,7 +50,7 @@
         "soh": { "name": "SOH", "note": "SOH (0x01), start of heading: a command message starts. The BCC counts from the next byte, STX included." },
         "p0": { "name": "P0", "note": "The meter asks for a password, and sends an operand with it." },
         "stx-command": { "name": "STX", "note": "STX (0x02): the data set starts." },
-        "operand": { "name": "Operand", "note": "(87654321): a number chosen by the meter. A meter that wants a scrambled password (P2) uses it as a seed, the starting value of the scrambling. This one takes the password in clear." },
+        "operand": { "name": "Operand", "note": "(87654321): a number chosen by the meter. A meter that wants a scrambled password (P2) uses it as a seed, the starting value of the scrambling. This one takes the password in clear text." },
         "bcc-p0": { "name": "BCC", "note": "0x68: XOR of all bytes after SOH, up to and including ETX." },
         "p1": { "name": "P1", "note": "Here is the password, in clear text." },
         "password": { "name": "Password", "note": "(18273645). Anyone watching the optical port can read it." },

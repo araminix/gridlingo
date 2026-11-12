@@ -137,7 +137,7 @@
     "FCnt": { "full": "Frame counter（帧计数器）", "plain": "给每个方向的帧计数；网络把旧编号当作重放而拒绝。" },
     "FCtrl": { "full": "Frame control（帧控制）", "plain": "LoRaWAN 的一个标志字节：自适应速率、确认、有待发数据、选项长度。" },
     "FCV": { "full": "Frame count valid（帧计数有效位）", "plain": "说明帧计数位在这一帧里是否有效的一位。" },
-    "FIN": { "full": "Final（末段）", "plain": "标出 DNP3 报文最后一段或最后一个分片的一位。" },
+ "FIN": { "full": "Final（末段）", "plain": "标出报文最后一段或最后一个分片的一位。" },
     "FIR": { "full": "First（首段）", "plain": "标出 DNP3 报文第一段或第一个分片的一位。" },
     "FOptsLen": { "full": "Frame options length（帧选项长度）", "plain": "帧头里捎带了多少字节的 MAC 命令。" },
     "FPort": { "full": "Frame port（帧端口）", "plain": "说明载荷是什么：0 是网络命令，1 到 223 是应用数据。" },

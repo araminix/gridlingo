@@ -7,7 +7,7 @@
         "subscribe": { "title": "Dashboard subscribes", "text": "The dashboard connects the same way. It subscribes with a wildcard, a + that stands for any one level of a topic. The broker sends it the retained status at once." },
         "publish": { "title": "Publish a reading", "text": "The gateway publishes telemetry at QoS 1 (quality of service level 1: delivered at least once, confirmed by a receipt). Each hop has its own receipt: the broker confirms to the gateway, then the dashboard confirms to the broker. The gateway never learns who reads it." },
         "keepalive": { "title": "Keep the link alive", "text": "The gateway has had nothing to send for 60 s, its keep alive time. It sends PINGREQ (a ping request), so the broker knows the connection is still alive." },
-        "lost": { "title": "Gateway goes silent", "text": "The gateway's link fails at 100 s, without a DISCONNECT to say goodbye. The broker waits 1.5 × the keep alive time (90 s) after the last packet it heard. Then it closes the connection and publishes the will." }
+        "lost": { "title": "Gateway goes silent", "text": "The gateway's link fails at 100 s, without a DISCONNECT to say goodbye. The broker heard its last packet at 75 s, and waits 1.5 × the keep alive time (90 s) from then. At 165 s it closes the connection and publishes the will." }
     },
     "frames": {
         "connect": "I am plant-gw1. If I vanish, publish \"offline\" for me",

@@ -137,7 +137,7 @@
     "FCnt": { "full": "Frame counter (Frame-Zähler)", "plain": "Zählt die Frames in jeder Richtung; eine alte Nummer lehnt das Netz als Replay ab." },
     "FCtrl": { "full": "Frame control (Frame-Steuerung)", "plain": "Ein LoRaWAN-Byte mit Flags: adaptive Datenrate, Quittung, weitere Daten warten, Länge der Optionen." },
     "FCV": { "full": "Frame count valid (Telegrammfolgebit gültig)", "plain": "Ein Bit, das sagt, ob das Frame-Count-Bit in diesem Telegramm gilt." },
-    "FIN": { "full": "Final (letztes)", "plain": "Ein Bit, das das letzte Segment oder Fragment einer DNP3-Nachricht markiert." },
+ "FIN": { "full": "Final (letztes)", "plain": "Ein Bit, das das letzte Segment oder Fragment einer Nachricht markiert." },
     "FIR": { "full": "First (erstes)", "plain": "Ein Bit, das das erste Segment oder Fragment einer DNP3-Nachricht markiert." },
     "FOptsLen": { "full": "Frame options length (Länge der Frame-Optionen)", "plain": "Wie viele Bytes MAC-Befehle im Frame-Header mitreisen." },
     "FPort": { "full": "Frame port (Frame-Port)", "plain": "Sagt, was die Nutzdaten sind: 0 für Netzbefehle, 1 bis 223 für Anwendungsdaten." },

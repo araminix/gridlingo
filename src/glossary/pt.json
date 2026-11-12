@@ -137,7 +137,7 @@
     "FCnt": { "full": "Frame counter (contador de quadros)", "plain": "Conta os quadros em cada sentido; a rede recusa um número antigo como repetição maliciosa." },
     "FCtrl": { "full": "Frame control (controle do quadro)", "plain": "Um byte de flags do LoRaWAN: taxa de dados adaptativa, confirmação, mais dados à espera, comprimento das opções." },
     "FCV": { "full": "Frame count valid (contagem de quadros válida)", "plain": "Um bit que diz se o bit de contagem de quadros vale neste quadro." },
-    "FIN": { "full": "Final (final)", "plain": "Um bit que marca o último segmento ou fragmento de uma mensagem DNP3." },
+ "FIN": { "full": "Final (final)", "plain": "Um bit que marca o último segmento ou fragmento de uma mensagem." },
     "FIR": { "full": "First (primeiro)", "plain": "Um bit que marca o primeiro segmento ou fragmento de uma mensagem DNP3." },
     "FOptsLen": { "full": "Frame options length (comprimento das opções do quadro)", "plain": "Quantos bytes de comandos MAC vão no cabeçalho do quadro." },
     "FPort": { "full": "Frame port (porta do quadro)", "plain": "Diz o que é o payload: 0 para comandos de rede, 1 a 223 para dados de aplicação." },
