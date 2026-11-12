@@ -309,9 +309,41 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
                 </g>
             );
         }
-        case "battery":
-            detail = <Lines list={[0.33, 0.66].map((u) => [f.onLeft(u, 0.06), f.onLeft(u, 0.94)])} />;
-            break;
+        case "battery": {
+            // A battery container on a concrete pad: corrugated walls, double doors with lock bars at its end, two air
+            // conditioners on its long side and a warning light on the roof
+            const box: Box = { cx, cy, w: size.w, d: size.d, h: size.h - 4, z: 2 };
+            const wall = faces(box).onLeft;
+            const doors = faces(box).onRight;
+            const coolers = [0.22, 0.6].map((u): Box => ({ cx: cx - size.w / 2 + u * size.w, cy: cy + size.d / 2 + 2, w: 13, d: 4, h: 15, z: 12 }));
+            const [bx, by] = project(cx + size.w / 2 - 7, cy - size.d / 2 + 6, size.h - 1);
+            return (
+                <g>
+                    <Solid box={{ cx, cy, w: size.w + 4, d: size.d + 4, h: 2 }} active={active} fine />
+                    <Solid box={box} active={active} />
+                    <Lines list={Array.from({ length: 23 }, (_, i) => 0.04 + i * 0.04).map((u) => [wall(u, 0.06), wall(u, 0.94)])} width={0.5} />
+                    <Lines
+                        list={[
+                            [doors(0.5, 0.04), doors(0.5, 0.96)],
+                            ...[0.18, 0.36, 0.64, 0.82].map((u) => [doors(u, 0.08), doors(u, 0.92)]),
+                            ...[0.18, 0.36, 0.64, 0.82].map((u) => [doors(u, 0.46), doors(u + (u < 0.5 ? 0.07 : -0.07), 0.46)]),
+                        ]}
+                        width={0.8}
+                    />
+                    {coolers.map((cooler) => {
+                        const [gx, gy] = faces(cooler).onLeft(0.5, 0.5);
+                        return (
+                            <g key={cooler.cx}>
+                                <Solid box={cooler} active={active} fine />
+                                <ellipse cx={round(gx)} cy={round(gy)} rx={4} ry={4.6} fill={tone.right} stroke={tone.edge} strokeWidth={0.6} />
+                                <ellipse cx={round(gx)} cy={round(gy)} rx={1.4} ry={1.6} fill={tone.edge} />
+                            </g>
+                        );
+                    })}
+                    <rect x={round(bx - 1.6)} y={round(by - 3)} width={3.2} height={4} rx={1.2} fill="var(--viz-token)" stroke={tone.edge} strokeWidth={0.5} />
+                </g>
+            );
+        }
         case "firewall":
             // A brick wall on its front
             detail = (
