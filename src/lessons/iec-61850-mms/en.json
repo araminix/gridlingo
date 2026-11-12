@@ -1,0 +1,89 @@
+{
+    "intro": "An IEC 61850 device has no register numbers. It has a tree of named objects, described in its SCL file: logical devices, logical nodes, data objects and attributes. A client walks that tree with MMS and reads, or writes, exactly the value it needs.",
+    "steps": {
+        "connect": { "title": "Connect", "text": "The client opens TCP to port 102, then an ISO transport connection on top of it (COTP)." },
+        "associate": { "title": "Associate", "text": "An MMS Initiate agrees on sizes and services. Only after this association can the client ask questions." },
+        "browse": { "title": "Browse the model", "text": "GetNameList returns the logical devices, then the variables inside one. This is how a tool discovers a device without its SCL file." },
+        "read": { "title": "Read one value", "text": "The client reads PV1INV/MMXU1$MX$TotW$mag$f and gets a float: 4820.0. The unit, kW, is a separate attribute (CF)." },
+        "report": { "title": "Let it report", "text": "Instead of asking again and again, the client enables a report. The inverter now sends its values when they change." }
+    },
+    "frames": {
+        "tcp": "Open TCP to port 102",
+        "cotp-cr": "Open an ISO transport connection",
+        "cotp-cc": "Transport connection accepted",
+        "initiate-req": "Let's talk MMS: my sizes and services",
+        "initiate-resp": "Agreed: these are mine",
+        "names-req": "Which logical devices do you have?",
+        "names-resp": "PV1LD0 and PV1INV",
+        "read-req": "What is the total active power?",
+        "read-resp": "4820.0",
+        "enable": "Enable report urcbMeas01",
+        "report": "TotW is now 4790.5, Hz 50.00"
+    },
+    "notes": {
+        "tcp": "Plain TCP. MMS uses port 102, the ISO-on-TCP port of RFC 1006.",
+        "cotp-cr": "COTP (ISO 8073) runs on top of TCP. Its connect request names the transport selectors of both sides.",
+        "cotp-cc": "The device accepts. From now on, every message starts with TPKT and a COTP data header.",
+        "initiate-req": "Inside it are three more layers: session, presentation and ACSE. The MMS part offers sizes (the largest message) and the services the client wants.",
+        "initiate-resp": "The device answers with its own sizes and services. Authentication, when used, happens in this step too (IEC 62351-4).",
+        "names-req": "GetNameList with the object class \"domain\": in IEC 61850 a domain is a logical device.",
+        "names-resp": "MMS names a logical device by the IED name followed by its instance: PV1 and INV make PV1INV.",
+        "enable": "A Write of TRUE to RptEna in the report control block. The client sets the trigger options and the data set first.",
+        "report": "An unsolicited InformationReport: the device sends it without being asked, each time a value in the data set changes."
+    },
+    "fields": {
+        "tpkt-66": { "name": "TPKT", "note": "Version 3, then the length of the whole message: 0x0042 = 66 bytes." },
+        "tpkt-36": { "name": "TPKT", "note": "Version 3, then the length: 0x0024 = 36 bytes." },
+        "cotp-dt": { "name": "COTP", "note": "A data unit (0xF0), the last of its message (0x80)." },
+        "session": { "name": "Session", "note": "Two short session headers: give tokens, data transfer." },
+        "presentation": { "name": "Presentation", "note": "Fully encoded data, presentation context 3: what follows is MMS." },
+        "confirmed-req": { "name": "Confirmed request", "note": "Tag A0, 44 bytes: a request that expects an answer." },
+        "confirmed-resp": { "name": "Confirmed response", "note": "Tag A1, 14 bytes: the answer." },
+        "invoke": { "name": "Invoke ID 5", "note": "A number the client picks. The answer carries the same one." },
+        "invoke-resp": { "name": "Invoke ID 5", "note": "The same number as the request: this answers it." },
+        "read": { "name": "Read", "note": "Tag A4: the Read service." },
+        "spec": { "name": "Variable list", "note": "A list of one variable, given by its name." },
+        "domain-specific": { "name": "Domain-specific name", "note": "A name in two parts: the domain and the item." },
+        "domain": { "name": "Domain", "note": "\"PV1INV\": the logical device." },
+        "item": { "name": "Item", "note": "\"MMXU1$MX$TotW$mag$f\": logical node, functional constraint, data object and attribute, joined by $." },
+        "results": { "name": "Results", "note": "A list of results, one per variable asked for." },
+        "float-tag": { "name": "Floating point", "note": "Tag 0x87 (a float), 5 bytes." },
+        "exponent": { "name": "Exponent width", "note": "8 bits: an IEEE 754 single-precision float follows." },
+        "float": { "name": "Value", "note": "4820.0, most significant byte first. IEC 104 sends floats the other way round." },
+        "a-ld": { "name": "Logical device", "note": "PV1INV: IED name PV1 and instance INV." },
+        "a-ln": { "name": "Logical node", "note": "MMXU1: measurements, instance 1." },
+        "a-fc": { "name": "Functional constraint", "note": "MX: measured values. ST is status, CF configuration, SP set points." },
+        "a-do": { "name": "Data object", "note": "TotW: total active power, of type MV." },
+        "a-da": { "name": "Data attribute", "note": "mag.f: the magnitude, as a float." }
+    },
+    "devices": {
+        "client": "Client",
+        "pv1": "PV1 inverter",
+        "pv": "PV array"
+    },
+    "facts": {
+        "standard": "IEC 61850-8-1 (MMS is ISO 9506)",
+        "between": "Client (SCADA, gateway, engineering tool) → IED",
+        "transport": "TCP 102",
+        "security": "TLS (IEC 62351-4), TCP 3782",
+        "model": "IEC 61850-7: logical devices, logical nodes, data objects"
+    },
+    "tips": [
+        "Read the SCL file first. Browsing a large device with GetNameList can take many seconds.",
+        "Units and multipliers live in CF attributes, not next to the value. A value of 4820 is in kW only because the device says so.",
+        "Report control blocks are few. A tool that reserves one and never frees it can lock out the real SCADA.",
+        "MMS floats are sent most significant byte first. Code that also speaks IEC 104 or Modbus often gets this wrong."
+    ],
+    "points": {
+        "totw": "Total active power",
+        "mult": "Unit of TotW",
+        "hz": "Frequency"
+    },
+    "anatomy": {
+        "reference": "The name of one value, and how MMS writes it"
+    },
+    "playground": {
+        "scl": "The inverter's configured description (.cid). Open INV, then MMXU1, then TotW: the value you read is mag.f, its unit is in units. Then open your own file, if you have one.",
+        "encoder": "MMS sends a float most significant byte first (ABCD). Type a value to see its bytes."
+    }
+}

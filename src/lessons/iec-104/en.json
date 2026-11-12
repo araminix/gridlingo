@@ -1,0 +1,105 @@
+{
+    "intro": "The way an RTU in a substation or power plant reports to the control room over a normal IP network. Every value has an address (the IOA), a type, and a reason it was sent. The RTU answers when asked, and speaks up by itself when something changes.",
+    "steps": {
+        "connect": { "title": "Connect", "text": "SCADA opens a TCP connection to the RTU on port 2404. Nothing else happens yet." },
+        "start": { "title": "Start data", "text": "No data flows until SCADA sends STARTDT. The RTU answers with STARTDT con." },
+        "ask": { "title": "Ask for everything", "text": "A general interrogation asks the RTU for the current value of every point it has." },
+        "values": { "title": "Values arrive", "text": "The RTU sends its measurements and breaker states, then says it is done. Now SCADA knows the plant." },
+        "ack": { "title": "Acknowledge", "text": "SCADA confirms the frames it got. Without this, the RTU stops sending after 12 unconfirmed frames." },
+        "trip": { "title": "Breaker trips", "text": "Nobody asked: the RTU sends the change at once, with the time it happened." }
+    },
+    "frames": {
+        "tcp": "Open a TCP connection to port 2404",
+        "startdt-act": "Please start sending data",
+        "startdt-con": "OK, data transfer is on",
+        "gi-act": "General interrogation: send me everything",
+        "gi-con": "Confirmed, values are coming",
+        "measured": "P = 4.82 MW, Q = 0.61 Mvar",
+        "breaker": "CB-1 is closed",
+        "gi-term": "That was everything",
+        "s-frame": "Got your frames 0 to 3",
+        "trip": "CB-1 opened at 10:41:07.280"
+    },
+    "notes": {
+        "tcp": "Plain TCP, no IEC 104 bytes yet. The RTU accepts the connection and waits."
+    },
+    "fields": {
+        "start": { "name": "Start", "note": "Every IEC 104 frame starts with 0x68." },
+        "len4": { "name": "Length", "note": "4 bytes follow: only the control field." },
+        "len14": { "name": "Length", "note": "14 bytes follow." },
+        "len26": { "name": "Length", "note": "26 bytes follow." },
+        "len21": { "name": "Length", "note": "21 bytes follow." },
+        "startdt-act": { "name": "Control · U-frame", "note": "0x07 is STARTDT act: start data transfer." },
+        "startdt-con": { "name": "Control · U-frame", "note": "0x0B is STARTDT con: the RTU agrees." },
+        "i-0-0": { "name": "Control · I-frame", "note": "Send number 0, receive number 0." },
+        "i-0-1": { "name": "Control · I-frame", "note": "Send number 0, receive number 1: \"I got your frame 0\". Numbers are shifted one bit to the left, so 1 is sent as 02." },
+        "i-1-1": { "name": "Control · I-frame", "note": "Send number 1, receive number 1." },
+        "i-2-1": { "name": "Control · I-frame", "note": "Send number 2, receive number 1." },
+        "i-3-1": { "name": "Control · I-frame", "note": "Send number 3, receive number 1." },
+        "i-4-1": { "name": "Control · I-frame", "note": "Send number 4, receive number 1." },
+        "s-4": { "name": "Control · S-frame", "note": "0x01 marks an S-frame. Receive number 4 (sent as 08): \"I have your frames 0 to 3\"." },
+        "type100": { "name": "Type 100", "note": "C_IC_NA_1: interrogation command." },
+        "type13": { "name": "Type 13", "note": "M_ME_NC_1: a measured value as a 32-bit float." },
+        "type3": { "name": "Type 3", "note": "M_DP_NA_1: a double point, used for breakers and switches." },
+        "type31": { "name": "Type 31", "note": "M_DP_TB_1: a double point with a time tag." },
+        "vsq1": { "name": "Count", "note": "One information object." },
+        "vsq2": { "name": "Count", "note": "Two objects, each with its own address." },
+        "cot6": { "name": "Cause 6", "note": "Activation. The second byte is the originator address, 0 here." },
+        "cot7": { "name": "Cause 7", "note": "Activation confirmed." },
+        "cot10": { "name": "Cause 10", "note": "Activation finished: the answer is complete." },
+        "cot20": { "name": "Cause 20", "note": "Sent because of the station interrogation." },
+        "cot3": { "name": "Cause 3", "note": "Spontaneous: the value changed, nobody asked." },
+        "ca": { "name": "Common address", "note": "Station 1. Two bytes, low byte first." },
+        "ioa0": { "name": "IOA 0", "note": "The command is for the whole station, not one point." },
+        "ioa1001": { "name": "IOA 1001", "note": "The address of active power: 0x0003E9, low byte first." },
+        "ioa1002": { "name": "IOA 1002", "note": "The address of reactive power." },
+        "ioa2001": { "name": "IOA 2001", "note": "The address of breaker CB-1: 0x0007D1." },
+        "qoi20": { "name": "QOI 20", "note": "Station interrogation: every group." },
+        "value-p": { "name": "Value", "note": "A 32-bit float, low byte first: 4.82 (MW)." },
+        "value-q": { "name": "Value", "note": "0.61 (Mvar)." },
+        "qds": { "name": "Quality", "note": "Good: no flag is set." },
+        "diq-on": { "name": "State 2", "note": "On: the breaker is closed. 1 is off; 0 and 3 mean moving or faulty." },
+        "diq-off": { "name": "State 1", "note": "Off: the breaker is open." },
+        "cp56": { "name": "CP56Time2a", "note": "7.280 s, 41 min, 10 h, Thursday 12, November, (20)26. There is no time zone in it." }
+    },
+    "devices": {
+        "scada": "SCADA master",
+        "rtu": "RTU",
+        "inverter": "PV inverter",
+        "pv": "PV array",
+        "battery": "Battery",
+        "breaker": "Breaker CB-1"
+    },
+    "facts": {
+        "standard": "IEC 60870-5-104, edition 2 (2006)",
+        "between": "RTU or gateway → SCADA",
+        "transport": "TCP 2404",
+        "security": "TLS (IEC 62351-3), TCP 19998",
+        "frames": "I: data · S: acknowledge · U: control"
+    },
+    "tips": [
+        "Both sides must agree on the address sizes: common address 2 bytes, IOA 3 bytes. A mismatch reads garbage, not an error.",
+        "Time tags carry no time zone, only a summer-time bit. Agree on UTC or local time before you go live.",
+        "Acknowledge at least every 8 frames (w). After 12 unconfirmed frames (k) the RTU stops sending."
+    ],
+    "points": {
+        "p": "Active power",
+        "q": "Reactive power",
+        "cb": "Breaker CB-1"
+    },
+    "values": {
+        "closed": "closed",
+        "open": "open"
+    },
+    "playground": {
+        "encoder": "Type a value and see the four bytes an IEC 104 float travels as. IEC 104 sends them low byte first (DCBA).",
+        "file": "The RTU's point list: what each address means. SCADA needs the same list, or it cannot read the values.",
+        "common-address": "The station's address. It is in every frame.",
+        "ioa": "The information object address: one per signal.",
+        "type": "How the value travels: a float, with no time tag.",
+        "scale": "A value sent as a float needs no scaling. Normalized and scaled types do.",
+        "double": "A double point: 2 bits for on, off, moving and faulty.",
+        "spontaneous": "When it changes, it is sent at once with a time tag.",
+        "time": "Write down which clock the time tags use."
+    }
+}

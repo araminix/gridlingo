@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+*.tsbuildinfo
+*.log
+.vite/
+vite.config.ts.timestamp-*
+.env
+.env.*
+.DS_Store
+.vscode/
+.idea/

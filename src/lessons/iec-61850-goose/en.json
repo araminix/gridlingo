@@ -1,0 +1,108 @@
+{
+    "intro": "How protection relays tell each other to trip, in a few milliseconds, over the substation network instead of copper wires. A relay publishes its data to a multicast address; every relay that needs it subscribes. Nobody answers, so the publisher repeats each change, fast and then slower.",
+    "steps": {
+        "heartbeat": { "title": "Heartbeat", "text": "Nothing is wrong. Every second, the relay repeats its last state to anyone listening." },
+        "fault": { "title": "Fault", "text": "A short circuit on feeder F1. The relay sees 2.8 kA and closes its trip contact to the breaker." },
+        "publish": { "title": "Publish", "text": "At the same moment it sends the new state. The state number goes up by one and the sequence number starts again at 0." },
+        "repeat": { "title": "Repeat fast", "text": "No subscriber answers GOOSE, so the relay sends the same message again 2 ms later, then 4, 8, 16 … until it is back to once a second." },
+        "act": { "title": "Subscribers act", "text": "F2 PROT starts its breaker-failure timer. The gateway passes the trip on to SCADA." },
+        "open": { "title": "Breaker opens", "text": "48 ms after the fault, Q1 is open and the fault current stops." }
+    },
+    "frames": {
+        "heartbeat": "Still no trip (heartbeat)",
+        "trip-wire": "Energize the trip coil of Q1",
+        "event": "Trip! Tr.general = TRUE",
+        "repeat": "Trip, again (copy 1)",
+        "to-scada": "CB-1 tripped, with its time",
+        "opened": "Q1 is open"
+    },
+    "notes": {
+        "trip-wire": "A copper wire, not a network message: the relay closes a contact and current flows into the breaker's trip coil.",
+        "to-scada": "This is IEC 104, not GOOSE: the gateway translates between the two. The IEC 104 lesson shows these bytes.",
+        "opened": "An auxiliary contact on the breaker tells the relay that it has opened."
+    },
+    "fields": {
+        "dst": { "name": "Destination", "note": "A multicast address from the range IEC 61850 keeps for GOOSE (01-0C-CD-01-…). Every device on the network hears it; only subscribers keep it." },
+        "src": { "name": "Source", "note": "The relay's own MAC address." },
+        "vlan": { "name": "VLAN tag", "note": "0x8100, then priority 4 and VLAN 10. The priority lets switches send the frame ahead of other traffic." },
+        "ethertype": { "name": "EtherType", "note": "0x88B8 means GOOSE. There is no IP and no TCP in this frame." },
+        "appid": { "name": "APPID", "note": "0x0001: a number subscribers filter on." },
+        "length": { "name": "Length", "note": "115 bytes, from the APPID to the end." },
+        "reserved": { "name": "Reserved", "note": "Two reserved fields, zero here. IEC 62351-6 uses them when the frame is signed." },
+        "pdu": { "name": "GOOSE message", "note": "0x61 starts the message; 105 bytes follow (0x69). Each field after it is a tag, a length and a value." },
+        "gocbref": { "name": "gocbRef", "note": "Tag 0x80, 25 bytes: the name of the control block, F1PROTLD0/LLN0$GO$gcbTrip." },
+        "tal": { "name": "Time allowed to live", "note": "2000 ms. If no copy arrives within this time, subscribers treat the data as invalid." },
+        "datset": { "name": "datSet", "note": "The data set the message carries: F1PROTLD0/LLN0$dsTrip." },
+        "goid": { "name": "goID", "note": "F1PROT_Trip, an ID subscribers can check." },
+        "t-old": { "name": "t", "note": "When the data last changed: 08:00:00 today, UTC. A heartbeat keeps the time of the last change." },
+        "t-event": { "name": "t", "note": "When the data changed: 10:41:07.232 UTC. 4 bytes of seconds, 3 of fractions of a second, 1 of clock quality." },
+        "stnum-12": { "name": "stNum 12", "note": "The state number: unchanged since the last change." },
+        "stnum-13": { "name": "stNum 13", "note": "The state number went up by one: the data changed." },
+        "sqnum-3": { "name": "sqNum 3", "note": "The sequence number: the fourth copy of the same state." },
+        "sqnum-0": { "name": "sqNum 0", "note": "The first copy of the new state." },
+        "sqnum-1": { "name": "sqNum 1", "note": "The same state, sent again." },
+        "simulation": { "name": "simulation", "note": "False. True marks test messages, which subscribers ignore unless they are in test mode." },
+        "confrev": { "name": "confRev 1", "note": "The configuration revision. It must match the one the subscriber was set up with." },
+        "ndscom": { "name": "ndsCom", "note": "Needs commissioning: false. True would mean the publisher's setup is incomplete." },
+        "entries": { "name": "Entries", "note": "2 values in the data set." },
+        "data-idle": { "name": "allData", "note": "The values: Tr.general = FALSE (no trip), and its quality: good." },
+        "data-trip": { "name": "allData", "note": "The values: Tr.general = TRUE (trip!), and its quality: good." },
+        "a-ied": { "name": "IED", "note": "The device's name in the SCL file." },
+        "a-ld": { "name": "Logical device", "note": "LD0, a group of functions inside the IED." },
+        "a-ln": { "name": "Logical node", "note": "LLN0, where the control blocks live." },
+        "a-fc": { "name": "Functional constraint", "note": "GO: a GOOSE control block." },
+        "a-cb": { "name": "Control block", "note": "gcbTrip, its name." }
+    },
+    "devices": {
+        "q1": "Breaker Q1",
+        "f1prot": "F1 PROT",
+        "f2prot": "F2 PROT",
+        "switch": "Station switch",
+        "hmi": "Station HMI",
+        "gateway": "Gateway",
+        "scada": "SCADA"
+    },
+    "facts": {
+        "standard": "IEC 61850-8-1",
+        "between": "One relay → every relay, controller and gateway that subscribes",
+        "transport": "Ethernet multicast, no IP",
+        "frames": "One message, repeated: no requests, no answers",
+        "speed": "A trip must arrive within 3 ms (IEC 61850-5, type 1A)"
+    },
+    "tips": [
+        "A subscriber checks the gocbRef, the APPID, the data set and the configuration revision. If one differs from its setup, it ignores the frame and says nothing.",
+        "GOOSE has no IP address, so routers drop it. To reach another substation you need R-GOOSE.",
+        "Test with the simulation flag and the subscriber in test mode. Otherwise a test trip opens a real breaker.",
+        "Every switch on the way must keep the VLAN tag and its priority. A switch that strips it can delay a trip behind other traffic."
+    ],
+    "points": {
+        "tr": "Trip",
+        "stnum": "State number",
+        "sqnum": "Sequence number"
+    },
+    "anatomy": {
+        "gocbref": "The name of the GOOSE control block, and how it travels"
+    },
+    "timing": {
+        "title": "Why GOOSE never waits for an answer",
+        "note": "GOOSE has no acknowledgement. The publisher repeats each change quickly, then slows down to a heartbeat. If a subscriber hears nothing within the time allowed to live, it marks the data invalid. The repeat times here are typical; each vendor sets its own.",
+        "publisher": "F1 PROT",
+        "event": "stNum 12 → 13",
+        "repeats": "sqNum 1, 2, 3 …",
+        "heartbeat": "heartbeat"
+    },
+    "singleLine": {
+        "title": "Single-line diagram of the 34.5 kV busbar",
+        "bus": "34.5 kV · bus A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "open",
+        "fault": "fault · 2.8 kA",
+        "station": "Station bus · Ethernet",
+        "f1": "F1 · PV plant",
+        "f2": "F2 · Battery",
+        "f3": "F3 · Station supply"
+    },
+    "playground": {
+        "scl": "The substation's SCL file. Find F1PROT's GOOSE control block, its data set, and the MAC address and APPID it sends to. Then find the input of F2PROT that listens to it."
+    }
+}

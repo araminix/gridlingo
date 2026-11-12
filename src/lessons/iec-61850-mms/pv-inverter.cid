@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A made-up PV inverter for learning: the configured IED description (.cid) of one device. -->
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B" release="4">
+    <Header id="Gridlingo sample inverter" version="1" revision="1" toolID="Gridlingo"/>
+    <Communication>
+        <SubNetwork name="PlantLAN" type="8-MMS">
+            <ConnectedAP iedName="PV1" apName="S1">
+                <Address>
+                    <P type="IP">10.0.0.31</P>
+                    <P type="IP-SUBNET">255.255.255.0</P>
+                    <P type="IP-GATEWAY">10.0.0.1</P>
+                </Address>
+            </ConnectedAP>
+        </SubNetwork>
+    </Communication>
+    <IED name="PV1" manufacturer="Example" type="PV inverter 5 MW" configVersion="1.0">
+        <Services>
+            <GetDirectory/>
+            <GetDataObjectDefinition/>
+            <GetDataValues/>
+            <SetDataValues/>
+            <ReportSettings cbName="Conf" datSet="Conf" rptID="Dyn" optFields="Dyn" bufTime="Dyn" trgOps="Dyn" intgPd="Dyn"/>
+        </Services>
+        <AccessPoint name="S1">
+            <Server>
+                <Authentication/>
+                <LDevice inst="LD0" desc="The device itself">
+                    <LN0 lnClass="LLN0" inst="" lnType="LLN0_PV">
+                        <DOI name="NamPlt">
+                            <DAI name="vendor"><Val>Example</Val></DAI>
+                            <DAI name="swRev"><Val>3.4.1</Val></DAI>
+                        </DOI>
+                    </LN0>
+                    <LN lnClass="LPHD" inst="1" lnType="LPHD_PV"/>
+                </LDevice>
+                <LDevice inst="INV" desc="Inverter functions">
+                    <LN0 lnClass="LLN0" inst="" lnType="LLN0_PV">
+                        <DataSet name="dsMeas">
+                            <FCDA ldInst="INV" lnClass="MMXU" lnInst="1" doName="TotW" daName="mag.f" fc="MX"/>
+                            <FCDA ldInst="INV" lnClass="MMXU" lnInst="1" doName="Hz" daName="mag.f" fc="MX"/>
+                        </DataSet>
+                        <ReportControl name="urcbMeas" datSet="dsMeas" rptID="PV1INV/LLN0$RP$urcbMeas" confRev="1" buffered="false" intgPd="10000">
+                            <TrgOps dchg="true" qchg="true" period="true"/>
+                            <OptFields seqNum="true" timeStamp="true" dataSet="true" reasonCode="true"/>
+                            <RptEnabled max="4"/>
+                        </ReportControl>
+                    </LN0>
+                    <LN lnClass="MMXU" inst="1" lnType="MMXU_PV" desc="Measurements at the inverter's AC side">
+                        <DOI name="TotW">
+                            <SDI name="units">
+                                <DAI name="SIUnit"><Val>W</Val></DAI>
+                                <DAI name="multiplier"><Val>k</Val></DAI>
+                            </SDI>
+                        </DOI>
+                        <DOI name="Hz">
+                            <SDI name="units">
+                                <DAI name="SIUnit"><Val>Hz</Val></DAI>
+                            </SDI>
+                        </DOI>
+                    </LN>
+                    <LN lnClass="ZINV" inst="1" lnType="ZINV_PV" desc="Inverter ratings">
+                        <DOI name="WRtg">
+                            <SDI name="setMag">
+                                <DAI name="f"><Val>5000</Val></DAI>
+                            </SDI>
+                            <SDI name="units">
+                                <DAI name="SIUnit"><Val>W</Val></DAI>
+                                <DAI name="multiplier"><Val>k</Val></DAI>
+                            </SDI>
+                        </DOI>
+                    </LN>
+                </LDevice>
+            </Server>
+        </AccessPoint>
+    </IED>
+    <DataTypeTemplates>
+        <LNodeType id="LLN0_PV" lnClass="LLN0">
+            <DO name="Beh" type="ENS_Beh"/>
+            <DO name="Health" type="ENS_Health"/>
+            <DO name="NamPlt" type="LPL_PV"/>
+        </LNodeType>
+        <LNodeType id="LPHD_PV" lnClass="LPHD">
+            <DO name="PhyNam" type="DPL_PV"/>
+            <DO name="PhyHealth" type="ENS_Health"/>
+            <DO name="Proxy" type="SPS_PV"/>
+        </LNodeType>
+        <LNodeType id="MMXU_PV" lnClass="MMXU">
+            <DO name="Beh" type="ENS_Beh"/>
+            <DO name="TotW" type="MV_PV"/>
+            <DO name="TotVAr" type="MV_PV"/>
+            <DO name="Hz" type="MV_PV"/>
+        </LNodeType>
+        <LNodeType id="ZINV_PV" lnClass="ZINV">
+            <DO name="Beh" type="ENS_Beh"/>
+            <DO name="WRtg" type="ASG_PV"/>
+        </LNodeType>
+        <DOType id="MV_PV" cdc="MV">
+            <DA name="mag" bType="Struct" type="AnalogueValue_PV" fc="MX" dchg="true"/>
+            <DA name="q" bType="Quality" fc="MX" qchg="true"/>
+            <DA name="t" bType="Timestamp" fc="MX"/>
+            <DA name="units" bType="Struct" type="Unit_PV" fc="CF"/>
+        </DOType>
+        <DOType id="ASG_PV" cdc="ASG">
+            <DA name="setMag" bType="Struct" type="AnalogueValue_PV" fc="SP"/>
+            <DA name="units" bType="Struct" type="Unit_PV" fc="CF"/>
+        </DOType>
+        <DOType id="ENS_Beh" cdc="ENS">
+            <DA name="stVal" bType="Enum" type="BehaviourModeKind" fc="ST"/>
+            <DA name="q" bType="Quality" fc="ST"/>
+            <DA name="t" bType="Timestamp" fc="ST"/>
+        </DOType>
+        <DOType id="ENS_Health" cdc="ENS">
+            <DA name="stVal" bType="Enum" type="HealthKind" fc="ST"/>
+            <DA name="q" bType="Quality" fc="ST"/>
+            <DA name="t" bType="Timestamp" fc="ST"/>
+        </DOType>
+        <DOType id="LPL_PV" cdc="LPL">
+            <DA name="vendor" bType="VisString255" fc="DC"/>
+            <DA name="swRev" bType="VisString255" fc="DC"/>
+        </DOType>
+        <DOType id="DPL_PV" cdc="DPL">
+            <DA name="vendor" bType="VisString255" fc="DC"/>
+            <DA name="serNum" bType="VisString255" fc="DC"/>
+        </DOType>
+        <DOType id="SPS_PV" cdc="SPS">
+            <DA name="stVal" bType="BOOLEAN" fc="ST"/>
+            <DA name="q" bType="Quality" fc="ST"/>
+            <DA name="t" bType="Timestamp" fc="ST"/>
+        </DOType>
+        <DAType id="AnalogueValue_PV">
+            <BDA name="f" bType="FLOAT32"/>
+        </DAType>
+        <DAType id="Unit_PV">
+            <BDA name="SIUnit" bType="Enum" type="SIUnitKind"/>
+            <BDA name="multiplier" bType="Enum" type="MultiplierKind"/>
+        </DAType>
+        <EnumType id="BehaviourModeKind">
+            <EnumVal ord="1">on</EnumVal>
+            <EnumVal ord="3">test</EnumVal>
+            <EnumVal ord="5">off</EnumVal>
+        </EnumType>
+        <EnumType id="HealthKind">
+            <EnumVal ord="1">Ok</EnumVal>
+            <EnumVal ord="2">Warning</EnumVal>
+            <EnumVal ord="3">Alarm</EnumVal>
+        </EnumType>
+        <EnumType id="SIUnitKind">
+            <EnumVal ord="33">Hz</EnumVal>
+            <EnumVal ord="38">W</EnumVal>
+            <EnumVal ord="63">VAr</EnumVal>
+        </EnumType>
+        <EnumType id="MultiplierKind">
+            <EnumVal ord="0"></EnumVal>
+            <EnumVal ord="3">k</EnumVal>
+            <EnumVal ord="6">M</EnumVal>
+        </EnumType>
+    </DataTypeTemplates>
+</SCL>

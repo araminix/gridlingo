@@ -1,0 +1,174 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Colours of the interface (shadcn/ui tokens) and of the diagrams, for the light theme and the dark one */
+:root {
+    --radius: 0.75rem;
+    --background: #f5f7fa;
+    --foreground: #0f1b2d;
+    --card: #ffffff;
+    --card-foreground: #0f1b2d;
+    --popover: #ffffff;
+    --popover-foreground: #0f1b2d;
+    --primary: #1d4ed8;
+    --primary-foreground: #ffffff;
+    --secondary: #edf1f6;
+    --secondary-foreground: #0f1b2d;
+    --muted: #edf1f6;
+    --muted-foreground: #56657a;
+    --accent: #eef3ff;
+    --accent-foreground: #1e3a8a;
+    --destructive: #b91c1c;
+    --border: #dde3ec;
+    --input: #d3dbe6;
+    --ring: #1d4ed8;
+
+    --viz-ground: #fbfcfe;
+    --viz-grid: #e4e9f1;
+    --viz-top: #ffffff;
+    --viz-left: #e6ecf4;
+    --viz-right: #d3dce8;
+    --viz-edge: #7d8da6;
+    --viz-active-top: #eef3ff;
+    --viz-active-left: #d9e3f4;
+    --viz-active-right: #c2d0e8;
+    --viz-link: #9aa9be;
+    --viz-token: #f59e0b;
+    --viz-alert: #b45309;
+    --viz-screen: #0f1b2d;
+    --viz-ok: #16a34a;
+    --viz-energized: #0f1b2d;
+    --viz-dead: #9aa9be;
+    --viz-pv: #dce6f5;
+
+    --field-frame: #e0e7ff;
+    --field-control: #ccf5f9;
+    --field-type: #fef3c7;
+    --field-size: #fce7f3;
+    --field-cause: #dcfce7;
+    --field-address: #ffe4e6;
+    --field-value: #ffedd5;
+    --field-quality: #e7eaee;
+    --field-time: #e0f2fe;
+    --field-security: #ede9fe;
+}
+
+.dark {
+    --background: #0b0f14;
+    --foreground: #e6edf3;
+    --card: #121821;
+    --card-foreground: #e6edf3;
+    --popover: #141b25;
+    --popover-foreground: #e6edf3;
+    --primary: #7aa7ff;
+    --primary-foreground: #0b1220;
+    --secondary: #1a2330;
+    --secondary-foreground: #e6edf3;
+    --muted: #1a2330;
+    --muted-foreground: #9aa8bb;
+    --accent: #1b2738;
+    --accent-foreground: #cfe0ff;
+    --destructive: #f87171;
+    --border: #243041;
+    --input: #2c3a4e;
+    --ring: #7aa7ff;
+
+    --viz-ground: #0f141b;
+    --viz-grid: #1c2633;
+    --viz-top: #1e2a38;
+    --viz-left: #172130;
+    --viz-right: #121a26;
+    --viz-edge: #5b6b82;
+    --viz-active-top: #22344f;
+    --viz-active-left: #1b2a40;
+    --viz-active-right: #152236;
+    --viz-link: #4b5a6e;
+    --viz-token: #fbbf24;
+    --viz-alert: #fbbf24;
+    --viz-screen: #05080c;
+    --viz-ok: #4ade80;
+    --viz-energized: #e6edf3;
+    --viz-dead: #4b5a6e;
+    --viz-pv: #1f3354;
+
+    --field-frame: #26305a;
+    --field-control: #12434a;
+    --field-type: #4a3b12;
+    --field-size: #4a1f38;
+    --field-cause: #173d26;
+    --field-address: #4a1e26;
+    --field-value: #4a2e14;
+    --field-quality: #2a313b;
+    --field-time: #13394d;
+    --field-security: #33275a;
+}
+
+@theme inline {
+    --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+    html {
+        color-scheme: light;
+    }
+    html.dark {
+        color-scheme: dark;
+    }
+    body {
+        @apply bg-background text-foreground antialiased;
+        font-family: var(--font-sans);
+    }
+    /* Arabic and Persian in Estedad; Chinese, Japanese, Korean and Hindi in the system's fonts */
+    html:lang(ar) body,
+    html:lang(fa) body {
+        font-family: "Estedad Variable", var(--font-sans);
+    }
+}
+
+/* A wind turbine's rotor turns slowly; it stands still for readers who ask for less motion */
+.turbine-rotor {
+    animation: rotor 6s linear infinite;
+}
+@keyframes rotor {
+    to {
+        rotate: 360deg;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

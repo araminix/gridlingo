@@ -1,0 +1,26 @@
+{
+    "commonAddress": 1,
+    "points": [
+        {
+            "ioa": 1001,
+            "type": "M_ME_NC_1",
+            "signal": "Active power",
+            "unit": "MW",
+            "scale": 1
+        },
+        {
+            "ioa": 1002,
+            "type": "M_ME_NC_1",
+            "signal": "Reactive power",
+            "unit": "Mvar",
+            "scale": 1
+        },
+        {
+            "ioa": 2001,
+            "type": "M_DP_NA_1",
+            "signal": "Breaker CB-1",
+            "spontaneous": "M_DP_TB_1",
+            "timeTag": "CP56Time2a, UTC"
+        }
+    ]
+}
