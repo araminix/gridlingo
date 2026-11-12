@@ -1,0 +1,21 @@
+// Payload codec of the made-up TS-20 temperature sensor
+// (written for the LoRaWAN payload codec API, TS013)
+
+function decodeUplink(input) {
+    if (input.fPort !== 1 || input.bytes.length !== 4) {
+        return { errors: ["unknown payload"] };
+    }
+    const b = input.bytes;
+    const raw = (b[0] << 8) | b[1];
+    return {
+        data: {
+            temperature_c: (raw > 0x7fff ? raw - 0x10000 : raw) / 10,
+            battery_v: ((b[2] << 8) | b[3]) / 1000,
+        },
+    };
+}
+
+function encodeDownlink(input) {
+    const s = input.data.interval_s;
+    return { fPort: 2, bytes: [0x01, s >> 8, s & 0xff] };
+}

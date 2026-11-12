@@ -1,0 +1,17 @@
+{
+    "outstation": 10,
+    "master": 1,
+    "secureAuthentication": "SAv5",
+    "users": [
+        {
+            "number": 1,
+            "updateKey": "installed on the device, never stored in this file"
+        }
+    ],
+    "keyWrap": "AES-256",
+    "macAlgorithm": "HMAC-SHA-256, 16 bytes",
+    "keyChangeIntervalMinutes": 15,
+    "replyTimeoutMs": 2000,
+    "aggressiveMode": false,
+    "critical": ["WRITE", "SELECT", "OPERATE", "DIRECT_OPERATE", "COLD_RESTART", "WARM_RESTART", "ENABLE_UNSOLICITED", "DISABLE_UNSOLICITED"]
+}

@@ -1,0 +1,15 @@
+{
+    "meter": "10.64.12.7",
+    "port": 4059,
+    "clientAddress": 17,
+    "serverAddress": 1,
+    "authentication": "Low",
+    "password": "12345678",
+    "read": [
+        { "class": 8, "obis": "0-0:1.0.0*255", "attribute": 2, "name": "Clock" },
+        { "class": 3, "obis": "1-0:1.8.0*255", "attribute": 2, "name": "Active energy import" },
+        { "class": 3, "obis": "1-0:1.8.0*255", "attribute": 3, "name": "Scaler and unit" },
+        { "class": 3, "obis": "1-0:2.8.0*255", "attribute": 2, "name": "Active energy export" },
+        { "class": 7, "obis": "1-0:99.1.0*255", "attribute": 2, "name": "Load profile", "from": "2026-11-11T00:00", "to": "2026-11-12T00:00" }
+    ]
+}

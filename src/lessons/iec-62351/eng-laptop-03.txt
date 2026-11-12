@@ -1,0 +1,28 @@
+$ openssl x509 -in eng-laptop-03.crt -noout -text -certopt no_pubkey,no_sigdump
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 3833618 (0x3a7f12)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: O=Grid Co, CN=Grid CA
+        Validity
+            Not Before: Nov  1 00:00:00 2024 GMT
+            Not After : Oct 31 23:59:59 2026 GMT
+        Subject: O=Grid Co, CN=ENG-LAPTOP-03
+        X509v3 extensions:
+            X509v3 Key Usage: critical
+                Digital Signature, Key Encipherment
+            X509v3 Extended Key Usage:
+                TLS Web Client Authentication
+            X509v3 CRL Distribution Points:
+                Full Name:
+                  URI:http://pki.example.com/grid-ca.crl
+
+            X509v3 Subject Key Identifier:
+                F5:95:A6:CC:87:D3:52:3B:EE:0D:37:ED:60:66:86:DC:62:FA:0C:CF
+            X509v3 Authority Key Identifier:
+                8B:4B:98:4A:9F:F4:09:F1:6D:F3:89:3D:31:E7:DA:13:96:07:26:8A
+$ openssl verify -CAfile grid-ca.crt eng-laptop-03.crt
+O=Grid Co, CN=ENG-LAPTOP-03
+error 10 at 0 depth lookup: certificate has expired
+error eng-laptop-03.crt: verification failed

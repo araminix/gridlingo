@@ -1,0 +1,97 @@
+{
+    "intro": "The plain-text protocol of the optical port on the front of most European electricity meters. A technician puts a probe on the port. Laptop and meter exchange short ASCII messages, first at 300 baud, then faster. The meter answers with lines such as 1.8.0(012345.678*kWh): an address, a value and a unit.",
+    "steps": {
+        "signon": { "title": "Sign on", "text": "The technician puts the optical probe on the meter's front. The laptop sends /?! at 300 baud, 7 data bits, even parity. The meter answers with its maker, its top speed and its model." },
+        "select": { "title": "Pick speed and mode", "text": "The laptop picks the normal protocol, 9600 baud and a data readout. After the last byte of this message, both sides switch to 9600 baud." },
+        "readout": { "title": "Readout", "text": "The meter sends its readout list in one message, closed by a BCC check. No password is needed: the list holds only what the utility chose to show." },
+        "program": { "title": "Programming mode", "text": "Export energy is not in the list. The laptop signs on again, at 300 baud, and asks for programming mode. The meter asks for a password." },
+        "password": { "title": "Password", "text": "The laptop sends the password in clear (P1). The meter accepts it with a single ACK." },
+        "read": { "title": "Read and leave", "text": "R1 reads one value by its address. The meter answers with the address, the value and the unit. Then B0 ends the session, and the meter goes back to 300 baud." }
+    },
+    "frames": {
+        "signon": "Who are you?",
+        "ident": "Maker EXA, model EM340, up to 9600 baud",
+        "ack-readout": "9600 baud, data readout please",
+        "data": "1.8.0 = 12 345.678 kWh, then tariff 1 and tariff 2",
+        "signon-2": "Who are you? (again)",
+        "ident-2": "Maker EXA, model EM340, up to 9600 baud",
+        "ack-program": "9600 baud, programming mode please",
+        "p0": "Password, please",
+        "p1": "The password is 18273645",
+        "ack-password": "Correct",
+        "r1": "Read 2.8.0",
+        "answer": "2.8.0 = 123.456 kWh",
+        "b0": "Goodbye"
+    },
+    "fields": {
+        "slash": { "name": "Start", "note": "/ (0x2F) starts the sign-on and the identification." },
+        "request": { "name": "Request", "note": "? (0x3F): a request to talk." },
+        "end-request": { "name": "End", "note": "! (0x21) ends the request. On a line shared by several meters, the meter's address stands between ? and !." },
+        "crlf": { "name": "CR LF", "note": "0D 0A: the end of a line." },
+        "maker": { "name": "Maker", "note": "EXA: the maker's three-letter code (made up here)." },
+        "baud-5": { "name": "Top speed", "note": "5: in mode C, this meter can switch to 9600 baud. 0 would be 300 baud, 6 is 19200." },
+        "model": { "name": "Model", "note": "EM340: the model, up to 16 characters chosen by the maker." },
+        "ack": { "name": "ACK", "note": "ACK (0x06) starts the acknowledgement and option select." },
+        "protocol": { "name": "Protocol", "note": "0: the normal protocol. 2 would switch to HDLC and DLMS (mode E)." },
+        "speed": { "name": "Speed", "note": "5: switch to 9600 baud, the speed the meter offered." },
+        "mode-readout": { "name": "Mode", "note": "0: data readout. Right after this message, both sides switch to 9600 baud." },
+        "mode-program": { "name": "Mode", "note": "1: programming mode. The meter will ask for a password." },
+        "stx": { "name": "STX", "note": "STX (0x02): data starts. The BCC counts from the next byte." },
+        "a-180": { "name": "Address", "note": "1.8.0: active energy import, all tariffs. The C.D.E part of the OBIS code." },
+        "v-180": { "name": "Value", "note": "(012345.678*kWh): the value and its unit, between brackets." },
+        "a-181": { "name": "Address", "note": "1.8.1: the same energy, in tariff 1." },
+        "v-181": { "name": "Value", "note": "(008765.432*kWh)." },
+        "a-182": { "name": "Address", "note": "1.8.2: the same energy, in tariff 2." },
+        "v-182": { "name": "Value", "note": "(003580.246*kWh). Tariff 1 and tariff 2 add up to the total." },
+        "end-data": { "name": "End of data", "note": "! CR LF: no more lines." },
+        "etx": { "name": "ETX", "note": "ETX (0x03): the message ends. It is the last byte the BCC counts." },
+        "bcc-data": { "name": "BCC", "note": "0x76: every byte after STX, up to and including ETX, combined with XOR. If it does not match, read again." },
+        "soh": { "name": "SOH", "note": "SOH (0x01): a command message starts. The BCC counts from the next byte, STX included." },
+        "p0": { "name": "P0", "note": "A password request, with an operand." },
+        "stx-command": { "name": "STX", "note": "STX (0x02): the data set starts." },
+        "operand": { "name": "Operand", "note": "(87654321): a number chosen by the meter. A meter that wants a scrambled password (P2) uses it as a seed. This one takes the password in clear." },
+        "bcc-p0": { "name": "BCC", "note": "0x68: XOR of all bytes after SOH, up to and including ETX." },
+        "p1": { "name": "P1", "note": "Here is the password, in clear." },
+        "password": { "name": "Password", "note": "(18273645). Anyone watching the optical port can read it." },
+        "bcc-p1": { "name": "BCC", "note": "0x69." },
+        "ack-password": { "name": "ACK", "note": "ACK (0x06): the password is right. Reading and writing are open." },
+        "r1": { "name": "R1", "note": "Read one value, as ASCII text." },
+        "ask-280": { "name": "Address", "note": "2.8.0(): the address to read, with empty brackets." },
+        "bcc-r1": { "name": "BCC", "note": "0x59." },
+        "a-280": { "name": "Address", "note": "2.8.0: active energy export, all tariffs: what the building's solar panels fed into the grid." },
+        "v-280": { "name": "Value", "note": "(000123.456*kWh)." },
+        "bcc-answer": { "name": "BCC", "note": "0x5F: from the byte after STX up to and including ETX." },
+        "b0": { "name": "B0", "note": "Break: the session ends at once." },
+        "bcc-b0": { "name": "BCC", "note": "0x71, the letter q. A break is always the same 5 bytes: 01 42 30 03 71." },
+        "l-c": { "name": "C · quantity", "note": "1: active power, import." },
+        "l-d": { "name": "D · processing", "note": "8: the total over time, so energy." },
+        "l-e": { "name": "E · tariff", "note": "0: all tariffs. 1.8.1 is tariff 1." },
+        "l-value": { "name": "Value", "note": "012345.678: the digits the meter keeps, with its decimal point." },
+        "l-unit": { "name": "Unit", "note": "kWh, after a star (*)." }
+    },
+    "devices": {
+        "laptop": "Technician's laptop",
+        "meter": "Electricity meter",
+        "house": "Building"
+    },
+    "facts": {
+        "standard": "IEC 62056-21 (formerly IEC 61107)",
+        "between": "Hand-held unit or laptop → meter, through an optical probe",
+        "transport": "Infrared port with a magnetic probe; also a 20 mA current loop or RS-232",
+        "security": "None for a readout. Programming mode: a password, sent in clear",
+        "speed": "Starts at 300 baud, 7E1; then up to 19200 baud"
+    },
+    "tips": [
+        "Set the serial port to 7 data bits and even parity (7E1). At 8N1 the meter sees parity errors and stays silent, and its answers look like garbage.",
+        "Switch to the new speed only when the last byte of the ACK message has left. USB adapters buffer data: switching too early sends the end of the message at the wrong speed.",
+        "The BCC starts after STX or SOH, not with it, and it includes ETX. Getting either end wrong is a common bug in home-made readers."
+    ],
+    "points": {
+        "speed": "Speed",
+        "import": "Energy import",
+        "export": "Energy export"
+    },
+    "anatomy": {
+        "line": "A line of the readout"
+    }
+}

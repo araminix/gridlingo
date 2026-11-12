@@ -1,0 +1,23 @@
+# Data logger, RS-485 line 1 (made up for learning)
+port: /dev/ttyS1
+baud: 9600
+parity: even        # 8E1
+stop_bits: 1
+timeout_ms: 1000
+retries: 1
+after_broadcast_ms: 200
+slaves:
+  - address: 1
+    name: Inverter 1
+    read: { function: 4, address: 0, count: 2 }
+    values: [power W, voltage 0.1 V]
+    limit: { register: 40201, unit: "%" }
+  - address: 2
+    name: Energy meter
+    read: { function: 4, address: 12, count: 2 }
+    values: [power W float32 ABCD]
+  - address: 3
+    name: Inverter 2
+    read: { function: 4, address: 0, count: 2 }
+    values: [power W, voltage 0.1 V]
+    limit: { register: 40201, unit: "%" }

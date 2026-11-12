@@ -1,0 +1,125 @@
+{
+    "intro": "A merging unit sits next to the current and voltage transformers of a bay. It measures them 4000 times a second and publishes each set of samples as an Ethernet frame on the process bus. Protection relays subscribe and work on these samples instead of on copper wires from the transformers.",
+    "steps": {
+        "sync": { "title": "Synchronise", "text": "A PTP clock sets the time in the merging unit and the relay to about a microsecond. The merging unit takes its samples on that clock: sample 0 at the start of every second." },
+        "sample": { "title": "Stream", "text": "Every 250 µs the merging unit sends one frame with eight values: three phase currents, the neutral current, three phase voltages and the neutral voltage. Each value is one instant on the wave, not an rms value." },
+        "gap": { "title": "A sample is lost", "text": "Frames keep coming, each with the next smpCnt. After 1236 comes 1238: frame 1237 was lost on the way. The relay sees the gap. It can bridge one missing sample; if several go missing in a row, it blocks the functions that need them." },
+        "unsync": { "title": "Clock lost", "text": "The PTP clock fails. The merging unit keeps time on its own oscillator for a while, then sets smpSynch to 0. This relay uses only this merging unit, so it keeps protecting and raises an alarm. Protection that compares several merging units, such as busbar or line differential, would block." },
+        "fault": { "title": "Fault", "text": "A short circuit from phase A to earth on F1. The samples show 2.8 kA in phase A and current in the neutral. The relay's overcurrent function trips: it sends a GOOSE message back to the merging unit, which closes the trip contact of Q1." },
+        "open": { "title": "Breaker opens", "text": "80 ms after the fault, Q1 is open. The samples show almost no current, and the relay resets its trip." }
+    },
+    "frames": {
+        "ptp-sync": "This is the exact time",
+        "sv-0": "Sample 0: IA 531.57 A, VA 28 169.13 V …",
+        "sv-gap": "Sample 1238 (1237 never arrived)",
+        "sv-unsync": "Sample 2650, not synchronised",
+        "sv-fault": "Sample 3127: IA −3796.73 A",
+        "goose-trip": "Trip Q1!",
+        "trip-wire": "Energise the trip coil of Q1",
+        "sv-open": "No current in F1"
+    },
+    "notes": {
+        "ptp-sync": "PTP with the power profile (IEC 61850-9-3) sends Sync once a second, as multicast. Each switch adds how long the frame waited inside it, so every device can correct for that. The PTP lesson explains it.",
+        "goose-trip": "A GOOSE message on the process bus, from the relay to the merging unit. The GOOSE lesson takes one apart.",
+        "trip-wire": "A copper wire, not a network message. This merging unit has outputs to the breaker next to its inputs from the transformers.",
+        "sv-open": "The same frame as before, with smpCnt 3447. IA, IB and IC are close to 0: Q1 has opened."
+    },
+    "fields": {
+        "dst": { "name": "Destination", "note": "A multicast address from the range IEC 61850 keeps for sampled values (01-0C-CD-04-…). Every subscriber listens to it." },
+        "src": { "name": "Source", "note": "The merging unit's own MAC address." },
+        "vlan": { "name": "VLAN tag", "note": "0x8100, then priority 4 and VLAN 20, the VLAN of the process bus." },
+        "ethertype": { "name": "EtherType", "note": "0x88BA means sampled values. There is no IP and no TCP in this frame." },
+        "appid": { "name": "APPID", "note": "0x4000: the first value of the range the 9-2 LE profile uses (0x4000 to 0x7FFF)." },
+        "length": { "name": "Length", "note": "106 bytes, from the APPID to the end." },
+        "reserved": { "name": "Reserved", "note": "Two reserved fields, zero here." },
+        "savpdu": { "name": "savPdu", "note": "Tag 0x60 starts the message. Its length is also 0x60: 96 bytes follow." },
+        "noasdu": { "name": "noASDU", "note": "1: one set of samples (an ASDU) in this frame. At 80 samples per cycle, each sample gets its own frame." },
+        "seqasdu": { "name": "seqASDU", "note": "Tag 0xA2: the list of ASDUs, 91 bytes." },
+        "asdu": { "name": "ASDU", "note": "Tag 0x30: one set of samples, 89 bytes." },
+        "svid": { "name": "svID", "note": "\"F1MUSV01\": the name of this stream, set in the SCL file. The relay checks it." },
+        "smpcnt-0": { "name": "smpCnt 0", "note": "The sample counter: 0, the first sample of this second. It counts to 3999, then starts again at 0." },
+        "smpcnt-1238": { "name": "smpCnt 1238", "note": "0x04D6 = 1238. The last frame the relay got was 1236: sample 1237 is missing." },
+        "smpcnt-2650": { "name": "smpCnt 2650", "note": "0x0A5A = 2650. The merging unit still counts from 0 to 3999, but on its own oscillator: 0 no longer falls on the start of a second." },
+        "smpcnt-3127": { "name": "smpCnt 3127", "note": "0x0C37 = 3127." },
+        "confrev": { "name": "confRev 1", "note": "The configuration revision. It must match the one the relay was set up with." },
+        "synch-1": { "name": "smpSynch 1", "note": "Synchronised: the samples are taken on the common clock." },
+        "synch-0": { "name": "smpSynch 0", "note": "Not synchronised. A relay that combines this stream with others cannot be sure their samples were taken at the same instant." },
+        "seqdata": { "name": "seqData", "note": "Tag 0x87, 64 bytes: eight values of 4 bytes, each followed by 4 bytes of quality." },
+        "ia": { "name": "IA", "note": "0x00081C72 = 531 570 mA: 531.57 A. One count is 1 mA." },
+        "ib": { "name": "IB", "note": "0xFFF96344 = −433 340 mA: −433.34 A. The values are signed: FF… is a negative number." },
+        "ic": { "name": "IC", "note": "−98.23 A." },
+        "in": { "name": "IN", "note": "The neutral current: 0. In a healthy feeder IA + IB + IC is zero." },
+        "va": { "name": "VA", "note": "0x002AFB91 = 2 816 913 × 10 mV: 28 169.13 V. Phase A is at the top of its wave (34.5 kV ÷ √3 × √2). One count is 10 mV." },
+        "vb": { "name": "VB", "note": "−14 084.57 V." },
+        "vc": { "name": "VC", "note": "−14 084.56 V." },
+        "vn": { "name": "VN", "note": "The neutral voltage: 0. In a healthy network VA + VB + VC is zero." },
+        "q": { "name": "Quality", "note": "Good: no flag is set. The two lowest bits give the validity: 01 is invalid, 11 questionable." },
+        "x-ia": { "name": "IA", "note": "Phase A current: a signed count of mA, as in the first frame." },
+        "x-ib": { "name": "IB", "note": "Phase B current, in mA." },
+        "x-ic": { "name": "IC", "note": "Phase C current, in mA." },
+        "x-in": { "name": "IN", "note": "Neutral current, in mA: 0 while the feeder is healthy." },
+        "x-va": { "name": "VA", "note": "Phase A voltage: a signed count of 10 mV." },
+        "x-vb": { "name": "VB", "note": "Phase B voltage, in 10 mV." },
+        "x-vc": { "name": "VC", "note": "Phase C voltage, in 10 mV." },
+        "x-vn": { "name": "VN", "note": "Neutral voltage, in 10 mV: 0 while the network is healthy." },
+        "ia-f": { "name": "IA", "note": "0xFFC61104 = −3796.73 A at this instant. That is 2.8 kA rms, seven times the load current." },
+        "ib-f": { "name": "IB", "note": "−83.61 A: phase B still carries its load." },
+        "ic-f": { "name": "IC", "note": "526.32 A: phase C still carries its load." },
+        "in-f": { "name": "IN", "note": "−3354.02 A. The three phases no longer add up to zero: current flows through the earth." },
+        "va-f": { "name": "VA", "note": "0xFFFA62AA = −3679.58 V: a quarter of what phase A would show at this instant. The fault is on phase A." },
+        "vb-f": { "name": "VB", "note": "−13 441.15 V." },
+        "vc-f": { "name": "VC", "note": "28 159.48 V." },
+        "vn-f": { "name": "VN", "note": "11 038.75 V: no longer zero." }
+    },
+    "devices": {
+        "ctvt": "CT · VT of F1",
+        "q1": "Breaker Q1",
+        "mu": "F1 MU",
+        "switch": "Switch",
+        "relay": "F1 PROT",
+        "clock": "PTP clock"
+    },
+    "facts": {
+        "standard": "IEC 61850-9-2, with the 9-2 LE profile (now IEC 61869-9)",
+        "between": "Merging unit → protection relays, meters and recorders",
+        "transport": "Ethernet multicast on the process bus, no IP",
+        "frames": "One stream, no requests, no answers: 4000 frames a second at 50 Hz, 4800 at 60 Hz",
+        "speed": "About 5 Mbit/s for each merging unit"
+    },
+    "tips": [
+        "The relay checks svID, confRev, APPID and the destination MAC. If one differs from its setup, it drops the stream and its protection is blind.",
+        "Count the streams per switch port. Each 9-2 LE stream takes about 5 Mbit/s, and a port that floods every stream to every device runs full.",
+        "Newer merging units follow IEC 61869-9: 4800 samples a second, two ASDUs per frame. The relay must expect the same profile.",
+        "Under edition 2, smpSynch 2 means a global clock, such as GPS, and 1 a local one. Check what your relays accept before you go live."
+    ],
+    "points": {
+        "smpcnt": "Sample counter",
+        "synch": "Synchronised",
+        "ia": "Phase A current, this sample"
+    },
+    "values": {
+        "gap": "1238 (1237 missing)"
+    },
+    "timing": {
+        "title": "80 samples per cycle",
+        "note": "One cycle at 50 Hz lasts 20 ms. The merging unit samples it 80 times, every 250 µs, and sends each sample in its own frame. The relay rebuilds the wave from these steps.",
+        "va": "VA, as sampled",
+        "frames": "SV frames",
+        "smp0": "smpCnt 0",
+        "smp40": "smpCnt 40"
+    },
+    "singleLine": {
+        "title": "Single-line diagram of the 34.5 kV busbar",
+        "bus": "34.5 kV · bus A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "open",
+        "fault": "fault · 2.8 kA",
+        "station": "Station bus · Ethernet",
+        "process": "Process bus · Ethernet",
+        "f1": "F1 · Overhead line",
+        "f2": "F2 · Station supply"
+    },
+    "playground": {
+        "scl": "The process bus's SCL file. Open F1MUMU01: the control block MSVCB01 sends the data set PhsMeas1 to 01-0C-CD-04-00-01. TCTR1.Amp.sVC says why one count is 1 mA. In F1PROT, PTOC1's inputs show what the relay subscribes to."
+    }
+}

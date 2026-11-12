@@ -1,0 +1,83 @@
+{
+    "intro": "How a utility asks buildings to use less power when the grid is short. The utility's server is the VTN (virtual top node); the customer's side is the VEN (virtual end node). This lesson uses OpenADR 2.0b, the version most products in the field speak: XML over HTTPS, with the VEN polling, so the building needs no open port. The VTN says what and when; the building decides how.",
+    "steps": {
+        "poll": { "title": "Ask for news", "text": "At 12:00 UTC the VEN polls, as it does every minute. This time the VTN answers with an event: level 1, from 17:00 to 18:00 UTC." },
+        "optin": { "title": "Opt in", "text": "The event asks for an answer. The VEN opts in, and the VTN confirms." },
+        "shed": { "title": "Shed load", "text": "At 17:00, by its own clock, the VEN tells the building's controller to act: cooling set points go up by 2 °C and corridor lights dim. The load falls from 420 kW to 340 kW." },
+        "report": { "title": "Report", "text": "The VEN sends the load it measures, as agreed when it registered. The utility sees the drop." },
+        "end": { "title": "Back to normal", "text": "At 18:00 the event is over. The VEN takes its commands back, and the building returns to its schedule." }
+    },
+    "frames": {
+        "tls": "Open a TLS connection, with my certificate",
+        "poll": "Anything new for me?",
+        "distribute": "Peak event: level 1, 17:00 to 18:00",
+        "created": "We will take part",
+        "response": "Noted",
+        "shed": "Level 1 now: raise the cooling set points, dim the lights",
+        "update-report": "Our load is now 340 kW",
+        "updated-report": "Report received",
+        "restore": "Event over: back to normal"
+    },
+    "notes": {
+        "tls": "The VEN always opens the connection. Both sides show a certificate issued for OpenADR. TLS 1.2, with one of the two suites OpenADR requires: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 or TLS_RSA_WITH_AES_128_CBC_SHA256.",
+        "poll": "An HTTP POST to /OpenADR2/Simple/2.0b/OadrPoll, carrying a small oadrPoll message: just the VEN's venID. The VTN set the poll rate when the VEN registered.",
+        "distribute": "The answer to the poll. It lists every pending and active event for this VEN, not only new ones. The playground shows this one line by line.",
+        "created": "A POST to EiEvent: an oadrCreatedEvent that names the event (eventID PEAK-20260715, modificationNumber 0), with responseCode 200 and optType optIn. optOut would tell the utility not to count on this building.",
+        "response": "An oadrResponse with responseCode 200. The VTN answers a poll with the same message when it has nothing new.",
+        "shed": "Not OpenADR: a BACnet write from the VEN to the building's controller. OpenADR only says level 1. What level 1 means is set in the building, not by the utility.",
+        "update-report": "A POST to EiReport: an oadrUpdateReport with a TELEMETRY_USAGE report, the building's real power every 15 minutes. The VTN asked for it with oadrCreateReport, after the VEN had registered the reports it can send.",
+        "updated-report": "An oadrUpdatedReport with responseCode 200.",
+        "restore": "Not OpenADR either. The VEN writes NULL at its BACnet priority, which releases its commands. The load climbs back to 415 kW."
+    },
+    "fields": {
+        "a-host": { "name": "VTN", "note": "The utility's server. A VTN may put a path of its own before the rest." },
+        "a-transport": { "name": "Transport", "note": "Simple HTTP. OpenADR 2.0b can also run over XMPP, where the VTN pushes." },
+        "a-profile": { "name": "Profile", "note": "2.0b: events, reports and opt schedules. 2.0a is a smaller profile for simple devices, with events only." },
+        "a-service": { "name": "Service", "note": "OadrPoll. Each message goes to its service: events to EiEvent, reports to EiReport, registration to EiRegisterParty, opt schedules to EiOpt." }
+    },
+    "devices": {
+        "vtn": "Utility VTN",
+        "ven": "Building VEN",
+        "bms": "BMS controller",
+        "building": "Office building"
+    },
+    "facts": {
+        "standard": "OpenADR 2.0b (IEC 62746-10-1)",
+        "between": "Utility or aggregator (VTN) → buildings and aggregators (VEN)",
+        "transport": "XML over HTTPS; the VEN polls (or XMPP)",
+        "security": "TLS 1.2, a certificate on each side; XML signatures optional",
+        "frames": "Services: EiEvent, EiReport, EiRegisterParty, EiOpt, OadrPoll"
+    },
+    "tips": [
+        "Each change to an event raises its modificationNumber. Answer every new number, or the VTN thinks the VEN never got the change.",
+        "The VEN runs the event by its own clock. Keep it on NTP: a clock 10 minutes late sheds 10 minutes late.",
+        "The utility plans with every opt-in. If the building cannot shed, opt out early, not after the event has started."
+    ],
+    "points": {
+        "status": "Event status",
+        "opt": "Answer",
+        "load": "Building load"
+    },
+    "anatomy": {
+        "endpoint": "The address a VEN polls"
+    },
+    "playground": {
+        "file": "The oadrDistributeEvent of step 1, as the VEN gets it. Pick a marked line to see what it means.",
+        "payload": "Every OpenADR 2.0b message is an oadrPayload. The namespaces show where its parts come from: OpenADR itself, Energy Interoperation (ei), EMIX and iCalendar (xcal).",
+        "signed": "What an XML signature would cover. Signing is optional: TLS already protects the connection.",
+        "distribute": "The message: oadrDistributeEvent, from the VTN.",
+        "vtn": "The VTN's name.",
+        "event-id": "The event's name. The VEN's answer must name it.",
+        "modification": "0: the first version. Each change to the event raises it, and the VEN must answer again.",
+        "market": "The program the event belongs to. The building signed up to it.",
+        "status": "far: the event is still hours away. Later answers show it as active, then completed.",
+        "test": "false: a real event. A test event checks the whole chain; the VEN need not act on it.",
+        "start": "The event starts at 17:00 UTC.",
+        "length": "PT1H: it lasts one hour (an ISO 8601 duration).",
+        "level": "The value for this interval: 1.0. For the SIMPLE signal, 0 is normal, 1 moderate, 2 high, 3 special.",
+        "simple": "SIMPLE: the one signal every OpenADR VEN must understand.",
+        "current": "The value now: 0.0, because the event has not started.",
+        "target": "The event is for this VEN only.",
+        "response": "always: the VEN must answer with oadrCreatedEvent, opting in or out."
+    }
+}

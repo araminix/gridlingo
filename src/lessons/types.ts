@@ -32,7 +32,8 @@ export type DeviceKind =
     | "laptop"
     | "transformer"
     | "controller"
-    | "radio";
+    | "radio"
+    | "firewall";
 
 /** A protocol in the library. Its name and wire are technical and stay the same in every language. */
 export interface Meta {
@@ -73,6 +74,11 @@ export interface Frame {
     time?: string;
     /** The bytes, in order. A frame without them is explained in words only (`frames.<id>` and `notes.<id>`). */
     fields?: readonly Field[];
+    /**
+     * Its size on the wire, when the fields show only part of it (the header of an encrypted record); 0 when the fields
+     * are not bytes on the wire but digits written as hex (a time code), so that no size is shown.
+     */
+    size?: number;
     /** The scene link it travels on, when it is not the one between `from` and `to`. */
     link?: string;
 }
@@ -162,13 +168,14 @@ export interface SingleLine {
     }[];
 }
 
+/** A playground's introduction is `playground.<intro>` in the texts, or `playground.<kind>` when it names none. */
 export type Playground =
     /** A number and its bytes, both ways, in every byte order. */
-    | { kind: "encoder"; type: "float32" | "int16" | "uint16" | "int32" | "uint32"; order: "ABCD" | "DCBA" | "BADC" | "CDAB"; value: number }
+    | { kind: "encoder"; type: "float32" | "int16" | "uint16" | "int32" | "uint32"; order: "ABCD" | "DCBA" | "BADC" | "CDAB"; value: number; intro?: string }
     /** An IEC 61850 SCL file (a sample, or the reader's own) as a tree. */
-    | { kind: "scl"; sample: string; file: string }
+    | { kind: "scl"; sample: string; file: string; intro?: string }
     /** A sample file with notes on its lines: `playground.<note>` in the texts. */
-    | { kind: "file"; sample: string; file: string; notes: Readonly<Record<number, string>> };
+    | { kind: "file"; sample: string; file: string; notes: Readonly<Record<number, string>>; intro?: string };
 
 export interface Lesson {
     /** The columns of the sequence view, left to right. */
@@ -195,7 +202,7 @@ export interface LessonText {
     intro: string;
     steps: Record<string, { title: string; text: string }>;
     frames: Record<string, string>;
-    /** Extra words on a frame without bytes. */
+    /** Words on a frame: required for a frame without bytes, optional above the bytes of one with them. */
     notes?: Record<string, string>;
     fields: Record<string, { name: string; note: string }>;
     devices: Record<string, string>;

@@ -1,0 +1,10 @@
+{
+    "timestamp": 1794480005024,
+    "metrics": [
+        { "name": "AC/Power", "alias": 2, "timestamp": 1794480005000, "dataType": "Float", "value": 4790.0 },
+        { "name": "AC/Energy", "alias": 3, "timestamp": 1794480005000, "dataType": "Double", "value": 18452.73 },
+        { "name": "Temperature", "alias": 4, "timestamp": 1794480005000, "dataType": "Float", "value": 41.5 },
+        { "name": "Status", "alias": 5, "timestamp": 1794480005000, "dataType": "String", "value": "Running" }
+    ],
+    "seq": 1
+}

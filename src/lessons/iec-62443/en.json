@@ -1,0 +1,85 @@
+{
+    "intro": "Not a protocol on the wire, but the rulebook for securing a plant's control systems (OT). It splits a plant into zones, groups of devices that need the same protection, and lets them talk only through conduits with clear rules. Each zone gets a target security level, and seven foundational requirements say what that level means.",
+    "steps": {
+        "inside": { "title": "Zones and conduits", "text": "The solar plant has four zones: the office, a DMZ, control and field. They talk only through conduits, here guarded by two firewalls. SCADA polling an inverter crosses FW-2, and a rule allows exactly that." },
+        "historian": { "title": "Into the DMZ", "text": "The historian in the DMZ collects the plant's values from SCADA. The DMZ is the buffer: the office and the plant never talk directly." },
+        "office": { "title": "The office reads the DMZ", "text": "An engineer in the office opens today's production report. It comes from the historian; the office never reaches the plant." },
+        "blocked": { "title": "Blocked", "text": "A laptop in the office tries to reach an inverter directly. No rule allows it, so FW-1 drops the connection and logs it." },
+        "vendor": { "title": "Vendor access", "text": "The inverter's maker must update INV-07. Its engineer logs in to the jump host with two factors and works from there, during an approved job. Everything is logged." }
+    },
+    "frames": {
+        "scada-poll": "SCADA reads inverter INV-07",
+        "historian-read": "Give me the latest plant values",
+        "scada-values": "Here they are",
+        "office-read": "Show me today's production",
+        "blocked": "Connect me to inverter INV-07, port 502",
+        "vendor-login": "Vendor login: password and one-time code",
+        "vendor-session": "Open INV-07's maintenance page"
+    },
+    "notes": {
+        "scada-poll": "Modbus TCP from SCADA in the control zone to the inverter in the field zone. The connection crosses FW-2, and conduit C3 has a rule for exactly this: from SCADA, to the inverters, TCP 502.",
+        "historian-read": "Conduit C2 lets the historian, and only the historian, open OPC UA (TCP 4840) to SCADA. The historian keeps a copy of the plant's data in the DMZ.",
+        "scada-values": "The answer needs no rule of its own: the firewall knows it belongs to a connection it allowed.",
+        "office-read": "Office users read the historian in the DMZ, never the plant. If the office is attacked, the attacker finds a copy of the data, not the controls.",
+        "blocked": "No rule lets the office reach the field zone, so the last rule of C1 drops it. The laptop gets no answer. The log entry is worth an alarm: the laptop may be infected, or someone is trying.",
+        "vendor-login": "From the internet, the vendor reaches the jump host in the DMZ and nothing else. The jump host asks for a password and a one-time code from the engineer's phone: two factors, so a stolen password is not enough. It records the session.",
+        "vendor-session": "From the jump host, conduit C4 allows HTTPS to the inverters, only while the job is approved. The vendor's own laptop never touches the plant network."
+    },
+    "fields": {
+        "sl1": { "name": "Mistakes", "note": "Protects against error and chance: someone plugs in the wrong cable or opens the wrong file." },
+        "sl2": { "name": "Simple attacks", "note": "Against someone who means it, with simple means: common tools, general IT skills, little money." },
+        "sl3": { "name": "Skilled attacks", "note": "Against an attacker who knows OT systems, with good tools and some money." },
+        "sl4": { "name": "Well-funded attacks", "note": "Against a team with deep OT skills, much money and much time, such as a state." },
+        "fr1": { "name": "FR 1 · Identification and authentication", "note": "Know who is asking, a person, a program or a device, before letting them in." },
+        "fr2": { "name": "FR 2 · Use control", "note": "Once known, each may do only what their role allows. An operator may not load new firmware." },
+        "fr3": { "name": "FR 3 · System integrity", "note": "Software, settings and messages cannot be changed without it being noticed." },
+        "fr4": { "name": "FR 4 · Data confidentiality", "note": "Keep secrets secret, stored or on the wire: passwords, keys, some data. Only 2 here: most plant values are not secret." },
+        "fr5": { "name": "FR 5 · Restricted data flow", "note": "Data flows only where it must: the zones, the conduits and their rules." },
+        "fr6": { "name": "FR 6 · Timely response to events", "note": "Logs and alarms, so that an attack is seen and handled in time." },
+        "fr7": { "name": "FR 7 · Resource availability", "note": "The plant keeps running under load or attack, and can be restored from backups." }
+    },
+    "devices": {
+        "laptop": "Office laptop",
+        "vendor": "Vendor engineer",
+        "fw1": "FW-1",
+        "historian": "Historian (DMZ)",
+        "jump": "Jump host (DMZ)",
+        "fw2": "FW-2",
+        "scada": "SCADA (control)",
+        "fswitch": "Field switch",
+        "rtu": "RTU (field)",
+        "inverter": "INV-07 (field)"
+    },
+    "facts": {
+        "standard": "ISA/IEC 62443 series: zones and conduits in 62443-3-2, system requirements in 62443-3-3",
+        "between": "Asset owner, system integrator and product supplier: each has its own parts",
+        "transport": "None of its own: its rules cover every protocol in the plant",
+        "security": "A target security level, SL 1 to SL 4, for each zone",
+        "model": "Zones, conduits and 7 foundational requirements"
+    },
+    "tips": [
+        "A rule from any to any, even for one day, joins two zones into one. Name the source, the destination and the port.",
+        "Let remote access end in the DMZ. A vendor VPN straight into the control zone skips every conduit.",
+        "Shared accounts break FR 1: nobody can tell who did what. Give every person their own login, vendors too.",
+        "Three levels are often mixed up: SL-T is the zone's target, SL-C what a product can reach, SL-A what the built zone really reaches. Check SL-A, not the datasheet."
+    ],
+    "anatomy": {
+        "levels": "Security levels: who a zone must stand up to",
+        "vector": "The target of the control zone: one level for each foundational requirement"
+    },
+    "playground": {
+        "file": "The plant's zones and the rules of its conduits. Find the rule behind each step.",
+        "zones": "A zone is a group of devices that need the same protection. SL-T is the security level the zone must reach.",
+        "enterprise": "SL 1: the office network. It is IT, not OT, and the plant treats it as untrusted.",
+        "dmz": "SL 2: the buffer between office and plant. Connections end here, and new ones start here.",
+        "control": "SL 3: SCADA runs the plant, so it must stand up to a skilled attacker who knows OT.",
+        "field": "SL 3 as well: the inverters and the RTU act on the grid.",
+        "conduits": "A conduit groups the connections between two zones. Each rule names a source, a destination and a service; the first rule that matches decides.",
+        "office": "The office reads the plant's data from the historian, never from the plant.",
+        "vendor": "From the internet, only the jump host is reachable. The jump host asks for two factors.",
+        "deny": "Everything else is dropped and logged. This rule stops the laptop in step 4.",
+        "historian": "One source, one destination, one port: OPC UA from the historian to SCADA.",
+        "scada-poll": "SCADA reads the inverters with Modbus TCP: step 1.",
+        "job": "Vendor sessions reach the inverters only while a job is approved. The rest of the time, this rule is off."
+    }
+}

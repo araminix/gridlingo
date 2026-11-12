@@ -1,0 +1,99 @@
+{
+    "intro": "How North American meters are read. C12.19 keeps everything a meter knows in numbered tables. C12.18 reads and writes those tables through the optical port, after a logon and a password. C12.22 carries the same table services over a network.",
+    "steps": {
+        "identify": { "title": "Identify", "text": "The laptop sends Identification at 9600 baud, 8N1. The meter confirms each packet with one byte, 0x06 (ACK), then answers. Each packet ends with a 2-byte CRC, which this lesson leaves out." },
+        "logon": { "title": "Log on", "text": "Logon names the user, for the meter's log. Security sends the 20-byte password. Only now may the laptop read or write protected tables." },
+        "read": { "title": "Read table 23", "text": "A full read of table 23, Current Register Data: 12 bytes and a checksum. What the bytes mean is in other tables: ST 0 says how numbers are coded, ST 21 how many there are, ST 12 and ST 22 what they measure." },
+        "end": { "title": "Log off", "text": "Logoff ends the session, Terminate ends the conversation. Without them, the meter keeps the session open until a timeout." },
+        "network": { "title": "Over the network", "text": "Later, the head-end reads the same table with C12.22. The same service, 30 00 17, now travels in an ACSE message on port 1153. No logon is needed: each message carries its own security." }
+    },
+    "frames": {
+        "ident": "Identify yourself",
+        "ident-ok": "OK, I speak C12.18",
+        "logon": "Log on as user 2, TECH01",
+        "logon-ok": "OK",
+        "security": "The password is tech2026",
+        "security-ok": "OK, password accepted",
+        "read": "Send me all of table 23",
+        "table": "12 345 678 Wh delivered, 123 456 Wh received",
+        "logoff": "Log off",
+        "logoff-ok": "OK",
+        "terminate": "End of conversation",
+        "terminate-ok": "OK",
+        "c1222-read": "Send me all of table 23 (over the network)",
+        "c1222-table": "Table 23: the same 12 bytes"
+    },
+    "notes": {
+        "ident-ok": "The answer starts with 0x00 (OK), then the protocol (0x00: C12.18), its version and its revision. Newer meters also list optional features. Next the laptop could send Negotiate (0x60 to 0x6B) for a higher speed or bigger packets; here it keeps the defaults.",
+        "c1222-read": "An ACSE message (tag 0x60) on UDP or TCP port 1153. Its header names the meter (called AP title), the head-end (calling AP title) and this request (calling AP invocation ID). Its user information holds EPSEM: a control byte that sets the security mode, then the same service as on the optical port, 30 00 17. In the secure modes, AES-128 in EAX' mode authenticates the message, or authenticates and encrypts it, with a key the meter knows.",
+        "c1222-table": "An ACSE message back to the head-end. Its header lets the head-end match it to the request. Inside is the same answer as on the optical port: 0x00 (OK), the count, the 12 bytes of table 23 and their checksum."
+    },
+    "fields": {
+        "stp": { "name": "STP", "note": "0xEE starts every packet. A 2-byte CRC (CCITT polynomial) ends it; it is not shown here." },
+        "identity": { "name": "Identity", "note": "0x00 here." },
+        "ctrl-0": { "name": "Control", "note": "0x00: one packet, toggle bit 0." },
+        "ctrl-1": { "name": "Control", "note": "0x20: the toggle bit is 1. Each side flips it with every new packet, so a packet sent twice can be spotted." },
+        "seq": { "name": "Sequence number", "note": "0: no more packets follow. A message too big for one packet comes in several, counted down to 0." },
+        "len-1": { "name": "Length", "note": "0x0001: one byte of data. Numbers in the packet are sent most significant byte first." },
+        "len-3": { "name": "Length", "note": "3 bytes of data." },
+        "len-13": { "name": "Length", "note": "0x000D = 13 bytes of data." },
+        "len-16": { "name": "Length", "note": "0x0010 = 16 bytes of data." },
+        "len-21": { "name": "Length", "note": "0x0015 = 21 bytes of data." },
+        "ident": { "name": "Identification", "note": "0x20: the first service of every session." },
+        "logon": { "name": "Logon", "note": "0x50: start a session as a named user." },
+        "user-id": { "name": "User ID", "note": "0x0002: a number the meter writes into its event log." },
+        "user": { "name": "User", "note": "\"TECH01\", filled with spaces to 10 bytes." },
+        "security": { "name": "Security", "note": "0x51: the password follows." },
+        "password": { "name": "Password", "note": "20 bytes: \"tech2026\" and 12 spaces. It crosses the optical port in clear." },
+        "ok": { "name": "OK", "note": "Response code 0x00: OK. 0x01 is an error; 0x03 means this password does not allow it." },
+        "read-full": { "name": "Full read", "note": "0x30: read a whole table." },
+        "table-23": { "name": "Table 23", "note": "0x0017 = 23: ST 23, Current Register Data. Manufacturer tables add 2048: MT 23 is 0x0817." },
+        "ok-read": { "name": "OK", "note": "0x00: OK, the table follows." },
+        "count": { "name": "Count", "note": "0x000C: 12 bytes of table data." },
+        "sum-0": { "name": "Summation 0", "note": "6 bytes, low byte first, as ST 0 of this meter says. 0x00BC614E = 12 345 678 Wh delivered." },
+        "sum-1": { "name": "Summation 1", "note": "0x01E240 = 123 456 Wh received: energy the house sent to the grid." },
+        "cksum": { "name": "Checksum", "note": "0x72: the table bytes and this byte add up to 0, modulo 256." },
+        "logoff": { "name": "Logoff", "note": "0x52: end the session." },
+        "terminate": { "name": "Terminate", "note": "0x21: end the conversation." }
+    },
+    "devices": {
+        "laptop": "Technician's laptop",
+        "meter": "Meter",
+        "relay": "Collector",
+        "headend": "Head-end"
+    },
+    "facts": {
+        "standard": "ANSI C12.18 (optical port), C12.19 (tables), C12.22 (networks); also IEEE 1701, 1377, 1703",
+        "between": "Laptop or head-end → meter",
+        "transport": "Optical port at 9600 baud, 8N1; C12.22 over UDP or TCP 1153",
+        "security": "C12.18: a 20-byte password in clear. C12.22: AES-128 (EAX') for each message",
+        "model": "Tables: standard (ST 0, ST 1, ST 23 …) and manufacturer (MT, from 2048)"
+    },
+    "tips": [
+        "Read ST 0 first. It says how numbers are coded and in which byte order; without it, table 23 is just bytes.",
+        "Many meters count wrong passwords and lock the port for a while. Check the password before you try again.",
+        "A table larger than one packet comes in several. Wait for sequence number 0, or read the table in parts with a partial read (0x3F: an offset and a count).",
+        "Manufacturer tables (MT, from 2048) are laid out as each maker chooses. You need the maker's documentation to read them."
+    ],
+    "points": {
+        "session": "Session",
+        "delivered": "Wh delivered",
+        "received": "Wh received"
+    },
+    "values": {
+        "identified": "identified",
+        "logged-on": "logged on",
+        "closed": "closed"
+    },
+    "playground": {
+        "file": "The tables this meter has. A C12.19 reader learns them from ST 0, then reads what it needs by number.",
+        "st0": "Read it first: how numbers are coded, in which byte order, and which tables exist.",
+        "st1": "Who made the meter: a 4-letter maker code, the model, hardware and firmware versions, and a serial number.",
+        "procedures": "Procedures, such as a demand reset or setting the clock, start with a write to ST 7. Their results come back in ST 8.",
+        "st12": "What each source measures: here, energy delivered and received, in Wh.",
+        "st21": "How many values the register tables hold. It fixes the size of ST 23.",
+        "st22": "Which source each summation in ST 23 comes from.",
+        "st23": "The table this lesson reads: two totals of 6 bytes each.",
+        "mt": "Manufacturer tables: their number plus 2048. The maker decides what is in them."
+    }
+}

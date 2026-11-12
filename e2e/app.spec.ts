@@ -133,6 +133,6 @@ test("every lesson opens and plays to its last step", async ({ page }) => {
         await page.goto(`/p/${meta.id}`);
         await expect(page.getByRole("heading", { level: 1 })).toHaveText(meta.name);
         await page.getByTestId("stage").locator("ol li button").last().click();
-        await expect(page.getByRole("heading", { name: /^Bytes · / })).toBeVisible();
+        await expect(page.getByTestId("frame").getByRole("heading")).toBeVisible();
     }
 });

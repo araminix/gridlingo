@@ -1,0 +1,19 @@
+# Zones and conduits of a 40 MW solar plant. Made up for learning.
+
+# zone       SL-T  hosts
+enterprise   1     office laptops 10.10.0.0/16
+dmz          2     historian 10.20.0.10, jump-host 10.20.0.20
+control      3     scada 10.30.0.10
+field        3     rtu 10.40.0.20, inverters 10.40.1.0/24
+
+# conduit  firewall  from       to         service   action  log  when
+C1         FW-1      office     historian  tcp/443   allow   yes  always
+C1         FW-1      internet   jump-host  tcp/443   allow   yes  always
+C1         FW-1      any        any        any       deny    yes  always
+C2         FW-2      historian  scada      tcp/4840  allow   yes  always
+C2         FW-2      any        any        any       deny    yes  always
+C3         FW-2      scada      rtu        tcp/2404  allow   yes  always
+C3         FW-2      scada      inverters  tcp/502   allow   yes  always
+C3         FW-2      any        any        any       deny    yes  always
+C4         FW-2      jump-host  inverters  tcp/443   allow   yes  approved-job
+C4         FW-2      any        any        any       deny    yes  always

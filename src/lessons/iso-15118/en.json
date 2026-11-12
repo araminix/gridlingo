@@ -1,0 +1,96 @@
+{
+    "intro": "How an electric car and a DC fast charger talk during a charge. The messages ride on the control pilot wire of the charging cable, as a powerline signal, with IPv6 and TCP on top. The car leads: it asks for each step and for the current it wants, and the charger answers with what it can give.",
+    "steps": {
+        "plug": { "title": "Plug in and pair", "text": "A 5 % duty cycle on the control pilot asks for digital talk. The powerline modems of car and charger find each other (SLAC). Then the car asks everyone on the link, ff02::1 on UDP port 15118, for the charger's IP address and port (SDP)." },
+        "session": { "title": "Open a session", "text": "TCP, then TLS. The two agree on a protocol version, and the charger opens a session." },
+        "limits": { "title": "Payment and limits", "text": "The driver pays with a card at the charger. Car and charger tell each other their limits: voltage, current and power." },
+        "prepare": { "title": "Check and pre-charge", "text": "Before any current flows, the charger tests the cable's insulation. Then it raises its voltage to the battery's." },
+        "charge": { "title": "Charge", "text": "The car closes its contactors and asks for current. It keeps asking, and the charger follows." },
+        "stop": { "title": "Stop", "text": "At 80 % the car ends the charge, and then the session." }
+    },
+    "frames": {
+        "cp": "Talk to me digitally",
+        "slac": "Which charger is on my cable?",
+        "sdp-req": "Where are you? I want TLS over TCP",
+        "sdp-res": "Here: fe80::ff:fe00:a1, port 54321, with TLS",
+        "tls": "Prove who you are, then encrypt",
+        "app": "I speak ISO 15118-2, or DIN 70121",
+        "setup": "New session 4A1F09C27B3E8D15",
+        "payment": "I will pay outside the car: ExternalPayment",
+        "params": "I can give 500 V, 125 A, 50 kW",
+        "cable-check": "The insulation is good",
+        "pre-charge": "Raise your output to 396 V",
+        "power-on": "Start: my contactors are closed",
+        "current-demand": "Give me 120 A",
+        "stop": "Done: end the session"
+    },
+    "notes": {
+        "cp": "This is still IEC 61851: a 1 kHz square wave with a 5 % duty cycle. 5 % offers no current; it means \"use digital communication\". The car's powerline modem wakes up.",
+        "slac": "SLAC (ISO 15118-3) finds the charger at the other end of this cable. Signals leak between cables in a car park, so the car sends a burst of sounding messages, and every charger that hears them reports how strong they arrived. The car picks the strongest with CM_SLAC_MATCH.REQ. That charger answers CM_SLAC_MATCH.CNF with the key of a private powerline network for the two of them.",
+        "tls": "The car opens TCP to [fe80::ff:fe00:a1]:54321, then TLS 1.2. The charger shows its certificate, and the car checks it against the V2G root certificates it holds. From here on, everything is encrypted.",
+        "app": "The first message in the session lists the protocols the car speaks, each with a version and a priority. The charger answers supportedAppProtocolRes with OK_SuccessfulNegotiation and the SchemaID it picked: 1, ISO 15118-2. The playground shows the message as XML.",
+        "setup": "The car sent SessionSetupReq with its EVCCID, the MAC address of its modem: 02-00-00-00-00-E1. The charger answers with a new 8-byte SessionID, its EVSEID and the time. Every message after this one carries the SessionID in its header.",
+        "payment": "Before this, ServiceDiscovery: the charger offered DC charging and two ways to pay, Contract (Plug & Charge) and ExternalPayment. The car picks ExternalPayment: the driver pays with a card or an app. Then it repeats AuthorizationReq until the charger answers Finished.",
+        "params": "The car sent its limits and its state of charge, 54 %. The charger answers with its own: at most 500 V, 125 A and 50 kW. Each value is a 16-bit integer, a power of ten and a unit, so 50 kW travels as 5000 × 10^1 W.",
+        "cable-check": "The car has set the control pilot to state C. The charger puts a test voltage on the DC cable and measures the insulation to earth. It answers Ongoing until it is done, then Finished, with EVSEIsolationStatus Valid.",
+        "pre-charge": "The battery is at 396 V, behind the car's open contactors. The car asks the charger to raise its output to the same voltage, with at most 2 A. The charger answers with its present voltage, 395 V: close enough to close the contactors without a spark.",
+        "power-on": "The car has closed its contactors. ChargeProgress Start: from now on the charger may deliver current.",
+        "current-demand": "The car asks for 120 A, with its state of charge, and sends the next request as soon as the answer arrives. The charger answers each one with what it delivers: 398 V, 120 A. The car is in control: it changes the current as the battery fills.",
+        "stop": "First PowerDeliveryReq with ChargeProgress Stop: the current falls to 0 and the car opens its contactors. WeldingDetection checks that they really opened. Then SessionStopReq with ChargingSession Terminate ends the session."
+    },
+    "fields": {
+        "version": { "name": "V2GTP version", "note": "Version 0x01, then the same byte inverted, 0xFE. A receiver drops a message with anything else." },
+        "sdp-req": { "name": "Payload type", "note": "0x9000: an SDP request." },
+        "sdp-res": { "name": "Payload type", "note": "0x9001: an SDP response." },
+        "len-2": { "name": "Length", "note": "2 bytes of payload follow. The header itself is always 8 bytes." },
+        "len-20": { "name": "Length", "note": "0x14 = 20 bytes follow: address, port, security and transport." },
+        "tls-req": { "name": "Security", "note": "0x00: the car wants TLS. 0x10 would mean without TLS." },
+        "tls-res": { "name": "Security", "note": "0x00: the charger agrees to TLS." },
+        "tcp": { "name": "Transport", "note": "0x00: TCP." },
+        "ip-prefix": { "name": "IPv6 prefix", "note": "fe80::/64: a link-local address, valid only on this link." },
+        "ip-id": { "name": "Interface ID", "note": "Made from the charger's MAC address, 02-00-00-00-00-A1: FF FE in the middle and the 0x02 bit flipped. The whole address is fe80::ff:fe00:a1." },
+        "port": { "name": "TCP port", "note": "0xD431 = 54321: where the charger waits for this car." },
+        "a-urn": { "name": "URN", "note": "A uniform resource name: a fixed label, not an address to open." },
+        "a-body": { "name": "Body", "note": "iso: the organisation that owns the name." },
+        "a-standard": { "name": "Standard", "note": "15118: communication between a vehicle and the grid." },
+        "a-part": { "name": "Part", "note": "Part 2: the network and application messages." },
+        "a-year": { "name": "Year", "note": "2013, the date in the schema's name. The standard itself came out in 2014." },
+        "a-schema": { "name": "Schema", "note": "MsgDef: the message definitions. DIN 70121 uses urn:din:70121:2012:MsgDef." }
+    },
+    "devices": {
+        "car": "Car",
+        "charger": "DC charger",
+        "csms": "CSMS"
+    },
+    "facts": {
+        "standard": "ISO 15118-2 (2014) for the messages, ISO 15118-3 for the powerline. ISO 15118-20 is the next generation.",
+        "between": "The car's controller (EVCC) → the charger's (SECC). The car asks, the charger answers.",
+        "transport": "HomePlug Green PHY on the control pilot, IPv6, SDP on UDP 15118, then TCP",
+        "security": "TLS 1.2: the charger proves itself with a certificate. Plug & Charge adds a contract certificate in the car.",
+        "frames": "EXI (XML packed into bits) inside an 8-byte V2GTP header"
+    },
+    "tips": [
+        "Many failed charges never get past SLAC. Check the modem, the control pilot wiring and the signal strength the charger reports before you look at messages.",
+        "Every physical value is an integer, a power of ten and a unit. Read the Multiplier: 5000 with Multiplier 1 is 50 kW, not 5 kW.",
+        "Slow work, like CableCheck or Authorization, is answered at once with EVSEProcessing Ongoing. The car asks again; a charger that keeps it waiting for an answer makes it give up.",
+        "Many chargers still pick DIN 70121 from the car's list. A capture where urn:din:70121:2012:MsgDef is chosen explains why Plug & Charge never starts."
+    ],
+    "points": {
+        "session": "Session",
+        "soc": "State of charge",
+        "voltage": "Charger output",
+        "current": "Current asked for"
+    },
+    "anatomy": {
+        "namespace": "The name of a protocol version, as supportedAppProtocol carries it"
+    },
+    "playground": {
+        "file": "The car's first message in the session, written as XML. On the wire it travels as EXI, which packs the same content into a few dozen bytes.",
+        "root": "The root element. Its own namespace, from 2010, is the same in every version, so any charger can read this first message.",
+        "iso": "First entry: ISO 15118-2.",
+        "version": "Version 2.0. A charger with another minor version may answer OK_SuccessfulNegotiationWithMinorDeviation.",
+        "schema-id": "A number the car gives this entry. The charger names its choice by it.",
+        "priority": "1 is the car's first choice.",
+        "din": "Second entry: DIN 70121, the older DC protocol. It has no TLS and no Plug & Charge."
+    }
+}

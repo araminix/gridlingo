@@ -24,11 +24,11 @@ interface Page {
     description: string;
 }
 
-const home: Page = { path: "", title: `Gridlingo · ${en["home.title"]}`, description: en["home.lead"] };
+const home: Page = { path: "", title: `Gridlingo · ${en["home.title"]}`, description: en["home.lead"] ?? "" };
 const lessons: Page[] = CATALOG.map((meta) => ({
     path: `p/${meta.id}/`,
     title: `${meta.name} · Gridlingo`,
-    description: `${meta.name}: ${en[`lesson.${meta.id}.summary`]}. ${en["home.lead"]}`,
+    description: `${meta.name}: ${en[`lesson.${meta.id}.summary`] ?? ""}. ${en["home.lead"]}`,
 }));
 
 const attribute = (text: string) => text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

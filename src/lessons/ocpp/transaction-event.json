@@ -1,0 +1,38 @@
+[
+    2,
+    "1005",
+    "TransactionEvent",
+    {
+        "eventType": "Updated",
+        "timestamp": "2026-11-12T09:17:11.050Z",
+        "triggerReason": "MeterValuePeriodic",
+        "seqNo": 1,
+        "transactionInfo": {
+            "transactionId": "TX-0187",
+            "chargingState": "Charging"
+        },
+        "meterValue": [
+            {
+                "timestamp": "2026-11-12T09:17:11.000Z",
+                "sampledValue": [
+                    {
+                        "value": 15600,
+                        "context": "Sample.Periodic",
+                        "measurand": "Energy.Active.Import.Register",
+                        "unitOfMeasure": {
+                            "unit": "Wh"
+                        }
+                    },
+                    {
+                        "value": 11040,
+                        "context": "Sample.Periodic",
+                        "measurand": "Power.Active.Import",
+                        "unitOfMeasure": {
+                            "unit": "W"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+]

@@ -1,0 +1,108 @@
+{
+    "intro": "How a utility tells smart inverters, batteries and chargers what to do, over the internet. The device is the client: it fetches XML resources from the utility's server over HTTPS, follows the links in them, and posts back its responses and readings. A certificate on each side proves who is talking.",
+    "steps": {
+        "tls": { "title": "Show certificates", "text": "The inverter opens a TLS 1.2 connection to the utility's server. Both sides show a certificate, and only one cipher suite is allowed. Now each side knows who the other is." },
+        "discover": { "title": "Find itself", "text": "The inverter knows one address: /dcap. From there it follows links to the list of end devices, and finds the one whose lFDI matches its own certificate." },
+        "control": { "title": "Get the control", "text": "Through its program, the inverter reads a DERControl: limit output to 50 % for two hours, from 11:00 UTC." },
+        "received": { "title": "Confirm receipt", "text": "The control asks for responses. The inverter posts one: status 1, received." },
+        "start": { "title": "Limit output", "text": "At 11:00, by its own clock, the inverter cuts its output from 9.6 kW to 5.0 kW (50 % of its 10 kW) and posts status 2, started." },
+        "report": { "title": "Report the output", "text": "The inverter posts its measured power into its mirror on the server. The utility sees that the limit is kept." }
+    },
+    "frames": {
+        "client-hello": "Hello. I speak TLS 1.2, with this one cipher suite",
+        "server-hello": "Agreed. Here is my certificate. Show me yours",
+        "client-finished": "Here is my certificate, and proof that I hold its key",
+        "server-finished": "Your certificate checks out. From now on, we are encrypted",
+        "get-dcap": "What does this server offer?",
+        "dcap": "My lists: end devices, mirrors, time and more",
+        "get-edev": "Which end devices do you know?",
+        "edev": "EndDevice /edev/3 has your lFDI",
+        "get-derc": "Which controls are there for me?",
+        "derc": "Limit output to 50 %, 11:00 to 13:00",
+        "post-received": "Control received",
+        "created": "Stored",
+        "post-started": "Limit started",
+        "post-reading": "My active power is now 5000 W"
+    },
+    "notes": {
+        "server-hello": "Four messages in one flight. ServerHello picks 0xC0AE. Certificate carries the server's certificate chain. ServerKeyExchange carries its half of the ECDHE key agreement. CertificateRequest asks for the client's certificate: without it, TLS would check only the server.",
+        "client-finished": "The inverter sends its device certificate and its half of the key agreement. Then it signs the whole handshake with its private key (CertificateVerify): only the real owner of the certificate can do that. The certificate was put in at the factory, under the IEEE 2030.5 PKI, and it never expires.",
+        "server-finished": "The server checks the inverter's certificate chain up to the root it trusts, then sends its own Finished. From here on, every record is encrypted. HTTP travels inside, and nobody on the way can read or change it.",
+        "get-dcap": "Inside TLS: GET /dcap HTTP/1.1, with Accept: application/sep+xml. /dcap is the one address a client is given. It finds every other address through links.",
+        "dcap": "A DeviceCapability resource: links such as EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\" and TimeLink href=\"/tm\". pollRate=\"900\": poll these resources every 900 s.",
+        "get-edev": "The list of end devices. The server may list only the devices this certificate is allowed to see.",
+        "edev": "Each EndDevice holds an lFDI and an sFDI. /edev/3 holds BB1309569EF761C13E620EA80AA3E84D2B6B553D, the inverter's own. The installer gave its SFDI to the utility when the inverter was installed.",
+        "get-derc": "Before this, two more GETs like it: from /edev/3 to its FunctionSetAssignments, then to the list of DER programs. Program /derp/1 links to its controls.",
+        "derc": "One DERControl, shown line by line in the playground: opModMaxLimW 5000 (50.00 %) for 7200 s, from 1781694000 (11:00 UTC).",
+        "post-received": "A DERControlResponse, posted to the control's replyTo address. It holds the inverter's lFDI, the control's mRID as its subject, and status 1: received.",
+        "created": "HTTP 201 Created. The Location header gives the address of the stored response.",
+        "post-started": "The same response with status 2: started. At 13:00 the inverter will post status 3, completed, and go back to its default control.",
+        "post-reading": "A MirrorMeterReading. The server keeps a mirror of the inverter's meter (a MirrorUsagePoint), and the inverter fills it. Its ReadingType gives the unit: uom 38 means watts."
+    },
+    "fields": {
+        "record-type": { "name": "Record type", "note": "22 (0x16): a handshake message." },
+        "record-version": { "name": "Version", "note": "0x0303: TLS 1.2. IEEE 2030.5 requires TLS 1.2." },
+        "record-length": { "name": "Record length", "note": "69 bytes follow in this record." },
+        "client-hello": { "name": "ClientHello", "note": "Handshake type 1." },
+        "hello-length": { "name": "Length", "note": "65 bytes of ClientHello follow." },
+        "client-version": { "name": "Client version", "note": "The highest version the inverter speaks: TLS 1.2." },
+        "random": { "name": "Random", "note": "32 random bytes. Both sides mix them into the session keys." },
+        "session-id": { "name": "Session ID", "note": "Length 0: no earlier session to resume." },
+        "suites-length": { "name": "Cipher suites", "note": "2 bytes of cipher suites follow: just one." },
+        "suite": { "name": "0xC0AE", "note": "TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8, the suite IEEE 2030.5 requires. ECDHE agrees the keys, ECDSA signs the certificates, and AES-128 in CCM mode encrypts the data, with an 8-byte tag." },
+        "compression": { "name": "Compression", "note": "One method: 0, no compression." },
+        "extensions-length": { "name": "Extensions", "note": "22 bytes of extensions follow." },
+        "groups": { "name": "supported_groups", "note": "Extension 0x000A: only secp256r1 (0x0017), the P-256 curve." },
+        "point-formats": { "name": "ec_point_formats", "note": "Extension 0x000B: curve points are sent uncompressed (0)." },
+        "signatures": { "name": "signature_algorithms", "note": "Extension 0x000D: only 0x0403, ECDSA with SHA-256." },
+        "a-first36": { "name": "First 36 bits", "note": "The first 9 hex digits. They make the SFDI." },
+        "a-rest": { "name": "Rest of the LFDI", "note": "With the first 9 digits, the first 20 bytes (40 hex digits) of the fingerprint: the LFDI." },
+        "a-dropped": { "name": "Not used", "note": "The last 12 bytes of the SHA-256 fingerprint are dropped." },
+        "s-number": { "name": "36 bits as a decimal", "note": "0xBB1309569 written in decimal." },
+        "s-check": { "name": "Check digit", "note": "It makes the sum of all digits a multiple of 10: 5+0+2+1+7+3+9+1+4+6+5 = 43, and 43 + 7 = 50. A typing mistake breaks the sum." }
+    },
+    "devices": {
+        "pv": "PV array",
+        "inverter": "PV inverter",
+        "router": "Site router",
+        "server": "Utility server"
+    },
+    "facts": {
+        "standard": "IEEE 2030.5-2018 (Smart Energy Profile 2.0)",
+        "between": "Utility or aggregator server → inverters, batteries, EV chargers",
+        "transport": "HTTP over TLS, XML (application/sep+xml)",
+        "security": "TLS 1.2 with 0xC0AE, a certificate on each side",
+        "model": "Resources linked by URLs: DeviceCapability → EndDevice → DERProgram → DERControl"
+    },
+    "tips": [
+        "The LFDI comes from the certificate. A new certificate means a new LFDI and SFDI, and the device must be registered again.",
+        "Controls use Unix time in UTC. An inverter with a wrong clock limits at the wrong time, so keep it in step with the server's Time resource (/tm).",
+        "Start from /dcap and follow the links every time. Every other address belongs to the server and can change.",
+        "Most inverters sit behind a router that blocks incoming connections, so they poll. Poll at pollRate, not faster: thousands of devices share one server."
+    ],
+    "points": {
+        "limit": "Output limit",
+        "status": "Response status",
+        "power": "Active power"
+    },
+    "values": {
+        "planned": "50 % from 11:00",
+        "received": "1: received",
+        "started": "2: started"
+    },
+    "anatomy": {
+        "lfdi": "The LFDI: the first 20 bytes of the certificate's SHA-256 fingerprint",
+        "sfdi": "The SFDI: a short form a person can type"
+    },
+    "playground": {
+        "file": "The DERControl the inverter reads in step 3. Pick a marked line to see what it means.",
+        "href": "The control's own address. The namespace urn:ieee:std:2030.5:ns marks every IEEE 2030.5 document.",
+        "reply": "Where to post responses (replyTo), and which ones: responseRequired 03 asks for received, then started and completed.",
+        "mrid": "A 128-bit ID, unique worldwide; responses name it. Its last 8 hex digits are the issuer's IANA enterprise number: 32473 (0x7ED9) is the one kept for examples.",
+        "created": "Times are Unix seconds in UTC: 1781686800 is 2026-06-17 09:00.",
+        "status": "0: scheduled. 1 would mean active, 2 cancelled.",
+        "duration": "7200 s: two hours.",
+        "start": "1781694000: 11:00 UTC. The inverter waits for it by its own clock.",
+        "limit": "Maximum output, in hundredths of a percent of the inverter's set maximum power (setMaxW): 5000 = 50.00 %."
+    }
+}

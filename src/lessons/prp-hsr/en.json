@@ -1,0 +1,86 @@
+{
+    "intro": "PRP sends every frame twice, over two separate networks: LAN A and LAN B. The receiver keeps the copy that arrives first and drops the other. When one network fails, the other copy still arrives: nothing is lost, and nothing waits for the network to repair itself. HSR does the same on a ring.",
+    "steps": {
+        "two": { "title": "Two networks", "text": "The relay and the controller each have two ports: one on LAN A, one on LAN B. Such a device is a DAN, a doubly attached node. The two LANs share no switch, no cable and no power supply. Every 2 s, each DAN announces itself on both LANs." },
+        "send": { "title": "Send twice", "text": "The relay has a GOOSE message for the controller. Its PRP layer adds a 6-byte trailer and sends one copy on each port at the same moment. This copy goes over LAN A." },
+        "drop": { "title": "Drop the duplicate", "text": "The copy on LAN B arrives 4 µs later. Same source, same sequence number: the controller has it already, so it drops it. Its application sees the message once." },
+        "break": { "title": "A cable breaks", "text": "The cable from switch A to the controller is cut. Just then the relay trips. The copy on LAN A gets as far as switch A. The copy on LAN B arrives as usual: nothing is lost, nothing is late, nothing has to switch over." },
+        "alarm": { "title": "Repair the spare", "text": "The protection noticed nothing. The controller does: its port A has no link, and the relay's frames now arrive on LAN B only. It raises an alarm. Until LAN A is repaired, one more fault would cut the relay off." }
+    },
+    "frames": {
+        "sup-a": "I am here, with two ports",
+        "sup-b": "I am here, with two ports",
+        "copy-a": "Heartbeat: no trip (copy on LAN A)",
+        "copy-b": "Heartbeat: no trip (copy on LAN B)",
+        "trip-a": "Trip! (copy on LAN A, lost)",
+        "trip-b": "Trip! (copy on LAN B)",
+        "sup-only": "I am here (heard on LAN B only)"
+    },
+    "notes": {
+        "sup-a": "A PRP supervision frame, sent every 2 s on both LANs to 01-15-4E-00-01-00, EtherType 0x88FB. It tells the other nodes that the relay is doubly attached and that both its paths work.",
+        "sup-b": "The same supervision frame, sent at the same moment on LAN B.",
+        "trip-a": "The copy on LAN A reaches switch A. Its cable to the controller is cut, so this copy goes no further.",
+        "sup-only": "The relay's next supervision frame. It still leaves on both LANs, but only the copy on LAN B reaches the controller."
+    },
+    "fields": {
+        "dst": { "name": "Destination", "note": "F1 PROT's GOOSE multicast address, as in the GOOSE lesson. PRP changes nothing in front of the trailer." },
+        "src": { "name": "Source", "note": "The relay's MAC address. Both its ports use this same address, so the two copies look alike." },
+        "vlan": { "name": "VLAN tag", "note": "Priority 4, VLAN 10." },
+        "ethertype": { "name": "EtherType", "note": "0x88B8: GOOSE. PRP adds no header at the front: the trailer at the end is all it adds." },
+        "goose-header": { "name": "GOOSE header", "note": "APPID 0x0001, length 115 and two reserved fields, unchanged." },
+        "goose-pdu": { "name": "GOOSE message", "note": "0x61 starts the GOOSE message; 105 bytes follow. PRP leaves all of it as it is." },
+        "gocbref": { "name": "gocbRef", "note": "F1PROTLD0/LLN0$GO$gcbTrip, the control block." },
+        "tal": { "name": "Time allowed to live", "note": "2000 ms." },
+        "datset": { "name": "datSet", "note": "F1PROTLD0/LLN0$dsTrip." },
+        "goid": { "name": "goID", "note": "F1PROT_Trip." },
+        "t-old": { "name": "t", "note": "08:00:00 UTC, the time of the last change." },
+        "t-event": { "name": "t", "note": "10:41:07.232 UTC, the time of the trip." },
+        "st-12": { "name": "stNum 12 · sqNum 3", "note": "Nothing has changed: the fourth copy of state 12." },
+        "st-13": { "name": "stNum 13 · sqNum 0", "note": "A new state: its first copy." },
+        "flags-1": { "name": "simulation · confRev", "note": "Not a test message; configuration revision 1." },
+        "flags-2": { "name": "ndsCom · entries", "note": "Set up completely; 2 values follow." },
+        "data-idle": { "name": "allData", "note": "Tr.general = FALSE (no trip), quality good." },
+        "data-trip": { "name": "allData", "note": "Tr.general = TRUE (trip!), quality good." },
+        "seq-3900": { "name": "Sequence number", "note": "0x0F3C = 3900. The relay numbers every frame it sends; both copies carry the same number." },
+        "seq-3905": { "name": "Sequence number", "note": "0x0F41 = 3905: the relay has sent other frames since." },
+        "lan-a": { "name": "LAN and size", "note": "A: sent on LAN A. Then 0x079 = 121, the number of bytes after the EtherType, trailer included." },
+        "lan-b": { "name": "LAN and size", "note": "B: sent on LAN B. This is the only byte that differs from the copy on LAN A." },
+        "suffix": { "name": "PRP suffix", "note": "0x88FB marks the end of a PRP trailer." },
+        "a-seq": { "name": "SeqNr", "note": "16 bits. The receiver keeps the first frame with a new number from this source and drops the second." },
+        "a-lan": { "name": "LanId", "note": "4 bits: 1010 (A) or 1011 (B), the LAN the copy was sent on." },
+        "a-size": { "name": "LSDUsize", "note": "12 bits: 121 bytes. The receiver compares it with the real size of the frame: if they match, the last 6 bytes are a trailer. A VLAN tag is not counted, because switches may add or remove it." },
+        "a-suffix": { "name": "PRPsuffix", "note": "0x88FB, the same number as the EtherType of the supervision frames." }
+    },
+    "devices": {
+        "relay": "F1 PROT",
+        "swa": "Switch A",
+        "swb": "Switch B",
+        "controller": "Bay controller"
+    },
+    "facts": {
+        "standard": "IEC 62439-3 (PRP in clause 4, HSR in clause 5)",
+        "between": "Doubly attached nodes: relays, controllers, merging units, gateways",
+        "transport": "Ethernet, below IP: GOOSE, SV and MMS all ride on it",
+        "frames": "PRP: a 6-byte trailer at the end (0x88FB). HSR: a 6-byte tag after the source address (0x892F)",
+        "speed": "No recovery time: no frame is lost when one LAN fails"
+    },
+    "tips": [
+        "Never connect LAN A to LAN B. Keep them apart in switches, cables, colours and power. A node counts frames that arrive with the wrong LAN in their trailer: check that counter after commissioning.",
+        "A failed LAN stops nothing, so nobody notices it. Alarm on each port and on missing supervision frames, or the next failure takes everything down.",
+        "The trailer adds 6 bytes. A full-size frame (1522 bytes with a VLAN tag) becomes 1528: every switch must accept it, or the nodes must send smaller frames.",
+        "HSR has no switches in the ring: every node passes the ring's frames on. A node that is switched off opens the ring at that point, and a second one splits it."
+    ],
+    "points": {
+        "tr": "Trip",
+        "seq": "Sequence number",
+        "porta": "LAN A",
+        "portb": "LAN B"
+    },
+    "values": {
+        "up": "working",
+        "down": "no link"
+    },
+    "anatomy": {
+        "rct": "The redundancy control trailer, bit by bit"
+    }
+}

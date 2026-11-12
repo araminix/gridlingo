@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LANGUAGES } from "@/i18n/languages";
-import { byteCount } from "@/viz/ByteInspector";
+import { byteCount, sizeOf } from "@/viz/ByteInspector";
 import { berProblems, checksum8, crc16Dnp, crc16Modbus } from "./bytes";
 import { CATALOG } from "./catalog";
 import type { Lesson, LessonText } from "./types";
@@ -12,12 +12,14 @@ const lessonOf = (id: string) => lessons[`./${id}/lesson.ts`]!;
 const textOf = (id: string, lang = "en") => texts[`./${id}/${lang}.json`];
 
 /** Every key the lesson's data points to in its texts, as paths: "steps.connect.title", "fields.start.note" … */
-function referencedKeys(lesson: Lesson): string[] {
+function referencedKeys(lesson: Lesson, optionalNotes = false): string[] {
     const keys = new Set<string>(["intro"]);
     for (const step of lesson.steps) keys.add(`steps.${step.id}.title`).add(`steps.${step.id}.text`);
     for (const frame of lesson.frames) {
         keys.add(`frames.${frame.id}`);
         if (!frame.fields?.length) keys.add(`notes.${frame.id}`);
+        // A frame with bytes may have a note too
+        else if (optionalNotes) keys.add(`notes.${frame.id}`);
         for (const [, , key] of frame.fields ?? []) keys.add(`fields.${key}.name`).add(`fields.${key}.note`);
     }
     for (const device of lesson.scene.devices) keys.add(`devices.${device.id}`);
@@ -43,7 +45,7 @@ function referencedKeys(lesson: Lesson): string[] {
         for (const feeder of lesson.singleLine.feeders) keys.add(`singleLine.${feeder.id}`);
     }
     for (const item of lesson.playground ?? []) {
-        keys.add(`playground.${item.kind}`);
+        keys.add(`playground.${item.intro ?? item.kind}`);
         if (item.kind === "file") for (const note of Object.values(item.notes)) keys.add(`playground.${note}`);
     }
     return [...keys];
@@ -91,6 +93,7 @@ describe.each(CATALOG.map((meta) => meta.id).filter((id) => lessons[`./${id}/les
                 expect(lesson.actors, `${frame.id}: ${device} is a column of the sequence view`).toContain(device);
             }
             if (frame.link) expect(lesson.scene.links.map((link) => link.id), `${frame.id}: its link`).toContain(frame.link);
+            if (frame.size) expect(frame.size, `${frame.id}: its size is more than the bytes shown`).toBeGreaterThan(sizeOf(frame.fields ?? []));
         }
     });
 
@@ -120,7 +123,7 @@ describe.each(CATALOG.map((meta) => meta.id).filter((id) => lessons[`./${id}/les
     });
 
     it("has no English text its data does not use", () => {
-        const used = new Set(referencedKeys(lesson));
+        const used = new Set(referencedKeys(lesson, true));
         for (const [path] of leaves(english)) {
             if (path === "intro" || path.startsWith("tips.")) continue;
             expect(used.has(path), `en.json: ${path} is not used`).toBe(true);

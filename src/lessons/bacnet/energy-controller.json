@@ -1,0 +1,29 @@
+{
+    "device": {
+        "instance": 2001,
+        "objectName": "EMS-CTRL-1",
+        "address": "10.0.5.21:47808",
+        "vendorId": 4000,
+        "maxApdu": 1476,
+        "segmentation": "no-segmentation"
+    },
+    "objects": [
+        {
+            "type": "analog-input",
+            "instance": 1,
+            "objectName": "MAIN-METER-KW",
+            "presentValue": 268.5,
+            "units": 48,
+            "covIncrement": 5.0
+        },
+        {
+            "type": "analog-value",
+            "instance": 1,
+            "objectName": "DEMAND-LIMIT-KW",
+            "presentValue": 300.0,
+            "units": 48,
+            "priorityArray": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+            "relinquishDefault": 300.0
+        }
+    ]
+}

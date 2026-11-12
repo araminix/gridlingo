@@ -1,0 +1,99 @@
+{
+    "intro": "The meter bus of heat, water and gas meters in Europe (EN 13757). A master powers two wires and asks each meter in turn. The meter answers with a header and data records; each record says what it measures and in which unit. Wireless M-Bus sends the same records by radio, without being asked.",
+    "steps": {
+        "reset": { "title": "Reset the link", "text": "The collector sends SND_NKE to primary address 5. The meter answers with one byte, E5. The bus runs at 2400 baud, 8 data bits, even parity." },
+        "ask": { "title": "Ask for data", "text": "REQ_UD2 asks the heat meter for its data. The frame count bit (FCB) is 1, as the first request after a reset must be." },
+        "answer": { "title": "Data records", "text": "A long frame: a fixed header, then data records. Each record starts with a DIF (how the value is coded) and a VIF (what it is, in which unit). The last byte before the checksum, 0x1F, says: more in the next telegram." },
+        "next": { "title": "Next telegram", "text": "The collector flips the FCB and asks again. The meter sends its second telegram: the values stored on the last due date, the day the utility bills on." },
+        "radio": { "title": "Wireless M-Bus", "text": "The water meter has no wire to the bus. Every 16 seconds it sends its values by radio, encrypted with AES-128. The collector needs this meter's key to read them." }
+    },
+    "frames": {
+        "snd-nke": "Meter 5, reset your link",
+        "e5": "OK",
+        "req-1": "Meter 5, send me your data",
+        "rsp-1": "12 345 kWh, 456.78 m³, 70.2 °C and 45.3 °C, more to come",
+        "req-2": "The next telegram, please",
+        "rsp-2": "On 2025-12-31: 9 876 kWh and 381.23 m³",
+        "wmbus": "Water meter 87654321: my values (encrypted)"
+    },
+    "notes": {
+        "wmbus": "Nobody asked: a T1 meter only sends. In clear come the length, C-field 0x44 (SND_NR: send, no reply), the maker EXA, the ID 87654321, a version and the type 0x07 (water). Then CI 0x7A with an access number, a status byte and a configuration word that says mode 5: AES-128 in CBC mode. The rest is encrypted. The IV is built from the maker, the address and the access number; the key belongs to this one meter. Decrypted, the data starts with 2F 2F, then DIF and VIF records like the wired ones. Every block of the frame has its own CRC. On air, each 4 bits travel as 6 chips (the 3-out-of-6 code)."
+    },
+    "fields": {
+        "short": { "name": "Start", "note": "0x10 starts a short frame: 5 bytes in all." },
+        "c-nke": { "name": "C-field 0x40", "note": "SND_NKE: reset the link. The meter clears its frame count bit." },
+        "a-5": { "name": "Address 5", "note": "The meter's primary address. 1 to 250 are for meters, and a new meter answers at 0. 253 means: use the secondary address (the ID) instead. 254 and 255 reach every meter." },
+        "cs-nke": { "name": "Checksum", "note": "0x45 = 0x40 + 0x05: the sum of C and A, modulo 256." },
+        "stop": { "name": "Stop", "note": "0x16 ends every M-Bus frame." },
+        "e5": { "name": "ACK", "note": "One byte, 0xE5: the meter's acknowledgement." },
+        "c-req-1": { "name": "C-field 0x7B", "note": "REQ_UD2: send me your user data. The frame count bit (0x20) is 1: the first request after a reset carries FCB 1." },
+        "cs-req-1": { "name": "Checksum", "note": "0x80 = 0x7B + 0x05." },
+        "long-42": { "name": "Start", "note": "A long frame: 0x68, the length twice, 0x68 again. 0x2A = 42 bytes from C to the last data byte." },
+        "c-rsp": { "name": "C-field 0x08", "note": "RSP_UD: the meter's user data." },
+        "a-5-rsp": { "name": "Address 5", "note": "The answer names its sender." },
+        "ci": { "name": "CI-field 0x72", "note": "Variable data with the long header that follows, numbers low byte first." },
+        "id": { "name": "ID number", "note": "12345678 in BCD, low byte first. It is printed on the meter, and it is its secondary address." },
+        "maker": { "name": "Maker", "note": "0x1701 = EXA, a made-up code: three letters packed into 15 bits (taken apart below)." },
+        "version": { "name": "Version", "note": "1: the version of this meter type." },
+        "medium": { "name": "Medium", "note": "0x04: heat, with the flow sensor in the return pipe. 0x07 is water, 0x03 gas." },
+        "access-42": { "name": "Access number", "note": "0x2A = 42. It goes up by one with every answer." },
+        "access-43": { "name": "Access number", "note": "0x2B = 43: one more than the last answer." },
+        "status": { "name": "Status", "note": "0x00: no errors, battery fine." },
+        "signature": { "name": "Signature", "note": "0x0000: not encrypted." },
+        "energy": { "name": "Energy", "note": "DIF 0x0C: 8 BCD digits. VIF 0x06: energy in kWh. 00012345 = 12 345 kWh." },
+        "volume": { "name": "Volume", "note": "DIF 0x0C. VIF 0x14: volume in steps of 0.01 m³. 00045678 = 456.78 m³." },
+        "flow": { "name": "Flow temperature", "note": "DIF 0x0A: 4 BCD digits. VIF 0x5A: flow temperature in steps of 0.1 °C. 0702 = 70.2 °C." },
+        "return": { "name": "Return temperature", "note": "VIF 0x5E: return temperature in steps of 0.1 °C. 0453 = 45.3 °C." },
+        "now": { "name": "Date and time", "note": "DIF 0x04: 32 bits. VIF 0x6D: date and time (type F), packed into bits: 2026-11-12 08:15." },
+        "more": { "name": "More", "note": "DIF 0x1F: more records follow in the next telegram." },
+        "cs-rsp-1": { "name": "Checksum", "note": "0xA1: the sum of every byte from C to the last data byte, modulo 256." },
+        "c-req-2": { "name": "C-field 0x5B", "note": "REQ_UD2 with FCB 0. The bit changed, so the meter sends its next telegram. With the same bit, it would send the last one again." },
+        "cs-req-2": { "name": "Checksum", "note": "0x60 = 0x5B + 0x05." },
+        "long-31": { "name": "Start", "note": "0x1F = 31 bytes from C to the last data byte." },
+        "due-date": { "name": "Due date", "note": "DIF 0x42: storage 1, 16 bits. VIF 0x6C: a date (type G): 2025-12-31." },
+        "due-energy": { "name": "Energy on the due date", "note": "DIF 0x4C: storage 1, 8 BCD digits. VIF 0x06: kWh. 00009876 = 9 876 kWh." },
+        "due-volume": { "name": "Volume on the due date", "note": "DIF 0x4C, VIF 0x14. 00038123 = 381.23 m³." },
+        "cs-rsp-2": { "name": "Checksum", "note": "0x6B: the sum from C to the last data byte." },
+        "m-1": { "name": "First letter", "note": "E = 5 (A is 1, Z is 26), times 1024." },
+        "m-2": { "name": "Second letter", "note": "X = 24, times 32." },
+        "m-3": { "name": "Third letter", "note": "A = 1." },
+        "d-extension": { "name": "Extension", "note": "0: no DIFE byte follows. DIFEs add bits for higher storage numbers, tariffs and subunits." },
+        "d-storage": { "name": "Storage number", "note": "1. 0 is the value now; higher numbers are stored values. In this meter, 1 is the last due date." },
+        "d-function": { "name": "Function", "note": "00: an instantaneous value. 01 is a maximum, 10 a minimum, 11 a value during an error." },
+        "d-data": { "name": "Data field", "note": "1100: 8 BCD digits, in 4 bytes. 0100 would be a 32-bit integer." }
+    },
+    "devices": {
+        "heat": "Heat meter",
+        "collector": "Data collector",
+        "water": "Water meter"
+    },
+    "facts": {
+        "standard": "EN 13757-2 (wired), -3 (data), -4 (wireless), -7 (security)",
+        "between": "Data collector (master) → heat, water, gas and electricity meters",
+        "transport": "Two wires, powered by the master, 2400 baud 8E1; radio at 868 MHz (T1: 868.95 MHz)",
+        "security": "Wired: none. Wireless: AES-128 with a key for each meter (mode 5 or 7)",
+        "frames": "E5: acknowledge · 10 … 16: short frame · 68 L L 68 … 16: long frame"
+    },
+    "tips": [
+        "Every meter on the bus needs its own primary address. New meters answer at 0, and two of them at 0 garble each other. Set the address first, or address meters by their ID number (secondary addressing).",
+        "Flip the FCB only to get the next telegram. A collector that never flips it reads telegram 1 again and again, and never sees the stored values.",
+        "Take the unit from the VIF of every record. 0x13 is litres, 0x14 tens of litres: copying the scaling from another meter type makes bills ten times off.",
+        "Ask the supplier for each wireless meter's AES key with the delivery. Without it, the collector sees the ID and the type, but no value."
+    ],
+    "points": {
+        "energy": "Heat energy",
+        "volume": "Volume",
+        "flow": "Flow temperature",
+        "due": "Energy on 2025-12-31"
+    },
+    "timing": {
+        "title": "How bits travel on the two wires",
+        "note": "SND_NKE from the master, then E5 from the meter. The master signals with voltage: about 36 V for a 1, 12 V less for a 0. The meter signals with current: 1.5 mA for a 1, 11 to 20 mA more for a 0. So the same two wires carry power and data both ways. Each character is 11 bits: a start bit, 8 data bits (lowest first), even parity and a stop bit. At 2400 baud, a bit lasts 0.42 ms.",
+        "master": "Master: voltage",
+        "meter": "Meter: current"
+    },
+    "anatomy": {
+        "maker": "The maker's code, packed into two bytes",
+        "dif": "DIF 0x4C, bit by bit"
+    }
+}

@@ -1,0 +1,24 @@
+{
+    "device": "EX-5K-3P inverter (made up for learning)",
+    "unitId": 1,
+    "base": 40000,
+    "marker": "SunS",
+    "models": [
+        { "id": 1, "name": "Common", "header": 40002, "length": 66 },
+        {
+            "id": 103,
+            "name": "Inverter, three-phase",
+            "header": 40070,
+            "length": 50,
+            "points": [
+                { "name": "W", "address": 40084, "type": "int16", "unit": "W", "scale": "W_SF" },
+                { "name": "W_SF", "address": 40085, "type": "sunssf" },
+                { "name": "Hz", "address": 40086, "type": "uint16", "unit": "Hz", "scale": "Hz_SF" },
+                { "name": "Hz_SF", "address": 40087, "type": "sunssf" },
+                { "name": "WH", "address": 40094, "type": "acc32", "unit": "Wh", "scale": "WH_SF" },
+                { "name": "WH_SF", "address": 40096, "type": "sunssf" }
+            ]
+        },
+        { "id": 65535, "name": "End", "header": 40122, "length": 0 }
+    ]
+}

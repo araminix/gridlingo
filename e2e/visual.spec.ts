@@ -49,7 +49,7 @@ test.describe("the other views", () => {
     test("the bytes, the timing and the names of GOOSE", async ({ page }) => {
         await open(page, "/p/iec-61850-goose");
         await page.getByTestId("stage").getByRole("button", { name: "Publish" }).click();
-        await expect(page.getByRole("heading", { name: /^Bytes · / }).locator("xpath=ancestor::*[@data-slot='card'][1]")).toHaveScreenshot("goose-bytes.png");
+        await expect(page.getByTestId("frame")).toHaveScreenshot("goose-bytes.png");
         await expect(page.getByRole("heading", { name: "Why GOOSE never waits for an answer" }).locator("xpath=ancestor::*[@data-slot='card'][1]")).toHaveScreenshot("goose-timing.png");
     });
 });

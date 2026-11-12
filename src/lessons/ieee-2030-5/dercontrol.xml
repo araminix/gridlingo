@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DERControl xmlns="urn:ieee:std:2030.5:ns" href="/derp/1/derc/7"
+            replyTo="/rsps/1/rsp" responseRequired="03">
+    <mRID>4A1F0C3B9D2E47A1B5C6D7E800007ED9</mRID>
+    <description>Limit output to 50 %</description>
+    <creationTime>1781686800</creationTime>
+    <EventStatus>
+        <currentStatus>0</currentStatus>
+        <dateTime>1781686800</dateTime>
+        <potentiallySuperseded>false</potentiallySuperseded>
+    </EventStatus>
+    <interval>
+        <duration>7200</duration>
+        <start>1781694000</start>
+    </interval>
+    <DERControlBase>
+        <opModMaxLimW>5000</opModMaxLimW>
+    </DERControlBase>
+</DERControl>

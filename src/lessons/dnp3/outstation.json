@@ -1,0 +1,43 @@
+{
+    "link": {
+        "outstation": 10,
+        "master": 1,
+        "tcpPort": 20000,
+        "keepAliveSeconds": 60
+    },
+    "unsolicited": {
+        "classes": [1, 2, 3],
+        "confirmTimeoutMs": 5000
+    },
+    "eventBuffer": {
+        "binary": 200,
+        "analog": 500
+    },
+    "binaryInputs": [
+        {
+            "index": 0,
+            "signal": "CB-1 closed",
+            "static": "g1v2",
+            "event": "g2v2",
+            "class": 1
+        },
+        {
+            "index": 1,
+            "signal": "Protection trip",
+            "static": "g1v2",
+            "event": "g2v2",
+            "class": 1
+        }
+    ],
+    "analogInputs": [
+        {
+            "index": 0,
+            "signal": "Bus voltage",
+            "unit": "V",
+            "static": "g30v2",
+            "event": "g32v4",
+            "class": 2,
+            "deadband": 50
+        }
+    ]
+}

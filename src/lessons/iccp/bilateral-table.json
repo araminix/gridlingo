@@ -1,0 +1,19 @@
+{
+    "bilateralTable": "DSO_EAST",
+    "bilateralTableId": "DSOEAST-2026-03",
+    "server": "TSO_NCC",
+    "client": {
+        "apTitle": "1.3.9999.20",
+        "aeQualifier": 20,
+        "address": "10.20.0.10"
+    },
+    "conformanceBlocks": [1, 2],
+    "read": {
+        "TIE1_MW": "Data_RealQ",
+        "TIE2_MW": "Data_RealQ",
+        "TIE2_CB": "Data_State"
+    },
+    "write": {},
+    "devices": [],
+    "maxTransferSets": 4
+}

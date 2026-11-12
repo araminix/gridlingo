@@ -14,6 +14,9 @@ export const byteCount = (hex: string) => (/^([0-9A-F]{2})( [0-9A-F]{2})*$/.test
 
 export const sizeOf = (fields: readonly Field[]) => fields.reduce((sum, [hex]) => sum + byteCount(hex), 0);
 
+/** A frame's size on the wire: as given, when its fields show only part of it, or the bytes of its fields. */
+export const frameSize = (frame: Frame) => frame.size ?? sizeOf(frame.fields ?? []);
+
 /** The bytes of a frame, coloured by what they carry, and what each run means. Hovering one shows its meaning. */
 export function ByteInspector({ frame, words }: { frame: Frame; words: Words }) {
     const { t } = useI18n();
@@ -31,8 +34,10 @@ export function ByteInspector({ frame, words }: { frame: Frame; words: Words }) 
     }
 
     const roles = ROLES.filter((role) => fields.some(([, fieldRole]) => fieldRole === role));
+    const note = words.note(frame.id);
     return (
         <div className="space-y-4">
+            {note && <p className="text-sm text-muted-foreground">{note}</p>}
             <ol dir="ltr" className="flex flex-wrap gap-1.5" aria-label={t("bytes.title")}>
                 {fields.map(([hex, role, key], i) => (
                     <li
@@ -65,7 +70,7 @@ export function ByteInspector({ frame, words }: { frame: Frame; words: Words }) 
                         onPointerLeave={() => setHovered(null)}
                         className={cn("flex items-start gap-3 border-b py-2 text-sm", hovered === i && "bg-accent/60")}
                     >
-                        <dt dir="ltr" className="min-w-16 shrink-0 rounded px-1.5 py-0.5 text-center font-mono text-xs font-semibold" style={{ background: roleColor(role) }}>
+                        <dt dir="ltr" className="max-w-[45%] min-w-16 shrink-0 rounded px-1.5 py-0.5 text-center font-mono text-xs font-semibold break-words" style={{ background: roleColor(role) }}>
                             {hex}
                         </dt>
                         <dd>

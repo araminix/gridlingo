@@ -1,0 +1,40 @@
+{
+    "country_code": "NL",
+    "party_id": "ABC",
+    "id": "LOC-0042",
+    "publish": true,
+    "name": "Example Street",
+    "address": "Voorbeeldstraat 1",
+    "city": "Utrecht",
+    "postal_code": "3511 AA",
+    "country": "NLD",
+    "coordinates": {
+        "latitude": "52.090737",
+        "longitude": "5.121420"
+    },
+    "parking_type": "ON_STREET",
+    "evses": [
+        {
+            "uid": "1",
+            "evse_id": "NL*ABC*E12345*1",
+            "status": "AVAILABLE",
+            "capabilities": ["RFID_READER", "REMOTE_START_STOP_CAPABLE"],
+            "connectors": [
+                {
+                    "id": "1",
+                    "standard": "IEC_62196_T2",
+                    "format": "SOCKET",
+                    "power_type": "AC_3_PHASE",
+                    "max_voltage": 230,
+                    "max_amperage": 32,
+                    "max_electric_power": 22080,
+                    "tariff_ids": ["AC-STANDARD"],
+                    "last_updated": "2026-11-12T08:00:00Z"
+                }
+            ],
+            "last_updated": "2026-11-12T08:00:00Z"
+        }
+    ],
+    "time_zone": "Europe/Amsterdam",
+    "last_updated": "2026-11-12T08:00:00Z"
+}

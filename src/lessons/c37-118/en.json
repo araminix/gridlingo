@@ -1,0 +1,116 @@
+{
+    "intro": "A phasor measurement unit (PMU) measures voltage and current as phasors: the size of the sine wave and its angle against a perfect 50 Hz wave that starts at every UTC second. Its clock comes from GPS, so every value has an exact time stamp. A concentrator (PDC) collects the streams of many PMUs and lines them up by time, to see the whole grid at one instant.",
+    "steps": {
+        "connect": { "title": "Connect", "text": "The PDC in the control center opens TCP to the PMU on port 4712. The PMU sends nothing until it is asked." },
+        "config": { "title": "Ask for the configuration", "text": "Data frames carry numbers only: no names, no units. So the PDC first asks for configuration frame 2 (CFG-2): which values come, in which format, at which rate." },
+        "start": { "title": "Start the stream", "text": "Command 2 turns the data frames on. The PMU sends them until the PDC sends command 1 or closes the connection." },
+        "stream": { "title": "50 frames a second", "text": "Every 20 ms a data frame: time stamp, status, two phasors and the frequency. In 20 ms both angles moved +0.144°, because the grid runs at 50.020 Hz, a little faster than the 50 Hz reference." },
+        "event": { "title": "A generator trips", "text": "Somewhere in the grid a large generator trips. The frequency falls: 49.946 Hz, at −0.12 Hz per second. All PMUs time-stamp to the same GPS second, so the PDC can compare their values sample by sample." }
+    },
+    "frames": {
+        "tcp": "Open TCP to port 4712",
+        "cmd-cfg": "Send me your configuration (CFG-2)",
+        "cfg2": "One PMU, 2 phasors as floats, 50 frames a second",
+        "cmd-on": "Start sending data",
+        "data-0": "V1 89.120 kV at −12.400°, 50.020 Hz",
+        "data-20": "20 ms later: V1 at −12.256°",
+        "data-event": "Frequency 49.946 Hz, falling 0.12 Hz/s"
+    },
+    "notes": {
+        "tcp": "Plain TCP. Commands and data can share this one connection, as here. A PMU can also send its data over UDP, usually to port 4713, which also allows multicast to several PDCs."
+    },
+    "fields": {
+        "sync-cmd": { "name": "SYNC", "note": "0xAA starts every frame. 0x41: frame type 4 (a command), version 1." },
+        "sync-cfg2": { "name": "SYNC", "note": "0x31: frame type 3 (configuration frame 2), version 1." },
+        "sync-data": { "name": "SYNC", "note": "0x01: frame type 0 (a data frame), version 1." },
+        "size-18": { "name": "FRAMESIZE", "note": "18 bytes: the whole frame, the check included." },
+        "size-94": { "name": "FRAMESIZE", "note": "94 bytes." },
+        "size-42": { "name": "FRAMESIZE", "note": "42 bytes." },
+        "idcode": { "name": "IDCODE", "note": "Data stream 7. A command carries the stream it is for; every other frame carries its own." },
+        "soc-06": { "name": "SOC", "note": "Seconds since 1970-01-01 UTC: 0x6AF597C2 = 12 November 2026, 10:41:06." },
+        "soc-07": { "name": "SOC", "note": "0x6AF597C3 = 10:41:07 UTC." },
+        "soc-12": { "name": "SOC", "note": "0x6AF597C8 = 10:41:12 UTC." },
+        "tq-0": { "name": "Time quality", "note": "0: the clock is locked to UTC and no leap second is due. If GPS fails, this code says how far off the clock may be." },
+        "frac-954": { "name": "FRACSEC", "note": "0x0E8E90 = 954 000 µs: 10:41:06.954." },
+        "frac-961": { "name": "FRACSEC", "note": "0x0EA9E8 = 961 000 µs: 10:41:06.961." },
+        "frac-970": { "name": "FRACSEC", "note": "0x0ECD10 = 970 000 µs: 10:41:06.970." },
+        "frac-0": { "name": "FRACSEC", "note": "0: exactly on the second. This is when the values were measured, not when the frame left." },
+        "frac-20": { "name": "FRACSEC", "note": "0x004E20 = 20 000 µs: 20 ms after the second, one frame later." },
+        "frac-460": { "name": "FRACSEC", "note": "0x0704E0 = 460 000 µs: 10:41:12.460." },
+        "cmd-5": { "name": "CMD 5", "note": "Send configuration frame 2. Other commands: 1 stops the data, 2 starts it, 3 asks for the header frame, 4 for CFG-1." },
+        "cmd-2": { "name": "CMD 2", "note": "Turn on the data frames." },
+        "chk": { "name": "CHK", "note": "CRC-CCITT of every byte before it: polynomial 0x1021, start value 0xFFFF. A frame with a wrong check is thrown away." },
+        "timebase": { "name": "TIME_BASE", "note": "1 000 000 (0x0F4240): FRACSEC counts millionths of a second." },
+        "numpmu": { "name": "NUM_PMU", "note": "1 PMU in this stream. A PDC that forwards many PMUs lists them all here, and its data frames carry one block for each." },
+        "stn": { "name": "STN", "note": "The station name: ALPHA PMU1." },
+        "pad": { "name": "Padding", "note": "Spaces: every name in CFG-2 is exactly 16 characters long." },
+        "pmuid": { "name": "IDCODE", "note": "The ID of this PMU's data: 7." },
+        "format": { "name": "FORMAT", "note": "0x000B: phasors as floats in polar form (magnitude and angle), FREQ and DFREQ as floats too." },
+        "counts": { "name": "PHNMR · ANNMR · DGNMR", "note": "2 phasors, 0 analog values, 0 digital status words. With FORMAT, this fixes the size of every data frame." },
+        "chnam-v": { "name": "CHNAM", "note": "The name of phasor 1: V1 POS SEQ, the positive-sequence voltage." },
+        "chnam-i": { "name": "CHNAM", "note": "Phasor 2: I1 POS SEQ, the positive-sequence current." },
+        "phunit-v": { "name": "PHUNIT", "note": "First byte 0: phasor 1 is a voltage. The other 3 bytes scale 16-bit integers (300 000 × 10⁻⁵ V per bit); with floats they are ignored." },
+        "phunit-i": { "name": "PHUNIT", "note": "First byte 1: phasor 2 is a current. 3 000 × 10⁻⁵ A per bit, also unused with floats." },
+        "fnom": { "name": "FNOM", "note": "Bit 0 set: a 50 Hz grid. Clear, it would mean 60 Hz." },
+        "cfgcnt": { "name": "CFGCNT", "note": "3: the PMU's configuration has been changed 3 times. The PDC compares it to know whether its copy is current." },
+        "rate": { "name": "DATA_RATE", "note": "50 frames per second: one every 20 ms." },
+        "stat": { "name": "STAT", "note": "0x0000: data good, PMU in sync with UTC, sorted by time stamp, no trigger, no configuration change coming." },
+        "v1-mag-0": { "name": "V1 magnitude", "note": "89 120 V, a float. Phase to neutral: about 154 kV between phases." },
+        "v1-ang-0": { "name": "V1 angle", "note": "−0.21642 rad = −12.400°, against the 50 Hz reference wave." },
+        "i1-mag-0": { "name": "I1 magnitude", "note": "412.0 A." },
+        "i1-ang-0": { "name": "I1 angle", "note": "−0.54454 rad = −31.200°." },
+        "freq": { "name": "FREQ", "note": "50.020 Hz, as a float." },
+        "dfreq-0": { "name": "DFREQ", "note": "The rate of change of frequency: 0.000 Hz/s." },
+        "v1-mag-20": { "name": "V1 magnitude", "note": "89 118 V." },
+        "v1-ang-20": { "name": "V1 angle", "note": "−12.256°: it moved +0.144° in 20 ms." },
+        "i1-mag-20": { "name": "I1 magnitude", "note": "412.3 A." },
+        "i1-ang-20": { "name": "I1 angle", "note": "−31.056°: also +0.144°." },
+        "v1-mag-ev": { "name": "V1 magnitude", "note": "88 870 V." },
+        "v1-ang-ev": { "name": "V1 angle", "note": "−15.620°." },
+        "i1-mag-ev": { "name": "I1 magnitude", "note": "455.0 A: the line now carries more power." },
+        "i1-ang-ev": { "name": "I1 angle", "note": "−27.900°." },
+        "freq-ev": { "name": "FREQ", "note": "49.946 Hz: below 50 Hz, because the grid lost a generator." },
+        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s: the frequency is falling." }
+    },
+    "devices": {
+        "gps": "GPS clock",
+        "bay": "154 kV line bay",
+        "pmu": "PMU 1",
+        "pdc": "PDC",
+        "pmu2": "PMU 2",
+        "wams": "Wide-area monitoring"
+    },
+    "facts": {
+        "standard": "IEEE C37.118.2-2011 (the frames); the measurement itself: IEC/IEEE 60255-118-1",
+        "between": "PMU → PDC, PDC → PDC and applications",
+        "transport": "TCP 4712 for commands, and often data; UDP 4713 for data",
+        "security": "None: a CRC only. Use a separate network or a VPN. IEC 61850-90-5 is the secured alternative.",
+        "speed": "10 to 50 frames per second on a 50 Hz grid. Time within about 1 µs of UTC: 1 µs is 0.018° at 50 Hz."
+    },
+    "tips": [
+        "Data frames carry no names and no units. If the PMU's setup changes and the PDC keeps the old CFG-2, it reads wrong values without an error. STAT bit 10 warns before a change: read CFG-2 again.",
+        "Check the time quality before you trust an angle. When GPS is lost, STAT bit 13 is set and the angles drift: 1 ms of clock error is 18° at 50 Hz.",
+        "The IDCODE must match on both sides. A PDC set up for stream 7 ignores frames that carry another number.",
+        "Angles are only comparable at the same time stamp. A PDC waits a set time for late frames: too short and it drops data, too long and every display lags."
+    ],
+    "points": {
+        "rate": "Frames per second",
+        "v1": "Voltage V1",
+        "i1": "Current I1",
+        "freq": "Frequency"
+    },
+    "timing": {
+        "title": "Every frame is tied to the UTC second",
+        "note": "The PMU measures at fixed moments: 0, 20, 40 ms … after each UTC second, as its GPS clock marks it. The frame leaves a little later, here 30 ms. The time stamp is the moment of the measurement, so a PDC can line up PMUs whose frames arrive at different times.",
+        "utc": "UTC (GPS)",
+        "measured": "Measured",
+        "sent": "Sent to the PDC",
+        "pps": "1 PPS: a new second",
+        "frac-0": "FRACSEC 0",
+        "frac-20": "FRACSEC 20000",
+        "latency": "+30 ms"
+    },
+    "playground": {
+        "encoder": "C37.118 sends floats most significant byte first (ABCD). 89120 is the V1 magnitude of the first data frame: 47 AE 10 00."
+    }
+}

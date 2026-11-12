@@ -1,0 +1,11 @@
+# EX-5000 inverter, Modbus TCP (made up for learning)
+# Port 502, unit ID 1, holding registers (function 03)
+# Wire address = register - 40001
+register,address,name,type,unit,access
+40001,0,Operating state,uint16,,R
+40101,100,Active power,float32 CDAB,kW,R
+40103,102,Reactive power,float32 CDAB,kvar,R
+40105,104,Grid frequency,uint16 x 0.01,Hz,R
+40106,105,Energy exported,uint32 CDAB,kWh,R
+40201,200,Active power limit,uint16,kW,RW
+40202,201,Limit fallback time,uint16,s,RW

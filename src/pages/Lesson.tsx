@@ -15,7 +15,7 @@ import { SampleFile } from "@/playground/SampleFile";
 import { SclExplorer } from "@/playground/SclExplorer";
 import { finish } from "@/progress";
 import { Link } from "@/router";
-import { ByteInspector, sizeOf } from "@/viz/ByteInspector";
+import { ByteInspector, frameSize } from "@/viz/ByteInspector";
 import { DeviceState } from "@/viz/DeviceState";
 import { FrameList } from "@/viz/FrameList";
 import { NameAnatomy } from "@/viz/NameAnatomy";
@@ -53,9 +53,9 @@ export function LessonPage({ id }: { id: string }) {
     return <Workspace key={id} meta={meta} loaded={loaded} />;
 }
 
-function Section({ title, children, action }: { title: string; children: ReactNode; action?: ReactNode }) {
+function Section({ title, children, action, testId }: { title: string; children: ReactNode; action?: ReactNode; testId?: string }) {
     return (
-        <Card className="gap-0 overflow-hidden py-0">
+        <Card className="gap-0 overflow-hidden py-0" data-testid={testId}>
             <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 border-b px-4 py-3 [.border-b]:pb-3">
                 <h2 className="text-base leading-none font-semibold">{title}</h2>
                 {action}
@@ -185,7 +185,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                                 </div>
                             </div>
                         </TabsContent>
-                        <TabsContent value="sequence" className="max-h-[32rem] overflow-y-auto bg-[var(--viz-ground)]">
+                        <TabsContent value="sequence" data-scroll="" className="max-h-[32rem] overflow-y-auto bg-[var(--viz-ground)]">
                             <SequenceDiagram actors={lesson.actors} frames={shownFrames} selected={selected?.id} onSelect={setChosen} words={words} />
                         </TabsContent>
                         {lesson.singleLine && (
@@ -209,12 +209,9 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
 
                 {selected && (
                     <Section
-                        title={`${t("bytes.title")} · ${selected.name}`}
-                        action={
-                            <span className="font-mono text-xs text-muted-foreground">
-                                {sizeOf(selected.fields ?? []) ? t("frames.bytes", { count: sizeOf(selected.fields ?? []) }) : ""}
-                            </span>
-                        }
+                        title={selected.fields?.length && selected.size !== 0 ? `${t("bytes.title")} · ${selected.name}` : selected.name}
+                        testId="frame"
+                        action={frameSize(selected) ? <span className="font-mono text-xs text-muted-foreground">{t("frames.bytes", { count: frameSize(selected) })}</span> : undefined}
                     >
                         <div className="p-4">
                             <ByteInspector frame={selected} words={words} />
@@ -246,11 +243,11 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                         <div className="space-y-8 p-4">
                             {lesson.playground.map((item, i) =>
                                 item.kind === "encoder" ? (
-                                    <Encoder key={i} type={item.type} order={item.order} value={item.value} intro={words.playground("encoder")} />
+                                    <Encoder key={i} type={item.type} order={item.order} value={item.value} intro={words.playground(item.intro ?? "encoder")} />
                                 ) : item.kind === "scl" ? (
-                                    <SclExplorer key={i} sample={item.sample} file={item.file} intro={words.playground("scl")} />
+                                    <SclExplorer key={i} sample={item.sample} file={item.file} intro={words.playground(item.intro ?? "scl")} />
                                 ) : (
-                                    <SampleFile key={i} name={item.sample} file={item.file} notes={item.notes} intro={words.playground("file")} noteText={words.playground} />
+                                    <SampleFile key={i} name={item.sample} file={item.file} notes={item.notes} intro={words.playground(item.intro ?? "file")} noteText={words.playground} />
                                 ),
                             )}
                         </div>

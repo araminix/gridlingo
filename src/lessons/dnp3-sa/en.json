@@ -1,0 +1,114 @@
+{
+    "intro": "Secure Authentication lets a DNP3 outstation check that a command really comes from its master and was not changed on the way. Before it carries out a critical request, the outstation sends a challenge; only a device that holds the secret session key can answer it. Nothing is encrypted: SA proves who sent a message, it does not hide it.",
+    "steps": {
+        "keys": { "title": "Set session keys", "text": "Before any command, SCADA gives the RTU two new session keys, one for each direction. It sends them wrapped (encrypted) with the update key, a secret that both sides got beforehand. It repeats this regularly, so that no session key lives long." },
+        "operate": { "title": "Critical command", "text": "The operator opens CB-1 so that a crew can work on the line. SCADA sends a direct operate. The RTU treats it as critical and does not act yet. Only the application layer is shown here: the link and transport layers are the same as in the DNP3 lesson." },
+        "challenge": { "title": "Challenge", "text": "The RTU answers with a challenge: a new challenge number (CSQ 5) and 16 random bytes. Only the holder of the session key can answer it. The random bytes shown here are made up." },
+        "reply": { "title": "Reply", "text": "SCADA computes an HMAC with the session key, over the challenge and its command, and sends the first 16 bytes. The key itself never travels. The MAC shown here is made up: a real one depends on the key." },
+        "execute": { "title": "Operate", "text": "The RTU computes the same HMAC with its copy of the key. The two match, so it pulses the trip output and confirms. CB-1 opens." },
+        "replay": { "title": "Replay attack", "text": "An attacker on the substation network recorded yesterday's close command and its reply. It sends both again. The RTU challenges with CSQ 6 and new random bytes, but the recorded reply answers CSQ 2, with an old key. The RTU rejects it: CB-1 stays open and the crew stays safe." }
+    },
+    "frames": {
+        "key-status-request": "What is the state of your session keys?",
+        "key-status": "I have no session keys yet",
+        "key-change": "Here are two new session keys, wrapped",
+        "key-ok": "Keys set. Here is my proof",
+        "operate": "Trip CB-1 now",
+        "challenge": "Prove it: answer challenge 5",
+        "reply": "My HMAC for challenge 5",
+        "pulse": "Trip output closes for 1 s",
+        "response": "Done: the trip pulse has started",
+        "replay-operate": "Close CB-1 now (a recorded copy)",
+        "challenge-6": "Prove it: answer challenge 6",
+        "replay-reply": "An HMAC for challenge 2 (recorded)"
+    },
+    "notes": {
+        "key-status-request": "SCADA asks for the state of user 1's session keys: g120v4, in an AUTH_REQUEST (function 0x20). The bytes of the key exchange are not shown here.",
+        "key-status": "The RTU has no valid session keys yet: status NOT_INIT. Its answer, g120v5, also carries a key change number and fresh random data.",
+        "key-change": "SCADA makes two random session keys: one for what it sends, one for what the RTU sends. It wraps both with user 1's update key (AES key wrap) and sends them in g120v6.",
+        "key-ok": "The RTU unwraps the keys with its own copy of the update key. It answers with status OK and a MAC made with the new keys, which shows that it holds them.",
+        "pulse": "Not DNP3: the RTU closes its trip output for 1000 ms, the on time in the command, and CB-1 opens."
+    },
+    "fields": {
+        "ac-3": { "name": "App control", "note": "0xC3: FIR and FIN, a request in one fragment, sequence 3." },
+        "fc-direct-operate": { "name": "Function 5", "note": "DIRECT_OPERATE: act now, without a select first." },
+        "g12v1": { "name": "g12v1", "note": "Group 12, variation 1: a control relay output block (CROB), one command for one output." },
+        "q17": { "name": "Qualifier 0x17", "note": "A 1-byte count, then a 1-byte index before each object." },
+        "count-1": { "name": "Count 1", "note": "One command." },
+        "index-0": { "name": "Index 0", "note": "Output 0: the trip and close coils of CB-1." },
+        "trip": { "name": "Control code", "note": "0x81: TRIP, as a pulse (PULSE_ON)." },
+        "close": { "name": "Control code", "note": "0x41: CLOSE, as a pulse. It would put the line back under voltage, with the crew on it." },
+        "pulses": { "name": "Count", "note": "One pulse." },
+        "on-time": { "name": "On time", "note": "1000 ms, low byte first: how long the output stays closed." },
+        "off-time": { "name": "Off time", "note": "0 ms: there is no second pulse." },
+        "status-request": { "name": "Status", "note": "0 in a request." },
+        "status-success": { "name": "Status 0", "note": "SUCCESS: the RTU accepted the command and started the pulse." },
+        "ac-3-challenge": { "name": "App control", "note": "0xC3: sequence 3, the same as the command it challenges." },
+        "fc-auth-response": { "name": "Function 0x83", "note": "AUTH_RESPONSE: a Secure Authentication message from the outstation." },
+        "iin": { "name": "IIN", "note": "Internal indications: no flags set." },
+        "g120v1": { "name": "g120v1", "note": "Group 120, variation 1: authentication challenge." },
+        "size-24": { "name": "Qualifier 0x5B", "note": "One object (01) whose size follows in 2 bytes: 0x0018 = 24 bytes." },
+        "csq-5": { "name": "CSQ 5", "note": "Challenge sequence number. It goes up with every challenge, so an old reply never fits a new one." },
+        "user-1": { "name": "User 1", "note": "The user whose keys must answer. Each user has its own update key." },
+        "mal-4": { "name": "MAC algorithm 4", "note": "HMAC-SHA-256, cut to 16 bytes." },
+        "rfc-1": { "name": "Reason 1", "note": "CRITICAL: the request was critical, so it must be proven." },
+        "data-5": { "name": "Challenge data", "note": "16 random bytes, new for every challenge, shown in two parts. Made up here." },
+        "data-end": { "name": "Challenge data", "note": "The last 8 of the 16 random bytes." },
+        "ac-3-reply": { "name": "App control", "note": "0xC3: still sequence 3. The command, the challenge, the reply and the response belong together." },
+        "fc-auth-request": { "name": "Function 0x20", "note": "AUTH_REQUEST: a Secure Authentication message from the master." },
+        "g120v2": { "name": "g120v2", "note": "Group 120, variation 2: authentication reply." },
+        "size-22": { "name": "Qualifier 0x5B", "note": "One object of 0x0016 = 22 bytes." },
+        "csq-5-reply": { "name": "CSQ 5", "note": "The challenge this reply answers." },
+        "mac-5": { "name": "MAC", "note": "The HMAC over the challenge and the command, with the session key, cut to 16 bytes and shown in two parts. Made up here: the real value depends on the secret key." },
+        "mac-end": { "name": "MAC", "note": "The last 8 of its 16 bytes." },
+        "ac-3-response": { "name": "App control", "note": "0xC3: sequence 3, the answer to the command." },
+        "fc-response": { "name": "Function 0x81", "note": "RESPONSE: the normal answer, sent only after the reply checked out." },
+        "ac-10": { "name": "App control", "note": "0xCA: sequence 10. Every byte here is a copy of yesterday's message." },
+        "ac-10-challenge": { "name": "App control", "note": "0xCA: sequence 10, the same as the command." },
+        "csq-6": { "name": "CSQ 6", "note": "A new challenge number. Nobody has answered challenge 6 yet." },
+        "data-6": { "name": "Challenge data", "note": "New random bytes, shown in two parts. Made up here." },
+        "ac-10-reply": { "name": "App control", "note": "0xCA: copied, like the rest." },
+        "csq-2": { "name": "CSQ 2", "note": "Yesterday's challenge number. The RTU waits for an answer to 6." },
+        "mac-2": { "name": "MAC", "note": "Right for yesterday's challenge and key, wrong for today's. The RTU rejects the command. Made up here." }
+    },
+    "devices": {
+        "scada": "SCADA master",
+        "switch": "Substation switch",
+        "attacker": "Attacker",
+        "rtu": "RTU",
+        "breaker": "Breaker CB-1"
+    },
+    "facts": {
+        "standard": "IEEE 1815-2012: Secure Authentication version 5 (SAv5)",
+        "between": "SCADA master ↔ outstation, inside DNP3",
+        "transport": "The DNP3 application layer: over TCP 20000, UDP or serial",
+        "security": "HMAC-SHA-256 with session keys. No encryption.",
+        "frames": "g120: challenge v1, reply v2, key status v4 and v5, key change v6"
+    },
+    "tips": [
+        "SA proves who sent a message. It does not hide it: anyone on the line can still read commands and values. Add TLS (IEC 62351-3) when that matters.",
+        "Aggressive mode saves a round trip: the master puts its MAC in the request itself (g120v3 and g120v9), based on the last challenge it got. Both sides must allow it.",
+        "Most commissioning failures are a wrong update key or user number. The key change then fails, and the RTU rejects every critical request.",
+        "SA needs no clock: challenge numbers and random data stop old messages from working again, not time stamps."
+    ],
+    "points": {
+        "cb": "Breaker CB-1",
+        "csq": "Challenge number"
+    },
+    "values": {
+        "closed": "closed",
+        "open": "open"
+    },
+    "playground": {
+        "file": "The RTU's Secure Authentication settings. SCADA must use the same user number, MAC algorithm and key wrap, and hold the same update key.",
+        "version": "SAv5, from IEEE 1815-2012. Both sides must speak the same version.",
+        "user": "User 1. Each user has its own update key, so the RTU knows who sent a command.",
+        "update-key": "The update key is the long-term secret. It stays in the device's protected store and never travels in clear.",
+        "key-wrap": "How the session keys are wrapped in g120v6: AES-256 key wrap.",
+        "mac": "The MAC in each reply: HMAC-SHA-256, cut to 16 bytes.",
+        "interval": "The master changes the session keys every 15 minutes.",
+        "timeout": "How long the RTU waits for the reply to a challenge. After that, it drops the command.",
+        "aggressive": "Aggressive mode is off: every critical request is challenged.",
+        "critical": "The functions the RTU challenges. Reads are not in the list, so polling costs nothing extra."
+    }
+}

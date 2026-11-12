@@ -2,7 +2,7 @@ import type { Frame } from "@/lessons/types";
 import type { Words } from "@/lessons/words";
 import { useI18n } from "@/i18n/i18n";
 import { cn } from "@/lib/utils";
-import { sizeOf } from "./ByteInspector";
+import { frameSize } from "./ByteInspector";
 
 /** The frames so far, like a capture in Wireshark: pick one to see its bytes. */
 export function FrameList({ frames, selected, onSelect, words }: { frames: readonly Frame[]; selected: string | undefined; onSelect: (id: string) => void; words: Words }) {
@@ -23,7 +23,7 @@ export function FrameList({ frames, selected, onSelect, words }: { frames: reado
             <ol>
                 {frames.map((frame, index) => {
                     const on = frame.id === selected;
-                    const size = sizeOf(frame.fields ?? []);
+                    const size = frameSize(frame);
                     const targets = typeof frame.to === "string" ? [frame.to] : frame.to;
                     return (
                         <li key={frame.id}>

@@ -28,16 +28,17 @@ const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     transformer: { w: 44, d: 30, h: 38 },
     controller: { w: 30, d: 22, h: 46 },
     radio: { w: 8, d: 8, h: 110 },
+    firewall: { w: 36, d: 22, h: 30 },
 };
 
 /** How high a device reaches above the ground. */
-export const heightOf = (kind: DeviceKind) => (kind === "turbine" ? SIZE.turbine.h + 44 : kind === "radio" ? SIZE.radio.h + 12 : SIZE[kind].h);
+export const heightOf = (kind: DeviceKind) => (kind === "turbine" ? SIZE.turbine.h + 44 : kind === "radio" ? SIZE.radio.h + 12 : kind === "sensor" ? SIZE.sensor.h + 10 : SIZE[kind].h);
 
 /** Where a device's label goes: above its highest point on the screen (the top's back corner). */
 export function labelAt(kind: DeviceKind, cx: number, cy: number): [number, number] {
     const { w, d } = SIZE[kind];
     const [x, y] = project(cx, cy, heightOf(kind));
-    return [x, y - (kind === "turbine" ? 0 : (w + d) / 4) - 6];
+    return [x, y - (kind === "turbine" ? 0 : kind === "sensor" ? 7 : (w + d) / 4) - 6];
 }
 
 /** The plan points a device covers, so a scene can fit around it. */
@@ -175,6 +176,20 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             break;
         case "battery":
             detail = <Lines list={[0.33, 0.66].map((u) => [f.onLeft(u, 0.06), f.onLeft(u, 0.94)])} />;
+            break;
+        case "firewall":
+            // A brick wall on its front
+            detail = (
+                <Lines
+                    list={[
+                        ...[0.33, 0.66].map((v) => [f.onLeft(0, v), f.onLeft(1, v)]),
+                        ...[0.25, 0.5, 0.75].map((u) => [f.onLeft(u, 0), f.onLeft(u, 0.33)]),
+                        ...[0.12, 0.38, 0.62, 0.88].map((u) => [f.onLeft(u, 0.33), f.onLeft(u, 0.66)]),
+                        ...[0.25, 0.5, 0.75].map((u) => [f.onLeft(u, 0.66), f.onLeft(u, 1)]),
+                    ]}
+                    stroke="var(--viz-alert)"
+                />
+            );
             break;
         case "breaker":
         case "transformer": {

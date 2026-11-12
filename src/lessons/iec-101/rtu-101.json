@@ -1,0 +1,39 @@
+{
+    "line": {
+        "port": "COM2",
+        "baudRate": 9600,
+        "format": "8E1",
+        "mode": "unbalanced"
+    },
+    "linkAddress": 1,
+    "sizes": {
+        "linkAddress": 1,
+        "cause": 1,
+        "commonAddress": 1,
+        "ioa": 2
+    },
+    "commonAddress": 1,
+    "polling": {
+        "class2EveryMs": 2000,
+        "responseTimeoutMs": 1000,
+        "retries": 3
+    },
+    "points": [
+        {
+            "ioa": 2001,
+            "type": "M_DP_NA_1",
+            "signal": "Breaker CB-1",
+            "class": 1,
+            "spontaneous": "M_DP_TB_1",
+            "timeTag": "CP56Time2a, UTC"
+        },
+        {
+            "ioa": 2002,
+            "type": "M_DP_NA_1",
+            "signal": "Breaker CB-2",
+            "class": 1,
+            "spontaneous": "M_DP_TB_1",
+            "timeTag": "CP56Time2a, UTC"
+        }
+    ]
+}

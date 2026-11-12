@@ -1,0 +1,121 @@
+{
+    "intro": "IEC 101 carries the same messages as IEC 104, but over a serial line, a modem or a radio, often at 9600 bit/s. In the usual unbalanced mode, SCADA polls and the RTU only answers. A checksum catches damaged frames, a frame count bit catches lost ones, and one bit in each answer tells SCADA that urgent data is waiting.",
+    "steps": {
+        "link": { "title": "Reset the link", "text": "SCADA and the RTU share a radio channel at 9600 bit/s. SCADA resets the link, so both sides start counting frames again. In unbalanced mode the RTU never speaks first: it only answers." },
+        "ask": { "title": "Ask for everything", "text": "SCADA sends a general interrogation. The RTU may only confirm it now, with a short ACK. But the ACK has ACD = 1: the RTU has class 1 data waiting." },
+        "values": { "title": "Collect the answer", "text": "While ACD is 1, SCADA asks for class 1 data. Each request gets one ASDU: the confirmation, the breaker states, then the end. The FCB flips with every request." },
+        "trip": { "title": "Breaker trips", "text": "At 10:41:07.280 CB-1 trips. The RTU must wait until it is asked. The next class 2 poll gets \"no data\", but with ACD = 1. SCADA asks for class 1 and gets the change, with the time it happened." }
+    },
+    "frames": {
+        "reset": "Reset your link",
+        "reset-ack": "Done",
+        "gi-act": "General interrogation: send me everything",
+        "gi-ack": "Got it. I have urgent data",
+        "poll-1": "Send me class 1 data",
+        "gi-con": "Interrogation confirmed",
+        "poll-2": "Next class 1 data, please",
+        "states": "CB-1 and CB-2 are closed",
+        "poll-3": "Next class 1 data, please",
+        "gi-term": "That was everything",
+        "poll-class2": "Anything in class 2?",
+        "no-data": "Nothing in class 2, but urgent data is waiting",
+        "poll-4": "Send me class 1 data",
+        "trip": "CB-1 opened at 10:41:07.280"
+    },
+    "fields": {
+        "start-fixed": { "name": "Start", "note": "0x10: a short frame of fixed length. Control, address, checksum and end follow. There is no data." },
+        "link": { "name": "Link address 1", "note": "The RTU on the line. In unbalanced mode the frame carries the RTU's address in both directions. Its size, 1 byte here, is a setting." },
+        "cs-fixed": { "name": "Checksum", "note": "The control and address bytes added up, modulo 256." },
+        "end": { "name": "End", "note": "0x16 ends every frame." },
+        "head-9": { "name": "Start · length 9", "note": "68, the length twice, then 68 again. 9 bytes follow, from the control field to the end of the ASDU. Both copies of the length must match." },
+        "head-12": { "name": "Start · length 12", "note": "12 bytes from the control field to the end of the ASDU." },
+        "head-16": { "name": "Start · length 16", "note": "16 bytes from the control field to the end of the ASDU." },
+        "cs-var": { "name": "Checksum", "note": "Every byte from the control field to the end of the ASDU, added up, modulo 256." },
+        "c-reset": { "name": "Control · FC 0", "note": "0x40: from SCADA (PRM 1), reset of remote link. FCV 0: this frame does not count. Many masters first ask for the link status (function 9)." },
+        "c-ack": { "name": "Control · ACK", "note": "0x00: an answer (PRM 0), function 0: ACK. ACD 0: nothing urgent. Some RTUs send the single byte E5 instead." },
+        "c-send": { "name": "Control · FC 3", "note": "0x73: user data, confirm expected (SEND/CONFIRM). FCV 1 and FCB 1: the first counted frame after a reset has FCB 1." },
+        "c-ack-acd": { "name": "Control · ACK", "note": "0x20: ACK, with ACD 1: the RTU has class 1 data waiting." },
+        "c-class1-fcb0": { "name": "Control · FC 10", "note": "0x5A: request class 1 data. FCB 0: the opposite of the last request." },
+        "c-class1-fcb1": { "name": "Control · FC 10", "note": "0x7A: request class 1 data. FCB 1: flipped again, so this is a new request, not a repeat." },
+        "c-class2-fcb1": { "name": "Control · FC 11", "note": "0x7B: request class 2 data, FCB 1. SCADA sends this every 2 s when it has nothing else to ask." },
+        "c-data-acd": { "name": "Control · FC 8", "note": "0x28: user data, an ASDU follows. ACD 1: more class 1 data is waiting." },
+        "c-data": { "name": "Control · FC 8", "note": "0x08: user data. ACD 0: no class 1 data is left." },
+        "c-no-data-acd": { "name": "Control · FC 9", "note": "0x29: no data of the class asked for. But ACD 1: class 1 data is waiting." },
+        "type100": { "name": "Type 100", "note": "C_IC_NA_1: interrogation command." },
+        "vsq1": { "name": "Count", "note": "One information object." },
+        "vsq2": { "name": "Count", "note": "Two objects, each with its own address." },
+        "cot6": { "name": "Cause 6", "note": "Activation. The cause is 1 byte here: there is no originator address, unlike IEC 104." },
+        "cot7": { "name": "Cause 7", "note": "Activation confirmed." },
+        "cot10": { "name": "Cause 10", "note": "Activation finished: the answer is complete." },
+        "cot20": { "name": "Cause 20", "note": "Sent because of the station interrogation." },
+        "cot3": { "name": "Cause 3", "note": "Spontaneous: the value changed, nobody asked." },
+        "ca": { "name": "Common address", "note": "Station 1, in 1 byte." },
+        "ioa0": { "name": "IOA 0", "note": "2 bytes. The command is for the whole station, not for one point." },
+        "qoi20": { "name": "QOI 20", "note": "Station interrogation: every group." },
+        "type3": { "name": "Type 3", "note": "M_DP_NA_1: a double point without a time tag." },
+        "ioa2001": { "name": "IOA 2001", "note": "Breaker CB-1: 0x07D1 in 2 bytes, low byte first." },
+        "ioa2002": { "name": "IOA 2002", "note": "Breaker CB-2: 0x07D2." },
+        "diq-on": { "name": "State 2", "note": "On: the breaker is closed. 1 is off; 0 and 3 mean moving or faulty." },
+        "diq-off": { "name": "State 1", "note": "Off: the breaker is open." },
+        "type31": { "name": "Type 31", "note": "M_DP_TB_1: a double point with a CP56Time2a time tag." },
+        "cp56": { "name": "CP56Time2a", "note": "7.280 s, 41 min, 10 h, Thursday 12, November, (20)26. The RTU took the time when the breaker moved, not when it sent the frame." },
+        "a-res": { "name": "RES", "note": "Reserved, 0. In balanced mode this bit is DIR: the direction." },
+        "a-prm1": { "name": "PRM 1", "note": "Primary: this frame starts a transfer. In unbalanced mode only SCADA sends these." },
+        "a-fcb": { "name": "FCB 1", "note": "Frame count bit. It flips with each new request. A repeat keeps it, and the RTU sends its last answer again." },
+        "a-fcv": { "name": "FCV 1", "note": "The FCB counts in this frame. Resets and link status requests have FCV 0." },
+        "a-fc3": { "name": "Function 3", "note": "User data, confirm expected." },
+        "a-prm0": { "name": "PRM 0", "note": "Secondary: an answer." },
+        "a-acd": { "name": "ACD 1", "note": "Access demand: class 1 data is waiting, and SCADA should ask for it." },
+        "a-dfc": { "name": "DFC 0", "note": "Data flow control. 1 would mean that the RTU is full: wait before sending more." },
+        "a-fc8": { "name": "Function 8", "note": "User data: an ASDU follows." }
+    },
+    "devices": {
+        "scada": "SCADA master",
+        "radio-cc": "Control room radio",
+        "radio-rtu": "Substation radio",
+        "rtu": "RTU",
+        "cb1": "Breaker CB-1",
+        "cb2": "Breaker CB-2"
+    },
+    "facts": {
+        "standard": "IEC 60870-5-101, edition 2 (2003)",
+        "between": "RTU → SCADA, over serial lines, modems and radio",
+        "transport": "Serial, FT 1.2 frames: 8 data bits, even parity, 1 stop bit",
+        "security": "None in the protocol. IEC 62351-5 adds authentication.",
+        "frames": "Fixed: 10 … 16 · variable: 68 L L 68 … 16 · single byte: E5",
+        "speed": "Usually 1200 to 19200 bit/s; 9600 here"
+    },
+    "tips": [
+        "The sizes of the link address, cause, common address and IOA are settings. Here they are 1, 1, 1 and 2 bytes. If SCADA and the RTU disagree, there is no error message: only wrong values.",
+        "FT 1.2 uses 8 data bits with even parity (8E1). A serial port left at 8N1 does not work.",
+        "Make the response timeout longer than the radio's round trip. If it is shorter, SCADA repeats requests that the RTU has already answered, and the slow line fills with repeats.",
+        "IEC 104 carries the same ASDUs over TCP, with a 2-byte cause, a 2-byte common address and a 3-byte IOA. It has no FCB, no classes and no polling: TCP delivers the frames, and the RTU sends as soon as it has data."
+    ],
+    "points": {
+        "cb1": "Breaker CB-1",
+        "cb2": "Breaker CB-2"
+    },
+    "values": {
+        "closed": "closed",
+        "open": "open"
+    },
+    "anatomy": {
+        "primary": "The control byte of a request (0x73)",
+        "secondary": "The control byte of an answer (0x28)"
+    },
+    "playground": {
+        "file": "The RTU's line settings and point list. SCADA must use the same speed, format, addresses and sizes. Otherwise it reads nothing, or reads wrong values.",
+        "baud": "9600 bit/s. Each character takes 11 bits, so a 5-byte frame takes about 6 ms on the line.",
+        "format": "8 data bits, even parity, 1 stop bit: what FT 1.2 requires.",
+        "mode": "Unbalanced: SCADA polls, the RTU answers. In balanced mode both sides may send, but only on a line between two stations.",
+        "link-address": "The RTU's link address. It is in every frame.",
+        "sizes": "The size of each address field, in bytes. Both sides must use the same.",
+        "common-address": "The station's address. It is in every ASDU.",
+        "class2": "How often SCADA asks for class 2 data when it has nothing else to do.",
+        "timeout": "How long SCADA waits for an answer. Then it repeats the request, with the same FCB.",
+        "ioa": "The breaker's information object address.",
+        "class": "Its changes go to class 1: the RTU sets ACD as soon as one is waiting.",
+        "spontaneous": "A change is sent as type 31, with a time tag.",
+        "time": "Write down which clock the time tags use: UTC here."
+    }
+}

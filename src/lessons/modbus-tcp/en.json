@@ -1,0 +1,90 @@
+{
+    "intro": "The simplest way to read and write a device over Ethernet. A device keeps its data in numbered 16-bit registers. A client asks for some registers by number and gets their contents back. Nothing in the protocol says what a register means: that is in the device's manual.",
+    "steps": {
+        "connect": { "title": "Connect", "text": "The plant controller opens a TCP connection to the inverter on port 502. Modbus TCP has no login and no start command: the connection is enough." },
+        "read": { "title": "Read the power", "text": "The manual lists active power at register 40101. On the wire this is address 100, because the wire counts from 0. The answer is 4 bytes: one 32-bit float in two registers, 4820.5 kW." },
+        "limit": { "title": "Set a limit", "text": "The grid operator asks for less power. The controller writes 3000 into address 200, the power limit. The inverter answers with an exact copy of the request: that copy means done." },
+        "check": { "title": "Check it worked", "text": "Modbus never reports a change by itself: the client must ask again. Six seconds later the power is 2998.7 kW." },
+        "mistake": { "title": "A wrong address", "text": "A new script sends the manual's number, 40101, as the address. The inverter has no register there, so it answers with an exception instead of data." }
+    },
+    "frames": {
+        "tcp": "Open a TCP connection to port 502",
+        "read-req": "Send me registers 100 and 101",
+        "read-resp": "Active power: 4820.5 kW",
+        "write-req": "Set the power limit to 3000 kW",
+        "write-resp": "Done: the limit is 3000 kW",
+        "check-req": "Send me registers 100 and 101 again",
+        "check-resp": "Active power: 2998.7 kW",
+        "wrong-req": "Send me registers 40101 and 40102",
+        "exception": "Error 02: no such register"
+    },
+    "notes": {
+        "tcp": "Plain TCP, no Modbus bytes yet. Many devices accept only a few connections at a time, so a client keeps its connection open and reuses it."
+    },
+    "fields": {
+        "tid-1": { "name": "Transaction ID 1", "note": "A number the client picks. The answer carries the same one, so the client can match them." },
+        "tid-2": { "name": "Transaction ID 2", "note": "The next request, the next number." },
+        "tid-3": { "name": "Transaction ID 3", "note": "The answer to request 3 carries 3." },
+        "tid-4": { "name": "Transaction ID 4", "note": "Even an error answer carries the request's number." },
+        "proto": { "name": "Protocol ID", "note": "0x0000: Modbus. It is always zero." },
+        "len-6": { "name": "Length", "note": "6 bytes follow: the unit ID and 5 bytes of request." },
+        "len-7": { "name": "Length", "note": "7 bytes follow." },
+        "len-3": { "name": "Length", "note": "3 bytes follow." },
+        "unit": { "name": "Unit ID 1", "note": "Picks a device behind a gateway. This inverter answers to 1." },
+        "fc03": { "name": "Function 03", "note": "0x03: read holding registers." },
+        "fc06": { "name": "Function 06", "note": "0x06: write one register." },
+        "fc06-echo": { "name": "Function 06", "note": "The answer to a write repeats the request byte for byte." },
+        "fc83": { "name": "Function 83", "note": "0x83 = 0x03 + 0x80. The highest bit set means: this is an error." },
+        "addr-100": { "name": "Address 100", "note": "0x0064 = 100: register 40101 in the manual." },
+        "addr-200": { "name": "Address 200", "note": "0x00C8 = 200: register 40201, the active power limit." },
+        "addr-40101": { "name": "Address 40101", "note": "0x9CA5 = 40101: the manual's number, sent as it is. Wrong: the inverter has nothing there." },
+        "qty-2": { "name": "Count", "note": "2 registers: one 32-bit value." },
+        "count-4": { "name": "Byte count", "note": "4 data bytes follow: 2 registers." },
+        "reg-100": { "name": "Register 100", "note": "0xA400: the low half of the float. This inverter sends the low word first (CDAB)." },
+        "reg-101": { "name": "Register 101", "note": "0x4596: the high half. High then low, 0x4596A400, is 4820.5 (kW)." },
+        "reg-100-later": { "name": "Register 100", "note": "0x6B33: the low half." },
+        "reg-101-later": { "name": "Register 101", "note": "0x453B: the high half. 0x453B6B33 is 2998.7 (kW)." },
+        "limit-3000": { "name": "Value", "note": "0x0BB8 = 3000 (kW)." },
+        "code-02": { "name": "Exception 02", "note": "Illegal data address: the register does not exist. 01 would mean an unknown function, 03 a bad value." },
+        "a-table": { "name": "Table", "note": "4: a holding register, read with function 03. 3 is an input register (function 04), 1 a discrete input, 0 a coil." },
+        "a-number": { "name": "Number", "note": "0101: the 101st register. Manuals count from 1, the wire counts from 0." }
+    },
+    "devices": {
+        "controller": "Plant controller",
+        "inverter": "Inverter INV-1",
+        "pv": "PV array",
+        "meter": "Grid meter"
+    },
+    "facts": {
+        "standard": "Modbus Application Protocol V1.1b3 and Modbus Messaging on TCP/IP V1.0b (Modbus Organization)",
+        "between": "Client (plant controller, SCADA, logger) → server (inverter, meter, battery)",
+        "transport": "TCP 502",
+        "security": "None. Anyone who reaches port 502 can read and write. Modbus/TCP Security adds TLS on port 802.",
+        "frames": "A 7-byte MBAP header, then a function code and its data",
+        "since": "1979 on serial lines (Modicon), on TCP since 1999"
+    },
+    "tips": [
+        "Find out whether the manual counts registers from 0 or from 1. One register off reads half of one value and half of the next, and that can look almost right.",
+        "Check the word order of 32-bit values against a value you know, such as the power on the inverter's display. Many devices send the low word first (CDAB).",
+        "Many devices accept only a few TCP connections. A test tool left connected can lock out the plant controller.",
+        "Modbus has no passwords. Keep port 502 inside the plant network, and never let it be reached from the internet."
+    ],
+    "points": {
+        "p": "Active power",
+        "limit": "Active power limit"
+    },
+    "anatomy": {
+        "register": "A register number from a manual, and the address that goes on the wire"
+    },
+    "playground": {
+        "encoder": "This inverter sends a 32-bit float low word first (CDAB). Type a value to see its bytes, and what the same bytes mean when read in another order.",
+        "file": "The inverter's register map, from its manual. The controller must be set up with the same addresses, types and word order.",
+        "unit": "The unit ID the inverter answers to.",
+        "offset": "How to turn a register number into an address. Look for this in every manual: some count from 0.",
+        "float": "Two registers, one float, low word first. The controller must be set to CDAB.",
+        "scaled": "An integer with a scale: 5001 means 50.01 Hz.",
+        "uint32": "Also two registers, also low word first.",
+        "limit": "Writable: the limit the controller sets in step 3.",
+        "fallback": "If the controller stops writing for this long, the inverter goes back to its fallback setting. A lost link then does not leave the plant stuck at an old limit."
+    }
+}

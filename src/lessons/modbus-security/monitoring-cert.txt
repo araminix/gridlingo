@@ -1,0 +1,19 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 5294451853314 (0x4d0b5ec0802)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: O=Example Plant, CN=Example Plant CA
+        Validity
+            Not Before: Nov  1 00:00:00 2026 GMT
+            Not After : Oct 31 00:00:00 2028 GMT
+        Subject: O=Example Plant, CN=monitoring
+        X509v3 extensions:
+            X509v3 Basic Constraints: critical
+                CA:FALSE
+            X509v3 Key Usage: critical
+                Digital Signature
+            X509v3 Extended Key Usage:
+                TLS Web Client Authentication
+            1.3.6.1.4.1.50316.802.1:
+                ..Viewer

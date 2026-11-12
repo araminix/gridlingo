@@ -1,0 +1,13 @@
+{
+    "relay": "Feeder relay F12 (made-up example)",
+    "linkAddress": 12,
+    "commonAddress": 12,
+    "baudRate": 9600,
+    "functionType": 160,
+    "measurandFullScale": 2.4,
+    "points": [
+        { "inf": 18, "type": 1, "signal": "Protection active", "gi": true },
+        { "inf": 68, "type": 2, "signal": "General trip", "gi": false },
+        { "inf": 148, "type": 9, "signal": "IL1 IL2 IL3 VL1 VL2 VL3 P Q f", "class": 2 }
+    ]
+}

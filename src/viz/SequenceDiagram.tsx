@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { Frame } from "@/lessons/types";
 import type { Words } from "@/lessons/words";
 import { cn } from "@/lib/utils";
@@ -20,12 +21,21 @@ export function SequenceDiagram({
     words: Words;
 }) {
     const n = actors.length;
+    const list = useRef<HTMLOListElement>(null);
+    // Keep the chosen frame in sight when the view scrolls (a long lesson), without moving the page
+    useEffect(() => {
+        const row = list.current?.querySelector<HTMLElement>('[aria-pressed="true"]');
+        const box = list.current?.closest<HTMLElement>("[data-scroll]");
+        if (!row || !box) return;
+        const top = row.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop;
+        if (top < box.scrollTop + 60 || top + row.offsetHeight > box.scrollTop + box.clientHeight) box.scrollTop = Math.max(0, top - box.clientHeight / 2);
+    }, [selected, frames.length]);
     const centre = (id: string) => ((actors.indexOf(id) + 0.5) / n) * 100;
     return (
         <div dir="ltr" className="relative px-2 pb-3">
             <div className="sticky top-0 z-10 grid gap-2 bg-[var(--viz-ground)] py-3" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
                 {actors.map((id) => (
-                    <div key={id} dir="auto" className="rounded-lg border border-primary/40 bg-accent px-2 py-2 text-center text-sm font-semibold text-accent-foreground">
+                    <div key={id} dir="auto" className="rounded-lg border border-primary/40 bg-accent px-1.5 py-2 text-center text-xs font-semibold break-words hyphens-auto text-accent-foreground sm:px-2 sm:text-sm">
                         {words.device(id)}
                     </div>
                 ))}
@@ -34,7 +44,7 @@ export function SequenceDiagram({
                 {actors.map((id) => (
                     <div key={id} aria-hidden="true" className="absolute top-0 bottom-0 w-px bg-border" style={{ left: `${centre(id)}%` }} />
                 ))}
-                <ol className="relative">
+                <ol ref={list} className="relative">
                     {frames.map((frame) => {
                         const targets = typeof frame.to === "string" ? [frame.to] : [...frame.to];
                         const columns = [frame.from, ...targets].map(centre);
@@ -53,6 +63,7 @@ export function SequenceDiagram({
                                 >
                                     <span
                                         dir="auto"
+                                        title={frame.name}
                                         className={cn("absolute top-1.5 truncate px-1 text-center font-mono text-xs", on ? "font-semibold text-primary" : "text-foreground")}
                                         style={{ left: `${start}%`, width: `${Math.max(end - start, 100 / n)}%`, ...(end === start ? { left: `${start - 50 / n}%` } : {}) }}
                                     >

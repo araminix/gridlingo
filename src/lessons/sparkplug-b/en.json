@@ -1,0 +1,98 @@
+{
+    "intro": "Sparkplug B is a set of rules on top of MQTT for SCADA. Fixed topic names say who sends what. A birth message lists every metric once, with a name, an alias and a data type; after that, only changes travel, by alias. A death message tells SCADA at once when a gateway is gone.",
+    "steps": {
+        "host": { "title": "SCADA online", "text": "SCADA, the primary host, connects to the broker with a will, subscribes to every Sparkplug topic, then publishes its STATE: online, retained." },
+        "connect": { "title": "Edge node connects", "text": "The edge node GW1 connects with its own will, NDEATH, numbered bdSeq 0. It reads SCADA's retained STATE: SCADA is online, so it may begin." },
+        "birth": { "title": "Birth", "text": "NBIRTH lists every metric of the edge node, DBIRTH every metric of the inverter behind it: name, alias, data type and value. Now SCADA knows the whole model." },
+        "data": { "title": "Report by exception", "text": "Only the inverter's power changed. DDATA carries only that metric, by its alias, with the next sequence number." },
+        "rebirth": { "title": "Rebirth", "text": "SCADA gets seq 4 after seq 2: message 3 is lost. SCADA can no longer trust its copy, so it asks for a rebirth. The edge node sends NBIRTH and DBIRTH again." },
+        "death": { "title": "Death", "text": "The edge node's link fails after 300 s. 45 s later (1.5 × its keep alive of 30 s) the broker publishes its will, NDEATH. SCADA marks GW1 offline and its values STALE." }
+    },
+    "frames": {
+        "host-connect": "I am SCADA1. If I vanish, publish that I am offline",
+        "state": "SCADA1 is online",
+        "edge-connect": "I am GW1. If I vanish, publish my death, bdSeq 0",
+        "state-seen": "SCADA1 is online (kept by the broker)",
+        "nbirth": "GW1 is alive: here are all its metrics",
+        "dbirth": "INV1 is alive: here are all its metrics",
+        "ddata": "INV1: alias 2 = 4820.5",
+        "ddata-gap": "INV1: seq 4 (where is 3?)",
+        "ncmd": "GW1, send everything again",
+        "nbirth-again": "GW1: all its metrics, again",
+        "dbirth-again": "INV1: all its metrics, again",
+        "ndeath": "GW1 is dead (bdSeq 0)"
+    },
+    "notes": {
+        "host-connect": "An MQTT CONNECT with clean session. Its will goes to spBv1.0/STATE/SCADA1: {\"online\":false,\"timestamp\":1794480000000}, QoS 1, retained. Then SCADA subscribes to spBv1.0/#, every Sparkplug message.",
+        "edge-connect": "An MQTT CONNECT with clean session and a keep alive of 30 s. Its will is NDEATH on spBv1.0/SolarPark/NDEATH/GW1, QoS 1, not retained, with one metric: bdSeq = 0. Then the edge node subscribes to its own NCMD and DCMD topics and to spBv1.0/STATE/SCADA1.",
+        "state-seen": "The broker sends the retained STATE as soon as the edge node subscribes. If SCADA were offline, the edge node would wait and publish nothing.",
+        "nbirth": "On spBv1.0/SolarPark/NBIRTH/GW1, QoS 0, seq 0. It holds every metric of the edge node itself, each with a name, an alias, a data type and a value. Two must always be there: bdSeq = 0, the same number as in the will, and Node Control/Rebirth = false.",
+        "dbirth": "On spBv1.0/SolarPark/DBIRTH/GW1/INV1, seq 1: every metric of the inverter, which the edge node reads over Modbus. AC/Power gets alias 2 and the type Float. The playground shows this message decoded.",
+        "ddata-gap": "This DDATA has seq 4, but SCADA expected 3. It waits a moment (the reorder timeout) in case 3 arrives late. It does not.",
+        "ncmd": "On spBv1.0/SolarPark/NCMD/GW1, with one metric: Node Control/Rebirth = true. SCADA sends this whenever it doubts what it knows.",
+        "nbirth-again": "The same MQTT session, so the same bdSeq 0. The edge node stops sending data until its births are out.",
+        "dbirth-again": "Every metric of INV1 again, with the power now at 4835.0 kW. SCADA's copy is complete again.",
+        "ndeath": "The will from the edge node's CONNECT. Its bdSeq 0 matches the last NBIRTH, so it belongs to the current session. SCADA marks GW1 and INV1 offline and every one of their metrics STALE: the last values stay on screen, marked as old."
+    },
+    "fields": {
+        "publish-q1-retain": { "name": "MQTT PUBLISH", "note": "0x33: QoS 1 and retained. The broker keeps it for every edge node that subscribes later." },
+        "rl-65": { "name": "Remaining length", "note": "65 bytes follow." },
+        "state-topic": { "name": "Topic", "note": "spBv1.0/STATE/SCADA1: the STATE topic of the host with the ID SCADA1." },
+        "packet-id": { "name": "Packet id 1", "note": "For the broker's PUBACK, as in any QoS 1 message." },
+        "state-online": { "name": "online", "note": "{\"online\":true, SCADA is online. STATE is the only Sparkplug message in JSON; all others are protobuf." },
+        "state-time": { "name": "timestamp", "note": "1794480000000 ms since 1970 = 10:40:00.000 UTC. The same value as in the will of its CONNECT: edge nodes use it to tell this session from an older one." },
+        "publish-q0": { "name": "MQTT PUBLISH", "note": "0x30: QoS 0, not retained. A host that connects later learns the values from a birth, not from old data." },
+        "rl-59": { "name": "Remaining length", "note": "59 bytes follow: the topic and the payload." },
+        "ddata-topic": { "name": "Topic", "note": "spBv1.0/SolarPark/DDATA/GW1/INV1, 32 bytes (0x0020). From here on, the bytes are a protobuf Payload." },
+        "payload-time": { "name": "timestamp", "note": "Tag 0x08: field 1, a varint. When the message was sent: 1794480067280 ms since 1970 = 10:41:07.280 UTC. A varint holds 7 bits per byte, lowest first; a top bit of 1 means more follow." },
+        "metric": { "name": "metrics", "note": "Tag 0x12: field 2, one metric. 0x0E = 14 bytes follow." },
+        "alias": { "name": "alias", "note": "Tag 0x10: field 2 of the metric, the alias 2. The birth said that 2 is AC/Power, so the name is not sent." },
+        "metric-time": { "name": "timestamp", "note": "Tag 0x18: field 3 of the metric, when the value was read: 1794480067250, 30 ms before the message was sent." },
+        "float": { "name": "float_value", "note": "Tag 0x65: field 12, 4 bytes, low byte first: 4820.5 (kW). No data type is sent: the birth gave it." },
+        "seq": { "name": "seq", "note": "Tag 0x18 again, now outside the metric: field 3 of the payload, seq 2. Inside a metric, field 3 is the timestamp." },
+        "a-namespace": { "name": "Namespace", "note": "spBv1.0: Sparkplug B, version 1.0 of the topic layout." },
+        "a-group": { "name": "group_id", "note": "A group of edge nodes, here one plant." },
+        "a-type": { "name": "message_type", "note": "What the message is. NBIRTH, NDATA, NCMD and NDEATH are about the edge node; DBIRTH, DDATA, DCMD and DDEATH about a device." },
+        "a-node": { "name": "edge_node_id", "note": "The gateway. It must be unique in its group." },
+        "a-device": { "name": "device_id", "note": "A device behind the edge node. A topic about the edge node itself ends at GW1." }
+    },
+    "devices": {
+        "inv1": "Inverter INV1",
+        "gw": "Edge node GW1",
+        "broker": "MQTT broker",
+        "scada": "SCADA (SCADA1)"
+    },
+    "facts": {
+        "standard": "Eclipse Sparkplug 3.0 (2022), also ISO/IEC 20237:2023",
+        "between": "Edge nodes → MQTT broker → host applications (SCADA, historian)",
+        "transport": "MQTT 3.1.1 or 5.0, on TCP 1883 or TLS 8883",
+        "security": "Only that of MQTT: TLS and broker logins. Sparkplug adds none.",
+        "frames": "NBIRTH, DBIRTH, NDATA, DDATA, NCMD, DCMD, NDEATH, DDEATH, STATE",
+        "model": "Metrics with a name, an alias, a data type and a value, in Protocol Buffers"
+    },
+    "tips": [
+        "Each edge node needs an edge_node_id that is unique in its group, and its own MQTT client ID. Two gateways with the same IDs throw each other off, and SCADA sees births and deaths all day.",
+        "An alias holds only until the next birth. A tool that keeps old aliases after a rebirth files values under the wrong metric.",
+        "A metric that is not in the birth does not exist for SCADA. After adding one, publish a new birth.",
+        "Set the primary host ID on every edge node. Then it waits for SCADA's STATE before its birth. Without it, births go out while SCADA is away, and SCADA has to ask for rebirths."
+    ],
+    "points": {
+        "node": "Edge node state",
+        "power": "Inverter power"
+    },
+    "values": {
+        "online": "online",
+        "offline": "offline"
+    },
+    "anatomy": {
+        "topic": "A Sparkplug topic: who sends what, about which device"
+    },
+    "playground": {
+        "file": "INV1's DBIRTH, decoded from protobuf into JSON to be read. On the wire it is binary, like the DDATA above.",
+        "payload-time": "When the message was sent, in milliseconds since 1970, UTC.",
+        "metric": "One metric: its name, its alias, when it was read, its data type and its value. Sparkplug has no unit field: the plant agrees that AC/Power is in kW.",
+        "double": "The total energy in MWh, as a Double. A metric keeps its data type until the next birth.",
+        "string": "Text works too. DDATA would send only alias 5 and the new text.",
+        "seq": "seq 1: the NBIRTH had 0. Every message from the edge node counts on, up to 255, then starts again at 0."
+    }
+}

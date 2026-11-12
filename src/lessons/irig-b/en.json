@@ -1,0 +1,88 @@
+{
+    "intro": "The time code substation relays have taken for decades. A GPS clock sends one frame per second on a coax cable or a twisted pair: 100 bits of 10 ms each. The width of each pulse is a 0, a 1 or a marker, and the first edge of the frame is the exact start of the second.",
+    "steps": {
+        "lock": { "title": "GPS lock", "text": "The station clock hears the satellites through its antenna and locks to UTC. From now on it starts each IRIG-B frame exactly on the second." },
+        "frame": { "title": "A frame", "text": "At 10:41:07.000 a frame begins: two markers in a row, then seconds, minutes, hours, day of year and year in BCD, the control bits, and the seconds of the day in binary. Every relay on the line hears it. IRIG-B has no addresses and no answers." },
+        "set": { "title": "Set the clock", "text": "The time in a frame is the time of its first edge, but a relay only knows it once the frame is read. So the relay waits for the next frame, checks that it is exactly one second later, and sets its clock." },
+        "event": { "title": "A trip", "text": "A fault on feeder F1. Relay F1 trips breaker Q1 and stores the event with its own clock: 10:52:31.283. The records of every relay on this line share one time scale, so their order is clear." },
+        "holdover": { "title": "Holdover", "text": "At 11:40 the antenna cable is cut. The clock runs on its own oscillator and keeps sending. By 14:12 it estimates its error at up to 10 µs and says so in the time quality bits: 5." }
+    },
+    "frames": {
+        "gps": "Satellite time: UTC",
+        "f07": "It is 10:41:07, day 316 of 2026",
+        "f08": "It is 10:41:08",
+        "trip": "Trip Q1 (stored as 10:52:31.283)",
+        "lost": "No satellites",
+        "f-hold": "It is 14:12:31; my time may be 10 µs off"
+    },
+    "notes": {
+        "gps": "GPS radio signals, not IRIG-B. With four or more satellites in view, the clock knows UTC to well within a microsecond.",
+        "trip": "A copper wire to the breaker's trip coil, not IRIG-B. The event record is read later over the relay's data protocol, such as IEC 60870-5-103.",
+        "lost": "No IRIG-B here: the antenna cable is cut, and the clock no longer hears any satellite."
+    },
+    "fields": {
+        "sec-07": { "name": "Seconds", "note": "07 in BCD: the units digit 7 in bits 1–4, low bit first, then the tens digit 0 in bits 6–8. Shown here as hex, so it reads like the time." },
+        "sec-08": { "name": "Seconds", "note": "08: one more than in the last frame." },
+        "sec-31": { "name": "Seconds", "note": "31 in BCD." },
+        "min-41": { "name": "Minutes", "note": "41 in BCD: units in bits 10–13, tens in bits 15–17." },
+        "min-12": { "name": "Minutes", "note": "12 in BCD." },
+        "hour-10": { "name": "Hours", "note": "10 in BCD: units in bits 20–23, tens in bits 25–26. UTC, as the offset bits say." },
+        "hour-14": { "name": "Hours", "note": "14 in BCD." },
+        "day-316": { "name": "Day of year", "note": "316 = 12 November 2026, shown as 03 16. Units in bits 30–33, tens in 35–38, hundreds in 40–41." },
+        "year-26": { "name": "Year", "note": "(20)26 in BCD, in bits 50–58. Codes without the year leave it to the relay." },
+        "cf-flags": { "name": "Leap second · DST", "note": "Bits 60–63 (IEEE C37.118.1): no leap second pending, no daylight-saving change pending, no daylight saving time." },
+        "cf-offset": { "name": "Time offset", "note": "Bits 64–68 and 70: 0 hours from UTC. This frame carries UTC." },
+        "tq-0": { "name": "Time quality 0", "note": "Bits 71–74: locked to GPS, full accuracy." },
+        "tq-5": { "name": "Time quality 5", "note": "The clock's error may be up to 10 µs. 4 would mean 1 µs, 6 would mean 100 µs; 15 means the time is not reliable." },
+        "parity-0": { "name": "Parity", "note": "Bit 75: even parity. Bits 1–74 hold an even number of ones, so this bit is 0." },
+        "parity-1": { "name": "Parity", "note": "Bit 75: bits 1–74 hold 17 ones, so this bit is 1 and the count is even again." },
+        "sbs-38467": { "name": "Straight binary seconds", "note": "0x9643 = 38467 = 10 × 3600 + 41 × 60 + 7: the seconds of the day. 17 bits in bits 80–88 and 90–97, low bit first." },
+        "sbs-38468": { "name": "Straight binary seconds", "note": "0x9644 = 38468: one second later." },
+        "sbs-51151": { "name": "Straight binary seconds", "note": "0xC7CF = 51151 = 14 × 3600 + 12 × 60 + 31." },
+        "a-format": { "name": "Format", "note": "B: 100 bits per second, one frame per second." },
+        "a-modulation": { "name": "Modulation", "note": "1: a sine, amplitude-modulated. 0 is a DC level shift (pulse width), 2 is Manchester." },
+        "a-carrier": { "name": "Carrier", "note": "2: a 1 kHz carrier. 0 means no carrier, as with a DC level shift." },
+        "a-content": { "name": "Content", "note": "4: BCD time of year, year, control bits and straight binary seconds. 0 is the same without the year; 7 has no control bits." }
+    },
+    "devices": {
+        "antenna": "GPS antenna",
+        "clock": "Station clock",
+        "r1": "Relay F1",
+        "r2": "Relay F2",
+        "r3": "Relay F3",
+        "q1": "Breaker Q1"
+    },
+    "facts": {
+        "standard": "IRIG Standard 200 (time codes); IEEE C37.118.1 for the meaning of the control bits",
+        "between": "GPS clock → relays, meters and recorders in the same building",
+        "transport": "Coax or twisted pair: DC level shift (B00x) or a 1 kHz sine (B12x)",
+        "frames": "One frame per second: 100 bits of 10 ms",
+        "speed": "A DC level shift keeps relays within about a microsecond; the modulated sine is less exact"
+    },
+    "tips": [
+        "Agree whether the clock sends UTC or local time. In local time the offset bits say by how much, but IEEE 1344 and IEEE C37.118 read their sign the opposite way.",
+        "An input set for B00x (DC level) cannot read a B12x (1 kHz sine) output, and the other way round. Check the code at both ends.",
+        "One DC output drives a limited number of inputs. Add up the load of every relay on the line, and check the polarity of each pair.",
+        "Clocks name the same signal differently: what one calls B000 with IEEE 1344 on, another calls B004. Compare the bits, not the names."
+    ],
+    "points": {
+        "time": "Time of day",
+        "quality": "Time quality",
+        "record": "Trip record"
+    },
+    "timing": {
+        "title": "The first 110 ms of a frame",
+        "note": "The frame for 10:41:07 begins with two markers in a row: P0 ends the last frame, Pr starts this one, and the rising edge of Pr is exactly 10:41:07.000. Then the seconds, units first: 1, 1, 1, 0 = 7. B00x sends the pulses as DC levels: 2 ms for a 0, 5 ms for a 1, 8 ms for a marker. B12x puts the same pulses on a 1 kHz sine, loud during the pulse and quiet after it (about 10:3). The sine is drawn here as steps.",
+        "bits": "Bits",
+        "b00x": "B00x · DC level",
+        "b12x": "B12x · 1 kHz",
+        "p0": "P0",
+        "on-time": "Pr · 10:41:07.000",
+        "one": "1",
+        "zero": "0",
+        "p1": "P1"
+    },
+    "anatomy": {
+        "code": "An IRIG code name, taken apart"
+    }
+}

@@ -1,0 +1,15 @@
+# The tables of a made-up meter: maker EXMP, model EX-200
+# table  id      name                                  in this meter
+ST 0     0x0000  General Configuration                 INT48 numbers, low byte first
+ST 1     0x0001  General Manufacturer Identification   EXMP, EX-200, firmware 3.1
+ST 3     0x0003  End Device Mode and Status            metering mode, error flags
+ST 5     0x0005  Device Identification                 the utility's meter number
+ST 8     0x0008  Procedure Response                    results of procedures
+ST 12    0x000C  Units of Measure                      Wh delivered, Wh received
+ST 15    0x000F  Constants                             multiplier 1, offset 0
+ST 21    0x0015  Actual Register                       2 summations, no demands
+ST 22    0x0016  Data Selection                        0: Wh delivered, 1: Wh received
+ST 23    0x0017  Current Register Data                 the two totals: 12 bytes
+ST 52    0x0034  Clock                                 date and time
+MT 0     0x0800  Manufacturer table 0                  the maker's own layout
+MT 23    0x0817  Manufacturer table 23                 the maker's own layout
