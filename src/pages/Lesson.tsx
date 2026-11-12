@@ -25,7 +25,7 @@ import { NameAnatomy } from "@/viz/NameAnatomy";
 import { SequenceDiagram } from "@/viz/SequenceDiagram";
 import { SingleLine } from "@/viz/SingleLine";
 import { SiteScene } from "@/viz/SiteScene";
-import { StepCaption, StepStrip } from "@/viz/StepPlayer";
+import { StepCaption, StepControls, StepStrip } from "@/viz/StepPlayer";
 import { TimingChart } from "@/viz/TimingChart";
 import { NotFound } from "./NotFound";
 
@@ -201,10 +201,16 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                                 <TabsTrigger value="sequence">{t("view.sequence")}</TabsTrigger>
                                 {lesson.singleLine && <TabsTrigger value="singleLine">{t("view.singleLine")}</TabsTrigger>}
                             </TabsList>
-                            <span className="text-xs text-muted-foreground max-sm:hidden">{t("player.keys")}</span>
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs text-muted-foreground max-lg:hidden">{t("player.keys")}</span>
+                                <StepControls current={current} last={lesson.steps.length - 1} playing={playing} onGo={(index) => (setPlaying(false), go(index))} onPlay={togglePlay} />
+                            </div>
                         </div>
                         <div className="border-b px-3 py-2">
                             <StepStrip steps={lesson.steps} current={current} onGo={(index) => (setPlaying(false), go(index))} words={words} />
+                        </div>
+                        <div className="border-b px-3 py-2.5">
+                            <StepCaption steps={lesson.steps} current={current} wire={wire} words={words} />
                         </div>
                         <TabsContent value="site" className="bg-[var(--viz-ground)]">
                             <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={t("view.site")}>
@@ -221,9 +227,6 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                                 <SingleLine diagram={lesson.singleLine} steps={lesson.steps} current={current} words={words} />
                             </TabsContent>
                         )}
-                        <div className="border-t px-3 py-3">
-                            <StepCaption steps={lesson.steps} current={current} playing={playing} onGo={(index) => (setPlaying(false), go(index))} onPlay={togglePlay} wire={wire} words={words} />
-                        </div>
                     </Tabs>
                 </Card>
 

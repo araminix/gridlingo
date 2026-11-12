@@ -12,7 +12,7 @@ import { valuesAt } from "./DeviceState";
 import { SequenceDiagram } from "./SequenceDiagram";
 import { stateAt } from "./SingleLine";
 import { SiteScene } from "./SiteScene";
-import { StepCaption, StepStrip } from "./StepPlayer";
+import { StepCaption, StepControls, StepStrip } from "./StepPlayer";
 
 const words104 = wordsOf(english104 as LessonText, english104 as LessonText);
 const wordsGoose = wordsOf(english as LessonText, english as LessonText);
@@ -83,7 +83,12 @@ describe("the step player", () => {
 
     it("tells the step in words and cannot go before the first", async () => {
         const onGo = vi.fn();
-        inEnglish(<StepCaption steps={iec104.steps} current={0} playing={false} onGo={onGo} onPlay={() => {}} wire="SYN · SYN-ACK · ACK" words={words104} />);
+        inEnglish(
+            <>
+                <StepControls current={0} last={5} playing={false} onGo={onGo} onPlay={() => {}} />
+                <StepCaption steps={iec104.steps} current={0} wire="SYN · SYN-ACK · ACK" words={words104} />
+            </>,
+        );
         expect(await screen.findByText(/Step 1 of 6/)).toBeTruthy();
         expect((screen.getByRole("button", { name: "Previous step" }) as HTMLButtonElement).disabled).toBe(true);
         act(() => screen.getByRole("button", { name: "Next step" }).click());
