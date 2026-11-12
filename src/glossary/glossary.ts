@@ -17,8 +17,12 @@ export async function loadGlossary(lang: LanguageCode): Promise<Glossary> {
 
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-/** Finds the terms in a text: whole tokens only, so "ACK" is not found in "ACKs" or in "C_IC_NA_1". Longest first. */
+/**
+ * Finds the terms in a text: whole tokens only, so "ACK" is not found in "ACKs" or in "C_IC_NA_1". Longest first.
+ * Only Latin letters and digits make a token longer: in "RTU가" or "RTUは" the particle follows without a space, and
+ * the term is still found.
+ */
 export function termPattern(glossary: Glossary): RegExp | null {
     const terms = Object.keys(glossary).sort((a, b) => b.length - a.length);
-    return terms.length ? new RegExp(`(?<![\\p{L}\\p{N}_$])(?:${terms.map(escape).join("|")})(?![\\p{L}\\p{N}_$])`, "gu") : null;
+    return terms.length ? new RegExp(`(?<![\\p{Script=Latin}\\p{N}_$])(?:${terms.map(escape).join("|")})(?![\\p{Script=Latin}\\p{N}_$])`, "gu") : null;
 }

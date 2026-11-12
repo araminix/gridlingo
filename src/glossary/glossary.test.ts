@@ -31,5 +31,6 @@ describe("the glossary", () => {
         const found = (text: string) => [...text.matchAll(pattern)].map((match) => match[0]);
         expect(found("An ACK, then RS-485.")).toEqual(["ACK", "RS-485"]);
         expect(found("ACKs, C_ACK_1, PACK, $ACK")).toEqual([]);
+        expect(found("RTU가 ACK를 보냅니다. RS-485は、ACKです。")).toEqual(["ACK", "RS-485", "ACK"]);
     });
 });
