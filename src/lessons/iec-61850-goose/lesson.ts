@@ -53,7 +53,7 @@ export const lesson: Lesson = {
     steps: [{ id: "heartbeat" }, { id: "fault" }, { id: "publish" }, { id: "repeat" }, { id: "act" }, { id: "open" }],
     frames: [
         { id: "heartbeat", step: "heartbeat", from: "f1prot", to: SUBSCRIBERS, kind: "GOOSE", name: "stNum 12 · sqNum 3", time: "0.000", fields: goose("6A F5 72 00 00 00 00 0A", "0C", "03", "00") },
-        { id: "trip-wire", step: "fault", from: "f1prot", to: "q1", kind: "Wire", name: "Trip contact closes", time: "0.214" },
+        { id: "trip-wire", step: "fault", from: "f1prot", to: "q1", kind: "Wire", name: "Trip contact closes", time: "0.232" },
         { id: "event", step: "publish", from: "f1prot", to: SUBSCRIBERS, kind: "GOOSE", name: "stNum 13 · sqNum 0", time: "0.232", fields: goose("6A F5 97 C3 3B 64 5C 0A", "0D", "00", "01") },
         { id: "repeat", step: "repeat", from: "f1prot", to: SUBSCRIBERS, kind: "GOOSE", name: "stNum 13 · sqNum 1", time: "0.234", fields: goose("6A F5 97 C3 3B 64 5C 0A", "0D", "01", "01") },
         { id: "to-scada", step: "act", from: "gateway", to: "scada", kind: "IEC 104", name: "M_DP_TB_1 · spont", time: "0.236" },

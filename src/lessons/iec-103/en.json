@@ -36,7 +36,7 @@
         "head-26": { "name": "Start · length", "note": "L = 0x1A = 26 bytes." },
         "head-18": { "name": "Start · length", "note": "L = 0x12 = 18 bytes." },
         "c-reset": { "name": "Control 0x40", "note": "PRM 1 (from the primary), FCV 0, function 0: reset of the communication unit." },
-        "c-ack-acd": { "name": "Control 0x20", "note": "PRM 0 (from the relay), ACD 1, function 0: ACK. ACD = 1 asks the controller for class 1 data." },
+        "c-ack-acd": { "name": "Control 0x20", "note": "PRM 0 (from the relay), ACD 1, function 0: ACK. ACD = 1 says the relay has class 1 data waiting: the controller should ask for it next." },
         "c-class1-fcb1": { "name": "Control 0x7A", "note": "PRM 1, FCB 1, FCV 1 (FCB counts), function 10: request class 1 data." },
         "c-class1-fcb0": { "name": "Control 0x5A", "note": "The same request with FCB 0: FCB flips with every new request." },
         "c-class2-fcb1": { "name": "Control 0x7B", "note": "PRM 1, FCB 1, FCV 1, function 11: request class 2 data." },
