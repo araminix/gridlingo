@@ -162,7 +162,6 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                     </div>
                     <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{meta.name}</h1>
                     <p className="max-w-3xl text-[15px] text-muted-foreground">{words.intro}</p>
-                    <div className="xl:hidden">{facts}</div>
                 </header>
 
                 <Card className="gap-0 overflow-hidden py-0" data-testid="stage">
@@ -255,6 +254,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                 )}
 
                 <div className="space-y-5 xl:hidden">
+                    {facts}
                     <Tips words={words} />
                     <Related ids={lesson.related ?? []} />
                 </div>
