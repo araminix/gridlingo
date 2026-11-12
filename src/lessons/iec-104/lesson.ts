@@ -14,7 +14,7 @@ export const lesson: Lesson = {
         ],
         links: [
             { id: "iec104", from: "scada", to: "rtu", label: "IEC 104 · TCP 2404", active: true },
-            { id: "inv", from: "rtu", to: "inverter", label: "Modbus TCP" },
+            { id: "inv", from: "rtu", to: "inverter", label: "Modbus TCP", via: "y" },
             { id: "pvdc", from: "inverter", to: "pv", via: "y" },
             { id: "bess", from: "rtu", to: "battery", label: "Modbus TCP", via: "y" },
             { id: "cb", from: "rtu", to: "breaker", via: "y" },

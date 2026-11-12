@@ -1,4 +1,3 @@
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { useI18n } from "@/i18n/i18n";
 import { Footer, Header } from "@/layout/Header";
 import { Home } from "@/pages/Home";
@@ -14,7 +13,7 @@ export function App() {
     const path = usePath();
     const lesson = /^\/p\/([a-z0-9-]+)$/.exec(path)?.[1];
     return (
-        <TooltipProvider>
+        <>
             <a href="#main" className="sr-only z-50 rounded-md bg-primary px-3 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:start-3 focus:top-3">
                 {t("app.skip")}
             </a>
@@ -29,6 +28,6 @@ export function App() {
                 <NotFound />
             )}
             <Footer />
-        </TooltipProvider>
+        </>
     );
 }

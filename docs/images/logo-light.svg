@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 56" width="250" height="56" role="img" aria-label="Gridlingo">
+  <g transform="translate(4 4) scale(1.42)">
+    <path d="M17 3 L30 10.5 L30 23.5 L17 31 L4 23.5 L4 10.5 Z" fill="none" stroke="#1d4ed8" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M4 10.5 L17 18 L30 10.5 M17 18 L17 31" fill="none" stroke="#1d4ed8" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M7.5 16.5 C9.5 13.5 11.5 19.5 13.5 16.5" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+  <text x="62" y="38" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="-0.5" fill="#0f1b2d">Gridlingo</text>
+</svg>

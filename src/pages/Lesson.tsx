@@ -165,7 +165,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                     <div className="xl:hidden">{facts}</div>
                 </header>
 
-                <Card className="gap-0 overflow-hidden py-0">
+                <Card className="gap-0 overflow-hidden py-0" data-testid="stage">
                     <Tabs defaultValue="site" className="gap-0">
                         <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
                             <TabsList>

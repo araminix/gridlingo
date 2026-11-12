@@ -1,4 +1,4 @@
-import type { Group, Meta } from "./types";
+import type { Group, Meta } from "./types.ts";
 
 /** The groups, in the order the library shows them. */
 export const GROUPS: readonly Group[] = ["substation", "control", "plant", "ev", "metering", "iot", "security"];

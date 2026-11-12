@@ -49,7 +49,7 @@ export function encode(value: number, type: NumberType, order: ByteOrder): numbe
 export function decode(bytes: readonly number[], type: NumberType, order: ByteOrder): number | null {
     const width = widthOf(type);
     if (bytes.length !== width) return null;
-    const big = new Array<number>(width);
+    const big = Array.from({ length: width }, () => 0);
     arrangement(order, width).forEach((position, i) => (big[position] = bytes[i]!));
     const view = new DataView(new Uint8Array(big).buffer);
     switch (type) {
