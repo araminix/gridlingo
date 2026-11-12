@@ -100,7 +100,7 @@
         "reply": "Where to post responses (replyTo), and which ones: responseRequired 03 asks for received, then started and completed.",
         "mrid": "A 128-bit ID, unique worldwide; responses name it. Its last 8 hex digits are the issuer's IANA enterprise number: 32473 (0x7ED9) is the one kept for examples.",
         "created": "Times are Unix seconds in UTC: 1781686800 is 2026-06-17 09:00.",
-        "status": "0: scheduled. 1 would mean active, 2 cancelled.",
+        "status": "0: scheduled. 1 would mean active, 2 canceled.",
         "duration": "7200 s: two hours.",
         "start": "1781694000: 11:00 UTC. The inverter waits for it by its own clock.",
         "limit": "Maximum output, in hundredths of a percent of the inverter's set maximum power (setMaxW): 5000 = 50.00 %."

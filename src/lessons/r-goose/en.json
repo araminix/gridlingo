@@ -1,7 +1,7 @@
 {
     "intro": "GOOSE stays inside one substation: it has no IP address, so routers drop it. R-GOOSE puts the same message into UDP over IP, so it can cross a wide-area network to another substation. Because it leaves the fence, every message is signed with a key that only the relays of the group hold. R-SV does the same for sampled values.",
     "steps": {
-        "keys": { "title": "Get the keys", "text": "Both relays prove who they are to the key distribution centre (KDC) with their certificates. The KDC gives each of them the same group key, with an ID and a lifetime. Without that key, nobody can make a message the relays accept." },
+        "keys": { "title": "Get the keys", "text": "Both relays prove who they are to the key distribution center (KDC) with their certificates. The KDC gives each of them the same group key, with an ID and a lifetime. Without that key, nobody can make a message the relays accept." },
         "heartbeat": { "title": "Heartbeat", "text": "Relay A publishes its intertrip signal to the IP multicast group 239.192.0.1, once a second while nothing happens. Routers carry it across the WAN to substation B. Each message is signed with the group key." },
         "fault": { "title": "Fault on the line", "text": "A short circuit on the line between the two substations. Relay A trips its own breaker and, at the same moment, publishes the change: stNum goes up by one." },
         "repeat": { "title": "Repeat", "text": "As with GOOSE, relay A sends the message again 2 ms later, then after 4, 8 … ms. If the WAN loses one packet, the next copy carries the trip." },
@@ -13,10 +13,10 @@
         "keys-a": "Group key 7, valid until tomorrow",
         "keys-b": "Group key 7, valid until tomorrow",
         "heartbeat": "No intertrip (heartbeat)",
-        "trip-a": "Energise the trip coil of breaker A",
+        "trip-a": "Energize the trip coil of breaker A",
         "intertrip": "Intertrip! Tr.general = TRUE",
         "repeat": "Intertrip, again (copy 1)",
-        "trip-b": "Energise the trip coil of breaker B"
+        "trip-b": "Energize the trip coil of breaker B"
     },
     "notes": {
         "pull-a": "GDOI (RFC 6407) on UDP 848, as IEC 62351-9 asks. First the relay and the KDC check each other's certificates in an IKE exchange. Then the relay asks for the keys of its R-GOOSE group.",
@@ -59,7 +59,7 @@
     },
     "facts": {
         "standard": "IEC TR 61850-90-5; since edition 2.1 in IEC 61850-8-1 (R-GOOSE) and IEC 61850-9-2 (R-SV)",
-        "between": "Relays in different substations, or a substation and a control centre",
+        "between": "Relays in different substations, or a substation and a control center",
         "transport": "UDP 102 over IP, multicast or unicast: it passes routers",
         "security": "Signed with an HMAC, encryption optional; group keys from a KDC (IEC 62351-9, GDOI)",
         "frames": "R-GOOSE for events and trips, R-SV for sampled values and synchrophasors"

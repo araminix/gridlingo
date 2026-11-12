@@ -69,7 +69,7 @@
         "a-da": { "name": "Data attribute", "note": "mag.f: the magnitude, as a float." }
     },
     "devices": {
-        "scada": "Control centre",
+        "scada": "Control center",
         "met": "Met mast",
         "ppc": "Park controller",
         "wt01": "WT01",

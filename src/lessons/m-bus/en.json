@@ -77,7 +77,7 @@
     "tips": [
         "Every meter on the bus needs its own primary address. New meters answer at 0, and two of them at 0 garble each other. Set the address first, or address meters by their ID number (secondary addressing).",
         "Flip the FCB only to get the next telegram. A collector that never flips it reads telegram 1 again and again, and never sees the stored values.",
-        "Take the unit from the VIF of every record. 0x13 is litres, 0x14 tens of litres: copying the scaling from another meter type makes bills ten times off.",
+        "Take the unit from the VIF of every record. 0x13 is liters, 0x14 tens of liters: copying the scaling from another meter type makes bills ten times off.",
         "Ask the supplier for each wireless meter's AES key with the delivery. Without it, the collector sees the ID and the type, but no value."
     ],
     "points": {

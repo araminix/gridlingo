@@ -51,7 +51,7 @@
         "ip-id": { "name": "Interface ID", "note": "Made from the charger's MAC address, 02-00-00-00-00-A1: FF FE in the middle and the 0x02 bit flipped. The whole address is fe80::ff:fe00:a1." },
         "port": { "name": "TCP port", "note": "0xD431 = 54321: where the charger waits for this car." },
         "a-urn": { "name": "URN", "note": "A uniform resource name: a fixed label, not an address to open." },
-        "a-body": { "name": "Body", "note": "iso: the organisation that owns the name." },
+        "a-body": { "name": "Body", "note": "iso: the organization that owns the name." },
         "a-standard": { "name": "Standard", "note": "15118: communication between a vehicle and the grid." },
         "a-part": { "name": "Part", "note": "Part 2: the network and application messages." },
         "a-year": { "name": "Year", "note": "2013, the date in the schema's name. The standard itself came out in 2014." },

@@ -65,7 +65,7 @@
         "speed": "No recovery time: no frame is lost when one LAN fails"
     },
     "tips": [
-        "Never connect LAN A to LAN B. Keep them apart in switches, cables, colours and power. A node counts frames that arrive with the wrong LAN in their trailer: check that counter after commissioning.",
+        "Never connect LAN A to LAN B. Keep them apart in switches, cables, colors and power. A node counts frames that arrive with the wrong LAN in their trailer: check that counter after commissioning.",
         "A failed LAN stops nothing, so nobody notices it. Alarm on each port and on missing supervision frames, or the next failure takes everything down.",
         "The trailer adds 6 bytes. A full-size frame (1522 bytes with a VLAN tag) becomes 1528: every switch must accept it, or the nodes must send smaller frames.",
         "HSR has no switches in the ring: every node passes the ring's frames on. A node that is switched off opens the ring at that point, and a second one splits it."

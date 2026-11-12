@@ -83,7 +83,7 @@
         "reference": "The name of one value, and how MMS writes it"
     },
     "playground": {
-        "scl": "The inverter's configured description (.cid). Open INV, then MMXU1, then TotW: the value you read is mag.f, its unit is in units. Then open your own file, if you have one.",
+        "scl": "The inverter's configured description (.cid). Open INV, then MMXU1, then TotW: the value you read is mag.f, and its unit is in the units attribute. Then open your own file, if you have one.",
         "encoder": "MMS sends a float most significant byte first (ABCD). Type a value to see its bytes."
     }
 }

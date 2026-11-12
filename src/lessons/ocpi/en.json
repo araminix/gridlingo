@@ -2,7 +2,7 @@
     "intro": "Roaming lets a driver charge with one card on the chargers of many companies. OCPI connects the charge point operator (CPO), who runs the chargers, with the e-mobility service provider (eMSP), who gives drivers their cards and apps. Each side offers a REST API, and the other calls it: for locations, cards, sessions, and the bill for each charge.",
     "steps": {
         "discover": { "title": "Discover", "text": "Two companies connect once, before any driver roams. The eMSP reads which OCPI versions the CPO offers, and where each part of its API lives." },
-        "register": { "title": "Swap tokens", "text": "The eMSP registers with a temporary token, A. Each side ends up with its own token for calling the other: the eMSP sends C, the CPO sends B." },
+        "register": { "title": "Swap tokens", "text": "The eMSP registers with a temporary token, A. Each side ends up with its own token for calling the other: the eMSP calls the CPO with token C, and the CPO calls the eMSP with token B." },
         "location": { "title": "Publish a charger", "text": "The CPO sends its location with one EVSE, a charging point, so that the eMSP's app can show it to drivers." },
         "authorize": { "title": "Check a card", "text": "A driver with a card from the eMSP taps it on the charger. The CPO does not know this card, so it asks the eMSP." },
         "session": { "title": "Session", "text": "Charging starts. The CPO reports the session, then sends updates while the car charges." },
