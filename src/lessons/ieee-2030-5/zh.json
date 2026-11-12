@@ -32,7 +32,7 @@
         "get-dcap": "在 TLS 里面：GET /dcap HTTP/1.1，带 Accept: application/sep+xml。/dcap 是客户端唯一被告知的地址。其他所有地址都通过链接找到。",
         "dcap": "一个 DeviceCapability 资源：其中有 EndDeviceListLink href=\"/edev\"、MirrorUsagePointListLink href=\"/mup\" 和 TimeLink href=\"/tm\" 等链接。pollRate=\"900\"：每 900 s 重新读取一次这些资源。",
         "get-edev": "终端设备列表。服务器可以只列出这张证书有权查看的设备。",
-        "edev": "每个 EndDevice 都有一个 lFDI 和一个 sFDI：其标识的长格式和短格式。/edev/3 的是 BB1309569EF761C13E620EA80AA3E84D2B6B553D，正是这台逆变器的。安装时，安装人员把它的 SFDI 交给了电网公司。",
+        "edev": "每个 EndDevice 都有一个 lFDI 和一个 sFDI：其标识的长格式和短格式。/edev/3 的是 BB1309569EF761C13E620EA80AA3E84D2B6B553D，正是这台逆变器的。安装时，安装人员把它的 sFDI 交给了电网公司。",
         "get-derc": "在此之前还有两个类似的 GET：从 /edev/3 到它的 FunctionSetAssignments，再到 DER 计划列表。计划 /derp/1 链接到它的各个控制。",
         "derc": "一个 DERControl，在动手试试里逐行展示：opModMaxLimW 5000（50.00 %），持续 7200 s，从 1781694000（11:00 UTC）开始。",
         "post-received": "一个 DERControlResponse，发往该控制的 replyTo 地址。它包含逆变器的 lFDI、作为主题的控制 mRID（它的唯一 ID），以及状态 1：已收到。",

@@ -32,7 +32,7 @@
         "get-dcap": "Dentro TLS: GET /dcap HTTP/1.1, con Accept: application/sep+xml. /dcap è l'unico indirizzo che viene dato a un client. Ogni altro indirizzo lo trova tramite i link.",
         "dcap": "Una risorsa DeviceCapability: link come EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\" e TimeLink href=\"/tm\". pollRate=\"900\": rileggi queste risorse ogni 900 s.",
         "get-edev": "La lista degli end device. Il server può elencare solo i dispositivi che questo certificato ha il diritto di vedere.",
-        "edev": "Ogni EndDevice contiene un lFDI e un sFDI: la forma lunga e quella corta del suo identificativo. /edev/3 contiene BB1309569EF761C13E620EA80AA3E84D2B6B553D, quello dell'inverter. L'installatore ha comunicato il suo SFDI all'azienda elettrica quando ha installato l'inverter.",
+        "edev": "Ogni EndDevice contiene un lFDI e un sFDI: la forma lunga e quella corta del suo identificativo. /edev/3 contiene BB1309569EF761C13E620EA80AA3E84D2B6B553D, quello dell'inverter. L'installatore ha comunicato il suo sFDI all'azienda elettrica quando ha installato l'inverter.",
         "get-derc": "Prima di questo, altri due GET simili: da /edev/3 alle sue FunctionSetAssignments, poi alla lista dei programmi DER. Il programma /derp/1 rimanda ai suoi comandi.",
         "derc": "Un DERControl, mostrato riga per riga nel laboratorio: opModMaxLimW 5000 (50.00 %) per 7200 s, da 1781694000 (11:00 UTC).",
         "post-received": "Una DERControlResponse, inviata all'indirizzo replyTo del comando. Contiene l'lFDI dell'inverter, l'mRID del comando (il suo ID univoco) come oggetto e lo stato 1: ricevuto.",

@@ -32,7 +32,7 @@
         "get-dcap": "Inside TLS: GET /dcap HTTP/1.1, with Accept: application/sep+xml. /dcap is the one address a client is given. It finds every other address through links.",
         "dcap": "A DeviceCapability resource: links such as EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\" and TimeLink href=\"/tm\". pollRate=\"900\": read these resources again every 900 s.",
         "get-edev": "The list of end devices. The server may list only the devices this certificate is allowed to see.",
-        "edev": "Each EndDevice holds an lFDI and an sFDI: the long and short forms of its identifier. /edev/3 holds BB1309569EF761C13E620EA80AA3E84D2B6B553D, the inverter's own. The installer gave its SFDI to the utility when the inverter was installed.",
+        "edev": "Each EndDevice holds an lFDI and an sFDI: the long and short forms of its identifier. /edev/3 holds BB1309569EF761C13E620EA80AA3E84D2B6B553D, the inverter's own. The installer gave its sFDI to the utility when the inverter was installed.",
         "get-derc": "Before this, two more GETs like it: from /edev/3 to its FunctionSetAssignments, then to the list of DER programs. Program /derp/1 links to its controls.",
         "derc": "One DERControl, shown line by line in the playground: opModMaxLimW 5000 (50.00 %) for 7200 s, from 1781694000 (11:00 UTC).",
         "post-received": "A DERControlResponse, posted to the control's replyTo address. It holds the inverter's lFDI, the control's mRID (its unique ID) as its subject, and status 1: received.",

@@ -32,7 +32,7 @@
         "get-dcap": "Innerhalb von TLS: GET /dcap HTTP/1.1, mit Accept: application/sep+xml. /dcap ist die einzige Adresse, die ein Client vorgegeben bekommt. Jede andere Adresse findet er über Links.",
         "dcap": "Eine DeviceCapability-Ressource: Links wie EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\" und TimeLink href=\"/tm\". pollRate=\"900\": diese Ressourcen alle 900 s neu lesen.",
         "get-edev": "Die Liste der End Devices. Der Server darf nur die Geräte auflisten, die dieses Zertifikat sehen darf.",
-        "edev": "Jedes EndDevice enthält eine lFDI und eine sFDI: die lange und die kurze Form seiner Kennung. /edev/3 enthält BB1309569EF761C13E620EA80AA3E84D2B6B553D, die des Wechselrichters. Der Installateur hat seine SFDI bei der Installation an den Netzbetreiber gemeldet.",
+        "edev": "Jedes EndDevice enthält eine lFDI und eine sFDI: die lange und die kurze Form seiner Kennung. /edev/3 enthält BB1309569EF761C13E620EA80AA3E84D2B6B553D, die des Wechselrichters. Der Installateur hat seine sFDI bei der Installation an den Netzbetreiber gemeldet.",
         "get-derc": "Davor kamen zwei weitere GETs dieser Art: von /edev/3 zu seinen FunctionSetAssignments, dann zur Liste der DER-Programme. Programm /derp/1 verlinkt auf seine Steuerbefehle.",
         "derc": "Ein DERControl, Zeile für Zeile unter „Ausprobieren“ zu sehen: opModMaxLimW 5000 (50.00 %) für 7200 s, ab 1781694000 (11:00 UTC).",
         "post-received": "Eine DERControlResponse, gesendet an die replyTo-Adresse des Steuerbefehls. Sie enthält die lFDI des Wechselrichters, die mRID des Steuerbefehls (seine eindeutige ID) als subject und Status 1: empfangen.",

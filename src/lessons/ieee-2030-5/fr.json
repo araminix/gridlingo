@@ -32,7 +32,7 @@
         "get-dcap": "Dans TLS : GET /dcap HTTP/1.1, avec Accept: application/sep+xml. /dcap est la seule adresse donnée à un client. Il trouve toutes les autres par des liens.",
         "dcap": "Une ressource DeviceCapability : des liens comme EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\" et TimeLink href=\"/tm\". pollRate=\"900\" : relire ces ressources toutes les 900 s.",
         "get-edev": "La liste des équipements. Le serveur peut ne lister que les équipements que ce certificat a le droit de voir.",
-        "edev": "Chaque EndDevice contient un lFDI et un sFDI : les formes longue et courte de son identifiant. /edev/3 contient BB1309569EF761C13E620EA80AA3E84D2B6B553D, celui de l'onduleur. L'installateur a communiqué son SFDI au gestionnaire de réseau lors de l'installation de l'onduleur.",
+        "edev": "Chaque EndDevice contient un lFDI et un sFDI : les formes longue et courte de son identifiant. /edev/3 contient BB1309569EF761C13E620EA80AA3E84D2B6B553D, celui de l'onduleur. L'installateur a communiqué son sFDI au gestionnaire de réseau lors de l'installation de l'onduleur.",
         "get-derc": "Avant cela, deux autres GET du même genre : de /edev/3 vers ses FunctionSetAssignments, puis vers la liste des programmes DER. Le programme /derp/1 mène à ses consignes.",
         "derc": "Un DERControl, montré ligne par ligne dans le bac à sable : opModMaxLimW 5000 (50.00 %) pendant 7200 s, à partir de 1781694000 (11:00 UTC).",
         "post-received": "Une DERControlResponse, envoyée à l'adresse replyTo de la consigne. Elle contient le lFDI de l'onduleur, le mRID de la consigne (son identifiant unique) comme sujet, et le statut 1 : reçue.",

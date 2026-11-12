@@ -32,7 +32,7 @@
         "get-dcap": "درون TLS: GET /dcap HTTP/1.1، با Accept: application/sep+xml. /dcap تنها آدرسی است که به کلاینت داده می‌شود. هر آدرس دیگری را از طریق لینک‌ها پیدا می‌کند.",
         "dcap": "یک منبع DeviceCapability: لینک‌هایی مثل EndDeviceListLink href=\"/edev\"، MirrorUsagePointListLink href=\"/mup\" و TimeLink href=\"/tm\". pollRate=\"900\": این منابع را هر 900 s دوباره بخوان.",
         "get-edev": "فهرست دستگاه‌های نهایی. سرور ممکن است فقط دستگاه‌هایی را فهرست کند که این گواهی اجازه دیدنشان را دارد.",
-        "edev": "هر EndDevice یک lFDI و یک sFDI دارد: شکل بلند و شکل کوتاه شناسه‌اش. /edev/3 مقدار BB1309569EF761C13E620EA80AA3E84D2B6B553D را دارد، یعنی همان lFDI خود اینورتر. نصاب موقع نصب اینورتر، SFDI آن را به شرکت برق داده است.",
+        "edev": "هر EndDevice یک lFDI و یک sFDI دارد: شکل بلند و شکل کوتاه شناسه‌اش. /edev/3 مقدار BB1309569EF761C13E620EA80AA3E84D2B6B553D را دارد، یعنی همان lFDI خود اینورتر. نصاب موقع نصب اینورتر، sFDI آن را به شرکت برق داده است.",
         "get-derc": "پیش از این، دو GET دیگر مثل همین: از /edev/3 به FunctionSetAssignments آن، و بعد به فهرست برنامه‌های DER. برنامه /derp/1 به فرمان‌های کنترلی خودش لینک دارد.",
         "derc": "یک DERControl، که خط به خط در بخش محیط آزمایش نشان داده شده: opModMaxLimW 5000 (50.00 %) به مدت 7200 s، از 1781694000 (11:00 UTC).",
         "post-received": "یک DERControlResponse که به آدرس replyTo فرمان کنترلی POST شده است. lFDI اینورتر، mRID فرمان کنترلی (شناسه یکتای آن) به عنوان subject، و وضعیت 1 را دارد: دریافت شد.",

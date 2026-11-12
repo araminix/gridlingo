@@ -32,7 +32,7 @@
         "get-dcap": "TLS के अंदर: GET /dcap HTTP/1.1, Accept: application/sep+xml के साथ। /dcap वह इकलौता एड्रेस है जो क्लाइंट को दिया जाता है। बाक़ी हर एड्रेस वह लिंक से ढूँढता है।",
         "dcap": "एक DeviceCapability रिसोर्स: EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\" और TimeLink href=\"/tm\" जैसे लिंक। pollRate=\"900\": इन रिसोर्स को हर 900 s पर फिर से पढ़ें।",
         "get-edev": "एंड डिवाइस की लिस्ट। सर्वर सिर्फ़ वही डिवाइस दिखा सकता है जिन्हें यह सर्टिफ़िकेट देख सकता है।",
-        "edev": "हर EndDevice में एक lFDI और एक sFDI होता है: उसके identifier के लंबे और छोटे रूप। /edev/3 में BB1309569EF761C13E620EA80AA3E84D2B6B553D है, जो इन्वर्टर का अपना है। इंस्टॉलर ने इन्वर्टर लगाते समय इसका SFDI यूटिलिटी को दे दिया था।",
+        "edev": "हर EndDevice में एक lFDI और एक sFDI होता है: उसके identifier के लंबे और छोटे रूप। /edev/3 में BB1309569EF761C13E620EA80AA3E84D2B6B553D है, जो इन्वर्टर का अपना है। इंस्टॉलर ने इन्वर्टर लगाते समय इसका sFDI यूटिलिटी को दे दिया था।",
         "get-derc": "इससे पहले ऐसे ही दो और GET: /edev/3 से उसके FunctionSetAssignments तक, फिर DER प्रोग्राम की लिस्ट तक। प्रोग्राम /derp/1 अपने कंट्रोल से लिंक करता है।",
         "derc": "एक DERControl, जो प्लेग्राउंड में लाइन दर लाइन दिखाया गया है: 1781694000 (11:00 UTC) से 7200 s तक opModMaxLimW 5000 (50.00 %)।",
         "post-received": "एक DERControlResponse, जो कंट्रोल के replyTo एड्रेस पर पोस्ट किया गया। इसमें इन्वर्टर का lFDI, subject के रूप में कंट्रोल का mRID (उसकी यूनीक ID), और status 1 है: received।",

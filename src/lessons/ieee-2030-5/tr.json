@@ -32,7 +32,7 @@
         "get-dcap": "TLS içinde: Accept: application/sep+xml ile GET /dcap HTTP/1.1. /dcap, bir istemciye verilen tek adrestir. Diğer her adresi bağlantılar aracılığıyla bulur.",
         "dcap": "Bir DeviceCapability kaynağı: EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\" ve TimeLink href=\"/tm\" gibi bağlantılar. pollRate=\"900\": bu kaynakları her 900 s'de bir yeniden oku.",
         "get-edev": "Uç cihazların listesi. Sunucu yalnızca bu sertifikanın görmesine izin verilen cihazları listeleyebilir.",
-        "edev": "Her EndDevice bir lFDI ve bir sFDI tutar: tanımlayıcısının uzun ve kısa biçimleri. /edev/3, inverterin kendisine ait olan BB1309569EF761C13E620EA80AA3E84D2B6B553D'yi tutar. Kurulumu yapan, inverter kurulduğunda SFDI'sini elektrik şirketine verdi.",
+        "edev": "Her EndDevice bir lFDI ve bir sFDI tutar: tanımlayıcısının uzun ve kısa biçimleri. /edev/3, inverterin kendisine ait olan BB1309569EF761C13E620EA80AA3E84D2B6B553D'yi tutar. Kurulumu yapan, inverter kurulduğunda sFDI'sini elektrik şirketine verdi.",
         "get-derc": "Bundan önce buna benzer iki GET daha: /edev/3'ten FunctionSetAssignments'ına, sonra DER programları listesine. /derp/1 programı kendi kontrollerine bağlantı verir.",
         "derc": "Deneme alanında satır satır gösterilen tek bir DERControl: 1781694000'den (11:00 UTC) itibaren 7200 s boyunca opModMaxLimW 5000 (%50.00).",
         "post-received": "Kontrolün replyTo adresine gönderilen bir DERControlResponse. İnverterin lFDI'sini, konu (subject) olarak kontrolün mRID'sini (benzersiz kimliğini) ve durum 1'i tutar: alındı.",

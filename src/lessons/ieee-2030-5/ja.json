@@ -32,7 +32,7 @@
         "get-dcap": "TLSの中で：GET /dcap HTTP/1.1、Accept: application/sep+xml。クライアントに与えられるアドレスは/dcapだけで、ほかのアドレスはすべてリンクで見つけます。",
         "dcap": "DeviceCapabilityリソースです。EndDeviceListLink href=\"/edev\"、MirrorUsagePointListLink href=\"/mup\"、TimeLink href=\"/tm\"などのリンクを持ちます。pollRate=\"900\"：これらのリソースを900 sごとに読み直します。",
         "get-edev": "エンドデバイスの一覧です。サーバは、この証明書に見ることが許された機器だけを並べることがあります。",
-        "edev": "各EndDeviceはlFDIとsFDIを持ちます。識別子の長い形式と短い形式です。/edev/3が持つBB1309569EF761C13E620EA80AA3E84D2B6B553Dは、このインバータ自身のものです。設置時に、施工者がSFDIを電力会社に伝えています。",
+        "edev": "各EndDeviceはlFDIとsFDIを持ちます。識別子の長い形式と短い形式です。/edev/3が持つBB1309569EF761C13E620EA80AA3E84D2B6B553Dは、このインバータ自身のものです。設置時に、施工者がsFDIを電力会社に伝えています。",
         "get-derc": "この前に、同じようなGETがあと2回あります。/edev/3からそのFunctionSetAssignmentsへ、さらにDERプログラムの一覧へ。プログラム/derp/1が自分の制御へリンクしています。",
         "derc": "DERControlが1つ。各行の意味は「試してみる」で見られます。opModMaxLimW 5000（50.00 %）を7200 s、1781694000（11:00 UTC）から。",
         "post-received": "DERControlResponseを、制御のreplyToアドレスにPOSTします。中身はインバータのlFDI、subjectとしての制御のmRID（一意のID）、そしてstatus 1：受信です。",
