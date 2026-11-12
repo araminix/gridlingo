@@ -1,0 +1,103 @@
+{
+    "intro": "Inside a battery system, the battery management system (BMS) and the power conversion system (PCS) often share a CAN bus. A CAN frame is short: an identifier and up to 8 data bytes, with no sender address. CANopen gives the identifiers a meaning: which node sends, and what kind of message it is.",
+    "steps": {
+        "boot": { "title": "Boot-up", "text": "The BMS (node 5) powers up and sends one boot-up message. It is now pre-operational: it answers SDO requests but sends no process data." },
+        "identify": { "title": "Check the identity", "text": "The PCS is the NMT master: it starts and supervises the other nodes. It reads the BMS's serial number with an SDO: object 0x1018, sub-index 4." },
+        "start": { "title": "Start", "text": "The PCS tells node 5 to go operational. From now on, the BMS sends a heartbeat every second, and its process data." },
+        "data": { "title": "Process data", "text": "TPDO1 carries pack voltage, current, state of charge and the hottest cell, every 100 ms. Nobody asks and nobody answers: the PCS just listens. The BMS maker's EDS file says what each byte means." },
+        "alarm": { "title": "Cell too hot", "text": "A cell in module 3 reaches 61 °C. The BMS sends an emergency message at once. The PCS cuts the current to 40 A." },
+        "recover": { "title": "All clear", "text": "The cell cools down. The BMS sends an emergency message with error code 0x0000: the error is gone." }
+    },
+    "frames": {
+        "bootup": "Node 5 is up",
+        "sdo-req": "What is your serial number?",
+        "sdo-resp": "123456",
+        "nmt-start": "Node 5: go operational",
+        "heartbeat": "Node 5: operational and alive",
+        "tpdo": "812.4 V, 152.3 A, 68 %, hottest cell 31 °C",
+        "emcy": "Emergency: a cell is too hot",
+        "tpdo-low": "809.8 V, 40.0 A, 67 %, hottest cell 58 °C",
+        "emcy-reset": "The error is gone"
+    },
+    "fields": {
+        "id-705": { "name": "Identifier 0x705", "note": "0x700 + node 5: node 5's boot-up and heartbeat. 11 bits on the wire, shown here in 2 bytes." },
+        "id-605": { "name": "Identifier 0x605", "note": "0x600 + node 5: an SDO request to node 5. 11 bits on the wire." },
+        "id-585": { "name": "Identifier 0x585", "note": "0x580 + node 5: an SDO response from node 5. 11 bits on the wire." },
+        "id-000": { "name": "Identifier 0x000", "note": "NMT: the lowest identifier, so it wins the bus against every other frame. Only the NMT master sends it." },
+        "id-185": { "name": "Identifier 0x185", "note": "0x180 + node 5: TPDO1, the first process data object node 5 sends. 11 bits on the wire." },
+        "id-085": { "name": "Identifier 0x085", "note": "0x080 + node 5: node 5's emergency message. Its low identifier lets it win the bus against PDOs." },
+        "dlc-1": { "name": "DLC 1", "note": "One data byte. The data length code is 4 bits on the wire, shown here in 1 byte." },
+        "dlc-2": { "name": "DLC 2", "note": "Two data bytes." },
+        "dlc-6": { "name": "DLC 6", "note": "Six data bytes, as the BMS's PDO mapping (object 0x1A00) lays them out." },
+        "dlc-8": { "name": "DLC 8", "note": "Eight data bytes: SDO and emergency messages always have 8." },
+        "state-boot": { "name": "State 0x00", "note": "Boot-up: node 5 has started and is now pre-operational." },
+        "state-op": { "name": "State 0x05", "note": "Operational. 0x7F would be pre-operational, 0x04 stopped." },
+        "sdo-upload": { "name": "Command 0x40", "note": "Initiate upload: send me the value of an object. \"Upload\" means from the node to the client." },
+        "sdo-expedited": { "name": "Command 0x43", "note": "Upload response, expedited: the value is in this frame, and it has 4 bytes." },
+        "index-1018": { "name": "Index 0x1018", "note": "Low byte first: object 0x1018, the identity object." },
+        "sub-4": { "name": "Sub-index 4", "note": "The serial number. 1 is the vendor ID, 2 the product code, 3 the revision." },
+        "reserved": { "name": "Reserved", "note": "Four zero bytes: a read request carries no data." },
+        "serial": { "name": "Serial number", "note": "0x0001E240 = 123456, low byte first." },
+        "nmt-start": { "name": "Command 0x01", "note": "Start remote node: go operational. 0x02 stops it, 0x81 resets it." },
+        "nmt-node": { "name": "Node 5", "note": "The node that must start. 0 would start every node on the bus." },
+        "volt": { "name": "Pack voltage", "note": "0x1FBC = 8124, in steps of 0.1 V: 812.4 V. Low byte first, like all CANopen numbers." },
+        "amp": { "name": "Pack current", "note": "0x05F3 = 1523, in steps of 0.1 A: 152.3 A. For this BMS, positive means discharging." },
+        "soc": { "name": "State of charge", "note": "0x44 = 68 %." },
+        "tmax": { "name": "Hottest cell", "note": "0x1F = 31 °C." },
+        "volt-low": { "name": "Pack voltage", "note": "0x1FA2 = 8098: 809.8 V." },
+        "amp-low": { "name": "Pack current", "note": "0x0190 = 400: 40.0 A. The PCS has cut the current." },
+        "soc-low": { "name": "State of charge", "note": "0x43 = 67 %." },
+        "tmax-hot": { "name": "Hottest cell", "note": "0x3A = 58 °C: cooling, but still hot." },
+        "err-4200": { "name": "Error code 0x4200", "note": "Low byte first: device temperature, in the class of temperature errors (0x4xxx)." },
+        "errreg-09": { "name": "Error register 0x09", "note": "The value of object 0x1001: bit 0 (an error) and bit 3 (temperature)." },
+        "emcy-maker": { "name": "Maker's data", "note": "Five bytes the BMS maker defines. This one sends module 3, cell 12 (0x0C) and 61 °C (0x3D)." },
+        "err-0000": { "name": "Error code 0x0000", "note": "Error reset: no error is active any more." },
+        "errreg-00": { "name": "Error register 0x00", "note": "No error bit is set." },
+        "emcy-maker-0": { "name": "Maker's data", "note": "All zero." },
+        "a-function": { "name": "Function code", "note": "The top 4 bits. 0011 = 3: TPDO1, 0x180 in the identifier." },
+        "a-node": { "name": "Node ID", "note": "The low 7 bits. 0000101 = 5: the BMS. A bus has room for nodes 1 to 127." }
+    },
+    "devices": {
+        "rack": "Battery rack",
+        "bms": "BMS",
+        "pcs": "PCS",
+        "ems": "Site controller"
+    },
+    "facts": {
+        "standard": "CAN: ISO 11898. CANopen: CiA 301 (EN 50325-4)",
+        "between": "BMS ↔ power conversion system, inside one battery system",
+        "transport": "A CAN bus: two wires (CAN_H, CAN_L), 120 Ω at each end",
+        "frames": "NMT · heartbeat · PDO · SDO · EMCY, each on its own identifier",
+        "speed": "500 kbit/s here: a frame with 8 data bytes takes about 0.25 ms"
+    },
+    "tips": [
+        "Many battery makers use their own CAN messages, with their own identifiers and scaling, not CANopen. CANopen is one common standard way. Ask for the maker's EDS file or CAN message list before you connect.",
+        "Two nodes must never send the same identifier. In CANopen, every node ID on the bus must be unique.",
+        "Watch the heartbeat. Set the PCS's consumer heartbeat time (object 0x1016) a little longer than the BMS's heartbeat period (0x1017), so a silent BMS stops the PCS.",
+        "Put a 120 Ω resistor at each end of the bus, and nowhere else. With none, or with one too many, frames break as the cable gets longer."
+    ],
+    "points": {
+        "state": "NMT state",
+        "volt": "Pack voltage",
+        "amp": "Pack current",
+        "soc": "State of charge",
+        "tmax": "Hottest cell"
+    },
+    "values": {
+        "preop": "pre-operational",
+        "operational": "operational"
+    },
+    "anatomy": {
+        "cobid": "An identifier: a function code and a node ID"
+    },
+    "timing": {
+        "title": "What the bus carries in two seconds",
+        "note": "TPDO1 goes out every 100 ms (its event timer), the heartbeat every 1000 ms. An emergency message goes out once, when the fault appears, and once more when it clears. The CAN controller chip adds the start bit, the CRC, the acknowledge slot and the stuffing bits to every frame; the bytes shown here are what software sees.",
+        "tpdo": "TPDO1 · 0x185",
+        "heartbeat": "Heartbeat · 0x705",
+        "emcy": "EMCY · 0x085",
+        "every-100": "every 100 ms",
+        "every-1000": "every 1000 ms",
+        "on-fault": "once, on the fault"
+    }
+}

@@ -1,0 +1,103 @@
+{
+    "intro": "IEC 61850-7-420 brings the IEC 61850 data model to distributed energy: batteries, inverters, generators, and the functions that control them. A plant controller reads and controls them with the same MMS services as a substation relay. Only the names are new.",
+    "steps": {
+        "associate": { "title": "Associate", "text": "The plant controller opens TCP port 102 on the battery inverter and sets up an MMS association, as in any IEC 61850 connection." },
+        "read": { "title": "Read charge and power", "text": "One Read asks for two values: the state of charge in DSTO1 and the active power in MMXU1. The answer holds both, in the same order." },
+        "subscribe": { "title": "Ask for reports", "text": "The controller enables a report on the same two values. From now on, the inverter sends them when they change." },
+        "limit": { "title": "Limit the output", "text": "The grid operator allows at most 2000 kW. The controller operates WMaxSpt, the set point of DWMX1, the function that caps active power. The inverter accepts and starts to ramp down." },
+        "report": { "title": "Power settles", "text": "The inverter reports while TotW falls. The last report says 2000.0 kW: the limit holds." }
+    },
+    "frames": {
+        "tcp": "Open TCP to port 102, then a transport connection",
+        "initiate-req": "Let's talk MMS: my sizes and services",
+        "initiate-resp": "Agreed: these are mine",
+        "read-req": "What are your state of charge and active power?",
+        "read-resp": "68.5 % and 3000.0 kW",
+        "enable": "Enable report urcbDER01",
+        "oper-req": "Limit your active power to 2000 kW",
+        "oper-resp": "Done",
+        "report": "TotW is now 2000.0 kW"
+    },
+    "notes": {
+        "tcp": "Plain TCP to port 102, then an ISO transport connection (COTP) on top. The IEC 61850 MMS lesson shows these steps.",
+        "initiate-req": "An MMS Initiate inside session, presentation and ACSE layers. The controller offers its largest message size and the services it wants. Authentication, when used, happens here (IEC 62351-4).",
+        "initiate-resp": "The inverter answers with its own sizes and services. From now on, every request names a variable by its logical device and its item.",
+        "enable": "A Write of TRUE to RptEna in the report control block LLN0$RP$urcbDER01. Its data set dsDER holds DSTO1.UseSocPct and MMXU1.TotW.",
+        "report": "An unsolicited InformationReport: the inverter sends it without being asked, each time a value in dsDER changes."
+    },
+    "fields": {
+        "tpkt-110": { "name": "TPKT", "note": "Version 3, then the length of the whole message: 0x006E = 110 bytes." },
+        "tpkt-43": { "name": "TPKT", "note": "Version 3, then the length: 0x002B = 43 bytes." },
+        "tpkt-111": { "name": "TPKT", "note": "Version 3, then the length: 0x006F = 111 bytes." },
+        "tpkt-29": { "name": "TPKT", "note": "Version 3, then the length: 0x001D = 29 bytes." },
+        "cotp-dt": { "name": "COTP", "note": "A data unit (0xF0), the last of its message (0x80)." },
+        "session": { "name": "Session", "note": "Two short session headers: give tokens, data transfer." },
+        "presentation": { "name": "Presentation", "note": "Fully encoded data, presentation context 3: what follows is MMS." },
+        "confirmed-req": { "name": "Confirmed request", "note": "Tag A0: a request that expects an answer. The next byte counts the bytes inside it." },
+        "confirmed-resp": { "name": "Confirmed response", "note": "Tag A1: the answer to a request." },
+        "invoke-7": { "name": "Invoke ID 7", "note": "A number the controller picks. The answer carries the same one." },
+        "invoke-7-resp": { "name": "Invoke ID 7", "note": "The same number as the request: this answers it." },
+        "invoke-8": { "name": "Invoke ID 8", "note": "A new request, a new number." },
+        "invoke-8-resp": { "name": "Invoke ID 8", "note": "This answers the request with the set point." },
+        "read": { "name": "Read", "note": "Tag A4: the Read service." },
+        "spec": { "name": "Variable list", "note": "A list of variables, each given by its name. Here there are two." },
+        "var": { "name": "Variable", "note": "One entry of the list. Its name follows." },
+        "domain-specific": { "name": "Domain-specific name", "note": "A name in two parts: the domain and the item." },
+        "domain": { "name": "Domain", "note": "\"BESS1DER\": the logical device DER of the IED BESS1." },
+        "item-soc": { "name": "Item", "note": "\"DSTO1$MX$UseSocPct$mag$f\": the storage unit's state of charge, in percent of its usable energy." },
+        "item-totw": { "name": "Item", "note": "\"MMXU1$MX$TotW$mag$f\": the total active power at the inverter's AC side." },
+        "results": { "name": "Results", "note": "One result per variable, in the order they were asked for." },
+        "float-tag": { "name": "Floating point", "note": "Tag 0x87 (a float), 5 bytes. 08: an IEEE 754 single-precision float follows." },
+        "soc": { "name": "UseSocPct", "note": "68.5 (%), most significant byte first." },
+        "totw": { "name": "TotW", "note": "3000.0. The unit, kW, is in the attribute units (CF)." },
+        "write": { "name": "Write", "note": "Tag A5: the Write service. IEC 61850 sends a command as a Write to Oper." },
+        "write-spec": { "name": "Variable", "note": "A list of one variable, given by its name." },
+        "item-oper": { "name": "Item", "note": "\"DWMX1$CO$WMaxSpt$Oper\": the Oper structure of the set point WMaxSpt. CO means control." },
+        "data-list": { "name": "Data", "note": "The values to write, one per variable." },
+        "oper-struct": { "name": "Oper", "note": "A structure (tag A2) of six parts, in the order the data model sets." },
+        "ctlval": { "name": "ctlVal", "note": "The new value: a structure with one float, 0x44FA0000 = 2000.0 (kW)." },
+        "origin": { "name": "origin", "note": "Who sends it: orCat 5 (automatic-station: a controller in the plant) and orIdent \"PPC\"." },
+        "ctlnum": { "name": "ctlNum", "note": "1: the client counts its commands, so each one can be told apart." },
+        "oper-t": { "name": "T", "note": "When the controller sent it: 10:41:12.250 UTC. 4 bytes of seconds, 3 of fractions of a second, 1 of clock quality." },
+        "test": { "name": "Test", "note": "FALSE: a real command, not a test." },
+        "check": { "name": "Check", "note": "Two bits: synchrocheck and interlock check. Both are off: a set point needs neither." },
+        "write-resp": { "name": "Write response", "note": "Tag A5: the answer to a Write, one result per variable." },
+        "success": { "name": "Success", "note": "Tag 0x81, empty: the write worked. With direct control, the new limit applies at once." },
+        "a-ld": { "name": "Logical device", "note": "BESS1DER: IED name BESS1 and instance DER." },
+        "a-ln": { "name": "Logical node", "note": "DWMX1: the function that caps active power, instance 1." },
+        "a-fc": { "name": "Functional constraint", "note": "CO: control. A Write here is a command, not a setting." },
+        "a-do": { "name": "Data object", "note": "WMaxSpt: the maximum active power set point, of type APC (a controllable analogue value)." },
+        "a-da": { "name": "Data attribute", "note": "Oper: the structure a client writes to give the command." }
+    },
+    "devices": {
+        "meter": "Grid meter",
+        "ppc": "Plant controller",
+        "bess": "BESS1 inverter",
+        "battery": "Battery"
+    },
+    "facts": {
+        "standard": "IEC 61850-7-420 edition 2 (2021), on IEC 61850-7-4 and the MMS mapping of IEC 61850-8-1",
+        "between": "Plant controller, SCADA or aggregator → inverter, battery, generator",
+        "transport": "MMS over TCP 102",
+        "security": "TLS (IEC 62351-4), TCP 3782",
+        "model": "DER logical nodes: DSTO, DBAT, DINV, DGEN, and functions such as DWMX"
+    },
+    "tips": [
+        "Edition 1 (2009) and edition 2 (2021) use different names. Edition 1 has ZINV, ZBAT and DRCT; edition 2 has DINV, DBAT, DSTO and functions such as DWMX. Check which edition the device's SCL file uses before you map anything.",
+        "Read ctlModel (CF) before you operate. With direct-with-normal-security, the Write response is the end. With enhanced security, a CommandTermination follows when the device has finished.",
+        "Edition 2 functions can fall back to their defaults after a time set in RvrtTms. A controller that sends a limit once and never again may see it disappear.",
+        "Agree on the sign of power. Some devices count discharging as positive, others as negative. Test with a small set point first."
+    ],
+    "points": {
+        "soc": "State of charge",
+        "totw": "Active power",
+        "wmax": "Power limit"
+    },
+    "anatomy": {
+        "control": "The name of a set point, and how MMS writes it"
+    },
+    "playground": {
+        "scl": "The battery inverter's configured description (.cid). Open DER, then DSTO1 and MMXU1 for the two values read here, and DWMX1 for WMaxSpt: its Oper structure and its ctlModel. Then open your own file, if you have one.",
+        "encoder": "MMS sends a float most significant byte first (ABCD). The limit, 2000.0, travels as 44 FA 00 00."
+    }
+}

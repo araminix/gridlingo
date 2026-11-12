@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A made-up wind turbine for learning: the configured IED description (.cid) of one turbine, with the wind logical
+     nodes of IEC 61400-25-2 edition 2. Trimmed to the data the lesson uses. -->
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B" release="4">
+    <Header id="Gridlingo sample wind turbine" version="1" revision="1" toolID="Gridlingo"/>
+    <Communication>
+        <SubNetwork name="ParkLAN" type="8-MMS">
+            <ConnectedAP iedName="WT01" apName="S1">
+                <Address>
+                    <P type="IP">10.0.1.101</P>
+                    <P type="IP-SUBNET">255.255.255.0</P>
+                    <P type="IP-GATEWAY">10.0.1.1</P>
+                </Address>
+            </ConnectedAP>
+        </SubNetwork>
+    </Communication>
+    <IED name="WT01" manufacturer="Example" type="Wind turbine 3 MW" configVersion="1.0">
+        <Services>
+            <GetDirectory/>
+            <GetDataObjectDefinition/>
+            <GetDataValues/>
+            <SetDataValues/>
+            <ReportSettings cbName="Conf" datSet="Conf" rptID="Dyn" optFields="Dyn" bufTime="Dyn" trgOps="Dyn" intgPd="Dyn"/>
+        </Services>
+        <AccessPoint name="S1">
+            <Server>
+                <Authentication/>
+                <LDevice inst="LD0" desc="The device itself">
+                    <LN0 lnClass="LLN0" inst="" lnType="LLN0_WT">
+                        <DOI name="NamPlt">
+                            <DAI name="vendor"><Val>Example</Val></DAI>
+                            <DAI name="swRev"><Val>7.2.0</Val></DAI>
+                        </DOI>
+                    </LN0>
+                    <LN lnClass="LPHD" inst="1" lnType="LPHD_WT"/>
+                </LDevice>
+                <LDevice inst="WTG" desc="The wind turbine">
+                    <LN0 lnClass="LLN0" inst="" lnType="LLN0_WT">
+                        <DataSet name="dsWTG">
+                            <FCDA ldInst="WTG" lnClass="WTUR" lnInst="1" doName="W" daName="mag.f" fc="MX"/>
+                            <FCDA ldInst="WTG" lnClass="WROT" lnInst="1" doName="RotSpd" daName="mag.f" fc="MX"/>
+                            <FCDA ldInst="WTG" lnClass="WMET" lnInst="1" doName="HorWdSpd" daName="mag.f" fc="MX"/>
+                        </DataSet>
+                        <ReportControl name="urcbWTG" datSet="dsWTG" rptID="WT01WTG/LLN0$RP$urcbWTG" confRev="1" buffered="false" intgPd="10000">
+                            <TrgOps dchg="true" qchg="true" period="true"/>
+                            <OptFields seqNum="true" timeStamp="true" dataSet="true" reasonCode="true"/>
+                            <RptEnabled max="2"/>
+                        </ReportControl>
+                    </LN0>
+                    <LN lnClass="WTUR" inst="1" lnType="WTUR_WT" desc="The turbine as a whole">
+                        <DOI name="W">
+                            <SDI name="units">
+                                <DAI name="SIUnit"><Val>W</Val></DAI>
+                                <DAI name="multiplier"><Val>k</Val></DAI>
+                            </SDI>
+                        </DOI>
+                    </LN>
+                    <LN lnClass="WROT" inst="1" lnType="WROT_WT" desc="Rotor and blades"/>
+                    <LN lnClass="WTRM" inst="1" lnType="WTRM_WT" desc="Gearbox and drive train"/>
+                    <LN lnClass="WGEN" inst="1" lnType="WGEN_WT" desc="Generator"/>
+                    <LN lnClass="WCNV" inst="1" lnType="WCNV_WT" desc="Converter"/>
+                    <LN lnClass="WNAC" inst="1" lnType="WNAC_WT" desc="Nacelle"/>
+                    <LN lnClass="WMET" inst="1" lnType="WMET_WT" desc="Wind sensors on the nacelle"/>
+                </LDevice>
+            </Server>
+        </AccessPoint>
+    </IED>
+    <DataTypeTemplates>
+        <LNodeType id="LLN0_WT" lnClass="LLN0">
+            <DO name="Beh" type="ENS_Beh"/>
+            <DO name="Health" type="ENS_Health"/>
+            <DO name="NamPlt" type="LPL_WT"/>
+        </LNodeType>
+        <LNodeType id="LPHD_WT" lnClass="LPHD">
+            <DO name="PhyNam" type="DPL_WT"/>
+            <DO name="PhyHealth" type="ENS_Health"/>
+            <DO name="Proxy" type="SPS_WT"/>
+        </LNodeType>
+        <LNodeType id="WTUR_WT" lnClass="WTUR">
+            <DO name="Beh" type="ENS_Beh"/>
+            <DO name="W" type="MV_WT"/>
+        </LNodeType>
+        <LNodeType id="WROT_WT" lnClass="WROT">
+            <DO name="Beh" type="ENS_Beh"/>
+            <DO name="RotSpd" type="MV_WT"/>
+        </LNodeType>
+        <LNodeType id="WTRM_WT" lnClass="WTRM">
+            <DO name="Beh" type="ENS_Beh"/>
+        </LNodeType>
+        <LNodeType id="WGEN_WT" lnClass="WGEN">
+            <DO name="Beh" type="ENS_Beh"/>
+        </LNodeType>
+        <LNodeType id="WCNV_WT" lnClass="WCNV">
+            <DO name="Beh" type="ENS_Beh"/>
+        </LNodeType>
+        <LNodeType id="WNAC_WT" lnClass="WNAC">
+            <DO name="Beh" type="ENS_Beh"/>
+        </LNodeType>
+        <LNodeType id="WMET_WT" lnClass="WMET">
+            <DO name="Beh" type="ENS_Beh"/>
+            <DO name="HorWdSpd" type="MV_WT"/>
+            <DO name="HorWdDir" type="MV_WT"/>
+            <DO name="EnvTmp" type="MV_WT"/>
+        </LNodeType>
+        <DOType id="MV_WT" cdc="MV">
+            <DA name="mag" bType="Struct" type="AnalogueValue_WT" fc="MX" dchg="true"/>
+            <DA name="q" bType="Quality" fc="MX" qchg="true"/>
+            <DA name="t" bType="Timestamp" fc="MX"/>
+            <DA name="units" bType="Struct" type="Unit_WT" fc="CF"/>
+        </DOType>
+        <DOType id="ENS_Beh" cdc="ENS">
+            <DA name="stVal" bType="Enum" type="BehaviourModeKind" fc="ST"/>
+            <DA name="q" bType="Quality" fc="ST"/>
+            <DA name="t" bType="Timestamp" fc="ST"/>
+        </DOType>
+        <DOType id="ENS_Health" cdc="ENS">
+            <DA name="stVal" bType="Enum" type="HealthKind" fc="ST"/>
+            <DA name="q" bType="Quality" fc="ST"/>
+            <DA name="t" bType="Timestamp" fc="ST"/>
+        </DOType>
+        <DOType id="LPL_WT" cdc="LPL">
+            <DA name="vendor" bType="VisString255" fc="DC"/>
+            <DA name="swRev" bType="VisString255" fc="DC"/>
+        </DOType>
+        <DOType id="DPL_WT" cdc="DPL">
+            <DA name="vendor" bType="VisString255" fc="DC"/>
+            <DA name="serNum" bType="VisString255" fc="DC"/>
+        </DOType>
+        <DOType id="SPS_WT" cdc="SPS">
+            <DA name="stVal" bType="BOOLEAN" fc="ST"/>
+            <DA name="q" bType="Quality" fc="ST"/>
+            <DA name="t" bType="Timestamp" fc="ST"/>
+        </DOType>
+        <DAType id="AnalogueValue_WT">
+            <BDA name="f" bType="FLOAT32"/>
+        </DAType>
+        <DAType id="Unit_WT">
+            <BDA name="SIUnit" bType="Enum" type="SIUnitKind"/>
+            <BDA name="multiplier" bType="Enum" type="MultiplierKind"/>
+        </DAType>
+        <EnumType id="BehaviourModeKind">
+            <EnumVal ord="1">on</EnumVal>
+            <EnumVal ord="3">test</EnumVal>
+            <EnumVal ord="5">off</EnumVal>
+        </EnumType>
+        <EnumType id="HealthKind">
+            <EnumVal ord="1">Ok</EnumVal>
+            <EnumVal ord="2">Warning</EnumVal>
+            <EnumVal ord="3">Alarm</EnumVal>
+        </EnumType>
+        <EnumType id="SIUnitKind">
+            <EnumVal ord="38">W</EnumVal>
+        </EnumType>
+        <EnumType id="MultiplierKind">
+            <EnumVal ord="0"></EnumVal>
+            <EnumVal ord="3">k</EnumVal>
+            <EnumVal ord="6">M</EnumVal>
+        </EnumType>
+    </DataTypeTemplates>
+</SCL>

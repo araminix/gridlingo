@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A made-up battery inverter for learning: the configured IED description (.cid) of one device, with the DER logical
+     nodes of IEC 61850-7-420 edition 2. Trimmed to the data the lesson uses. -->
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B" release="4">
+    <Header id="Gridlingo sample battery inverter" version="1" revision="1" toolID="Gridlingo"/>
+    <Communication>
+        <SubNetwork name="PlantLAN" type="8-MMS">
+            <ConnectedAP iedName="BESS1" apName="S1">
+                <Address>
+                    <P type="IP">10.0.0.41</P>
+                    <P type="IP-SUBNET">255.255.255.0</P>
+                    <P type="IP-GATEWAY">10.0.0.1</P>
+                </Address>
+            </ConnectedAP>
+        </SubNetwork>
+    </Communication>
+    <IED name="BESS1" manufacturer="Example" type="Battery inverter 5 MW" configVersion="1.0">
+        <Services>
+            <GetDirectory/>
+            <GetDataObjectDefinition/>
+            <GetDataValues/>
+            <SetDataValues/>
+            <ReportSettings cbName="Conf" datSet="Conf" rptID="Dyn" optFields="Dyn" bufTime="Dyn" trgOps="Dyn" intgPd="Dyn"/>
+        </Services>
+        <AccessPoint name="S1">
+            <Server>
+                <Authentication/>
+                <LDevice inst="LD0" desc="The device itself">
+                    <LN0 lnClass="LLN0" inst="" lnType="LLN0_BESS">
+                        <DOI name="NamPlt">
+                            <DAI name="vendor"><Val>Example</Val></DAI>
+                            <DAI name="swRev"><Val>2.1.0</Val></DAI>
+                        </DOI>
+                    </LN0>
+                    <LN lnClass="LPHD" inst="1" lnType="LPHD_BESS"/>
+                </LDevice>
+                <LDevice inst="DER" desc="The battery storage unit and its functions">
+                    <LN0 lnClass="LLN0" inst="" lnType="LLN0_BESS">
+                        <DataSet name="dsDER">
+                            <FCDA ldInst="DER" lnClass="DSTO" lnInst="1" doName="UseSocPct" daName="mag.f" fc="MX"/>
+                            <FCDA ldInst="DER" lnClass="MMXU" lnInst="1" doName="TotW" daName="mag.f" fc="MX"/>
+                        </DataSet>
+                        <ReportControl name="urcbDER" datSet="dsDER" rptID="BESS1DER/LLN0$RP$urcbDER" confRev="1" buffered="false" intgPd="60000">
+                            <TrgOps dchg="true" qchg="true" period="true"/>
+                            <OptFields seqNum="true" timeStamp="true" dataSet="true" reasonCode="true"/>
+                            <RptEnabled max="4"/>
+                        </ReportControl>
+                    </LN0>
+                    <LN lnClass="DSTO" inst="1" lnType="DSTO_BESS" desc="The storage unit: state, state of charge, limits">
+                        <DOI name="DERTyp">
+                            <DAI name="setVal"><Val>Lithium Ion Battery Storage</Val></DAI>
+                        </DOI>
+                        <DOI name="ChaWMax">
+                            <SDI name="setMag">
+                                <DAI name="f"><Val>5000</Val></DAI>
+                            </SDI>
+                            <SDI name="units">
+                                <DAI name="SIUnit"><Val>W</Val></DAI>
+                                <DAI name="multiplier"><Val>k</Val></DAI>
+                            </SDI>
+                        </DOI>
+                    </LN>
+                    <LN lnClass="DBAT" inst="1" lnType="DBAT_BESS" desc="The battery">
+                        <DOI name="BatTyp">
+                            <DAI name="setVal"><Val>Lithium ion</Val></DAI>
+                        </DOI>
+                    </LN>
+                    <LN lnClass="DINV" inst="1" lnType="DINV_BESS" desc="The inverter">
+                        <DOI name="WRtg">
+                            <SDI name="setMag">
+                                <DAI name="f"><Val>5000</Val></DAI>
+                            </SDI>
+                            <SDI name="units">
+                                <DAI name="SIUnit"><Val>W</Val></DAI>
+                                <DAI name="multiplier"><Val>k</Val></DAI>
+                            </SDI>
+                        </DOI>
+                    </LN>
+                    <LN lnClass="MMXU" inst="1" lnType="MMXU_BESS" desc="Measurements at the inverter's AC side">
+                        <DOI name="TotW">
+                            <SDI name="units">
+                                <DAI name="SIUnit"><Val>W</Val></DAI>
+                                <DAI name="multiplier"><Val>k</Val></DAI>
+                            </SDI>
+                        </DOI>
+                        <DOI name="Hz">
+                            <SDI name="units">
+                                <DAI name="SIUnit"><Val>Hz</Val></DAI>
+                            </SDI>
+                        </DOI>
+                    </LN>
+                    <LN lnClass="DWMX" inst="1" lnType="DWMX_BESS" desc="Maximum active power function">
+                        <DOI name="WMaxSpt">
+                            <DAI name="ctlModel"><Val>direct-with-normal-security</Val></DAI>
+                            <SDI name="units">
+                                <DAI name="SIUnit"><Val>W</Val></DAI>
+                                <DAI name="multiplier"><Val>k</Val></DAI>
+                            </SDI>
+                        </DOI>
+                        <DOI name="RvrtTms">
+                            <DAI name="setVal"><Val>900</Val></DAI>
+                        </DOI>
+                    </LN>
+                </LDevice>
+            </Server>
+        </AccessPoint>
+    </IED>
+    <DataTypeTemplates>
+        <LNodeType id="LLN0_BESS" lnClass="LLN0">
+            <DO name="Beh" type="ENS_Beh"/>
+            <DO name="Health" type="ENS_Health"/>
+            <DO name="NamPlt" type="LPL_BESS"/>
+        </LNodeType>
+        <LNodeType id="LPHD_BESS" lnClass="LPHD">
+            <DO name="PhyNam" type="DPL_BESS"/>
+            <DO name="PhyHealth" type="ENS_Health"/>
+            <DO name="Proxy" type="SPS_BESS"/>
+        </LNodeType>
+        <LNodeType id="DSTO_BESS" lnClass="DSTO">
+            <DO name="Beh" type="ENS_Beh"/>
+            <DO name="DEROpSt" type="ENS_DERState"/>
+            <DO name="DERTyp" type="ENG_DERUnit"/>
+            <DO name="UseSocPct" type="MV_BESS"/>
+            <DO name="SocWh" type="MV_BESS"/>
+            <DO name="ChaWMax" type="ASG_BESS"/>
+        </LNodeType>
+        <LNodeType id="DBAT_BESS" lnClass="DBAT">
+            <DO name="Beh" type="ENS_Beh"/>
+            <DO name="BatTyp" type="ENG_BatteryType"/>
+            <DO name="Amp" type="MV_BESS"/>
+        </LNodeType>
+        <LNodeType id="DINV_BESS" lnClass="DINV">
+            <DO name="Beh" type="ENS_Beh"/>
+            <DO name="WRtg" type="ASG_BESS"/>
+        </LNodeType>
+        <LNodeType id="MMXU_BESS" lnClass="MMXU">
+            <DO name="Beh" type="ENS_Beh"/>
+            <DO name="TotW" type="MV_BESS"/>
+            <DO name="Hz" type="MV_BESS"/>
+        </LNodeType>
+        <LNodeType id="DWMX_BESS" lnClass="DWMX">
+            <DO name="Beh" type="ENS_Beh"/>
+            <DO name="WMaxSpt" type="APC_BESS"/>
+            <DO name="RvrtTms" type="ING_BESS"/>
+        </LNodeType>
+        <DOType id="MV_BESS" cdc="MV">
+            <DA name="mag" bType="Struct" type="AnalogueValue_BESS" fc="MX" dchg="true"/>
+            <DA name="q" bType="Quality" fc="MX" qchg="true"/>
+            <DA name="t" bType="Timestamp" fc="MX"/>
+            <DA name="units" bType="Struct" type="Unit_BESS" fc="CF"/>
+        </DOType>
+        <DOType id="ASG_BESS" cdc="ASG">
+            <DA name="setMag" bType="Struct" type="AnalogueValue_BESS" fc="SP"/>
+            <DA name="units" bType="Struct" type="Unit_BESS" fc="CF"/>
+        </DOType>
+        <DOType id="APC_BESS" cdc="APC">
+            <DA name="origin" bType="Struct" type="Originator_BESS" fc="ST"/>
+            <DA name="ctlNum" bType="INT8U" fc="ST"/>
+            <DA name="mxVal" bType="Struct" type="AnalogueValue_BESS" fc="MX" dchg="true"/>
+            <DA name="q" bType="Quality" fc="MX" qchg="true"/>
+            <DA name="t" bType="Timestamp" fc="MX"/>
+            <DA name="ctlModel" bType="Enum" type="CtlModelKind" fc="CF"/>
+            <DA name="units" bType="Struct" type="Unit_BESS" fc="CF"/>
+            <DA name="Oper" bType="Struct" type="APCOperate_BESS" fc="CO"/>
+        </DOType>
+        <DOType id="ING_BESS" cdc="ING">
+            <DA name="setVal" bType="INT32" fc="SP"/>
+        </DOType>
+        <DOType id="ENS_Beh" cdc="ENS">
+            <DA name="stVal" bType="Enum" type="BehaviourModeKind" fc="ST"/>
+            <DA name="q" bType="Quality" fc="ST"/>
+            <DA name="t" bType="Timestamp" fc="ST"/>
+        </DOType>
+        <DOType id="ENS_Health" cdc="ENS">
+            <DA name="stVal" bType="Enum" type="HealthKind" fc="ST"/>
+            <DA name="q" bType="Quality" fc="ST"/>
+            <DA name="t" bType="Timestamp" fc="ST"/>
+        </DOType>
+        <DOType id="ENS_DERState" cdc="ENS">
+            <DA name="stVal" bType="Enum" type="DERStateKind" fc="ST"/>
+            <DA name="q" bType="Quality" fc="ST"/>
+            <DA name="t" bType="Timestamp" fc="ST"/>
+        </DOType>
+        <DOType id="ENG_DERUnit" cdc="ENG">
+            <DA name="setVal" bType="Enum" type="DERUnitKind" fc="SP"/>
+        </DOType>
+        <DOType id="ENG_BatteryType" cdc="ENG">
+            <DA name="setVal" bType="Enum" type="BatteryTypeKind" fc="SP"/>
+        </DOType>
+        <DOType id="LPL_BESS" cdc="LPL">
+            <DA name="vendor" bType="VisString255" fc="DC"/>
+            <DA name="swRev" bType="VisString255" fc="DC"/>
+        </DOType>
+        <DOType id="DPL_BESS" cdc="DPL">
+            <DA name="vendor" bType="VisString255" fc="DC"/>
+            <DA name="serNum" bType="VisString255" fc="DC"/>
+        </DOType>
+        <DOType id="SPS_BESS" cdc="SPS">
+            <DA name="stVal" bType="BOOLEAN" fc="ST"/>
+            <DA name="q" bType="Quality" fc="ST"/>
+            <DA name="t" bType="Timestamp" fc="ST"/>
+        </DOType>
+        <DAType id="AnalogueValue_BESS">
+            <BDA name="f" bType="FLOAT32"/>
+        </DAType>
+        <DAType id="Unit_BESS">
+            <BDA name="SIUnit" bType="Enum" type="SIUnitKind"/>
+            <BDA name="multiplier" bType="Enum" type="MultiplierKind"/>
+        </DAType>
+        <DAType id="Originator_BESS">
+            <BDA name="orCat" bType="Enum" type="OriginatorCategoryKind"/>
+            <BDA name="orIdent" bType="Octet64"/>
+        </DAType>
+        <DAType id="APCOperate_BESS">
+            <BDA name="ctlVal" bType="Struct" type="AnalogueValue_BESS"/>
+            <BDA name="origin" bType="Struct" type="Originator_BESS"/>
+            <BDA name="ctlNum" bType="INT8U"/>
+            <BDA name="T" bType="Timestamp"/>
+            <BDA name="Test" bType="BOOLEAN"/>
+            <BDA name="Check" bType="Check"/>
+        </DAType>
+        <EnumType id="BehaviourModeKind">
+            <EnumVal ord="1">on</EnumVal>
+            <EnumVal ord="3">test</EnumVal>
+            <EnumVal ord="5">off</EnumVal>
+        </EnumType>
+        <EnumType id="HealthKind">
+            <EnumVal ord="1">Ok</EnumVal>
+            <EnumVal ord="2">Warning</EnumVal>
+            <EnumVal ord="3">Alarm</EnumVal>
+        </EnumType>
+        <EnumType id="DERStateKind">
+            <EnumVal ord="2">starting up</EnumVal>
+            <EnumVal ord="6">running</EnumVal>
+            <EnumVal ord="8">stopping</EnumVal>
+            <EnumVal ord="11">failed</EnumVal>
+        </EnumType>
+        <EnumType id="DERUnitKind">
+            <EnumVal ord="5">Lithium Ion Battery Storage</EnumVal>
+        </EnumType>
+        <EnumType id="BatteryTypeKind">
+            <EnumVal ord="4">Lithium ion</EnumVal>
+        </EnumType>
+        <EnumType id="CtlModelKind">
+            <EnumVal ord="0">status-only</EnumVal>
+            <EnumVal ord="1">direct-with-normal-security</EnumVal>
+            <EnumVal ord="2">sbo-with-normal-security</EnumVal>
+            <EnumVal ord="3">direct-with-enhanced-security</EnumVal>
+            <EnumVal ord="4">sbo-with-enhanced-security</EnumVal>
+        </EnumType>
+        <EnumType id="OriginatorCategoryKind">
+            <EnumVal ord="2">station-control</EnumVal>
+            <EnumVal ord="3">remote-control</EnumVal>
+            <EnumVal ord="5">automatic-station</EnumVal>
+            <EnumVal ord="6">automatic-remote</EnumVal>
+        </EnumType>
+        <EnumType id="SIUnitKind">
+            <EnumVal ord="33">Hz</EnumVal>
+            <EnumVal ord="38">W</EnumVal>
+        </EnumType>
+        <EnumType id="MultiplierKind">
+            <EnumVal ord="0"></EnumVal>
+            <EnumVal ord="3">k</EnumVal>
+            <EnumVal ord="6">M</EnumVal>
+        </EnumType>
+    </DataTypeTemplates>
+</SCL>

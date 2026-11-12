@@ -1,0 +1,104 @@
+{
+    "intro": "IEC 61400-25 is IEC 61850 for wind power plants. It adds logical nodes for the turbine, its rotor, generator and converter, the weather, and the control of the whole park. IEC 61400-25-4 maps the model onto protocols; with the MMS mapping, a turbine talks like any IEC 61850 server.",
+    "steps": {
+        "associate": { "title": "Associate", "text": "The park controller opens TCP port 102 on turbine WT01 and sets up an MMS association. With the MMS mapping, a turbine is an ordinary IEC 61850 server." },
+        "read": { "title": "Read the turbine", "text": "One Read asks for three values: active power in WTUR1, rotor speed in WROT1 and wind speed in WMET1. WTUR also holds the turbine's operating state, TurSt." },
+        "subscribe": { "title": "Ask for reports", "text": "The controller enables report urcbWTG01. The turbine now sends its data set when a value changes, and every 10 s in any case." },
+        "limit": { "title": "A limit for the park", "text": "The grid operator's SCADA operates WAPC1, the park's active power control: at most 5.4 MW for the whole plant." },
+        "follow": { "title": "Turbines follow", "text": "The park controller gives each of the three turbines its share: 1800 kW. WT01 pitches its blades, ramps down and reports its new power." }
+    },
+    "frames": {
+        "initiate-req": "Let's talk MMS: my sizes and services",
+        "initiate-resp": "Agreed: these are mine",
+        "read-req": "Your power, rotor speed and wind speed?",
+        "read-resp": "2350.0 kW, 12.75 rpm, 9.5 m/s",
+        "enable-req": "Enable report urcbWTG01",
+        "enable-resp": "Done",
+        "oper": "The park may export 5.4 MW at most",
+        "share": "Each turbine: at most 1800 kW",
+        "report": "W is now 1800.0 kW"
+    },
+    "notes": {
+        "initiate-req": "First TCP to port 102 and a COTP connection, as in the IEC 61850 MMS lesson. Then the MMS Initiate offers sizes and services.",
+        "initiate-resp": "The turbine answers with its own sizes and services. Its model can now be browsed, or read from its SCL file.",
+        "oper": "A control on WAPC, the logical node for the park's active power: a new reference value for the plant's output. The park controller answers with a Write response.",
+        "share": "How the limit reaches each turbine is up to the park controller. Inside the park, many use the turbine maker's own protocol for this.",
+        "report": "An unsolicited InformationReport from urcbWTG01 with W, RotSpd and HorWdSpd. Its reason code says what triggered it: a data change."
+    },
+    "fields": {
+        "tpkt-143": { "name": "TPKT", "note": "Version 3, then the length of the whole message: 0x008F = 143 bytes." },
+        "tpkt-50": { "name": "TPKT", "note": "Version 3, then the length: 0x0032 = 50 bytes." },
+        "tpkt-75": { "name": "TPKT", "note": "Version 3, then the length: 0x004B = 75 bytes." },
+        "tpkt-29": { "name": "TPKT", "note": "Version 3, then the length: 0x001D = 29 bytes." },
+        "cotp-dt": { "name": "COTP", "note": "A data unit (0xF0), the last of its message (0x80)." },
+        "session": { "name": "Session", "note": "Two short session headers: give tokens, data transfer." },
+        "presentation": { "name": "Presentation", "note": "Fully encoded data, presentation context 3: what follows is MMS." },
+        "presentation-long": { "name": "Presentation", "note": "Fully encoded data, context 3: MMS follows. 81 81 is a long length: 0x81 says one length byte follows, and that byte, 0x81, is 129." },
+        "confirmed-req": { "name": "Confirmed request", "note": "Tag A0: a request that expects an answer. The next byte counts the bytes inside it." },
+        "confirmed-resp": { "name": "Confirmed response", "note": "Tag A1: the answer to a request." },
+        "invoke-3": { "name": "Invoke ID 3", "note": "A number the controller picks. The answer carries the same one." },
+        "invoke-3-resp": { "name": "Invoke ID 3", "note": "The same number as the request: this answers it." },
+        "invoke-4": { "name": "Invoke ID 4", "note": "A new request, a new number." },
+        "invoke-4-resp": { "name": "Invoke ID 4", "note": "This answers the write to RptEna." },
+        "read": { "name": "Read", "note": "Tag A4: the Read service." },
+        "spec": { "name": "Variable list", "note": "A list of variables, each given by its name. Here there are three." },
+        "var": { "name": "Variable", "note": "One entry of the list. Its name follows." },
+        "domain-specific": { "name": "Domain-specific name", "note": "A name in two parts: the domain and the item." },
+        "domain": { "name": "Domain", "note": "\"WT01WTG\": the logical device WTG of the IED WT01." },
+        "item-w": { "name": "Item", "note": "\"WTUR1$MX$W$mag$f\": the turbine's active power output." },
+        "item-rotspd": { "name": "Item", "note": "\"WROT1$MX$RotSpd$mag$f\": the rotor speed." },
+        "item-wdspd": { "name": "Item", "note": "\"WMET1$MX$HorWdSpd$mag$f\": the horizontal wind speed, from the anemometer on the nacelle." },
+        "results": { "name": "Results", "note": "Three results, in the order they were asked for." },
+        "float-tag": { "name": "Floating point", "note": "Tag 0x87 (a float), 5 bytes. 08: an IEEE 754 single-precision float follows." },
+        "w": { "name": "W", "note": "2350.0. The unit, kW, is in the attribute units (CF)." },
+        "rotspd": { "name": "RotSpd", "note": "12.75 (rpm), most significant byte first." },
+        "wdspd": { "name": "HorWdSpd", "note": "9.5 (m/s)." },
+        "write": { "name": "Write", "note": "Tag A5: the Write service." },
+        "write-spec": { "name": "Variable", "note": "A list of one variable, given by its name." },
+        "item-rptena": { "name": "Item", "note": "\"LLN0$RP$urcbWTG01$RptEna\": the enable flag of urcbWTG01, the first copy of report control block urcbWTG. RP marks an unbuffered report." },
+        "data-list": { "name": "Data", "note": "The values to write, one per variable." },
+        "true": { "name": "TRUE", "note": "Tag 0x83, a boolean, 1 byte: TRUE. Reports start now." },
+        "write-resp": { "name": "Write response", "note": "Tag A5: the answer to a Write, one result per variable." },
+        "success": { "name": "Success", "note": "Tag 0x81, empty: the write worked." },
+        "a-ld": { "name": "Logical device", "note": "WT01WTG: IED name WT01 and instance WTG." },
+        "a-ln": { "name": "Logical node", "note": "WMET1: the weather sensors of this turbine. A met mast has its own WMET." },
+        "a-fc": { "name": "Functional constraint", "note": "MX: measured values." },
+        "a-hor": { "name": "Horizontal", "note": "Hor. Data object names are built from short words like this one, joined without spaces." },
+        "a-wd": { "name": "Wind", "note": "Wd. Other short words: Tmp for temperature, Dir for direction." },
+        "a-spd": { "name": "Speed", "note": "Spd. Together: HorWdSpd, the horizontal wind speed." },
+        "a-da": { "name": "Data attribute", "note": "mag.f: the magnitude, as a float." }
+    },
+    "devices": {
+        "scada": "Control centre",
+        "met": "Met mast",
+        "ppc": "Park controller",
+        "wt01": "WT01",
+        "wt02": "WT02",
+        "wt03": "WT03"
+    },
+    "facts": {
+        "standard": "IEC 61400-25-2 edition 2 (2015): the model. IEC 61400-25-4: the mappings",
+        "between": "Park controller, SCADA or owner → turbine, met mast, park",
+        "transport": "MMS over TCP 102, as in IEC 61850-8-1. OPC UA in IEC 61400-25-41",
+        "security": "With MMS: TLS (IEC 62351-4), TCP 3782",
+        "model": "Wind logical nodes: WTUR, WROT, WGEN, WCNV, WMET, WAPC …"
+    },
+    "tips": [
+        "Edition 2 (2015) moved the nacelle's wind and weather sensors from WNAC to WMET, and changed several abbreviations. A client written for edition 1 looks in the wrong place.",
+        "A value carries no unit. W may be in W or in kW: read units (CF) once after you connect, and keep it.",
+        "Turbine makers fill the model differently: optional data objects, instance numbers, data sets. Read the SCL file of each turbine type; do not copy one map to all of them.",
+        "Many parks speak IEC 61400-25 toward the operator, but their maker's own protocol toward the turbines. Ask which interface you will get."
+    ],
+    "points": {
+        "w": "Active power",
+        "rotspd": "Rotor speed",
+        "wdspd": "Wind speed"
+    },
+    "anatomy": {
+        "dataname": "A data object name, built from short words"
+    },
+    "playground": {
+        "scl": "The turbine's configured description (.cid). Open WTG: each part of the turbine is a logical node. WTUR1, WROT1 and WMET1 hold the three values read here. Then open your own file, if you have one.",
+        "encoder": "MMS sends a float most significant byte first (ABCD). 2350.0 travels as 45 12 E0 00."
+    }
+}
