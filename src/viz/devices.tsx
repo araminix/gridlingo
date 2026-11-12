@@ -223,14 +223,36 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
                 </>
             );
             break;
-        case "relay":
-            detail = (
-                <>
-                    <Panel on={f.onLeft} u0={0.15} v0={0.58} u1={0.85} v1={0.8} fill="var(--viz-screen)" />
-                    <Leds on={f.onLeft} v={0.42} at={[0.3, 0.5, 0.7]} />
-                </>
+        case "relay": {
+            // A relay panel: the relay's faceplate stands out from its front (screen, a column of lights with the trip
+            // light on top, keys), and below it the close and open buttons and a row of test switches
+            const body: Box = { cx, cy, w: size.w, d: size.d, h: size.h - 4, z: 4 };
+            const plate: Box = { cx, cy: cy + size.d / 2 + 0.75, w: size.w - 6, d: 1.5, h: 22, z: 26 };
+            const front = faces(body).onLeft;
+            const relay = faces(plate).onLeft;
+            const dot = ([x, y]: [number, number], r: number, fill: string, key: string | number) => <circle key={key} cx={round(x)} cy={round(y)} r={r} fill={fill} />;
+            return (
+                <g>
+                    <Solid box={{ cx, cy, w: size.w, d: size.d, h: 4 }} active={active} fine />
+                    <Solid box={body} active={active} />
+                    <Solid box={plate} active={active} fine />
+                    <Panel on={relay} u0={0.34} v0={0.52} u1={0.9} v1={0.88} fill="var(--viz-screen)" />
+                    <Lines
+                        list={[
+                            [relay(0.42, 0.76), relay(0.8, 0.76)],
+                            [relay(0.42, 0.64), relay(0.7, 0.64)],
+                        ]}
+                        stroke="var(--viz-ok)"
+                        width={0.8}
+                    />
+                    {["var(--destructive)", "var(--viz-token)", "var(--viz-ok)", "var(--viz-ok)"].map((fill, i) => dot(relay(0.15, 0.85 - i * 0.15), 1.1, fill, `l${i}`))}
+                    {[0.3, 0.14].flatMap((v) => [0.46, 0.62, 0.78].map((u) => dot(relay(u, v), 0.9, "var(--viz-edge)", `k${u}${v}`)))}
+                    {dot(front(0.38, 0.36), 1.8, "var(--viz-ok)", "close")}
+                    {dot(front(0.62, 0.36), 1.8, "var(--destructive)", "open")}
+                    <Lines list={[0.2, 0.32, 0.44, 0.56, 0.68, 0.8].map((u) => [front(u, 0.14), front(u, 0.24)])} width={1.6} />
+                </g>
             );
-            break;
+        }
         case "clock": {
             const [x, y] = f.onLeft(0.5, 0.5);
             detail = (
