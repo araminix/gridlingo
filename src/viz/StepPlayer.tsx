@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/i18n";
 import type { Step } from "@/lessons/types";
 import type { Words } from "@/lessons/words";
+import { Rich } from "@/glossary/Rich";
 import { cn } from "@/lib/utils";
 
 /** The steps of a lesson as a row of buttons. */
@@ -61,7 +62,9 @@ export function StepCaption({
                 <p className="text-xs font-semibold text-primary">
                     {t("player.step", { n: current + 1, total: steps.length })} · {words.step(step.id).title}
                 </p>
-                <p className="mt-0.5 text-[15px]">{words.step(step.id).text}</p>
+                <p className="mt-0.5 text-[15px]">
+                    <Rich text={words.step(step.id).text} />
+                </p>
                 {wire && (
                     <p className="mt-1.5 text-xs text-muted-foreground">
                         {t("player.wire")}{" "}

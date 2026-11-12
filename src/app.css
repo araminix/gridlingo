@@ -6,42 +6,53 @@
 /* Colours of the interface (shadcn/ui tokens) and of the diagrams, for the light theme and the dark one */
 :root {
     --radius: 0.75rem;
-    --background: #f5f7fa;
-    --foreground: #0f1b2d;
+    --background: #f7f6fb;
+    --foreground: #1a1530;
     --card: #ffffff;
-    --card-foreground: #0f1b2d;
+    --card-foreground: #1a1530;
     --popover: #ffffff;
-    --popover-foreground: #0f1b2d;
-    --primary: #1d4ed8;
+    --popover-foreground: #1a1530;
+    --primary: #6d28d9;
     --primary-foreground: #ffffff;
-    --secondary: #edf1f6;
-    --secondary-foreground: #0f1b2d;
-    --muted: #edf1f6;
-    --muted-foreground: #56657a;
-    --accent: #eef3ff;
-    --accent-foreground: #1e3a8a;
+    --secondary: #f1eef9;
+    --secondary-foreground: #1a1530;
+    --muted: #f1eef9;
+    --muted-foreground: #5b5577;
+    --accent: #f1eafd;
+    --accent-foreground: #4c1d95;
     --destructive: #b91c1c;
-    --border: #dde3ec;
-    --input: #d3dbe6;
-    --ring: #1d4ed8;
+    --border: #e5e1f0;
+    --input: #d9d3ea;
+    --ring: #6d28d9;
 
-    --viz-ground: #fbfcfe;
-    --viz-grid: #e4e9f1;
+    --viz-ground: #fcfbfe;
+    --viz-grid: #ebe7f4;
     --viz-top: #ffffff;
-    --viz-left: #e6ecf4;
-    --viz-right: #d3dce8;
-    --viz-edge: #7d8da6;
-    --viz-active-top: #eef3ff;
-    --viz-active-left: #d9e3f4;
-    --viz-active-right: #c2d0e8;
-    --viz-link: #9aa9be;
+    --viz-left: #ece8f6;
+    --viz-right: #ddd6ef;
+    --viz-edge: #8a80a8;
+    --viz-active-top: #f3edff;
+    --viz-active-left: #e4d9fb;
+    --viz-active-right: #d2c3f6;
+    --viz-link: #a59cc0;
     --viz-token: #f59e0b;
     --viz-alert: #b45309;
-    --viz-screen: #0f1b2d;
+    --viz-screen: #1a1530;
     --viz-ok: #16a34a;
-    --viz-energized: #0f1b2d;
-    --viz-dead: #9aa9be;
-    --viz-pv: #dce6f5;
+    --viz-energized: #1a1530;
+    --viz-dead: #a59cc0;
+    --viz-pv: #dde3fb;
+
+    --gold: #f59e0b;
+    --gold-foreground: #92400e;
+    --gold-soft: #fef3c7;
+    --group-substation: #7c3aed;
+    --group-control: #1d4ed8;
+    --group-plant: #b45309;
+    --group-ev: #047857;
+    --group-metering: #c2410c;
+    --group-iot: #0e7490;
+    --group-security: #be123c;
 
     --field-frame: #e0e7ff;
     --field-control: #ccf5f9;
@@ -56,42 +67,53 @@
 }
 
 .dark {
-    --background: #0b0f14;
-    --foreground: #e6edf3;
-    --card: #121821;
-    --card-foreground: #e6edf3;
-    --popover: #141b25;
-    --popover-foreground: #e6edf3;
-    --primary: #7aa7ff;
-    --primary-foreground: #0b1220;
-    --secondary: #1a2330;
-    --secondary-foreground: #e6edf3;
-    --muted: #1a2330;
-    --muted-foreground: #9aa8bb;
-    --accent: #1b2738;
-    --accent-foreground: #cfe0ff;
+    --background: #0c0a14;
+    --foreground: #ece9f6;
+    --card: #14111f;
+    --card-foreground: #ece9f6;
+    --popover: #18142a;
+    --popover-foreground: #ece9f6;
+    --primary: #a78bfa;
+    --primary-foreground: #1a1033;
+    --secondary: #1d1830;
+    --secondary-foreground: #ece9f6;
+    --muted: #1d1830;
+    --muted-foreground: #a69fc2;
+    --accent: #251d3d;
+    --accent-foreground: #ddd6fe;
     --destructive: #f87171;
-    --border: #243041;
-    --input: #2c3a4e;
-    --ring: #7aa7ff;
+    --border: #2b2442;
+    --input: #352d50;
+    --ring: #a78bfa;
 
-    --viz-ground: #0f141b;
-    --viz-grid: #1c2633;
-    --viz-top: #1e2a38;
-    --viz-left: #172130;
-    --viz-right: #121a26;
-    --viz-edge: #5b6b82;
-    --viz-active-top: #22344f;
-    --viz-active-left: #1b2a40;
-    --viz-active-right: #152236;
-    --viz-link: #4b5a6e;
+    --viz-ground: #100d1a;
+    --viz-grid: #1f1a30;
+    --viz-top: #221c35;
+    --viz-left: #1a1529;
+    --viz-right: #141020;
+    --viz-edge: #6b6290;
+    --viz-active-top: #2e2350;
+    --viz-active-left: #241b40;
+    --viz-active-right: #1b1432;
+    --viz-link: #4f4670;
     --viz-token: #fbbf24;
     --viz-alert: #fbbf24;
-    --viz-screen: #05080c;
+    --viz-screen: #07050c;
     --viz-ok: #4ade80;
-    --viz-energized: #e6edf3;
-    --viz-dead: #4b5a6e;
-    --viz-pv: #1f3354;
+    --viz-energized: #ece9f6;
+    --viz-dead: #4f4670;
+    --viz-pv: #26254f;
+
+    --gold: #fbbf24;
+    --gold-foreground: #fcd34d;
+    --gold-soft: #3a2a08;
+    --group-substation: #a78bfa;
+    --group-control: #60a5fa;
+    --group-plant: #fbbf24;
+    --group-ev: #34d399;
+    --group-metering: #fb923c;
+    --group-iot: #22d3ee;
+    --group-security: #fb7185;
 
     --field-frame: #26305a;
     --field-control: #12434a;
@@ -130,6 +152,9 @@
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
+    --color-gold: var(--gold);
+    --color-gold-foreground: var(--gold-foreground);
+    --color-gold-soft: var(--gold-soft);
 }
 
 @layer base {

@@ -13,7 +13,7 @@ const textOf = (id: string, lang = "en") => texts[`./${id}/${lang}.json`];
 
 /** Every key the lesson's data points to in its texts, as paths: "steps.connect.title", "fields.start.note" … */
 function referencedKeys(lesson: Lesson, optionalNotes = false): string[] {
-    const keys = new Set<string>(["intro"]);
+    const keys = new Set<string>(["intro", "plain"]);
     for (const step of lesson.steps) keys.add(`steps.${step.id}.title`).add(`steps.${step.id}.text`);
     for (const frame of lesson.frames) {
         keys.add(`frames.${frame.id}`);
@@ -125,7 +125,7 @@ describe.each(CATALOG.map((meta) => meta.id).filter((id) => lessons[`./${id}/les
     it("has no English text its data does not use", () => {
         const used = new Set(referencedKeys(lesson, true));
         for (const [path] of leaves(english)) {
-            if (path === "intro" || path.startsWith("tips.")) continue;
+            if (path === "intro" || path === "plain" || path.startsWith("tips.")) continue;
             expect(used.has(path), `en.json: ${path} is not used`).toBe(true);
         }
     });

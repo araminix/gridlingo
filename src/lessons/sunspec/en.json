@@ -1,11 +1,12 @@
 {
-    "intro": "Every Modbus device has its own register map, so every new device means a new manual. SunSpec fixes the map: a device lays out its data in numbered models, each with a known order of values. A controller finds the models by itself, one after the other, and reads any SunSpec inverter, battery or meter the same way.",
+    "intro": "A Modbus device keeps its values in registers: numbered 16-bit boxes. Every device has its own register map, the list of which register holds what, so every new device means a new manual. SunSpec fixes the map. A device lays out its data in numbered models: blocks of registers, each with a known order of values. A controller finds the models by itself, one after the other, and reads any SunSpec inverter, battery or meter the same way.",
+    "plain": "SunSpec is one shared layout for the readings inside solar power converters, batteries and meters. Without it, each maker lists them in its own order, so every new device needs its own manual. With SunSpec, every device fills in the same form, in the same order, with a label at the top of each page. So one program can read devices from any maker the same way.",
     "steps": {
-        "find": { "title": "Find the marker", "text": "The controller knows nothing about this inverter yet. It reads two registers at 40000. They hold \"SunS\": this device follows SunSpec, and its map can be found instead of typed in." },
-        "common": { "title": "Who are you?", "text": "The first model is always the common model, ID 1: who made the device, what it is, its serial number. Every model starts with two registers: its ID and its length." },
-        "walk": { "title": "Next model", "text": "The controller jumps over the common model by its length: 40002 + 2 + 66 = 40070. There it finds model 103, a three-phase inverter, 50 registers long." },
-        "read": { "title": "Read with scale factors", "text": "Registers hold 16-bit integers. So each value has a scale factor: a power of ten in another register. W = 4820 with W_SF = 0 is 4820 W. Hz = 5001 with Hz_SF = −2 is 50.01 Hz." },
-        "end": { "title": "The end", "text": "The controller jumps again, to 40070 + 2 + 50 = 40122, and finds ID 0xFFFF: no more models. It now knows every model the inverter has and where each value lives." }
+        "find": { "title": "Find the SunSpec marker", "text": "The plant controller knows nothing about this inverter yet. It reads two registers at address 40000, the usual place to look. They hold the letters \"SunS\": this device follows SunSpec, and its map can be found instead of typed in." },
+        "common": { "title": "Who are you?", "text": "The first model is always the common model, ID 1: who made the device, what it is, its serial number. Every model starts with a header of two registers: its ID, which says what kind of model it is, and its length in registers." },
+        "walk": { "title": "Find the next model", "text": "The controller skips over the common model by its length: 40002 + 2 + 66 = 40070. There it finds model 103, a three-phase inverter (one that feeds all three live wires of the grid), 50 registers long." },
+        "read": { "title": "Read power and frequency", "text": "Registers hold only whole numbers of 16 bits. So each value comes with a scale factor in another register: the power of ten to multiply it by. W (active power) = 4820 with W_SF = 0 is 4820 × 1 = 4820 W. Hz (grid frequency) = 5001 with Hz_SF = −2 is 5001 × 0.01 = 50.01 Hz." },
+        "end": { "title": "End of the list", "text": "The controller jumps again, to 40070 + 2 + 50 = 40122, and finds ID 0xFFFF: no more models. It now knows every model the inverter has and where each value lives." }
     },
     "frames": {
         "sid-req": "Send me registers 40000 and 40001",
@@ -20,7 +21,7 @@
         "end-resp": "0xFFFF: that was the last model"
     },
     "fields": {
-        "tid-1": { "name": "Transaction ID 1", "note": "A number the controller picks. The answer carries the same one." },
+        "tid-1": { "name": "Transaction ID 1", "note": "A number the controller picks. The answer carries the same one, so the controller can match them." },
         "tid-2": { "name": "Transaction ID 2", "note": "The next request, the next number." },
         "tid-3": { "name": "Transaction ID 3", "note": "The third request." },
         "tid-4": { "name": "Transaction ID 4", "note": "The fourth request." },
@@ -49,17 +50,17 @@
         "mn": { "name": "Mn", "note": "Manufacturer: \"Example\". A string always takes all its registers, 16 here, two characters in each. Zeros fill the rest." },
         "md": { "name": "Md", "note": "Model: \"EX-5K-3P\", 16 registers." },
         "opt": { "name": "Opt", "note": "Options, 8 registers: all zeros, which means not used." },
-        "vr": { "name": "Vr", "note": "Version, 8 registers: firmware \"3.4.1\"." },
+        "vr": { "name": "Vr", "note": "Version, 8 registers: firmware (the device's own software) \"3.4.1\"." },
         "sn": { "name": "SN", "note": "Serial number, 16 registers: \"24110042\"." },
         "fill": { "name": "Zeros", "note": "Zeros after the text." },
         "da": { "name": "DA", "note": "Device address: the unit ID it answers to, 1." },
         "pad": { "name": "Pad", "note": "One filler register that makes the length even. Its value means nothing." },
         "id-103": { "name": "ID 103", "note": "0x0067 = 103: a three-phase inverter, with integers and scale factors." },
         "l-50": { "name": "L 50", "note": "0x0032 = 50 registers: from 40072 to 40121." },
-        "w": { "name": "W", "note": "0x12D4 = 4820: AC power, before scaling. W is a signed number." },
+        "w": { "name": "W", "note": "0x12D4 = 4820: AC power, before scaling. W is signed: it can be negative." },
         "w-sf": { "name": "W_SF", "note": "0: multiply W by 10⁰ = 1. Power is 4820 W." },
         "hz": { "name": "Hz", "note": "0x1389 = 5001: grid frequency, before scaling." },
-        "hz-sf": { "name": "Hz_SF", "note": "0xFFFE = −2: multiply Hz by 10⁻². Frequency is 50.01 Hz." },
+        "hz-sf": { "name": "Hz_SF", "note": "0xFFFE, read as a signed number, is −2: multiply Hz by 10⁻² = 0.01. Frequency is 50.01 Hz." },
         "id-end": { "name": "ID 0xFFFF", "note": "The end model: no more models follow." },
         "l-0": { "name": "L 0", "note": "The end model has no data." },
         "a-at": { "name": "Header", "note": "The model's first register: its ID." },
@@ -67,7 +68,7 @@
         "a-l": { "name": "L", "note": "50: how many registers follow the header." },
         "a-body": { "name": "Data", "note": "The model's values, in a fixed order. W is always 12 registers in." },
         "a-next": { "name": "Next header", "note": "Where the next model starts: header + 2 + L." },
-        "a-raw": { "name": "Hz", "note": "The register as sent: an integer." },
+        "a-raw": { "name": "Hz", "note": "The register as sent: a whole number." },
         "a-sf": { "name": "Hz_SF", "note": "The scale factor: a power of ten, from −10 to 10. One scale factor can serve several values." },
         "a-real": { "name": "Value", "note": "What it means: 5001 × 10⁻² = 50.01 Hz. A 16-bit register cannot hold 50.01, but this way it can." }
     },
@@ -85,7 +86,7 @@
         "frames": "Plain Modbus: reads with FC 03, writes with FC 06 and FC 16"
     },
     "tips": [
-        "Do not copy register numbers from one device to another. Walk the models from the base address: the same model can sit somewhere else on the next device.",
+        "Do not copy register numbers from one device to another. Walk the models from the base address, where \"SunS\" is: the same model can sit somewhere else on the next device.",
         "Some devices give the common model a length of 65, without the pad. Always jump by the length the device sends.",
         "0x8000 in a signed register or a scale factor, and 0xFFFF in an unsigned one, mean \"not implemented\". Do not show them as −32768 or 65535.",
         "Read a value and its scale factor in one request. Two separate reads can pair a new value with an old scale factor."

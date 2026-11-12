@@ -1,11 +1,12 @@
 {
-    "intro": "GOOSE stays inside one substation: it has no IP address, so routers drop it. R-GOOSE puts the same message into UDP over IP, so it can cross a wide-area network to another substation. Because it leaves the fence, every message is signed with a key that only the relays of the group hold. R-SV does the same for sampled values.",
+    "intro": "GOOSE, the fast message that protection relays use to tell each other to trip, stays inside one substation. It has no IP address, so routers drop it. R-GOOSE (routable GOOSE) puts the same message into UDP over IP, so it can cross a wide-area network (WAN) to another substation. Because it leaves the substation, every message is signed with a key that only the relays of the group hold. R-SV does the same for sampled values, the measurement streams of merging units.",
+    "plain": "Sometimes a safety device in one substation must tell another one, many kilometers away, to cut off a damaged power line. This protocol carries that order over a long-distance network, like a letter sent at once to every member of a club. Each letter carries a seal that only club members can make, so a stranger cannot fake an order. The order is sent several times, so one lost copy does not matter.",
     "steps": {
-        "keys": { "title": "Get the keys", "text": "Both relays prove who they are to the key distribution center (KDC) with their certificates. The KDC gives each of them the same group key, with an ID and a lifetime. Without that key, nobody can make a message the relays accept." },
-        "heartbeat": { "title": "Heartbeat", "text": "Relay A publishes its intertrip signal to the IP multicast group 239.192.0.1, once a second while nothing happens. Routers carry it across the WAN to substation B. Each message is signed with the group key." },
-        "fault": { "title": "Fault on the line", "text": "A short circuit on the line between the two substations. Relay A trips its own breaker and, at the same moment, publishes the change: stNum goes up by one." },
-        "repeat": { "title": "Repeat", "text": "As with GOOSE, relay A sends the message again 2 ms later, then after 4, 8 … ms. If the WAN loses one packet, the next copy carries the trip." },
-        "act": { "title": "Check and trip", "text": "Relay B checks the first copy that arrives: the key ID it knows, a valid signature (an HMAC) and a new SPDU number, so it is not an old message played again. Then it trips breaker B: the line is cut off at both ends." }
+        "keys": { "title": "Get the keys", "text": "Both relays prove who they are to the key distribution center (KDC) with their certificates, their digital ID cards. The KDC gives each of them the same group key, with an ID and a lifetime. Without that key, nobody can make a message the relays accept." },
+        "heartbeat": { "title": "All is well", "text": "Relay A publishes its intertrip signal: the order for the relay at the other end of the line to trip. It sends it to the IP multicast group 239.192.0.1, an address that every subscribing relay joins. While nothing happens, it sends it once a second. Routers carry it across the WAN to substation B. Each message is signed with the group key." },
+        "fault": { "title": "Fault on the line", "text": "A short circuit on the line between the two substations. Relay A trips its own breaker. At the same moment it publishes the change: the state number (stNum) goes up by one." },
+        "repeat": { "title": "Repeat fast", "text": "As with GOOSE, relay A sends the message again 2 ms after the change, then at 4 and 8 ms, and so on. If the WAN loses one packet, the next copy carries the trip." },
+        "act": { "title": "Check and trip", "text": "Relay B checks the first copy that arrives. It must carry a key ID relay B knows and a valid signature: an HMAC, a code only a holder of the key can compute. Its SPDU number, a message counter, must be new, so it is not an old message played again. Then relay B trips breaker B: the line is cut off at both ends." }
     },
     "frames": {
         "pull-a": "Here is my certificate: give me the keys of my group",
@@ -19,7 +20,7 @@
         "trip-b": "Energize the trip coil of breaker B"
     },
     "notes": {
-        "pull-a": "GDOI (RFC 6407) on UDP 848, as IEC 62351-9 asks. First the relay and the KDC check each other's certificates in an IKE exchange. Then the relay asks for the keys of its R-GOOSE group.",
+        "pull-a": "GDOI (RFC 6407) on UDP 848, as IEC 62351-9 asks. First the relay and the KDC check each other's certificates in an IKE exchange, the usual key exchange of IPsec. Then the relay asks for the keys of its R-GOOSE group.",
         "pull-b": "Relay B asks for the same group, with its own certificate.",
         "keys-a": "The current key, its key ID and how long it is valid. Every member of the group gets the same key.",
         "keys-b": "The same key and key ID as relay A.",
@@ -30,18 +31,18 @@
     },
     "fields": {
         "e-dst": { "name": "Destination", "note": "01-00-5E-40-00-01: the Ethernet address of the IP group 239.192.0.1. How it is made is shown below." },
-        "e-src": { "name": "Source", "note": "Relay A's MAC address. On the next hop, the router puts its own there." },
+        "e-src": { "name": "Source", "note": "Relay A's MAC address. On the next hop, the router puts its own MAC address there." },
         "e-type": { "name": "EtherType", "note": "0x0800: an IPv4 packet follows. GOOSE on a LAN uses 0x88B8 instead." },
         "ip-ver": { "name": "Version", "note": "0x45: IPv4, with a header of 5 × 4 = 20 bytes." },
-        "dscp": { "name": "DSCP", "note": "0xB8: DSCP 46, expedited forwarding. Routers set up for it send this packet ahead of other traffic." },
+        "dscp": { "name": "DSCP", "note": "0xB8: DSCP 46, expedited forwarding, the class for urgent traffic. Routers set up for it send this packet ahead of other traffic." },
         "ip-len": { "name": "Total length", "note": "0x00C4 = 196 bytes: this header, the UDP header and the R-GOOSE message." },
-        "ip-id": { "name": "Identification", "note": "0x2F3A, a number for this packet. Then 00 00: it is not a fragment." },
-        "ttl": { "name": "TTL", "note": "16: the packet may pass up to 16 routers. Each one lowers this by one." },
+        "ip-id": { "name": "Identification", "note": "0x2F3A, a number for this packet. Then 00 00: no flags, and it is not a piece of a larger packet (a fragment)." },
+        "ttl": { "name": "TTL", "note": "16: time to live. The packet may pass up to 16 routers; each one lowers this by one." },
         "proto": { "name": "Protocol", "note": "0x11 = 17: UDP." },
-        "ip-sum": { "name": "Checksum", "note": "0x806A, over the 20 bytes of the header. Each router computes it again after lowering the TTL." },
+        "ip-sum": { "name": "Checksum", "note": "0x806A, over the 20 bytes of the header: it lets each router spot a damaged header. Each router computes it again after lowering the TTL." },
         "ip-src": { "name": "Source IP", "note": "10.1.0.11: relay A." },
         "ip-dst": { "name": "Destination IP", "note": "239.192.0.1: a multicast group. Each subscribing relay joins it, and the routers forward the packet to every one of them." },
-        "udp-src": { "name": "Source port", "note": "0xC001 = 49153, a port relay A picked. What matters is the destination port." },
+        "udp-src": { "name": "Source port", "note": "0xC001 = 49153, a port relay A picked. Only the destination port matters here." },
         "udp-dst": { "name": "Destination port", "note": "0x0066 = 102, the port of R-GOOSE and R-SV." },
         "udp-len": { "name": "UDP length", "note": "0x00B0 = 176: this 8-byte header and 168 bytes of R-GOOSE. Not shown here: the UDP checksum, then the session header (SPDU number, key ID, key times), the GOOSE message and the signature." },
         "a-prefix": { "name": "Multicast prefix", "note": "01-00-5E starts the MAC address of every IPv4 multicast group." },
@@ -52,7 +53,7 @@
         "relaya": "Relay A",
         "routera": "Router A",
         "wan": "WAN",
-        "kdc": "KDC",
+        "kdc": "Key center (KDC)",
         "routerb": "Router B",
         "relayb": "Relay B",
         "breakerb": "Breaker B"

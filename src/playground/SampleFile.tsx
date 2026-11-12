@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useI18n } from "@/i18n/i18n";
+import { Rich } from "@/glossary/Rich";
 import { cn } from "@/lib/utils";
 
 /** A sample file with its important lines marked: pick one to read what it means. */
@@ -11,7 +12,9 @@ export function SampleFile({ name, file, notes, intro, noteText }: { name: strin
     const note = notes[line];
     return (
         <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">{intro}</p>
+            <p className="text-sm text-muted-foreground">
+                <Rich text={intro} />
+            </p>
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_16rem]">
                 <figure className="min-w-0 overflow-hidden rounded-lg border">
                     <figcaption className="border-b bg-muted px-3 py-1.5 font-mono text-xs">{name}</figcaption>
@@ -36,7 +39,7 @@ export function SampleFile({ name, file, notes, intro, noteText }: { name: strin
                 </figure>
                 <div className="rounded-lg border bg-card p-3 text-sm" aria-live="polite">
                     <p className="mb-1 text-xs font-semibold text-muted-foreground">{t("playground.line", { n: line })}</p>
-                    <p>{note ? noteText(note) : t("playground.pick")}</p>
+                    <p>{note ? <Rich text={noteText(note)} /> : t("playground.pick")}</p>
                 </div>
             </div>
         </div>

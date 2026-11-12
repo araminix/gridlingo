@@ -1,12 +1,13 @@
 {
-    "intro": "How control centers exchange live data with each other: a transmission operator (TSO) with distribution operators, power plants and neighboring TSOs. ICCP, also called TASE.2, runs on MMS. A bilateral table, agreed by both companies, lists exactly what each partner may read, and the server enforces it.",
+    "intro": "How control centers exchange live data with each other: a TSO (transmission system operator, which runs the high-voltage grid) with DSOs (distribution system operators, which run the local grids), power plants and neighboring TSOs. ICCP, also called TASE.2, runs on MMS (Manufacturing Message Specification), the same messaging that IEC 61850 uses. A bilateral table, agreed by both companies, lists exactly what each partner may read, and the server enforces it.",
+    "plain": "ICCP lets the control rooms of different power companies share live readings, such as how much power flows between their grids. The two companies first agree on a list of what each may see, like a guest list at a door. The sending side then reports the agreed values every few seconds, and at once when something changes. A request for anything not on the list is refused.",
     "steps": {
-        "connect": { "title": "Connect and associate", "text": "The DSO's ICCP client opens TCP 102 to the TSO's server, through a VPN. MMS then associates: the client names itself with an AP title, and the server only accepts names that are in one of its bilateral tables." },
-        "check": { "title": "Check the table ID", "text": "The client reads Bilateral_Table_ID from its own domain on the server and compares it with its copy. They match: both sides work from the same agreement." },
-        "subscribe": { "title": "Ask for reports", "text": "The client creates a data set, DS_TIELINES, in its domain: the values it wants together. A transfer set tells the server when to send it. The client asks for a free one (Next_DSTransfer_Set), then writes into it: every 4 s, and at once on any change." },
+        "connect": { "title": "Connect and identify", "text": "The DSO's ICCP client opens a TCP connection on port 102 to the TSO's server, through a VPN (an encrypted tunnel between the two companies). MMS then sets up an association: a session between the two programs. The client names itself with an AP title, its unique application name. The server only accepts names that are in one of its bilateral tables." },
+        "check": { "title": "Check the table version", "text": "The client reads Bilateral_Table_ID, the version of the agreement. It reads it from its own domain on the server: the area that holds what this partner may see. It compares the ID with its own copy. They match: both sides work from the same agreement." },
+        "subscribe": { "title": "Ask for reports", "text": "The client creates a data set, DS_TIELINES, in its domain: a list of the values it wants together. A transfer set tells the server when to send that list. The client asks for a free transfer set (Next_DSTransfer_Set), then writes its settings into it: every 4 s, and at once on any change." },
         "interval": { "title": "Report every 4 s", "text": "The server sends the whole data set every 4 seconds, as an InformationReport. Nobody asks for it and nobody answers it." },
-        "change": { "title": "Report on change", "text": "The breaker of tie line 2 opens in the substation. The server does not wait for the next interval: it reports at once. The flow has moved to tie line 1." },
-        "denied": { "title": "Outside the table", "text": "A DSO operator asks for GEN_K1_MW, the output of a TSO generator. It is not in the bilateral table for DSO_EAST, so the server answers with an access error instead of a value." }
+        "change": { "title": "Report on change", "text": "The breaker of tie line 2, a line that links the two grids, opens in the substation. The server does not wait for the next interval: it reports at once. The power flow has moved to tie line 1." },
+        "denied": { "title": "Access denied", "text": "A DSO operator asks for GEN_K1_MW, the output of a TSO generator. It is not in the bilateral table for DSO_EAST, so the server answers with an access error instead of a value." }
     },
     "frames": {
         "connect": "Open TCP 102 and an ISO transport connection",
@@ -25,23 +26,23 @@
         "denied-resp": "Access error: not in your table"
     },
     "notes": {
-        "connect": "TCP to port 102, then a COTP connection on top, exactly as for IEC 61850 MMS. Between two companies this usually runs inside an IPsec VPN, because ICCP itself encrypts nothing.",
-        "initiate-req": "Session, presentation and ACSE layers wrap the MMS Initiate. ACSE carries the AP titles of both sides. The server looks up the calling AP title to find which bilateral table, and so which domain, belongs to this client.",
+        "connect": "TCP to port 102, then a COTP connection (the ISO transport layer) on top, exactly as for IEC 61850 MMS. Between two companies this usually runs inside an IPsec VPN, because ICCP itself encrypts nothing.",
+        "initiate-req": "Session, presentation and ACSE layers wrap the MMS Initiate. ACSE, the layer that sets up the association, carries the AP titles of both sides. The server looks up the calling AP title to find which bilateral table, and so which domain, belongs to this client.",
         "initiate-resp": "An AP title that is in no bilateral table is refused here, before any data can be read. The MMS part agrees on message sizes and services.",
-        "define-ds": "MMS DefineNamedVariableList, in the domain DSO_EAST. A data set for a transfer set can begin with three special members, Transfer_Set_Name, Transfer_Set_Time_Stamp and DSConditions_Detected, so that each report says which transfer set sent it, when and why.",
+        "define-ds": "MMS DefineNamedVariableList, in the domain DSO_EAST. A data set for a transfer set can begin with three special members: Transfer_Set_Name, Transfer_Set_Time_Stamp and DSConditions_Detected. With them, each report says which transfer set sent it, when and why.",
         "define-ok": "The server checks each name against the bilateral table before it creates the list. A name the client may not read makes the request fail.",
         "next-ts": "A Read of the special variable Next_DSTransfer_Set in the domain DSO_EAST. Each read hands out one free transfer set from the server's pool.",
         "next-ts-resp": "The name of a transfer set the client may now use: DSTS_07.",
         "ts-start": "A Write of the transfer set's attributes: DataSetName DSO_EAST/DS_TIELINES, Interval 4 s, conditions IntervalTimeOut and ObjectChange, Status enabled. The server confirms the write, then starts reporting.",
-        "report-interval": "An unconfirmed MMS InformationReport, named after the data set. It carries the transfer set's name, the time, the reason (interval timeout) and every value, each with quality flags: valid, held, suspect or not valid.",
+        "report-interval": "An unconfirmed MMS InformationReport, named after the data set. It carries the transfer set's name, the time, the reason (interval timeout) and every value. Each value has quality flags that say how far it can be trusted: valid, held, suspect or not valid.",
         "report-change": "Sent between two interval reports because a value changed (reason: object change). It gets no answer either, unless the transfer set was marked critical: then the client must acknowledge it.",
-        "denied-req": "A Read of a value in the TSO's own scope (VCC), not in the domain DSO_EAST. Other partners may be allowed to read it; DSO_EAST is not.",
+        "denied-req": "A Read of a value in the TSO's own scope (VCC, the part of the server shared by all partners), not in the domain DSO_EAST. Other partners may be allowed to read it; DSO_EAST is not.",
         "denied-resp": "The read result is an MMS access error instead of a value. The fix is not in software: both companies add the value to the table and raise its ID."
     },
     "fields": {
-        "tpkt-67": { "name": "TPKT", "note": "Version 3, then the length of the whole message: 0x0043 = 67 bytes." },
+        "tpkt-67": { "name": "TPKT", "note": "The header that carries ISO messages over TCP: version 3, then the length of the whole message: 0x0043 = 67 bytes." },
         "tpkt-46": { "name": "TPKT", "note": "Version 3, then the length: 0x002E = 46 bytes." },
-        "cotp-dt": { "name": "COTP", "note": "A data unit (0xF0), the last of its message (0x80)." },
+        "cotp-dt": { "name": "COTP", "note": "The ISO transport header: a data unit (0xF0), the last of its message (0x80)." },
         "session": { "name": "Session", "note": "Two short session headers: give tokens, data transfer." },
         "presentation": { "name": "Presentation", "note": "Fully encoded data, presentation context 3: what follows is MMS." },
         "confirmed-req": { "name": "Confirmed request", "note": "Tag A0, 45 bytes: a request that expects an answer." },
@@ -101,7 +102,7 @@
         "table": "The table's name. On the server it is also the client's domain: DSO_EAST.",
         "table-id": "The version both sides agreed. The client reads it from the server after every association.",
         "client-ap": "The client's AP title (with its AE qualifier below): how the server knows who is calling.",
-        "blocks": "Conformance blocks the partners use: 1, the basic services, and 2, reports on change.",
+        "blocks": "Conformance blocks (groups of features) the partners use: 1, the basic services, and 2, reports on change.",
         "read": "The values the DSO may read. They live in its domain, DSO_EAST (ICC scope). Anything else is an access error.",
         "data-value": "Data_RealQ: a float with quality flags.",
         "state": "Data_State: a state such as open or closed, with quality flags.",

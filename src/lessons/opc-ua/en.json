@@ -1,12 +1,13 @@
 {
-    "intro": "OPC UA is the client–server protocol of modern industrial software. A server offers an address space: nodes with names, types and values, linked by references. A client opens a secure channel and a session, then browses, reads, writes or subscribes.",
+    "intro": "OPC UA (Open Platform Communications Unified Architecture) is a client–server protocol used across industrial software. A server offers an address space: nodes (folders, objects, variables …) with names, types and values, linked by references. A client, the program that asks, first opens a secure channel, which sets how messages are protected. Then it opens a session, which ties its work to a user. Now it can browse, read, write or subscribe to changes.",
+    "plain": "This protocol lets a control program look inside a machine's controller and find any value by name, like browsing the folders on a computer. The program first agrees with the controller on how to protect their talk, and says who it is. Then it can read a value, change a setting, or ask to be told each time a value changes.",
     "steps": {
-        "hello": { "title": "Hello", "text": "After TCP connects to port 4840, the client says Hello: its buffer sizes and the endpoint it wants. The server acknowledges with its own limits." },
-        "channel": { "title": "Secure channel", "text": "OpenSecureChannel sets how messages are protected. Here the policy is None: no signing, no encryption. The server names the channel 5." },
-        "session": { "title": "Session", "text": "CreateSession and ActivateSession tie a user to the channel. The client gets an authentication token that it puts in every later request." },
-        "browse": { "title": "Browse", "text": "The client walks the address space from the Objects folder and finds the object PV1 and its variable TotW." },
-        "read": { "title": "Read a value", "text": "Read asks for attribute 13 (Value) of ns=2;s=PV1.TotW. The answer is a Float, 4820.0, with two timestamps." },
-        "subscribe": { "title": "Subscribe", "text": "The client asks the server to watch TotW. It keeps a Publish request waiting at the server; when the value changes, the server answers it." }
+        "hello": { "title": "Say hello", "text": "The client opens a network connection (TCP) to port 4840. It says Hello: the largest pieces of data it can take (its buffer sizes), and the endpoint it wants, the server address it is calling. The server acknowledges with its own limits." },
+        "channel": { "title": "Open a secure channel", "text": "OpenSecureChannel sets how messages are protected. Signing proves who sent a message and that nobody changed it; encryption hides what it says. Here the security policy is None: no signing, no encryption. The server gives the channel the number 5." },
+        "session": { "title": "Start a session", "text": "CreateSession and ActivateSession tie a user to the channel. The client gets an authentication token, a secret ID like a visitor's badge. It puts the token in every later request." },
+        "browse": { "title": "Browse the server", "text": "The client looks through the address space, starting at the Objects folder, like opening folders on a disk. It finds the object PV1, an inverter, and its variable TotW: the total active power, the power the inverter delivers." },
+        "read": { "title": "Read a value", "text": "Read asks for attribute 13, the Value, of the node ns=2;s=PV1.TotW. This NodeId, the node's address, means: in namespace 2 (the controller maker's own set of names), the string PV1.TotW. The answer is a Float, a decimal number in 4 bytes: 4820.0. It comes with two timestamps: when the value was measured, and when the server read it." },
+        "subscribe": { "title": "Subscribe to changes", "text": "The client asks the server to watch TotW. It keeps a Publish request waiting at the server, like an open question. When the value changes, the server answers it." }
     },
     "frames": {
         "hel": "Hello: these are my buffer sizes",
@@ -25,21 +26,21 @@
         "publish": "TotW is now 4790.5"
     },
     "notes": {
-        "create-req": "A MSG with a CreateSessionRequest: the client's name and certificate, a random nonce, and how long the session may stay idle.",
+        "create-req": "A MSG with a CreateSessionRequest: the client's name and certificate, a nonce (a random number used once), and how long the session may stay idle.",
         "create-resp": "The server returns a session ID, the authentication token, its endpoints and its certificate. The token is secret: whoever has it can use the session.",
         "activate-req": "ActivateSession with an anonymous identity token. A real user sends a name and a password encrypted for the server, or a user certificate.",
         "activate-resp": "The session is active. If it stays idle longer than the time agreed in CreateSession, the server closes it.",
-        "browse-req": "Browse from node i=85, the Objects folder, following its hierarchical references.",
+        "browse-req": "Browse from node i=85, the Objects folder, following its hierarchical references: the links from a folder to what is inside it.",
         "browse-resp": "A list of references, each with a NodeId, a browse name and a node class. ns=2;s=PV1 is an object; ns=2;s=PV1.TotW is a variable inside it.",
-        "monitor": "Two requests, each with its response. CreateSubscription sets a publishing interval of 1000 ms. CreateMonitoredItems makes the server sample TotW every 500 ms. Then the client sends Publish requests ahead of time.",
-        "publish": "A PublishResponse with a data change notification: the client's handle for TotW, its new value and timestamps. The client acknowledges it in its next Publish request."
+        "monitor": "Two requests, each with its response. CreateSubscription sets a publishing interval of 1000 ms: once a second, the server sends what has changed, if anything has. CreateMonitoredItems makes the server sample TotW every 500 ms. Then the client sends Publish requests ahead of time.",
+        "publish": "A PublishResponse with a data change notification: the client's handle for TotW (the number it chose for this item), its new value and timestamps. The client acknowledges it in its next Publish request."
     },
     "fields": {
         "hel": { "name": "HEL", "note": "Message type Hello, in ASCII." },
         "ack": { "name": "ACK", "note": "Message type Acknowledge." },
         "opn": { "name": "OPN", "note": "Message type OpenSecureChannel." },
         "msg": { "name": "MSG", "note": "Message type: a service message on an open channel." },
-        "final": { "name": "F", "note": "The final chunk of the message. Here it is also the only one." },
+        "final": { "name": "F", "note": "The final chunk (piece) of the message. Here it is also the only one." },
         "size-56": { "name": "Message size", "note": "0x38 = 56 bytes, the whole message. Every number in OPC UA is sent low byte first." },
         "size-28": { "name": "Message size", "note": "0x1C = 28 bytes." },
         "size-132": { "name": "Message size", "note": "0x84 = 132 bytes." },
@@ -59,7 +60,7 @@
         "channel-0": { "name": "Secure channel ID", "note": "0: there is no channel yet. The server picks the number." },
         "policy": { "name": "Security policy", "note": "A length of 47, then http://opcfoundation.org/UA/SecurityPolicy#None: no signing, no encryption." },
         "no-cert": { "name": "Sender certificate", "note": "Length -1: none. With a real policy, the sender's X.509 certificate goes here." },
-        "no-thumb": { "name": "Receiver thumbprint", "note": "None. With a real policy: the thumbprint of the receiver's certificate." },
+        "no-thumb": { "name": "Receiver thumbprint", "note": "Length -1: none. With a real policy: the thumbprint (a short hash) of the receiver's certificate." },
         "seq-1": { "name": "Sequence number", "note": "1: the client counts every chunk it sends on this channel." },
         "req-1": { "name": "Request ID", "note": "1. The response carries the same ID." },
         "type-446": { "name": "Type", "note": "A NodeId in 4 bytes: namespace 0, number 446 (0x01BE): OpenSecureChannelRequest." },
@@ -68,12 +69,12 @@
         "handle-1": { "name": "Request handle", "note": "1: a number the client uses to match the answer." },
         "diag-audit": { "name": "Diagnostics · audit", "note": "Return diagnostics 0 (none wanted), then an audit entry ID of length -1 (none)." },
         "timeout": { "name": "Timeout hint", "note": "0x2710 = 10000 ms: how long the client will wait." },
-        "no-header": { "name": "Additional header", "note": "An empty extension object." },
-        "ua-version": { "name": "Protocol version", "note": "0." },
+        "no-header": { "name": "Additional header", "note": "An empty extension object: no extra header fields." },
+        "ua-version": { "name": "Protocol version", "note": "0: the protocol version of the sender." },
         "issue": { "name": "Request type", "note": "0: issue a new security token. 1 would renew one." },
         "mode-none": { "name": "Security mode", "note": "1: None. 2 is Sign, 3 is SignAndEncrypt." },
-        "client-nonce": { "name": "Client nonce", "note": "Length 0: with None there are no keys to make." },
-        "lifetime": { "name": "Requested lifetime", "note": "0x0036EE80 = 3600000 ms: the client will renew the token within an hour." },
+        "client-nonce": { "name": "Client nonce", "note": "Length 0: with the policy None no keys are made, so no random number is needed." },
+        "lifetime": { "name": "Requested lifetime", "note": "0x0036EE80 = 3600000 ms: the token should last one hour. The client will renew it before then." },
         "channel-5": { "name": "Secure channel ID", "note": "5: the number the server gave this channel." },
         "seq-1-server": { "name": "Sequence number", "note": "1: the server counts its own chunks." },
         "req-1-resp": { "name": "Request ID", "note": "1: this answers request 1." },
@@ -109,7 +110,7 @@
         "handle-5-resp": { "name": "Request handle", "note": "5, as in the request." },
         "results-1": { "name": "Results", "note": "An array of one result, for the one node asked for." },
         "mask": { "name": "DataValue mask", "note": "0x0D: a value, a source timestamp and a server timestamp follow. No status code means Good." },
-        "float": { "name": "Variant type", "note": "0x0A = 10: Float, 4 bytes." },
+        "float": { "name": "Variant type", "note": "0x0A = 10: Float, a decimal number in 4 bytes." },
         "value": { "name": "Value", "note": "4820.0, low byte first. The unit, kW, is a property of the node (EngineeringUnits)." },
         "source-time": { "name": "Source timestamp", "note": "10:41:06.000 UTC: when the controller measured the value." },
         "server-time": { "name": "Server timestamp", "note": "10:41:06.302 UTC: when the server read it." },
@@ -122,7 +123,7 @@
         "scada": "SCADA",
         "ctrl": "Plant controller",
         "inv": "PV1 inverter",
-        "pv": "PV array",
+        "pv": "Solar panels",
         "meter": "Grid meter"
     },
     "facts": {
@@ -133,10 +134,10 @@
         "model": "Address space: nodes in namespaces, linked by references"
     },
     "tips": [
-        "This lesson uses the security mode None so that the bytes can be read. On a site, use SignAndEncrypt with a current policy such as Basic256Sha256. Sign alone stops changes, but anyone on the network can still read the values.",
+        "This lesson uses the security mode None so that the bytes can be read. On a site, use SignAndEncrypt with a current policy such as Basic256Sha256. Sign alone stops anyone from changing the messages, but anyone on the network can still read the values.",
         "Both sides must trust each other's certificate. Many first connections fail because the server has put the client's certificate in its rejected list. An administrator must move it to the trusted list.",
         "Namespace indexes can change when the server restarts or is updated. Store the namespace URI with each NodeId, and look up its index after you connect.",
-        "Do not poll with Read many times a second. A subscription with a sampling and a publishing interval costs the server far less."
+        "Do not poll, that is, send Read many times a second. A subscription with a sampling and a publishing interval costs the server far less."
     ],
     "points": {
         "channel": "Secure channel",

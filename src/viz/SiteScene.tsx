@@ -37,7 +37,7 @@ function routeOf(legs: readonly Leg[], from: string, to: string): { leg: Leg; fo
 }
 
 /** The site: devices on an isometric ground, the cables between them, and the frame on its way. */
-export function SiteScene({ scene, frame, words }: { scene: Scene; frame: Frame | undefined; words: Words }) {
+export function SiteScene({ scene, frame, words }: { scene: Scene; frame: Frame | undefined; words: Pick<Words, "device"> }) {
     const reduced = useReducedMotion();
     const place = useMemo(() => new Map(scene.devices.map((device) => [device.id, [device.at[0] * GRID, device.at[1] * GRID] as const])), [scene]);
 

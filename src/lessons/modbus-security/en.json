@@ -1,11 +1,12 @@
 {
-    "intro": "Plain Modbus TCP lets anyone on the network read and write. Modbus/TCP Security wraps the same frames in TLS, on port 802. Both sides prove who they are with certificates, and the client's certificate can carry a role. The server's rules then decide, request by request, what that role may do.",
+    "intro": "Plain Modbus TCP lets anyone on the network read and write a device's values. Modbus/TCP Security wraps the same messages in TLS (Transport Layer Security, the same protection as https web pages), on port 802. Both sides prove who they are with certificates: digital ID cards signed by an authority both sides trust. The client's certificate can also carry a role, such as \"Viewer\". The server's rules then decide, request by request, what that role may do.",
+    "plain": "Ordinary Modbus is like a building where any visitor can walk in and flip any switch. The secure version adds a guarded entrance: both sides show an ID card, and everything they say afterward is scrambled so outsiders cannot read it. The visitor's ID card also names their job, such as \"viewer\". The device checks that job before every request, so a viewer may look but not change anything.",
     "steps": {
-        "connect": { "title": "Connect", "text": "The monitoring server opens TCP to the inverter on port 802, the port for Modbus/TCP Security. Port 502 can stay closed." },
-        "hello": { "title": "Hello", "text": "The client offers TLS 1.2 and one cipher suite. The inverter answers with its certificate and asks for the client's. Both sides must prove who they are: the specification requires it." },
-        "prove": { "title": "Show the role", "text": "The client sends its certificate. In it is a role, \"Viewer\", in an extension the Modbus Organization defined. The inverter checks the certificate against the CA it trusts and keeps the role for this connection." },
-        "read": { "title": "Read: allowed", "text": "Now ordinary Modbus TCP frames travel inside encrypted TLS records. The inverter checks each request against its rules: a viewer may read. It answers 4820.5 kW." },
-        "write": { "title": "Write: refused", "text": "The client tries to set a power limit. A viewer may not write, so the inverter refuses with exception 01, the code the specification sets for this. The limit stays at 5000 kW." }
+        "connect": { "title": "Open a connection", "text": "The monitoring server, a computer that collects the plant's data, opens a TCP connection to the inverter on port 802, the port for Modbus/TCP Security. Port 502, the port for plain Modbus, can stay closed." },
+        "hello": { "title": "Agree on encryption", "text": "The client offers TLS 1.2 and one cipher suite: a set of methods for exchanging keys, encrypting and checking. The inverter answers with its certificate and asks for the client's. Both sides must prove who they are: the specification requires it." },
+        "prove": { "title": "Show ID and role", "text": "The client sends its certificate. In it is a role, \"Viewer\", in an extension (an extra field) the Modbus Organization defined. The inverter checks that the certificate was signed by the CA it trusts: the certificate authority that issues the plant's certificates. It keeps the role for this connection." },
+        "read": { "title": "Read: allowed", "text": "Now ordinary Modbus TCP messages travel inside TLS records, sealed and encrypted. The inverter checks each request against its rules: a viewer may read. It answers 4820.5 kW." },
+        "write": { "title": "Write: refused", "text": "The client tries to set a power limit. A viewer may not write, so the inverter refuses with exception 01, the error code the specification sets for this. The limit stays at 5000 kW." }
     },
     "frames": {
         "tcp": "Open a TCP connection to port 802",
@@ -19,10 +20,10 @@
         "write-refused": "(encrypted) Refused: exception 01"
     },
     "notes": {
-        "tcp": "Plain TCP to port 802, not 502. Only the TLS handshake follows in clear.",
-        "server-hello": "Five handshake messages. ServerHello picks TLS 1.2 and 0xC02F. Certificate carries the inverter's certificate and its CA's. ServerKeyExchange holds the inverter's half of the key exchange, signed with its key. CertificateRequest asks for the client's certificate: a Modbus/TCP Security server must always ask. ServerHelloDone ends its turn.",
+        "tcp": "Plain TCP to port 802, not 502. Only the TLS handshake, the opening exchange, follows in clear.",
+        "server-hello": "Five handshake messages. ServerHello picks TLS 1.2 and 0xC02F. Certificate carries the inverter's certificate and its CA's. ServerKeyExchange holds the inverter's half of the key exchange, signed with its private key. From the two halves, both sides compute the same secret keys. CertificateRequest asks for the client's certificate: a Modbus/TCP Security server must always ask. ServerHelloDone ends its turn.",
         "client-cert": "Certificate carries the client's certificate, with the role. ClientKeyExchange holds the client's half of the key exchange. CertificateVerify signs the handshake so far: proof that the client holds the certificate's private key. ChangeCipherSpec and Finished turn encryption on. In TLS 1.2 the certificates travel in clear, so anyone on the network can read the role.",
-        "server-finished": "The inverter turns encryption on too. Had the client sent no certificate, or one from an unknown CA, the inverter would have ended the connection with an alert."
+        "server-finished": "The inverter turns encryption on too. Had the client sent no certificate, or one from an unknown CA, the inverter would have ended the connection with an alert, an error message of TLS."
     },
     "fields": {
         "rec-handshake": { "name": "Record type 22", "note": "0x16: a handshake record. The handshake travels in clear." },
@@ -37,23 +38,23 @@
         "suites": { "name": "Cipher suites", "note": "2 bytes, one suite: 0xC02F, key exchange with ECDHE, RSA certificates, AES-128-GCM encryption, SHA-256. The specification requires it for devices with RSA keys." },
         "compression": { "name": "Compression", "note": "One method: 0, none." },
         "ext-len": { "name": "Extensions", "note": "0x0053 = 83 bytes of extensions follow." },
-        "ext-reneg": { "name": "renegotiation_info", "note": "0xFF01, empty: the client supports safe renegotiation, which the specification requires." },
+        "ext-reneg": { "name": "renegotiation_info", "note": "0xFF01, empty: the client supports safe renegotiation, a protected way to redo the handshake on an open connection. The specification requires it." },
         "ext-points": { "name": "ec_point_formats", "note": "0x000B: how elliptic-curve points may be written." },
-        "ext-groups": { "name": "supported_groups", "note": "0x000A, 12 bytes: a list of 10 bytes follows." },
+        "ext-groups": { "name": "supported_groups", "note": "0x000A, 12 bytes: the curves the client can use for the key exchange. A list of 10 bytes follows." },
         "groups": { "name": "Curves", "note": "Five curves for the key exchange: x25519 (0x001D), P-256 (0x0017), x448, P-384 and P-521. Every device that uses elliptic curves must support P-256." },
-        "ext-flags": { "name": "Two flags", "note": "encrypt_then_mac (0x0016) and extended_master_secret (0x0017), both empty." },
+        "ext-flags": { "name": "Two flags", "note": "encrypt_then_mac (0x0016) and extended_master_secret (0x0017): two safety options the client supports. Both are empty: being there is the message." },
         "ext-sigalgs": { "name": "signature_algorithms", "note": "0x000D: a list of 40 bytes follows, 2 for each of 20 algorithms." },
         "sigalgs": { "name": "Signatures", "note": "Kinds of signature the client accepts, 2 bytes each. 0x0403 is ECDSA on P-256 with SHA-256; 0x0401, further on, is RSA with SHA-256." },
         "sigalgs-more": { "name": "Signatures", "note": "More kinds of signature, 2 bytes each." },
         "rec-app": { "name": "Record type 23", "note": "0x17: application data. What follows is encrypted." },
         "rec-v12": { "name": "Version", "note": "0x0303: TLS 1.2." },
-        "len-read-req": { "name": "Length", "note": "36 bytes follow, not shown: an 8-byte nonce, the 12-byte request encrypted, and a 16-byte tag. Inside is the plain Modbus TCP request 00 01 00 00 00 06 01 03 00 64 00 02: read registers 100 and 101." },
+        "len-read-req": { "name": "Length", "note": "36 bytes follow, not shown: an 8-byte nonce (a number used only once), the 12-byte request encrypted, and a 16-byte tag that proves nobody changed it. Inside is the plain Modbus TCP request 00 01 00 00 00 06 01 03 00 64 00 02: read registers 100 and 101." },
         "len-read-resp": { "name": "Length", "note": "37 bytes follow: nonce, 13 bytes of answer, tag. Inside: 00 01 00 00 00 07 01 03 04 A4 00 45 96, active power 4820.5 kW." },
         "len-write-req": { "name": "Length", "note": "36 bytes follow. Inside: 00 02 00 00 00 06 01 06 00 C8 0B B8, write 3000 to register 200, the power limit." },
         "len-refused": { "name": "Length", "note": "33 bytes follow: nonce, 9 bytes of answer, tag. Inside: 00 02 00 00 00 03 01 86 01. 0x86 is 0x06 with the error bit set; 01 is the exception code." },
         "a-extension": { "name": "Extension", "note": "A SEQUENCE of 0x17 = 23 bytes: one extension of the certificate." },
-        "a-oid": { "name": "Object ID", "note": "1.3.6.1.4.1.50316.802.1: the Modbus role. 50316 is the number IANA gave the Modbus Organization." },
-        "a-octets": { "name": "Value", "note": "An OCTET STRING of 8 bytes that holds the extension's value." },
+        "a-oid": { "name": "Object ID", "note": "1.3.6.1.4.1.50316.802.1: the worldwide unique number that means \"Modbus role\". 50316 is the number IANA gave the Modbus Organization." },
+        "a-octets": { "name": "Value", "note": "An OCTET STRING (a run of bytes) of 8 bytes that holds the extension's value." },
         "a-utf8": { "name": "UTF8String", "note": "0x0C: text in UTF-8, 6 bytes long. The specification requires this type." },
         "a-role": { "name": "Role", "note": "\"Viewer\". One role per certificate. The server's rules say what it may do." }
     },
@@ -88,7 +89,7 @@
         "role": "The role extension in the client's certificate, byte by byte"
     },
     "playground": {
-        "file": "The monitoring server's certificate, as openssl x509 -text prints it. The role is the last extension.",
+        "file": "The monitoring server's certificate, as the tool openssl prints it (openssl x509 -text). The role is the last extension.",
         "issuer": "The CA that signed it. The inverter accepts only certificates from a CA it trusts.",
         "expiry": "After this date the inverter refuses the certificate.",
         "subject": "Whom the certificate belongs to: the monitoring server.",

@@ -1,11 +1,12 @@
 {
-    "intro": "How North American meters are read. C12.19 keeps everything a meter knows in numbered tables. C12.18 reads and writes those tables through the optical port, after a logon and a password. C12.22 carries the same table services over a network.",
+    "intro": "How North American meters are read. Three standards work together. C12.19 keeps everything a meter knows in numbered tables, like the pages of a binder: standard table 23 (ST 23) holds the current readings, such as the energy totals. C12.18 reads and writes those tables through the optical port, the infrared window on the meter's front, after a logon and a password. C12.22 carries the same table requests over a network.",
+    "plain": "A meter in North America keeps all its information in numbered tables, like the pages of a binder: one page says who made it, another holds the energy totals. A technician can hold a reader to the front of the meter and ask for a page by its number, after giving a name and a password. The electricity company can ask for the same pages from far away, over a network.",
     "steps": {
-        "identify": { "title": "Identify", "text": "The laptop sends Identification at 9600 baud, 8N1. The meter confirms each packet with one byte, 0x06 (ACK), then answers. Each packet ends with a 2-byte CRC, which this lesson leaves out." },
-        "logon": { "title": "Log on", "text": "Logon names the user, for the meter's log. Security sends the 20-byte password. Only now may the laptop read or write protected tables." },
-        "read": { "title": "Read table 23", "text": "A full read of table 23, Current Register Data: 12 bytes and a checksum. What the bytes mean is in other tables: ST 0 says how numbers are coded, ST 21 how many there are, ST 12 and ST 22 what they measure." },
-        "end": { "title": "Log off", "text": "Logoff ends the session, Terminate ends the conversation. Without them, the meter keeps the session open until a timeout." },
-        "network": { "title": "Over the network", "text": "Later, the head-end reads the same table with C12.22. The same service, 30 00 17, now travels in an ACSE message on port 1153. No logon is needed: each message carries its own security." }
+        "identify": { "title": "Say hello", "text": "The laptop sends an Identification request at 9600 baud, 8N1 (8 data bits, no parity bit, 1 stop bit). The meter confirms each packet with one byte, 0x06 (ACK, for acknowledge), then answers. Each packet ends with a 2-byte CRC, a check value that reveals damaged bytes. This lesson leaves it out." },
+        "logon": { "title": "Log on", "text": "The Logon request names the user, for the meter's event log. The Security request then sends the 20-byte password. Only now may the laptop read or write protected tables." },
+        "read": { "title": "Read the energy table", "text": "A full read of table 23, Current Register Data: the meter's energy totals. The answer is 12 bytes and a checksum. What the bytes mean is written in other tables. ST 0 says how numbers are coded, ST 21 how many there are, and ST 12 and ST 22 what they measure." },
+        "end": { "title": "Log off", "text": "Logoff ends the session. Terminate ends the conversation on the optical port. Without them, the meter keeps the session open until a timeout." },
+        "network": { "title": "Over the network", "text": "Later, the head-end, the utility's central computer, reads the same table with C12.22. The same request, 30 00 17, now travels inside an ACSE message: a standard envelope that names the sender and the receiver. It uses port 1153. No logon is needed: each message carries its own security." }
     },
     "frames": {
         "ident": "Identify yourself",
@@ -24,12 +25,12 @@
         "c1222-table": "Table 23: the same 12 bytes"
     },
     "notes": {
-        "ident-ok": "The answer starts with 0x00 (OK), then the protocol (0x00: C12.18), its version and its revision. Newer meters also list optional features. Next the laptop could send Negotiate (0x60 to 0x6B) for a higher speed or bigger packets; here it keeps the defaults.",
-        "c1222-read": "An ACSE message (tag 0x60) on UDP or TCP port 1153. Its header names the meter (called AP title), the head-end (calling AP title) and this request (calling AP invocation ID). Its user information holds EPSEM: a control byte that sets the security mode, then the same service as on the optical port, 30 00 17. In the secure modes, AES-128 in EAX' mode authenticates the message, or authenticates and encrypts it, with a key the meter knows.",
+        "ident-ok": "The answer starts with 0x00 (OK), then the protocol (0x00: C12.18), its version and its revision. Newer meters also list optional features. Next the laptop could send Negotiate (0x60 to 0x6B) for a higher speed or bigger packets. Here it keeps the defaults.",
+        "c1222-read": "An ACSE message (tag 0x60) on UDP or TCP port 1153. Its header names the meter (the called AP title, a network name), the head-end (the calling AP title) and this request (the calling AP invocation ID). Its user information holds EPSEM: a control byte that sets the security mode, then the same service as on the optical port, 30 00 17. In the secure modes, AES-128 in EAX' mode protects the message with a key the meter knows. It either proves who sent it and that nobody changed it, or does that and also encrypts it.",
         "c1222-table": "An ACSE message back to the head-end. Its header lets the head-end match it to the request. Inside is the same answer as on the optical port: 0x00 (OK), the count, the 12 bytes of table 23 and their checksum."
     },
     "fields": {
-        "stp": { "name": "STP", "note": "0xEE starts every packet. A 2-byte CRC (CCITT polynomial) ends it; it is not shown here." },
+        "stp": { "name": "STP", "note": "0xEE, the start of packet, begins every packet. A 2-byte CRC (CCITT polynomial) ends it; it is not shown here." },
         "identity": { "name": "Identity", "note": "0x00 here." },
         "ctrl-0": { "name": "Control", "note": "0x00: one packet, toggle bit 0." },
         "ctrl-1": { "name": "Control", "note": "0x20: the toggle bit is 1. Each side flips it with every new packet, so a packet sent twice can be spotted." },
@@ -44,13 +45,13 @@
         "user-id": { "name": "User ID", "note": "0x0002: a number the meter writes into its event log." },
         "user": { "name": "User", "note": "\"TECH01\", filled with spaces to 10 bytes." },
         "security": { "name": "Security", "note": "0x51: the password follows." },
-        "password": { "name": "Password", "note": "20 bytes: \"tech2026\" and 12 spaces. It crosses the optical port in clear." },
-        "ok": { "name": "OK", "note": "Response code 0x00: OK. 0x01 is an error; 0x03 means this password does not allow it." },
+        "password": { "name": "Password", "note": "20 bytes: \"tech2026\" and 12 spaces. It crosses the optical port in clear text." },
+        "ok": { "name": "OK", "note": "Response code 0x00: OK. 0x01 is a general error; 0x03 means the password in use does not allow this." },
         "read-full": { "name": "Full read", "note": "0x30: read a whole table." },
         "table-23": { "name": "Table 23", "note": "0x0017 = 23: ST 23, Current Register Data. Manufacturer tables add 2048: MT 23 is 0x0817." },
         "ok-read": { "name": "OK", "note": "0x00: OK, the table follows." },
         "count": { "name": "Count", "note": "0x000C: 12 bytes of table data." },
-        "sum-0": { "name": "Summation 0", "note": "6 bytes, low byte first, as ST 0 of this meter says. 0x00BC614E = 12 345 678 Wh delivered." },
+        "sum-0": { "name": "Summation 0", "note": "A running total, 6 bytes, low byte first, as ST 0 of this meter says. 0x00BC614E = 12 345 678 Wh delivered: energy from the grid to the house." },
         "sum-1": { "name": "Summation 1", "note": "0x01E240 = 123 456 Wh received: energy the house sent to the grid." },
         "cksum": { "name": "Checksum", "note": "0x72: the table bytes and this byte add up to 0, modulo 256." },
         "logoff": { "name": "Logoff", "note": "0x52: end the session." },
@@ -92,7 +93,7 @@
         "procedures": "Procedures, such as a demand reset or setting the clock, start with a write to ST 7. Their results come back in ST 8.",
         "st12": "What each source measures: here, energy delivered and received, in Wh.",
         "st21": "How many values the register tables hold. It fixes the size of ST 23.",
-        "st22": "Which source each summation in ST 23 comes from.",
+        "st22": "Which source each summation (running total) in ST 23 comes from.",
         "st23": "The table this lesson reads: two totals of 6 bytes each.",
         "mt": "Manufacturer tables: their number plus 2048. The maker decides what is in them."
     }

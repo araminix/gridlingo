@@ -1,11 +1,12 @@
 {
-    "intro": "Not a protocol on the wire, but the rulebook for securing a plant's control systems (OT). It splits a plant into zones, groups of devices that need the same protection, and lets them talk only through conduits with clear rules. Each zone gets a target security level, and seven foundational requirements say what that level means.",
+    "intro": "Not a protocol on the wire, but the rulebook for securing a plant's control systems: its OT (operational technology), the computers that run machines, as opposed to office IT. It splits a plant into zones: groups of devices that need the same protection. Zones may talk only through conduits, guarded paths with clear rules. Each zone gets a target security level, from SL 1 to SL 4: how strong an attacker it must stand up to. Seven foundational requirements, such as knowing who logs in, say what that level means.",
+    "plain": "This is a rulebook for protecting the computers that run a power plant or a factory from attackers. It works like a building with locked doors between departments: each group of machines sits in its own area, and people and data may pass only through guarded doors, with a clear list of who may go where. The more harm an attack on an area could do, the stronger its locks must be.",
     "steps": {
-        "inside": { "title": "Zones and conduits", "text": "The solar plant has four zones: the office, a DMZ, control and field. They talk only through conduits, here guarded by two firewalls. SCADA polling an inverter crosses FW-2, and a rule allows exactly that." },
-        "historian": { "title": "Into the DMZ", "text": "The historian in the DMZ collects the plant's values from SCADA. The DMZ is the buffer: the office and the plant never talk directly." },
-        "office": { "title": "The office reads the DMZ", "text": "An engineer in the office opens today's production report. It comes from the historian; the office never reaches the plant." },
-        "blocked": { "title": "Blocked", "text": "A laptop in the office tries to reach an inverter directly. No rule allows it, so FW-1 drops the connection and logs it." },
-        "vendor": { "title": "Vendor access", "text": "The inverter's maker must update INV-07. Its engineer logs in to the jump host with two factors and works from there, during an approved job. Everything is logged." }
+        "inside": { "title": "Zones and conduits", "text": "The solar plant has four zones: the office, a DMZ (a buffer zone between office and plant), control and field. They talk only through conduits, here guarded by two firewalls: filters that let through only the connections a rule allows. SCADA, the system that runs the plant, regularly reads the values of an inverter (the device that turns solar power into grid power). The connection crosses FW-2, and one rule there allows exactly this." },
+        "historian": { "title": "Into the DMZ", "text": "The historian, a database of the plant's values over time, sits in the DMZ. It collects the plant's values from SCADA. The DMZ is the buffer: the office and the plant never talk directly." },
+        "office": { "title": "Office reads the historian", "text": "An engineer in the office opens today's production report. It comes from the historian. The office never reaches the plant itself." },
+        "blocked": { "title": "A connection blocked", "text": "A laptop in the office tries to reach an inverter directly. No rule allows it, so FW-1 drops the connection and logs it." },
+        "vendor": { "title": "Vendor remote access", "text": "The inverter's maker must update INV-07. Its engineer logs in to the jump host: a guarded computer in the DMZ that outside users must go through. The login needs two factors, a password and a one-time code from a phone. The engineer works from the jump host, and only during an approved job. Everything is logged." }
     },
     "frames": {
         "scada-poll": "SCADA reads inverter INV-07",
@@ -21,7 +22,7 @@
         "historian-read": "Conduit C2 lets the historian, and only the historian, open OPC UA (TCP 4840) to SCADA. The historian keeps a copy of the plant's data in the DMZ.",
         "scada-values": "The answer needs no rule of its own: the firewall knows it belongs to a connection it allowed.",
         "office-read": "Office users read the historian in the DMZ, never the plant. If the office is attacked, the attacker finds a copy of the data, not the controls.",
-        "blocked": "No rule lets the office reach the field zone, so the last rule of C1 drops it. The laptop gets no answer. The log entry is worth an alarm: the laptop may be infected, or someone is trying.",
+        "blocked": "No rule lets the office reach the field zone, so the last rule of C1, which denies everything else, drops it. The laptop gets no answer. The log entry is worth an alarm: the laptop may be infected, or someone is trying.",
         "vendor-login": "From the internet, the vendor reaches the jump host in the DMZ and nothing else. The jump host asks for a password and a one-time code from the engineer's phone: two factors, so a stolen password is not enough. It records the session.",
         "vendor-session": "From the jump host, conduit C4 allows HTTPS to the inverters, only while the job is approved. The vendor's own laptop never touches the plant network."
     },

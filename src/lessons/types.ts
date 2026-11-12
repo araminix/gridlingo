@@ -200,6 +200,8 @@ export type FactKey = "standard" | "between" | "transport" | "security" | "frame
 export interface LessonText {
     /** Two or three sentences: what it is for and how it works. */
     intro: string;
+    /** For someone with no technical background: what it is for, with an everyday comparison and no jargon. */
+    plain: string;
     steps: Record<string, { title: string; text: string }>;
     frames: Record<string, string>;
     /** Words on a frame: required for a frame without bytes, optional above the bytes of one with them. */

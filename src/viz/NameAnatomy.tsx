@@ -1,5 +1,6 @@
 import type { Anatomy } from "@/lessons/types";
 import type { Words } from "@/lessons/words";
+import { Rich } from "@/glossary/Rich";
 import { roleColor } from "./ByteInspector";
 
 /** A name or an address taken apart, piece by piece, with what each piece means. */
@@ -15,7 +16,7 @@ export function NameAnatomy({ anatomy, words }: { anatomy: Anatomy; words: Words
                             {words.field(key).name}
                         </span>
                         <span dir="auto" className="text-xs text-foreground/80">
-                            {words.field(key).note}
+                            <Rich text={words.field(key).note} />
                         </span>
                     </li>
                 ))}

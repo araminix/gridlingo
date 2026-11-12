@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Field, FieldRole, Frame } from "@/lessons/types";
 import type { Words } from "@/lessons/words";
 import { useI18n } from "@/i18n/i18n";
+import { Rich } from "@/glossary/Rich";
 import { cn } from "@/lib/utils";
 
 export const ROLES: readonly FieldRole[] = ["frame", "control", "type", "size", "cause", "address", "value", "quality", "time", "security"];
@@ -28,7 +29,11 @@ export function ByteInspector({ frame, words }: { frame: Frame; words: Words }) 
         return (
             <div className="space-y-2 rounded-lg bg-muted p-4 text-sm">
                 <p className="font-medium">{words.frame(frame.id)}</p>
-                {note && <p className="text-muted-foreground">{note}</p>}
+                {note && (
+                    <p className="text-muted-foreground">
+                        <Rich text={note} />
+                    </p>
+                )}
             </div>
         );
     }
@@ -37,7 +42,11 @@ export function ByteInspector({ frame, words }: { frame: Frame; words: Words }) 
     const note = words.note(frame.id);
     return (
         <div className="space-y-4">
-            {note && <p className="text-sm text-muted-foreground">{note}</p>}
+            {note && (
+                <p className="text-sm text-muted-foreground">
+                    <Rich text={note} />
+                </p>
+            )}
             <ol dir="ltr" className="flex flex-wrap gap-1.5" aria-label={t("bytes.title")}>
                 {fields.map(([hex, role, key], i) => (
                     <li
@@ -74,7 +83,7 @@ export function ByteInspector({ frame, words }: { frame: Frame; words: Words }) 
                             {hex}
                         </dt>
                         <dd>
-                            <span className="font-semibold">{words.field(key).name}.</span> {words.field(key).note}
+                            <span className="font-semibold">{words.field(key).name}.</span> <Rich text={words.field(key).note} />
                         </dd>
                     </div>
                 ))}

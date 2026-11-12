@@ -1,11 +1,12 @@
 {
-    "intro": "The language of building automation: heating, cooling, lighting and meters. Every device holds objects (an analog input, a binary output, a schedule), and every object has properties, such as its present value. On an IP network, BACnet travels in UDP datagrams to port 47808, and devices find each other by broadcast.",
+    "intro": "BACnet (Building Automation and Control Networks) is the common language of building automation: heating, cooling, lighting and meters. Every device holds objects, such as an analog input (a measured number), a binary output (an on/off command) or a schedule. Every object has properties, such as its present value. On an IP network, BACnet travels in UDP datagrams, single packets sent without a connection, to port 47808. Devices find each other by broadcast: one message that every device on the network hears.",
+    "plain": "This is the common language that the machines of a building use to talk to each other: heating, air conditioning, lights and electricity meters. Each device is described as a set of labeled boxes, such as \"room temperature\" or \"fan on or off\". Other devices can read or change what is in those boxes. A control computer can ask the whole building who is there, read a meter, set a limit, and ask to be told when a value changes.",
     "steps": {
-        "discover": { "title": "Find the device", "text": "The BMS knows the controller by its device number, 2001, but not by its IP address. It broadcasts Who-Is. Only device 2001 answers, with I-Am. The BMS takes its IP address from the packet." },
-        "read": { "title": "Read the meter", "text": "The BMS reads the present-value of analog-input 1: the building's power at the main meter. The answer is a REAL: 268.5 kW." },
-        "write": { "title": "Set a limit", "text": "The operator lowers the demand limit to 250 kW. The write carries priority 8, so the value goes into slot 8 of the priority array." },
-        "subscribe": { "title": "Subscribe", "text": "Instead of reading again and again, the BMS asks the controller to report every change of the meter value, for one hour." },
-        "cov": { "title": "Load drops", "text": "The building is above the limit, so the controller sheds load: it switches off a chiller stage. Power falls to 243.5 kW. That change is larger than the COV increment of 5 kW, so the controller tells the BMS." }
+        "discover": { "title": "Find the device", "text": "The BMS (building management system, the operators' computer) knows the controller by its device number, 2001, but not by its IP address. It broadcasts Who-Is, a question to every device: is device 2001 there? Only device 2001 answers, with I-Am. The BMS takes the controller's IP address from that packet." },
+        "read": { "title": "Read the meter", "text": "The BMS reads the present-value of analog-input 1: the building's power at the main meter. The answer is a REAL, a decimal number in 4 bytes: 268.5 kW." },
+        "write": { "title": "Set a limit", "text": "The operator lowers the demand limit, the most power the building may draw, to 250 kW. A value that can be commanded has a priority array: 16 slots, with slot 1 the most important. The most important slot that holds a value wins. This write carries priority 8, so the value goes into slot 8." },
+        "subscribe": { "title": "Subscribe to changes", "text": "Instead of reading again and again, the BMS subscribes to COV (change of value). It asks the controller to report every change of the meter value, for one hour." },
+        "cov": { "title": "Power drops", "text": "The building is above the limit, so the controller sheds load: it switches off a chiller stage, part of the cooling plant. Power falls to 243.5 kW. The COV increment is the smallest change worth reporting, here 5 kW. This change is larger, so the controller tells the BMS." }
     },
     "frames": {
         "who-is": "Is device 2001 out there?",
@@ -36,11 +37,11 @@
         "unconfirmed": { "name": "Unconfirmed-Request", "note": "0x10: PDU type 1, in the high 4 bits. Nobody acknowledges it." },
         "who-is": { "name": "Who-Is", "note": "Service 8." },
         "low-limit": { "name": "Low limit", "note": "Context tag 0, 2 bytes: 0x07D1 = 2001, the lowest device number that should answer." },
-        "high-limit": { "name": "High limit", "note": "Context tag 1: 2001 again. Only device 2001 answers. The AHU controller, device 2002, stays silent." },
+        "high-limit": { "name": "High limit", "note": "Context tag 1: 2001 again. Only device 2001 answers. The air handler controller (AHU), device 2002, stays silent." },
         "i-am": { "name": "I-Am", "note": "Service 0." },
         "device-id": { "name": "Device", "note": "Application tag 12 (an object identifier), 4 bytes: device 2001. The anatomy below takes it apart." },
         "max-apdu": { "name": "Max APDU", "note": "Unsigned, 2 bytes: it accepts messages up to 1476 bytes." },
-        "segmentation": { "name": "Segmentation", "note": "Enumerated, 1 byte: 3 = none. Every message must fit in one datagram." },
+        "segmentation": { "name": "Segmentation", "note": "Enumerated, 1 byte: 3 = no segmentation. A message cannot be cut into pieces, so it must fit in one datagram." },
         "vendor": { "name": "Vendor ID", "note": "Unsigned: vendor 4000. ASHRAE gives each maker a number; this one is made up." },
         "confirmed": { "name": "Confirmed-Request", "note": "0x00: PDU type 0, in one piece. It must be answered." },
         "max-resp": { "name": "Max response", "note": "Code 5: the BMS accepts answers up to 1476 bytes." },
@@ -58,7 +59,7 @@
         "invoke2-ack": { "name": "Invoke ID 2", "note": "The answer to request 2." },
         "write-property": { "name": "WriteProperty", "note": "Service 15 (0x0F)." },
         "write-property-ack": { "name": "WriteProperty", "note": "Service 15: the write is done." },
-        "obj-av1": { "name": "Object", "note": "Context tag 0: analog-value, instance 1, the demand limit set point. 0x00800001: object type 2 in the high 10 bits." },
+        "obj-av1": { "name": "Object", "note": "Context tag 0: analog-value, instance 1, the demand limit setting. 0x00800001: object type 2 in the high 10 bits." },
         "real-250": { "name": "REAL", "note": "250.0: the new limit, in kW." },
         "priority8": { "name": "Priority 8", "note": "Context tag 4: write into slot 8 of 16, the operator's slot. The lowest slot number that holds a value wins." },
         "simple-ack": { "name": "SimpleACK", "note": "0x20: PDU type 2. Done, no data." },
@@ -90,7 +91,7 @@
         "bms": "BMS workstation",
         "switch": "Building switch",
         "controller": "Energy controller",
-        "ahu": "AHU controller",
+        "ahu": "Air handler controller",
         "meter": "Main meter"
     },
     "facts": {

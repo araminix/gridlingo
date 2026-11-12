@@ -1,11 +1,12 @@
 {
-    "intro": "LoRaWAN lets battery sensors send a few bytes over many kilometers. A sensor sends into the air, and every gateway in range passes what it hears to one network server. The network server keeps one copy and checks it; only the application server can read the payload. A sensor hears the network only for a moment after it sends.",
+    "intro": "LoRaWAN lets battery sensors send a few bytes by radio over many kilometers. A sensor sends into the air. Every gateway in range, a radio receiver linked to the internet, passes what it hears to one network server. The network server keeps one copy and checks it. Only the application server, the one that uses the data, can read the payload (the data itself). A sensor hears the network only for a moment after it sends.",
+    "plain": "This lets small battery-powered sensors send short messages by radio across a town or a wide field, using very little power. It is like calling out a note across a valley. Every listening post that hears it passes it to one central office, which keeps one copy. To save power, the sensor listens for an answer only for a moment right after it speaks.",
     "steps": {
-        "join": { "title": "Join", "text": "The sensor sends a JoinRequest, and both gateways hear it. 5 s later the network answers with a JoinAccept: a short address, and the numbers both sides need to derive the same session keys. The keys themselves never travel." },
-        "uplink": { "title": "Uplink", "text": "A few seconds later the sensor sends its first reading. It does not know who listens: both gateways receive it." },
-        "dedupe": { "title": "Two copies", "text": "Each gateway forwards what it heard over IP. The network server waits a moment for copies, keeps one, checks it, and notes which gateway heard best." },
-        "decode": { "title": "Decode", "text": "The application server decrypts the payload and turns its four bytes into values: 46.3 °C and 3.6 V." },
-        "downlink": { "title": "Receive window", "text": "The sensor listens only 1 s and 2 s after it sends. A setting queued when it joined goes out in the first window, through gateway 1, which heard it best. Then the sensor sleeps until its next reading." }
+        "join": { "title": "Join the network", "text": "The sensor asks to join with a JoinRequest, and both gateways hear it. 5 s later the network answers with a JoinAccept. It holds a short address, and the numbers both sides need to compute the same session keys, the secret keys for this session. The keys themselves never travel. This way of joining is called OTAA (over-the-air activation)." },
+        "uplink": { "title": "Send a reading", "text": "A few seconds later the sensor sends its first reading in an uplink, a message up from the sensor to the network. It does not know who listens: both gateways receive it." },
+        "dedupe": { "title": "Drop the duplicate", "text": "Each gateway forwards what it heard over the internet (IP). The network server waits a moment for more copies and keeps one. It checks that copy, and notes which gateway heard the sensor best." },
+        "decode": { "title": "Read the values", "text": "The application server decrypts the payload. Its codec, a small program written for this sensor, turns the four bytes into values: 46.3 °C and 3.6 V." },
+        "downlink": { "title": "Listen for an answer", "text": "The sensor listens only twice, briefly: 1 s and 2 s after it sends. These are its receive windows. A setting has been waiting since the join. It goes out in the first window as a downlink, a message down to the sensor, through gateway 1, which heard the sensor best. Then the sensor sleeps until its next reading." }
     },
     "frames": {
         "join-request": "I am DevEUI 02-1A-44-00-00-00-07-B3, may I join?",
@@ -17,29 +18,29 @@
         "downlink": "Report every 600 s from now on"
     },
     "notes": {
-        "forward-1": "The gateway decodes nothing. It wraps the radio bytes in JSON (base64), adds what it measured, RSSI -97 dBm and SNR 7.5 dB, and the time, and sends it to the network server: here with the Semtech packet forwarder, on UDP 1700.",
-        "forward-2": "The same bytes from gateway 2, farther away: RSSI -118 dBm, SNR -6.0 dB.",
-        "to-as": "The network server kept one copy, checked the MIC with the NwkSKey and checked that FCnt went up. It sends the payload on, still encrypted, with FPort 1 and FCnt 0. The application server decrypts it with the AppSKey to 01 CF 0E 10, and its codec turns that into {\"temperature_c\":46.3,\"battery_v\":3.6}."
+        "forward-1": "The gateway decodes nothing. It wraps the radio bytes in JSON, as base64 text. It adds what it measured, the signal strength (RSSI) -97 dBm and the signal-to-noise ratio (SNR) 7.5 dB, and the time. Then it sends this to the network server, here with the Semtech packet forwarder on UDP 1700.",
+        "forward-2": "The same bytes from gateway 2, farther away and weaker: RSSI -118 dBm, SNR -6.0 dB.",
+        "to-as": "The network server kept one copy. It checked the MIC (the integrity code) with the NwkSKey, and checked that this FCnt (frame counter) had not been used before. It sends the payload on, still encrypted, with FPort 1 and FCnt 0. The application server decrypts it with the AppSKey to 01 CF 0E 10. Its codec turns that into {\"temperature_c\":46.3,\"battery_v\":3.6}."
     },
     "fields": {
         "mhdr-join-request": { "name": "MHDR", "note": "Message type 000: JoinRequest. Major version 00: LoRaWAN R1." },
-        "join-eui": { "name": "JoinEUI", "note": "02-00-00-00-00-00-00-01, the join server's ID. LoRaWAN sends EUIs and addresses low byte first." },
+        "join-eui": { "name": "JoinEUI", "note": "02-00-00-00-00-00-00-01, the ID of the join server, which checks joins and makes the keys. LoRaWAN sends EUIs and addresses low byte first." },
         "dev-eui": { "name": "DevEUI", "note": "02-1A-44-00-00-00-07-B3, the sensor's own 64-bit ID, low byte first." },
         "devnonce": { "name": "DevNonce", "note": "7, low byte first. The sensor counts its join requests; the join server refuses a number it has seen." },
         "mic-join": { "name": "MIC", "note": "An AES-CMAC over the message with the AppKey: it proves the sensor knows the key. An example value, computed with the made-up AppKey 2B7E151628AED2A6ABF7158809CF4F3C." },
         "mhdr-join-accept": { "name": "MHDR", "note": "Message type 001: JoinAccept. The only part not encrypted." },
         "join-accept": { "name": "Encrypted", "note": "Encrypted with the AppKey. Decrypted: 0C 00 00 (JoinNonce 12), 00 00 00 (NetID 0, a private network), B4 A3 C2 01 (DevAddr 0x01C2A3B4), 00 (RX1 at the uplink's data rate, RX2 at DR0 = SF12), 01 (RX1 opens 1 s after an uplink), then the MIC. Example values, from the made-up AppKey." },
-        "mhdr-up": { "name": "MHDR", "note": "Message type 010: an unconfirmed uplink, no acknowledgement wanted." },
+        "mhdr-up": { "name": "MHDR", "note": "Message type 010: an unconfirmed uplink, no acknowledgment wanted." },
         "devaddr": { "name": "DevAddr", "note": "0x01C2A3B4, low byte first: the short address from the JoinAccept." },
-        "fctrl-up": { "name": "FCtrl", "note": "0x80: ADR on (bit 7), so the network may change the sensor's data rate and power. FOptsLen 0: no MAC commands follow." },
+        "fctrl-up": { "name": "FCtrl", "note": "0x80: ADR on (bit 7), so the network may change the sensor's data rate and transmit power. FOptsLen 0: no MAC commands (network settings) follow." },
         "fcnt-up": { "name": "FCnt", "note": "0: the first uplink since the join. It goes up with every uplink, and the network refuses an old number." },
         "fport-1": { "name": "FPort", "note": "1: application data. Port 0 would carry MAC commands only." },
         "frm-up": { "name": "FRMPayload", "note": "Encrypted with the AppSKey: only the application server can read it. Decrypted: 01 CF 0E 10. An example value, from the made-up AppKey." },
         "mic-up": { "name": "MIC", "note": "Made with the NwkSKey: the network server checks that the frame is genuine and unchanged. An example value, from the made-up AppKey." },
         "mhdr-down": { "name": "MHDR", "note": "Message type 011: an unconfirmed downlink." },
-        "fctrl-down": { "name": "FCtrl", "note": "0x80: ADR on, no acknowledgement, nothing more waiting, no MAC commands." },
+        "fctrl-down": { "name": "FCtrl", "note": "0x80: ADR on, no acknowledgment, nothing more waiting, no MAC commands." },
         "fcnt-down": { "name": "FCnt", "note": "0: the first downlink since the join. Downlinks have their own counter." },
-        "fport-2": { "name": "FPort", "note": "2: settings, on this sensor." },
+        "fport-2": { "name": "FPort", "note": "2: on this sensor, port 2 carries settings." },
         "frm-down": { "name": "FRMPayload", "note": "Encrypted with the AppSKey. The sensor decrypts it to 01 02 58: command 1, set the interval, 0x0258 = 600 s. An example value, from the made-up AppKey." },
         "mic-down": { "name": "MIC", "note": "Made with the NwkSKey, so the sensor knows the downlink is genuine. An example value, from the made-up AppKey." }
     },
@@ -61,8 +62,8 @@
     "tips": [
         "A sensor that forgets its DevNonce counter after a reset can no longer join: the join server refuses numbers it has seen (\"DevNonce too small\"). Keep the counter in non-volatile memory.",
         "With ABP (keys set by hand, no join), a sensor whose frame counter restarts at 0 is ignored: the network takes its frames for replays. Prefer joining (OTAA), which starts new counters with new keys.",
-        "At SF12 the same 17-byte uplink takes 1.3 s on air, and the 1 % duty cycle then keeps the sensor quiet for over 2 minutes. Place gateways so that sensors can use a low spreading factor.",
-        "A class A sensor hears the network only right after it sends. A command for a sensor that reports once an hour can wait an hour."
+        "At SF12, the slowest spreading factor, the same 17-byte uplink takes 1.3 s on air. The 1 % duty cycle then keeps the sensor quiet for over 2 minutes. Place gateways so that sensors can use a low spreading factor: faster, and shorter on air.",
+        "A class A sensor, the common battery-saving kind, hears the network only right after it sends. A command for a sensor that reports once an hour can wait an hour."
     ],
     "points": {
         "temperature": "Temperature",

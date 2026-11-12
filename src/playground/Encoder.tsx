@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useI18n } from "@/i18n/i18n";
+import { Rich } from "@/glossary/Rich";
 import { cn } from "@/lib/utils";
 import { decode, encode, formatFloat, ORDERS, parseHex, toHex, TYPES, widthOf, type ByteOrder, type NumberType } from "./encode";
 
@@ -34,7 +35,9 @@ export function Encoder({ type: startType, order: startOrder, value: startValue,
     const valueInvalid = encode(Number(valueText.replace(",", ".")), type, order) === null;
     return (
         <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">{intro}</p>
+            <p className="text-sm text-muted-foreground">
+                <Rich text={intro} />
+            </p>
             <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                     <label htmlFor={`${id}v`} className="text-xs font-semibold">

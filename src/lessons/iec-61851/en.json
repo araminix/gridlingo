@@ -1,11 +1,12 @@
 {
-    "intro": "The control pilot (CP) is one wire in every charging cable. The charger puts a voltage on it, and the car pulls that voltage down with resistors. From the level, both sides know whether a car is connected and whether it wants power. A 1 kHz square wave on the same wire tells the car how much current it may take.",
+    "intro": "The control pilot (CP) is a thin signal wire in every charging cable for electric cars. The charger puts a voltage on it, and the car pulls that voltage down with resistors (simple parts that lower a voltage). From the level, both sides know whether a car is connected and whether it wants power. The charger also makes the voltage jump up and down 1000 times a second: a 1 kHz square wave. How long it stays high in each cycle tells the car how much current it may take.",
+    "plain": "An electric car and a charging point agree on charging through one thin wire in the cable, without any computer messages. The car changes the voltage on that wire to say \"I am plugged in\" and \"I am ready\", much like flipping a switch. The charger answers by pulsing the wire, and the length of each pulse tells the car how much power it may take. No power flows in the cable until both sides agree.",
     "steps": {
-        "plug": { "title": "Plug in", "text": "Before the plug goes in, the charger holds CP at +12 V: state A. The car's resistor pulls it down to +9 V: state B. The charger also reads the cable's rating from the PP pin." },
-        "offer": { "title": "Offer current", "text": "The charger starts a 1 kHz square wave on CP. The share of time it is high, the duty cycle, is the current the car may take. The house allows 24 A, so the 32 A charger offers 24 A: 40 %." },
-        "charge": { "title": "Charge", "text": "The car switches in a second resistor: CP drops to +6 V, state C. Only now does the charger close its contactor. The car takes up to 24 A on each phase." },
-        "reduce": { "title": "Less current", "text": "The house needs its power elsewhere. Its energy manager tells the charger, and the charger lowers the duty cycle to 10 %: 6 A. The car has 5 s to follow." },
-        "stop": { "title": "Stop", "text": "The battery is full. The car opens its switch: CP goes back to +9 V, state B. The charger opens the contactor." },
+        "plug": { "title": "Plug in", "text": "Before the plug goes in, the charger holds CP at +12 V: state A, no car. The car's resistor pulls it down to +9 V: state B, a car is connected. The charger also reads the cable's rating (the most current it can carry) from the PP pin: the proximity pilot, a second small pin in the plug." },
+        "offer": { "title": "Offer current", "text": "The charger starts a 1 kHz square wave on CP. The share of each cycle the signal stays high is the duty cycle. It tells the car how much current it may take. The house allows 24 A, so the 32 A charger offers 24 A: a duty cycle of 40 %." },
+        "charge": { "title": "Power on", "text": "The car switches in a second resistor: CP drops to +6 V, state C, ready for power. Only now does the charger close its contactor (a heavy power switch). The car takes up to 24 A on each phase, each of the three live wires." },
+        "reduce": { "title": "Lower the current", "text": "The house needs its power elsewhere. Its energy manager, the box that shares the house's power between devices, tells the charger. The charger lowers the duty cycle to 10 %: 6 A. The car has 5 s to follow." },
+        "stop": { "title": "Charging stops", "text": "The battery is full. The car opens its switch: CP goes back to +9 V, state B. The charger opens the contactor and the power is off." },
         "unplug": { "title": "Unplug", "text": "The plug comes out. CP returns to +12 V, state A, and the charger stops the square wave." }
     },
     "frames": {
@@ -21,14 +22,14 @@
         "a": "The car is gone"
     },
     "notes": {
-        "b1": "The charger feeds +12 V through a 1 kΩ resistor. The car connects 2.74 kΩ from CP to protective earth (PE), behind a diode, and the voltage drops to +9 V. B1 means state B with a steady voltage; B2 is the same state with the square wave.",
-        "pp": "Proximity pilot (PP) is not a signal. It is a resistor in the cable's plug, between PP and PE, and its value is the cable's rating: 1.5 kΩ is 13 A, 680 Ω is 20 A, 220 Ω is 32 A, 100 Ω is 63 A.",
+        "b1": "The charger feeds +12 V through a 1 kΩ resistor. The car connects 2.74 kΩ from CP to protective earth (PE), behind a diode (a part that lets current pass one way only). The voltage drops to +9 V. B1 means state B with a steady voltage. B2 is the same state with the square wave.",
+        "pp": "The proximity pilot (PP) is not a signal. It is a resistor in the cable's plug, between PP and PE. Its value tells the cable's rating: 1.5 kΩ is 13 A, 680 Ω is 20 A, 220 Ω is 32 A, 100 Ω is 63 A.",
         "pwm": "One period lasts 1 ms. CP is at +9 V for 40 % of it (0.4 ms) and at −12 V for the rest. Between 10 % and 85 %, the current is the duty cycle × 0.6 A: 40 × 0.6 = 24 A.",
-        "c": "The car closes its switch S2 and adds 1.3 kΩ beside the 2.74 kΩ. The high level of the square wave drops to +6 V. With 270 Ω instead, it would drop to +3 V: state D, which asks for ventilation.",
-        "contactor": "Not a signal on CP. The charger's contactor connects L1, L2, L3 and N to the car, and the car's on-board charger turns the AC into DC for the battery.",
-        "limit": "Not IEC 61851: an energy manager speaks Modbus, OCPP or closes a contact. The car never sees this message, only the new duty cycle.",
+        "c": "The car closes its switch S2 and adds 1.3 kΩ in parallel with the 2.74 kΩ. The high level of the square wave drops to +6 V. With 270 Ω instead, it would drop to +3 V: state D. It asks for ventilation, for batteries that give off gas while charging.",
+        "contactor": "This is not a signal on CP. The charger's contactor connects the three phases L1, L2, L3 and the neutral N to the car. The car's on-board charger turns the AC into DC for the battery.",
+        "limit": "This part is not IEC 61851. An energy manager tells the charger over Modbus or OCPP, or simply closes a contact. The car never sees this message, only the new duty cycle.",
         "pwm-10": "10 × 0.6 = 6 A, the lowest current a duty cycle can offer. The car must lower its current within 5 s.",
-        "b2": "The car opens S2 and the high level goes back to +9 V. A good car lowers its current first, so that the contactor does not open under load.",
+        "b2": "The car opens S2 and the high level goes back to +9 V. A good car lowers its current first, so that the contactor does not open under load (while current flows).",
         "open": "In state B the charger must not supply power, so it opens the contactor. The square wave goes on: the car could ask for power again.",
         "a": "Nothing pulls CP down any more: +12 V, state A. The charger stops the square wave (A1) and waits for the next car."
     },
@@ -50,7 +51,7 @@
         "Check the low level too. A square wave that does not reach −12 V means the car's diode is missing or shorted, and the charger must not switch on.",
         "5 % is not a current. It means \"talk digitally first\" (ISO 15118): the limit then comes from the messages, not from the duty cycle.",
         "The cable limits the current too. With a 20 A cable (680 Ω), a 32 A charger offers at most 20 A: a duty cycle of 33.3 %.",
-        "State D (+3 V) asks for ventilation. A charger without a fan for the room must not charge in state D. E (0 V) is a short or no power; F (−12 V) means the charger is not available."
+        "State D (+3 V) asks for ventilation. A charger without a fan for the room must not charge in state D. State E (0 V) means a short circuit or no power. State F (−12 V) means the charger is not available."
     ],
     "points": {
         "state": "CP state",
@@ -60,7 +61,7 @@
     },
     "timing": {
         "title": "The control pilot, 3 ms of each state",
-        "note": "Each line is the CP voltage: −12 V at the bottom, +12 V at the top (level = (V + 12) / 24). The square wave repeats every 1 ms. Its duty cycle is the current: 40 % is 24 A, 10 % is 6 A. Above 85 %, the current is (duty − 64) × 2.5 A, up to 80 A at 96 %. 5 % asks for digital communication. The low level stays at −12 V in every state: the diode in the car lets no current through in that direction.",
+        "note": "Each line is the CP voltage: −12 V at the bottom, +12 V at the top (level = (V + 12) / 24). The square wave repeats every 1 ms. Its duty cycle is the current: 40 % is 24 A, 10 % is 6 A. Above 85 %, the current is (duty − 64) × 2.5 A, up to 80 A at 96 %. 5 % asks for digital communication. The low level stays at −12 V in every state, because the diode in the car lets no current through in that direction.",
         "a": "A · no car",
         "b1": "B1 · car",
         "b2": "B2 · 40 %",

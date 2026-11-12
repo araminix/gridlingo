@@ -1,12 +1,13 @@
 {
-    "intro": "The language between a charging station and the server that runs it, the CSMS (charging station management system). The charger keeps one WebSocket open and sends JSON messages: who it is, the state of its connectors, which card wants to charge, and the meter during each charge. The CSMS answers every message, and can send requests of its own on the same connection.",
+    "intro": "The language between a charging station and the server that runs it: the CSMS (charging station management system, the operator's back office). The charger keeps one WebSocket open: a lasting web connection. Over it, the charger sends short JSON messages (structured text): who it is, the state of its connectors (plugs), which card wants to charge, and the meter reading during each charge. The CSMS answers every message, and can send requests of its own on the same connection.",
+    "plain": "A public charger for electric cars does not work alone. It stays connected to its operator's computer system, much like a card terminal in a shop stays in touch with the bank. The charger says when it is free, asks whether your card may charge, and reports how much energy you took, so that you can be billed.",
     "steps": {
-        "connect": { "title": "Connect", "text": "The charger opens a secure WebSocket to its CSMS. The connection stays open, so either side can send at any time." },
-        "boot": { "title": "Boot", "text": "The first message after power-up says who the charger is. The CSMS accepts it, gives the time and sets the heartbeat interval. Then the charger reports each connector: connector 1 is Available." },
-        "authorize": { "title": "Tap a card", "text": "A driver holds an RFID card to the reader. The charger asks the CSMS whether this card may charge. It may." },
-        "start": { "title": "Start", "text": "The car is plugged in and starts to take energy. The charger opens a transaction and sends the meter reading at its start." },
-        "charge": { "title": "Meter values", "text": "While the car charges, the charger sends the meter every 15 minutes. The CSMS sees the energy grow." },
-        "stop": { "title": "Stop", "text": "The driver taps the card again. The transaction ends after one hour and 11040 Wh. The CSMS can now bill it." }
+        "connect": { "title": "Connect to the server", "text": "The charger opens a secure, encrypted WebSocket to its CSMS. The connection stays open, so either side can send at any time." },
+        "boot": { "title": "Charger starts up", "text": "The first message after power-up says who the charger is. The CSMS accepts it, sends the current time and sets the heartbeat interval: how often the charger must say \"I am still here\". Then the charger reports each connector: connector 1 is Available." },
+        "authorize": { "title": "Tap a card", "text": "A driver holds an RFID card (a contactless card, like a building pass) to the reader. The charger asks the CSMS whether this card may charge. The answer is yes." },
+        "start": { "title": "Charging starts", "text": "The car is plugged in and starts to take energy. The charger opens a transaction: the record of this one charge. It sends the meter reading at the start." },
+        "charge": { "title": "Report the meter", "text": "While the car charges, the charger sends its meter reading every 15 minutes. The CSMS sees the energy grow." },
+        "stop": { "title": "Charging stops", "text": "The driver taps the card again. The transaction ends after one hour and 11040 Wh (about 11 kWh). The CSMS can now bill the driver." }
     },
     "frames": {
         "upgrade": "Switch to WebSocket, subprotocol ocpp2.0.1",
@@ -17,37 +18,37 @@
         "status-conf": "Noted",
         "authorize": "May card 04A2B3C4D5E6F7 charge?",
         "authorize-conf": "Yes: Accepted",
-        "started": "Transaction TX-0187 started at 12840 Wh",
+        "started": "Transaction TX-0187 started, meter at 12840 Wh",
         "started-conf": "Noted, the card is still Accepted",
-        "updated": "Now 15600 Wh, taking 11040 W",
+        "updated": "Meter now at 15600 Wh, taking 11040 W",
         "updated-conf": "Noted",
-        "ended": "TX-0187 ended at 23880 Wh",
+        "ended": "TX-0187 ended, meter at 23880 Wh",
         "ended-conf": "Noted"
     },
     "notes": {
-        "upgrade": "Inside TLS, the charger asks to turn this HTTP connection into a WebSocket. The address ends in its identity, CS-0042. The header Sec-WebSocket-Protocol asks for ocpp2.0.1, and HTTP Basic authentication carries the charger's password.",
+        "upgrade": "Inside the encrypted TLS connection, the charger asks to turn this HTTP connection into a WebSocket. The web address ends in the charger's identity, CS-0042. The header Sec-WebSocket-Protocol asks for ocpp2.0.1. HTTP Basic authentication carries the charger's password.",
         "switch": "The CSMS agrees and names the subprotocol it chose: ocpp2.0.1. From now on both sides send WebSocket frames, each with one OCPP message in JSON.",
-        "status": "A CALL with timestamp, connectorStatus Available, evseId 1 and connectorId 1. An EVSE is one charging point; it can have several connectors.",
-        "status-conf": "A CALLRESULT with an empty payload: [3,\"1002\",{}]. Every CALL gets an answer, even when there is nothing to say.",
-        "authorize": "idToken 04A2B3C4D5E6F7, type ISO14443: the 7-byte serial number of the RFID card. Many chargers also keep a local list of cards, to decide without asking.",
+        "status": "A CALL (a request) with timestamp, connectorStatus Available, evseId 1 and connectorId 1. An EVSE is one charging point: it charges one car at a time. It can have several connectors (plugs).",
+        "status-conf": "A CALLRESULT (an answer) with an empty payload: [3,\"1002\",{}]. Every CALL gets an answer, even when there is nothing to say.",
+        "authorize": "idToken 04A2B3C4D5E6F7, type ISO14443 (the standard for contactless cards): the 7-byte serial number of the RFID card. Many chargers also keep a local list of cards, so they can decide without asking the CSMS.",
         "authorize-conf": "idTokenInfo with status Accepted. Other answers, such as Blocked, Expired, Invalid or Unknown, mean the charger must not start.",
-        "started": "eventType Started, triggerReason ChargingStateChanged, seqNo 0. The charger picks the transactionId, TX-0187. The event carries the card's idToken, chargingState Charging, and a meter value with context Transaction.Begin: 12840 Wh.",
+        "started": "eventType Started, triggerReason ChargingStateChanged, seqNo 0: the first event of this transaction. The charger itself picks the transactionId, TX-0187. The event also carries the card's idToken, chargingState Charging, and the meter reading at the start (context Transaction.Begin): 12840 Wh.",
         "started-conf": "The event carried the card, so the answer carries its status again: idTokenInfo Accepted.",
-        "updated": "eventType Updated, triggerReason MeterValuePeriodic, seqNo 1, with two readings: the energy register and the power. The playground shows the whole message.",
+        "updated": "eventType Updated, triggerReason MeterValuePeriodic (the meter timer), seqNo 1. It carries two readings: the energy register (the meter's running total) and the power (how fast energy flows now). The playground shows the whole message.",
         "updated-conf": "An empty payload: the CSMS has nothing to add.",
-        "ended": "eventType Ended, triggerReason StopAuthorized, seqNo 2, stoppedReason Local, chargingState EVConnected (the cable is still in), and the last meter value with context Transaction.End: 23880 Wh.",
+        "ended": "eventType Ended, triggerReason StopAuthorized (a card was shown to stop it), seqNo 2, stoppedReason Local (stopped at the charger). chargingState is EVConnected: the cable is still in. The last meter reading (context Transaction.End) is 23880 Wh.",
         "ended-conf": "An empty payload. The CSMS bills 23880 − 12840 = 11040 Wh to the card's owner."
     },
     "fields": {
-        "ws-text": { "name": "FIN · opcode", "note": "0x81: the FIN bit (0x80) says the whole message is in this frame. Opcode 0x1 says it is text, UTF-8." },
-        "ws-mask-126": { "name": "Mask · length", "note": "0xFE: the mask bit (0x80) is set, because a client must mask what it sends. The rest, 126 (0x7E), says the length follows in 2 bytes." },
+        "ws-text": { "name": "FIN · opcode", "note": "0x81. The FIN bit (0x80) says the whole message is in this one frame. Opcode 0x1 says the frame carries text (UTF-8)." },
+        "ws-mask-126": { "name": "Mask · length", "note": "0xFE. The mask bit (0x80) is set, because a client must always mask (scramble) what it sends. The other bits hold 126 (0x7E), which means: the real length follows in 2 bytes." },
         "ws-len-170": { "name": "Length", "note": "0x00AA = 170 bytes of JSON follow. The playground shows them." },
         "ws-key": { "name": "Masking key", "note": "4 random bytes. Each byte of the JSON is XORed with them in turn: \"[\" (0x5B) travels as 0x61. This is not encryption; TLS does that." },
-        "ws-len-88": { "name": "Length", "note": "0x58 = 88 bytes of JSON follow. The mask bit is 0, because a server never masks, so no masking key follows." },
-        "a-type": { "name": "MessageTypeId", "note": "2 is a CALL, a request. Its answer is a 3 (CALLRESULT) or a 4 (CALLERROR)." },
+        "ws-len-88": { "name": "Length", "note": "0x58 = 88 bytes of JSON follow. The mask bit is 0, because a server never masks. So no masking key follows." },
+        "a-type": { "name": "MessageTypeId", "note": "2 means CALL: a request. Its answer is a 3 (CALLRESULT, it worked) or a 4 (CALLERROR, it failed)." },
         "a-id": { "name": "MessageId", "note": "Picked by the sender, unique on this connection. The answer carries the same id; nothing else ties the two together." },
         "a-action": { "name": "Action", "note": "Which message this is. An answer has no action: its id tells which CALL it answers." },
-        "a-payload": { "name": "Payload", "note": "The request itself, a JSON object. Its fields are checked against the JSON schema of BootNotificationRequest." }
+        "a-payload": { "name": "Payload", "note": "The request itself, a JSON object. The receiver checks its fields against the JSON schema (the official list of allowed fields) of BootNotificationRequest." }
     },
     "devices": {
         "car": "Car",
@@ -59,11 +60,11 @@
         "standard": "OCPP 2.0.1 (Open Charge Alliance, 2020). OCPP 1.6J is still common.",
         "between": "Charging station → CSMS (charging station management system)",
         "transport": "WebSocket (RFC 6455) over TLS, subprotocol ocpp2.0.1: one JSON message per text frame",
-        "security": "TLS. Security profile 2 adds a password (HTTP Basic), profile 3 a client certificate.",
+        "security": "TLS encryption. Security profile 2 adds a password (HTTP Basic). Profile 3 uses a client certificate instead.",
         "frames": "CALL [2, …] · CALLRESULT [3, …] · CALLERROR [4, …]"
     },
     "tips": [
-        "If the CSMS does not answer with the subprotocol the charger asked for, the charger must close the connection. \"It connects, then drops\" is often this.",
+        "If the CSMS does not answer with the subprotocol the charger asked for, the charger must close the connection. A charger that \"connects, then drops\" often has this problem.",
         "Send one CALL at a time and wait for its answer, or a timeout, before the next. A second CALL sent too early may be lost.",
         "When a transaction starts is a setting (TxStartPoint): at plug-in, at authorization, or when energy flows. Agree on it with the CSMS team, or transactions look too long or too short.",
         "Timestamps are UTC. Set the charger's clock from currentTime in the BootNotification answer, or meter values land in the wrong tariff period."
@@ -83,16 +84,16 @@
         "action": "The action: which message this is. Its payload follows.",
         "reason": "Why the charger booted: PowerUp. Others are FirmwareUpdate, RemoteReset, Watchdog and more.",
         "model": "model and vendorName are the only required fields of chargingStation.",
-        "firmware": "The firmware that runs now. The CSMS uses it to plan updates.",
+        "firmware": "The version of the firmware (the charger's built-in software) that runs now. The CSMS uses it to plan updates.",
         "event-type": "Started, Updated or Ended. One transaction has exactly one Started and one Ended.",
-        "timestamp": "UTC, with Z. It is the time of the event, not of sending: an event stored while offline keeps its time.",
+        "timestamp": "UTC time, marked by the Z at the end. It is the time of the event, not of sending: an event stored while offline keeps its own time.",
         "trigger": "Why this event was sent: the meter interval (TxUpdatedInterval) has passed.",
         "seq": "seqNo counts the events of this transaction from 0. A gap tells the CSMS that a message is missing.",
         "transaction-id": "Chosen by the charger at the start. Every event of this charge carries it.",
-        "charging-state": "Charging: energy flows. Other states are EVConnected, SuspendedEV, SuspendedEVSE and Idle.",
+        "charging-state": "Charging: energy flows. Other states are EVConnected, SuspendedEV (the car paused), SuspendedEVSE (the charger paused) and Idle.",
         "energy": "15600 Wh on the meter's register, like the counter of a home meter. It does not restart at 0 for a new transaction.",
         "measurand": "What was measured. Without a measurand, a value means Energy.Active.Import.Register.",
-        "unit": "Wh, the default unit for energy.",
+        "unit": "Wh (watt-hours), the default unit for energy.",
         "power": "11040 W: 16 A on each of 3 phases at 230 V."
     }
 }

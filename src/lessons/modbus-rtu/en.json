@@ -1,11 +1,12 @@
 {
-    "intro": "Modbus on a serial cable. One master and up to 247 slaves share a two-wire RS-485 line. Only the master starts a conversation: it calls one slave by its address, and only that slave answers. A CRC at the end of each frame catches damaged bytes.",
+    "intro": "Modbus on a serial cable. One master, the device that asks, and up to 247 slaves, the devices that answer, share one two-wire RS-485 line. Only the master starts a conversation: it calls one slave by its address, and only that slave answers. Each frame (one message on the line) ends with a CRC: two check bytes computed from the rest, so damaged bytes are caught.",
+    "plain": "Modbus RTU lets one box collect readings from several machines that all hang on the same cable. It works like a teacher calling the roll: the teacher calls one name, only that pupil answers, then the teacher calls the next. Nobody speaks without being asked. Each message ends with a short check code, so a message garbled on the way is noticed and ignored.",
     "steps": {
-        "poll": { "title": "Ask slave 1", "text": "The data logger is the master. It asks slave 1, the inverter, for two input registers. Every device on the line hears the frame, but only slave 1 answers." },
-        "meter": { "title": "Ask slave 2", "text": "Next, the meter at address 2. Its power is a 32-bit float in two registers, high word first." },
-        "silent": { "title": "No answer", "text": "Slave 3 does not answer. The logger waits 1 second, asks once more, then marks it offline and moves on. It cannot tell why: no power, a broken wire and a wrong setting look the same." },
-        "broadcast": { "title": "Broadcast", "text": "The logger sends a power limit to address 0, a broadcast. Every slave acts on it and none answers, so the logger does not know who got it. The meter has no register 40201 and does nothing." },
-        "confirm": { "title": "Read it back", "text": "The logger gives the slaves 200 ms to act, then reads the limit back from slave 1: 60 %. Slave 3 is still offline, so its limit is unknown." }
+        "poll": { "title": "Ask slave 1", "text": "The data logger, a small box that collects readings, is the master. It asks slave 1, an inverter that feeds power into the grid, for two input registers. Registers are numbered 16-bit boxes; input registers hold values the device measures. Every device on the line hears the frame, but only slave 1 answers." },
+        "meter": { "title": "Ask slave 2", "text": "Next, the energy meter at address 2. Its power is a 32-bit float (a number with a decimal point) that fills two registers. The high word, the upper 16-bit half, comes first." },
+        "silent": { "title": "No answer", "text": "Slave 3, the second inverter, does not answer. The logger waits 1 second, asks once more, then marks it offline and moves on. It cannot tell why: no power, a broken wire and a wrong setting look the same." },
+        "broadcast": { "title": "Tell everyone at once", "text": "The logger sends a power limit to address 0. Address 0 is a broadcast: a message for every slave at once. Every slave acts on it and none answers, so the logger does not know who got it. The meter has no register 40201, the power limit, so it does nothing." },
+        "confirm": { "title": "Read it back", "text": "The logger gives the slaves 200 ms to act. Then it reads the limit back from slave 1: 60 %. Slave 3 is still offline, so its limit is unknown." }
     },
     "frames": {
         "inv1-req": "Slave 1: send me input registers 0 and 1",
@@ -26,7 +27,7 @@
         "fc03": { "name": "Function 03", "note": "0x03: read holding registers, where settings live." },
         "fc04": { "name": "Function 04", "note": "0x04: read input registers, the values a device measures. They cannot be written." },
         "fc06": { "name": "Function 06", "note": "0x06: write one register." },
-        "addr-0": { "name": "Address 0", "note": "0x0000: register 30001 in the manual. The wire counts from 0." },
+        "addr-0": { "name": "Address 0", "note": "0x0000: register 30001 in the manual. The leading 3 means an input register, and the wire counts from 0." },
         "addr-12": { "name": "Address 12", "note": "0x000C = 12: register 30013, the power at the grid point." },
         "addr-200": { "name": "Address 200", "note": "0x00C8 = 200: register 40201, the inverters' power limit." },
         "qty-1": { "name": "Count", "note": "1 register." },
@@ -36,8 +37,8 @@
         "power": { "name": "Register 30001", "note": "0x0CB2 = 3250: AC power, in W." },
         "voltage": { "name": "Register 30002", "note": "0x0900 = 2304: grid voltage in steps of 0.1 V, so 230.4 V." },
         "meter-power": { "name": "Registers 30013–30014", "note": "0x45337800: a 32-bit float, high word first (ABCD). It is 2871.5 (W)." },
-        "limit-60": { "name": "Value", "note": "0x003C = 60: 60 % of rated power." },
-        "crc": { "name": "CRC", "note": "CRC-16 over all bytes before it, sent low byte first. A slave drops a frame whose CRC is wrong, and stays silent." }
+        "limit-60": { "name": "Value", "note": "0x003C = 60: 60 % of rated power, the most the inverter can give." },
+        "crc": { "name": "CRC", "note": "A CRC-16 check value computed from all bytes before it, sent low byte first. The receiver computes it again. A slave drops a frame whose CRC does not match, and stays silent." }
     },
     "devices": {
         "logger": "Data logger",
@@ -50,11 +51,11 @@
         "between": "One master (logger, controller) → up to 247 slaves",
         "transport": "RS-485: two data wires and a ground, up to about 1200 m",
         "frames": "Address, function code, data, CRC-16. No start byte: silence separates frames.",
-        "speed": "At 9600 baud an 8-byte request takes 9.2 ms"
+        "speed": "At 9600 baud (bits per second) an 8-byte request takes 9.2 ms"
     },
     "tips": [
         "Every device on the line must use the same speed, parity and stop bits. One wrong setting looks just like a dead slave.",
-        "Put a 120 Ω resistor at each end of the line, not at every device. Missing or extra ones cause CRC errors that come and go.",
+        "Put a 120 Ω resistor at each end of the line, not at every device. Missing or extra ones distort the signal and cause CRC errors that come and go.",
         "Two devices with the same address answer at once and garble each other. Set each address before you connect the device.",
         "If nothing answers at all, swap the two data wires. Vendors do not agree on which one is A and which is B."
     ],
@@ -68,7 +69,7 @@
     },
     "timing": {
         "title": "Frames and silences on the line, at 9600 baud",
-        "note": "Modbus RTU has no start or end byte. A frame is over when the line stays quiet for 3.5 characters: 4.0 ms at 9600 baud, with 11 bits per character. Above 19200 baud the gap is fixed at 1.75 ms. Inside a frame, a pause longer than 1.5 characters breaks the frame.",
+        "note": "Modbus RTU has no start or end byte. A frame is over when the line stays quiet for 3.5 characters: 4.0 ms at 9600 baud. A character is one byte with its start, parity and stop bits: 11 bits. Above 19200 baud the gap is fixed at 1.75 ms. Inside a frame, a pause longer than 1.5 characters breaks the frame.",
         "logger": "Logger sends",
         "inv1": "Inverter 1 answers",
         "idle": "Line quiet",
@@ -77,7 +78,7 @@
     "playground": {
         "file": "The logger's setup for this line. Every slave on it must use the same speed and parity.",
         "baud": "9600 bits per second. Every device on the line must use the same speed.",
-        "parity": "8E1: 8 data bits, even parity, 1 stop bit. The parity bit catches single bit errors. 8E1 is Modbus's default; many devices come set to 8N1.",
+        "parity": "8E1: 8 data bits, even parity, 1 stop bit. The parity bit is one extra bit that makes the number of 1s even, so a single flipped bit is caught. 8E1 is Modbus's default. Without parity the standard asks for 2 stop bits (8N2), but many devices come set to 8N1: every device on the line must match.",
         "timeout": "How long the logger waits for an answer before it gives up: 1 second.",
         "retries": "Ask once more before marking a slave offline.",
         "after-broadcast": "Nobody answers a broadcast, so the logger waits this long before the next frame.",

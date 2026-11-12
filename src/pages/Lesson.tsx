@@ -1,12 +1,15 @@
-import { ListTree } from "lucide-react";
+import { Lightbulb, ListTree } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useI18n, type MessageKey } from "@/i18n/i18n";
+import { GroupIcon, groupVars } from "@/layout/GroupIcon";
 import { ProtocolNav } from "@/layout/ProtocolNav";
 import { metaOf } from "@/lessons/catalog";
+import { loadGlossary, type Glossary } from "@/glossary/glossary";
+import { GlossaryProvider, Rich } from "@/glossary/Rich";
 import { loadLesson, type Loaded } from "@/lessons/load";
 import type { Frame, Meta } from "@/lessons/types";
 import { wordsOf, type Words } from "@/lessons/words";
@@ -32,10 +35,12 @@ export function LessonPage({ id }: { id: string }) {
     const { lang, t } = useI18n();
     const meta = metaOf(id);
     const [loaded, setLoaded] = useState<Loaded | null | undefined>(undefined);
+    const [glossary, setGlossary] = useState<Glossary>({});
 
     useEffect(() => {
         let current = true;
         void loadLesson(id, lang).then((result) => current && setLoaded(result));
+        void loadGlossary(lang).then((result) => current && setGlossary(result));
         return () => {
             current = false;
         };
@@ -50,14 +55,21 @@ export function LessonPage({ id }: { id: string }) {
 
     if (!meta || loaded === null) return <NotFound />;
     if (!loaded) return <main id="main" className="min-h-[60vh]" aria-busy="true" aria-label={t("lesson.loading")} />;
-    return <Workspace key={id} meta={meta} loaded={loaded} />;
+    return (
+        <GlossaryProvider glossary={glossary}>
+            <Workspace key={id} meta={meta} loaded={loaded} />
+        </GlossaryProvider>
+    );
 }
 
-function Section({ title, children, action, testId }: { title: string; children: ReactNode; action?: ReactNode; testId?: string }) {
+function Section({ title, hint, children, action, testId }: { title: string; hint?: string; children: ReactNode; action?: ReactNode; testId?: string }) {
     return (
         <Card className="gap-0 overflow-hidden py-0" data-testid={testId}>
             <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 border-b px-4 py-3 [.border-b]:pb-3">
-                <h2 className="text-base leading-none font-semibold">{title}</h2>
+                <div className="space-y-1">
+                    <h2 className="text-base leading-none font-semibold">{title}</h2>
+                    {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+                </div>
                 {action}
             </CardHeader>
             <CardContent className="p-0">{children}</CardContent>
@@ -125,7 +137,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
     const wire = selected && `${selected.name} · ${words.device(selected.from)} → ${(typeof selected.to === "string" ? [selected.to] : selected.to).map((to) => words.device(to)).join(", ")}`;
     const facts = <Facts meta={meta} words={words} keys={lesson.facts} />;
     const devices = lesson.points && (
-        <Section title={t("points.title")}>
+        <Section title={t("points.title")} hint={t("points.hint")}>
             <div className="px-4 py-2">
                 <DeviceState points={lesson.points} steps={lesson.steps} current={current} words={words} />
             </div>
@@ -158,10 +170,27 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                                 <ProtocolNav current={meta.id} onPick={() => setNavOpen(false)} />
                             </SheetContent>
                         </Sheet>
-                        <span className="text-xs font-semibold tracking-wider text-primary uppercase">{t(`group.${meta.group}` as MessageKey)}</span>
+                        <span
+                            style={groupVars(meta.group)}
+                            className="inline-flex items-center gap-2 rounded-full bg-[color-mix(in_oklab,var(--g)_12%,transparent)] py-1 ps-1 pe-3 text-xs font-semibold tracking-wider text-[var(--g)] uppercase"
+                        >
+                            <GroupIcon group={meta.group} className="size-6" />
+                            {t(`group.${meta.group}` as MessageKey)}
+                        </span>
                     </div>
                     <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{meta.name}</h1>
-                    <p className="max-w-3xl text-[15px] text-muted-foreground">{words.intro}</p>
+                    <p className="max-w-3xl text-[15px] text-muted-foreground">
+                        <Rich text={words.intro} />
+                    </p>
+                    <div className="flex max-w-3xl gap-3 rounded-xl border border-[color-mix(in_oklab,var(--gold)_45%,transparent)] bg-gold-soft p-4">
+                        <Lightbulb className="mt-0.5 size-5 shrink-0 text-gold-foreground" aria-hidden="true" />
+                        <div className="space-y-1">
+                            <p className="text-sm font-semibold text-gold-foreground">{t("lesson.plain")}</p>
+                            <p className="text-[15px]">
+                                <Rich text={words.plain} />
+                            </p>
+                        </div>
+                    </div>
                 </header>
 
                 <Card className="gap-0 overflow-hidden py-0" data-testid="stage">
@@ -200,7 +229,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
 
                 <div className="xl:hidden">{devices}</div>
 
-                <Section title={t("frames.title")}>
+                <Section title={t("frames.title")} hint={t("frames.hint")}>
                     <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={t("frames.title")}>
                         <FrameList frames={shownFrames} selected={selected?.id} onSelect={setChosen} words={words} />
                     </div>
@@ -209,6 +238,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                 {selected && (
                     <Section
                         title={selected.fields?.length && selected.size !== 0 ? `${t("bytes.title")} · ${selected.name}` : selected.name}
+                        hint={selected.fields?.length && selected.size !== 0 ? t("bytes.hint") : undefined}
                         testId="frame"
                         action={frameSize(selected) ? <span className="font-mono text-xs text-muted-foreground">{t("frames.bytes", { count: frameSize(selected) })}</span> : undefined}
                     >
@@ -222,13 +252,15 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                     <Section title={words.timing("title")}>
                         <div className="space-y-2 p-4">
                             <TimingChart timing={lesson.timing} words={words} />
-                            <p className="text-sm text-muted-foreground">{words.timing("note")}</p>
+                            <p className="text-sm text-muted-foreground">
+                                <Rich text={words.timing("note")} />
+                            </p>
                         </div>
                     </Section>
                 )}
 
                 {lesson.anatomy && (
-                    <Section title={t("anatomy.title")}>
+                    <Section title={t("anatomy.title")} hint={t("anatomy.hint")}>
                         <div className="space-y-6 p-4">
                             {lesson.anatomy.map((anatomy) => (
                                 <NameAnatomy key={anatomy.id} anatomy={anatomy} words={words} />
@@ -238,7 +270,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                 )}
 
                 {lesson.playground && (
-                    <Section title={t("playground.title")}>
+                    <Section title={t("playground.title")} hint={t("playground.hint")}>
                         <div className="space-y-8 p-4">
                             {lesson.playground.map((item, i) =>
                                 item.kind === "encoder" ? (
@@ -281,7 +313,9 @@ function Facts({ meta, words, keys }: { meta: Meta; words: Words; keys: readonly
                         return value ? (
                             <div key={key} className="contents">
                                 <dt className="text-muted-foreground">{t(`fact.${key}` as MessageKey)}</dt>
-                                <dd>{value}</dd>
+                                <dd>
+                                    <Rich text={value} />
+                                </dd>
                             </div>
                         ) : null;
                     })}
@@ -306,7 +340,9 @@ function Tips({ words }: { words: Words }) {
             <CardContent className="px-4 pb-4">
                 <ul className="list-disc space-y-2 ps-5 text-sm">
                     {words.tips.map((tip) => (
-                        <li key={tip}>{tip}</li>
+                        <li key={tip}>
+                            <Rich text={tip} />
+                        </li>
                     ))}
                 </ul>
             </CardContent>

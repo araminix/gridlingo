@@ -5,6 +5,7 @@ export function wordsOf(text: LessonText, english: LessonText) {
     const pick = <T>(group: (texts: LessonText) => Record<string, T> | undefined, key: string): T | undefined => group(text)?.[key] ?? group(english)?.[key];
     return {
         intro: text.intro || english.intro,
+        plain: text.plain || english.plain,
         tips: text.tips.length ? text.tips : english.tips,
         step: (id: string) => pick((t) => t.steps, id) ?? { title: id, text: "" },
         frame: (id: string) => pick((t) => t.frames, id) ?? "",

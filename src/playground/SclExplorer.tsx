@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n, type MessageKey } from "@/i18n/i18n";
+import { Rich } from "@/glossary/Rich";
 import { cn } from "@/lib/utils";
 import { filterTree, parseScl, type SclNode } from "./scl";
 
@@ -35,7 +36,9 @@ export function SclExplorer({ sample, file, intro }: { sample: string; file: str
 
     return (
         <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">{intro}</p>
+            <p className="text-sm text-muted-foreground">
+                <Rich text={intro} />
+            </p>
             <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="secondary" className="font-mono">
                     {source.name}
