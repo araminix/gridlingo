@@ -86,8 +86,10 @@ test("a beginner finds plain words, and what an abbreviation means", async ({ pa
 
 test("the theme and the language are kept, and Arabic reads right to left", async ({ page }) => {
     await open(page, "/p/iec-104");
-    await page.getByRole("button", { name: "Theme" }).click();
-    await page.getByRole("menuitemradio", { name: "Dark" }).click();
+    const dark = page.getByRole("switch", { name: "Dark theme" });
+    await expect(dark).not.toBeChecked();
+    await dark.click();
+    await expect(dark).toBeChecked();
     await expect(page.locator("html")).toHaveClass(/dark/);
     await page.getByRole("combobox", { name: "Language" }).click();
     await page.getByRole("listbox").locator('[lang="ar"]').click();
@@ -96,6 +98,13 @@ test("the theme and the language are kept, and Arabic reads right to left", asyn
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
     await expect(page.locator("html")).toHaveClass(/dark/);
+});
+
+test("a first visit starts light, even on a device set to dark", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.locator("html")).not.toHaveClass(/dark/);
 });
 
 test("on a phone the protocol list opens in a sheet", async ({ page, isMobile }) => {

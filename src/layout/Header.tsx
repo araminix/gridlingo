@@ -4,7 +4,7 @@ import { Link } from "@/router";
 import { LanguageMenu } from "./LanguageMenu";
 import { Logo } from "./Logo";
 import { SearchButton, SearchDialog } from "./Search";
-import { ThemeMenu } from "./ThemeMenu";
+import { ThemeSwitch } from "./ThemeSwitch";
 
 export const REPOSITORY = "https://github.com/araminix/gridlingo";
 
@@ -21,9 +21,9 @@ export function Header({ search = true }: { search?: boolean }) {
     const { t } = useI18n();
     return (
         <header className="sticky top-0 z-30 border-b bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/75">
-            <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-2 px-3 sm:gap-3 sm:px-5">
+            <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-3 sm:gap-3 sm:px-5">
                 <Link to="/" className="flex shrink-0 items-center gap-2.5 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                    <Logo className="size-8" />
+                    <Logo className="size-7" />
                     <span className="flex flex-col leading-tight">
                         <span className="text-lg font-bold tracking-tight">Gridlingo</span>
                         <span className="text-xs text-muted-foreground max-md:hidden">{t("app.tagline")}</span>
@@ -32,7 +32,7 @@ export function Header({ search = true }: { search?: boolean }) {
                 <div className="ms-auto flex items-center gap-2">
                     {search && <SearchButton />}
                     <LanguageMenu />
-                    <ThemeMenu />
+                    <ThemeSwitch />
                     <Button variant="outline" size="icon" className="size-10 max-[380px]:hidden" asChild>
                         <a href={REPOSITORY} aria-label={t("app.source")}>
                             <GithubMark />
@@ -49,7 +49,7 @@ export function Footer() {
     const { t } = useI18n();
     return (
         <footer className="border-t">
-            <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-5 py-6 text-sm text-muted-foreground">
+            <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-5 py-4 text-sm text-muted-foreground">
                 <p>{t("footer.note")}</p>
                 <p>
                     <a href={REPOSITORY} className="font-medium text-foreground underline-offset-4 hover:underline">

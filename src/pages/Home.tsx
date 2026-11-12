@@ -63,13 +63,13 @@ export function Home() {
     return (
         <main id="main">
             <section className="border-b bg-[radial-gradient(60rem_30rem_at_85%_-10%,color-mix(in_oklab,var(--primary)_18%,transparent),transparent),radial-gradient(40rem_24rem_at_0%_110%,color-mix(in_oklab,var(--gold)_18%,transparent),transparent)]">
-                <div className="mx-auto grid max-w-[1440px] items-center gap-8 px-4 py-10 sm:px-8 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,34rem)]">
-                    <div className="max-w-3xl space-y-5">
+                <div className="mx-auto grid max-w-[1440px] items-center gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
+                    <div className="max-w-3xl space-y-4">
                         <p className="inline-flex items-center gap-2 rounded-full border border-[color-mix(in_oklab,var(--gold)_45%,transparent)] bg-gold-soft px-3 py-1 text-sm font-medium text-gold-foreground">
                             {t("home.badge", { count: CATALOG.length })}
                         </p>
-                        <h1 className="text-4xl leading-tight font-bold tracking-tight sm:text-5xl">{t("home.title")}</h1>
-                        <p className="text-lg text-muted-foreground">{t("home.lead")}</p>
+                        <h1 className="text-3xl leading-tight font-bold tracking-tight sm:text-4xl">{t("home.title")}</h1>
+                        <p className="text-muted-foreground sm:text-lg">{t("home.lead")}</p>
                         <SearchButton wide />
                         <p className="flex flex-wrap items-center gap-2 text-sm">
                             <span className="text-muted-foreground">{t("home.start")}</span>
@@ -80,14 +80,14 @@ export function Home() {
                             ))}
                         </p>
                     </div>
-                    <div className="hidden rounded-2xl border bg-card/70 p-3 shadow-sm backdrop-blur lg:block" aria-hidden="true">
+                    <div className="hidden rounded-2xl border bg-card/70 p-2 shadow-sm backdrop-blur lg:block" aria-hidden="true">
                         <HeroScene />
                     </div>
                 </div>
             </section>
 
-            <section aria-labelledby="library" className="mx-auto max-w-[1440px] space-y-10 px-4 py-10 sm:px-8">
-                <div className="flex flex-wrap items-end justify-between gap-4">
+            <section aria-labelledby="library" className="mx-auto max-w-[1440px] space-y-6 px-4 py-6 sm:px-6">
+                <div className="flex flex-wrap items-end justify-between gap-3">
                     <h2 id="library" className="text-2xl font-bold tracking-tight">
                         {t("home.library", { count: CATALOG.length })}
                     </h2>
@@ -99,7 +99,7 @@ export function Home() {
                                 aria-pressed={device === kind}
                                 onClick={() => setDevice(kind)}
                                 className={cn(
-                                    "min-h-10 rounded-full border px-3.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                                    "min-h-9 rounded-full border px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
                                     device === kind ? "border-primary bg-primary font-semibold text-primary-foreground" : "bg-card hover:border-primary/60",
                                 )}
                             >
@@ -113,22 +113,22 @@ export function Home() {
                     const items = shown.filter((meta) => meta.group === group);
                     if (!items.length) return null;
                     return (
-                        <section key={group} aria-labelledby={`group-${group}`} className="space-y-4" style={groupVars(group)}>
-                            <div className="flex items-center gap-3">
-                                <GroupIcon group={group} className="size-10" />
+                        <section key={group} aria-labelledby={`group-${group}`} className="space-y-2.5" style={groupVars(group)}>
+                            <div className="flex items-center gap-2.5">
+                                <GroupIcon group={group} className="size-8" />
                                 <div>
-                                    <h3 id={`group-${group}`} className="text-xl font-bold">
+                                    <h3 id={`group-${group}`} className="text-lg leading-tight font-bold">
                                         {t(`group.${group}` as MessageKey)}
                                     </h3>
                                     <p className="text-sm text-muted-foreground">{t(`group.${group}.sub` as MessageKey)}</p>
                                 </div>
                             </div>
-                            <ul className="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-3">
+                            <ul className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-2">
                                 {items.map((meta) => (
                                     <li key={meta.id}>
                                         <Link
                                             to={`/p/${meta.id}`}
-                                            className="relative flex h-full min-h-36 flex-col gap-2 overflow-hidden rounded-xl border bg-[linear-gradient(180deg,color-mix(in_oklab,var(--g)_7%,var(--card)),var(--card)_60%)] p-4 pt-5 outline-none transition hover:-translate-y-0.5 hover:border-[var(--g)] hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring"
+                                            className="relative flex h-full flex-col gap-1.5 overflow-hidden rounded-xl border bg-[linear-gradient(180deg,color-mix(in_oklab,var(--g)_7%,var(--card)),var(--card)_60%)] p-3 pt-4 outline-none transition hover:-translate-y-0.5 hover:border-[var(--g)] hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring"
                                         >
                                             <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-[var(--g)]" />
                                             <span className="flex items-start justify-between gap-2">

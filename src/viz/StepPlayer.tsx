@@ -57,7 +57,7 @@ export function StepCaption({
     const step = steps[current]!;
     const last = steps.length - 1;
     return (
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0 flex-[1_1_20rem]" aria-live="polite">
                 <p className="text-xs font-semibold text-primary">
                     {t("player.step", { n: current + 1, total: steps.length })} · {words.step(step.id).title}
@@ -75,17 +75,17 @@ export function StepCaption({
                 )}
             </div>
             <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="icon" className="size-11" onClick={() => onGo(current - 1)} disabled={current === 0} aria-label={t("player.back")}>
+                <Button variant="outline" size="icon" className="size-10" onClick={() => onGo(current - 1)} disabled={current === 0} aria-label={t("player.back")}>
                     <ChevronLeft className="rtl:rotate-180" />
                 </Button>
-                <Button className="h-11 min-w-28 px-5" onClick={onPlay}>
+                <Button className="h-10 min-w-28 px-4" onClick={onPlay}>
                     {playing ? <Pause /> : <Play />}
                     {playing ? t("player.pause") : t("player.play")}
                 </Button>
-                <Button variant="outline" size="icon" className="size-11" onClick={() => onGo(current + 1)} disabled={current === last} aria-label={t("player.next")}>
+                <Button variant="outline" size="icon" className="size-10" onClick={() => onGo(current + 1)} disabled={current === last} aria-label={t("player.next")}>
                     <ChevronRight className="rtl:rotate-180" />
                 </Button>
-                <Button variant="outline" size="icon" className="size-11" onClick={() => onGo(0)} aria-label={t("player.reset")}>
+                <Button variant="outline" size="icon" className="size-10" onClick={() => onGo(0)} aria-label={t("player.reset")}>
                     <RotateCcw />
                 </Button>
             </div>

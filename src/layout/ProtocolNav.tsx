@@ -11,7 +11,7 @@ export function ProtocolNav({ current, onPick }: { current: string; onPick?: () 
     const { t } = useI18n();
     const done = useDone();
     return (
-        <nav aria-label={t("nav.protocols")} className="space-y-5">
+        <nav aria-label={t("nav.protocols")} className="space-y-4">
             <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">{t("nav.progress", { done: done.length, total: CATALOG.length })}</p>
                 <p className="text-xs text-muted-foreground">{t("nav.progressHint")}</p>
@@ -33,7 +33,7 @@ export function ProtocolNav({ current, onPick }: { current: string; onPick?: () 
                                     onClick={onPick}
                                     aria-current={meta.id === current ? "page" : undefined}
                                     className={cn(
-                                        "flex min-h-9 items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                                        "flex min-h-8 items-center justify-between gap-2 rounded-md px-2 py-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
                                         meta.id === current
                                             ? "border-s-[3px] border-[var(--g)] bg-[color-mix(in_oklab,var(--g)_12%,transparent)] font-semibold text-foreground"
                                             : "border-s-[3px] border-transparent hover:bg-[color-mix(in_oklab,var(--g)_7%,transparent)]",

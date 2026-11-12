@@ -55,13 +55,13 @@ messages between them, every byte of each frame and what it means, and what each
   appears, and someone with no background can read the plain-words box and follow the pictures.
 - **14 languages:** English, 中文, हिन्दी, Español, Français, العربية, فارسی, Português, Русский, 日本語, Deutsch, 한국어,
   Türkçe and Italiano, with Arabic and Persian right to left.
-- **Light and dark themes**, following your system until you choose.
+- **Light and dark themes**: it opens light, and keeps the one you choose.
 - **Phones and tablets**: every view fits a small screen.
 - **Your progress** is kept in your browser; nothing is sent anywhere.
 
-| The library, dark | On a phone | Arabic, right to left |
+| The library, dark | On a phone | Persian, right to left |
 | --- | --- | --- |
-| ![The library in the dark theme](docs/images/home-dark.png) | ![The GOOSE lesson on a phone](docs/images/phone.png) | ![The IEC 104 lesson in Arabic](docs/images/arabic.png) |
+| ![The library in the dark theme](docs/images/home-dark.png) | ![The GOOSE lesson on a phone](docs/images/phone.png) | ![The IEC 104 lesson in Persian](docs/images/persian.png) |
 
 ## Exact, and in plain words
 
@@ -96,6 +96,7 @@ src/
   components/ui/  shadcn/ui components
   i18n/           the 14 interface languages
 e2e/              end-to-end and visual tests (Playwright), on a desktop and a phone
+scripts/          screenshots.mjs retakes the README pictures and the link-preview banner after a visual change
 ```
 
 React 19, TypeScript, Tailwind CSS and [shadcn/ui](https://ui.shadcn.com), built with Vite. A lesson is data:

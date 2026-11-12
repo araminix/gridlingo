@@ -1,4 +1,4 @@
-// Runs before the app: the theme and the text direction are right from the first paint (no flash of the light theme,
+// Runs before the app: the theme and the text direction are right from the first paint (no flash of the wrong theme,
 // no jump from left-to-right). The app keeps them up to date after this.
 (function () {
     var root = document.documentElement;
@@ -9,9 +9,7 @@
             return null;
         }
     }
-    var theme = read("gridlingo.theme");
-    var dark = theme === "dark" || (theme !== "light" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
-    if (dark) root.classList.add("dark");
+    if (read("gridlingo.theme") === "dark") root.classList.add("dark");
     var lang = read("gridlingo.lang");
     if (typeof lang === "string" && /^[a-z]{2}$/.test(lang)) {
         root.lang = lang;

@@ -65,7 +65,7 @@ export function LessonPage({ id }: { id: string }) {
 function Section({ title, hint, children, action, testId }: { title: string; hint?: string | undefined; children: ReactNode; action?: ReactNode; testId?: string }) {
     return (
         <Card className="gap-0 overflow-hidden py-0" data-testid={testId}>
-            <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 border-b px-4 py-3 [.border-b]:pb-3">
+            <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 border-b px-3 py-2.5 [.border-b]:pb-2.5">
                 <div className="space-y-1">
                     <h2 className="text-base leading-none font-semibold">{title}</h2>
                     {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
@@ -138,22 +138,22 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
     const facts = <Facts meta={meta} words={words} keys={lesson.facts} />;
     const devices = lesson.points && (
         <Section title={t("points.title")} hint={t("points.hint")}>
-            <div className="px-4 py-2">
+            <div className="px-3 py-1.5">
                 <DeviceState points={lesson.points} steps={lesson.steps} current={current} words={words} />
             </div>
         </Section>
     );
 
     return (
-        <div className="mx-auto grid max-w-[1600px] gap-5 px-3 py-5 sm:px-5 lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[14rem_minmax(0,1fr)_22rem]">
+        <div className="mx-auto grid max-w-[1600px] gap-4 px-3 py-3 sm:px-4 lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[14rem_minmax(0,1fr)_22rem]">
             <aside className="hidden lg:block">
-                <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pe-1 pb-4">
+                <div className="sticky top-17 max-h-[calc(100vh-5rem)] overflow-y-auto pe-1 pb-4">
                     <ProtocolNav current={meta.id} />
                 </div>
             </aside>
 
-            <main id="main" className="min-w-0 space-y-5">
-                <header className="space-y-3">
+            <main id="main" className="min-w-0 space-y-4">
+                <header className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                         <Sheet open={navOpen} onOpenChange={setNavOpen}>
                             <SheetTrigger asChild>
@@ -178,11 +178,11 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                             {t(`group.${meta.group}` as MessageKey)}
                         </span>
                     </div>
-                    <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{meta.name}</h1>
+                    <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{meta.name}</h1>
                     <p className="max-w-3xl text-[15px] text-muted-foreground">
                         <Rich text={words.intro} />
                     </p>
-                    <div className="flex max-w-3xl gap-3 rounded-xl border border-[color-mix(in_oklab,var(--gold)_45%,transparent)] bg-gold-soft p-4">
+                    <div className="flex max-w-3xl gap-2.5 rounded-xl border border-[color-mix(in_oklab,var(--gold)_45%,transparent)] bg-gold-soft px-3.5 py-3">
                         <Lightbulb className="mt-0.5 size-5 shrink-0 text-gold-foreground" aria-hidden="true" />
                         <div className="space-y-1">
                             <p className="text-sm font-semibold text-gold-foreground">{t("lesson.plain")}</p>
@@ -195,7 +195,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
 
                 <Card className="gap-0 overflow-hidden py-0" data-testid="stage">
                     <Tabs defaultValue="site" className="gap-0">
-                        <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2">
                             <TabsList>
                                 <TabsTrigger value="site">{t("view.site")}</TabsTrigger>
                                 <TabsTrigger value="sequence">{t("view.sequence")}</TabsTrigger>
@@ -203,7 +203,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                             </TabsList>
                             <span className="text-xs text-muted-foreground max-sm:hidden">{t("player.keys")}</span>
                         </div>
-                        <div className="border-b px-4 py-3">
+                        <div className="border-b px-3 py-2">
                             <StepStrip steps={lesson.steps} current={current} onGo={(index) => (setPlaying(false), go(index))} words={words} />
                         </div>
                         <TabsContent value="site" className="bg-[var(--viz-ground)]">
@@ -221,7 +221,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                                 <SingleLine diagram={lesson.singleLine} steps={lesson.steps} current={current} words={words} />
                             </TabsContent>
                         )}
-                        <div className="border-t px-4 py-4">
+                        <div className="border-t px-3 py-3">
                             <StepCaption steps={lesson.steps} current={current} playing={playing} onGo={(index) => (setPlaying(false), go(index))} onPlay={togglePlay} wire={wire} words={words} />
                         </div>
                     </Tabs>
@@ -242,7 +242,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                         testId="frame"
                         action={frameSize(selected) ? <span className="font-mono text-xs text-muted-foreground">{t("frames.bytes", { count: frameSize(selected) })}</span> : undefined}
                     >
-                        <div className="p-4">
+                        <div className="p-3">
                             <ByteInspector frame={selected} words={words} />
                         </div>
                     </Section>
@@ -250,7 +250,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
 
                 {lesson.timing && (
                     <Section title={words.timing("title")}>
-                        <div className="space-y-2 p-4">
+                        <div className="space-y-2 p-3">
                             <TimingChart timing={lesson.timing} words={words} />
                             <p className="text-sm text-muted-foreground">
                                 <Rich text={words.timing("note")} />
@@ -261,7 +261,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
 
                 {lesson.anatomy && (
                     <Section title={t("anatomy.title")} hint={t("anatomy.hint")}>
-                        <div className="space-y-6 p-4">
+                        <div className="space-y-4 p-3">
                             {lesson.anatomy.map((anatomy) => (
                                 <NameAnatomy key={anatomy.id} anatomy={anatomy} words={words} />
                             ))}
@@ -271,7 +271,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
 
                 {lesson.playground && (
                     <Section title={t("playground.title")} hint={t("playground.hint")}>
-                        <div className="space-y-8 p-4">
+                        <div className="space-y-6 p-3">
                             {lesson.playground.map((item, i) =>
                                 item.kind === "encoder" ? (
                                     <Encoder key={i} type={item.type} order={item.order} value={item.value} intro={words.playground(item.intro ?? "encoder")} />
@@ -285,14 +285,14 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                     </Section>
                 )}
 
-                <div className="space-y-5 xl:hidden">
+                <div className="space-y-4 xl:hidden">
                     {facts}
                     <Tips words={words} />
                     <Related ids={lesson.related ?? []} />
                 </div>
             </main>
 
-            <aside className="hidden space-y-5 xl:block">
+            <aside className="hidden space-y-4 xl:block">
                 {facts}
                 {devices}
                 <Tips words={words} />
@@ -306,8 +306,8 @@ function Facts({ meta, words, keys }: { meta: Meta; words: Words; keys: readonly
     const { t } = useI18n();
     return (
         <Card className="gap-0 py-0">
-            <CardContent className="p-4">
-                <dl className="grid grid-cols-[minmax(6rem,auto)_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
+            <CardContent className="p-3">
+                <dl className="grid grid-cols-[minmax(6rem,auto)_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-sm">
                     {keys.map((key) => {
                         const value = words.fact(key as never);
                         return value ? (
@@ -332,11 +332,11 @@ function Tips({ words }: { words: Words }) {
     if (!words.tips.length) return null;
     return (
         <Card className="gap-0 py-0">
-            <CardHeader className="px-4 pt-4 pb-2">
+            <CardHeader className="px-3 pt-3 pb-1.5">
                 <h2 className="text-base leading-none font-semibold">{t("tips.title")}</h2>
             </CardHeader>
-            <CardContent className="px-4 pb-4">
-                <ul className="list-disc space-y-2 ps-5 text-sm">
+            <CardContent className="px-3 pb-3">
+                <ul className="list-disc space-y-1.5 ps-5 text-sm">
                     {words.tips.map((tip) => (
                         <li key={tip}>
                             <Rich text={tip} />
@@ -354,11 +354,11 @@ function Related({ ids }: { ids: readonly string[] }) {
     if (!metas.length) return null;
     return (
         <Card className="gap-0 py-0">
-            <CardHeader className="px-4 pt-4 pb-2">
+            <CardHeader className="px-3 pt-3 pb-1.5">
                 <h2 className="text-base leading-none font-semibold">{t("related.title")}</h2>
             </CardHeader>
-            <CardContent className="px-4 pb-4">
-                <ul className="space-y-2 text-sm">
+            <CardContent className="px-3 pb-3">
+                <ul className="space-y-1.5 text-sm">
                     {metas.map((meta) => (
                         <li key={meta.id}>
                             <Link to={`/p/${meta.id}`} className="font-medium text-primary underline-offset-4 hover:underline">
