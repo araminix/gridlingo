@@ -18,8 +18,9 @@ pnpm dev    # http://localhost:5173
   comes from (the standard's clause, a capture, a device's manual).
 - **A lesson.** Read [docs/lessons.md](docs/lessons.md) first: what a good lesson has, how to write its words, how to
   prove its bytes.
-- **A translation.** Each language has a file for the interface (`src/i18n/locales/<lang>.json`) and one per lesson
-  (`src/lessons/<id>/<lang>.json`), with exactly the keys of the English one. Keep numbers, hex and technical names as
+- **A translation.** Each language has a file for the interface (`src/i18n/locales/<lang>.json`), one per lesson
+  (`src/lessons/<id>/<lang>.json`) and one for the glossary (`src/glossary/<lang>.json`), each with exactly the keys
+  of the English one. Keep numbers, hex and technical names as
   they are; the tests check it.
 
 ## Before a pull request

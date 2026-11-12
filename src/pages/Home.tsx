@@ -8,7 +8,7 @@ import type { DeviceKind, Frame, Scene } from "@/lessons/types";
 import { cn } from "@/lib/utils";
 import { useDone } from "@/progress";
 import { Link } from "@/router";
-import { SiteScene } from "@/viz/SiteScene";
+import { SiteScene, useReducedMotion } from "@/viz/SiteScene";
 
 /** The devices worth filtering by, in the order a plant is walked through. */
 const FILTERS: readonly DeviceKind[] = ["inverter", "battery", "turbine", "relay", "rtu", "meter", "charger", "scada"];
@@ -43,12 +43,15 @@ const HERO_FRAMES: Frame[] = [
 function HeroScene() {
     const { t } = useI18n();
     const [index, setIndex] = useState(0);
+    // One message after another; a still picture for readers who ask for less motion
+    const reduced = useReducedMotion();
     useEffect(() => {
+        if (reduced) return;
         const timer = setInterval(() => setIndex((i) => (i + 1) % HERO_FRAMES.length), 2200);
         return () => clearInterval(timer);
-    }, []);
+    }, [reduced]);
     const words = useMemo(() => ({ device: (id: string) => t(`device.${HERO.devices.find((device) => device.id === id)!.kind}` as MessageKey) }), [t]);
-    return <SiteScene scene={HERO} frame={HERO_FRAMES[index]} words={words} />;
+    return <SiteScene scene={HERO} frame={reduced ? undefined : HERO_FRAMES[index]} words={words} />;
 }
 
 export function Home() {

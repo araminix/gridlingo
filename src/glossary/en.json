@@ -1,1626 +1,408 @@
 {
-    "7E1": {
-        "full": "7 data bits, even parity, 1 stop bit",
-        "plain": "Serial port settings: each character has 7 data bits, a parity check bit and a stop bit."
-    },
-    "8E1": {
-        "full": "8 data bits, even parity, 1 stop bit",
-        "plain": "A serial line setting: each character has 8 data bits, a parity check bit and a stop bit."
-    },
-    "8N1": {
-        "full": "8 data bits, no parity, 1 stop bit",
-        "plain": "A common serial line setting without the parity check bit. IEC 101 and 103 need 8E1 instead."
-    },
-    "A-XDR": {
-        "full": "Adapted External Data Representation",
-        "plain": "A compact way to turn values into bytes, used inside DLMS messages."
-    },
-    "AARE": {
-        "full": "Application Association Response",
-        "plain": "The meter's answer to a login request: accepted or refused, with the services it allows."
-    },
-    "AARQ": {
-        "full": "Application Association Request",
-        "plain": "The first message of a DLMS session: it asks to log in and proposes the rules."
-    },
-    "ABCD": {
-        "full": "Big-endian byte order",
-        "plain": "A number's four bytes sent highest byte first, in the order they are written."
-    },
-    "ABP": {
-        "full": "Activation by personalization",
-        "plain": "Keys and address set by hand in a LoRaWAN sensor, with no join."
-    },
-    "AC": {
-        "full": "Alternating current",
-        "plain": "The kind of electricity in the grid, which changes direction many times a second."
-    },
-    "ACD": {
-        "full": "Access demand",
-        "plain": "A bit in an answer that says: I have urgent (class 1) data, please ask for it."
-    },
-    "ACK": {
-        "full": "Acknowledgment",
-        "plain": "A short reply that means \"I got it\"."
-    },
-    "ACSE": {
-        "full": "Association Control Service Element",
-        "plain": "The layer that opens and closes an association: a session between two MMS programs."
-    },
-    "ADR": {
-        "full": "Adaptive data rate",
-        "plain": "Lets the network choose a sensor's data rate and transmit power from how well it is heard."
-    },
-    "AE": {
-        "full": "Application entity",
-        "plain": "Part of a program's network name: the AE qualifier adds a number to the AP title."
-    },
-    "AES": {
-        "full": "Advanced Encryption Standard",
-        "plain": "A widely used cipher that turns data into secret form with a key."
-    },
-    "AES-128": {
-        "full": "Advanced Encryption Standard, 128-bit key",
-        "plain": "AES encryption with a 128-bit secret key, far too long to guess."
-    },
-    "AES-128-GCM": {
-        "full": "Advanced Encryption Standard, 128-bit key, Galois/Counter Mode",
-        "plain": "Encryption that hides the data and adds a tag proving nobody changed it on the way."
-    },
-    "AES-CMAC": {
-        "full": "AES cipher-based message authentication code",
-        "plain": "A short code computed from a message with a secret key; only a key holder can make it."
-    },
-    "AES-GCM-128": {
-        "full": "AES in Galois/Counter Mode, 128-bit key",
-        "plain": "AES encryption that also adds a check value, so any change to the message is noticed."
-    },
-    "AHU": {
-        "full": "Air handling unit",
-        "plain": "The large fan unit that heats or cools air and moves it through a building."
-    },
-    "AI": {
-        "full": "Analog input",
-        "plain": "An input that measures a value that varies, such as a voltage, instead of on or off."
-    },
-    "allData": {
-        "full": "All data",
-        "plain": "The part of a GOOSE message that holds the values of its data set."
-    },
-    "ANSI": {
-        "full": "American National Standards Institute",
-        "plain": "The body that publishes national standards in the United States."
-    },
-    "AP": {
-        "full": "Application process (AP title)",
-        "plain": "The AP title is the unique name a program uses on the network to say who it is."
-    },
-    "APC": {
-        "full": "Controllable analog process value",
-        "plain": "An IEC 61850 data type for a set point a client can change, such as a power limit."
-    },
-    "APDU": {
-        "full": "Application protocol data unit",
-        "plain": "The BACnet message itself: the service and its data."
-    },
-    "API": {
-        "full": "Application programming interface",
-        "plain": "The set of requests a program offers, so that other programs can use it."
-    },
-    "APN": {
-        "full": "Access Point Name",
-        "plain": "A gateway of a mobile network. A private one keeps devices off the public internet."
-    },
-    "APPID": {
-        "full": "Application identifier",
-        "plain": "A number in a GOOSE or sampled-values frame that receivers use to pick the messages they want."
-    },
-    "AppKey": {
-        "full": "Application key",
-        "plain": "The sensor's secret root key; the session keys are made from it at each join."
-    },
-    "AppSKey": {
-        "full": "Application session key",
-        "plain": "The key that encrypts the payload, shared by the sensor and the application server."
-    },
-    "ASCII": {
-        "full": "American Standard Code for Information Interchange",
-        "plain": "The basic code that stores each letter, digit or sign as one byte."
-    },
-    "ASDU": {
-        "full": "Application service data unit",
-        "plain": "The data part of an IEC 60870-5 message: its type, cause, addresses and values."
-    },
-    "ASHRAE": {
-        "full": "American Society of Heating, Refrigerating and Air-Conditioning Engineers",
-        "plain": "The engineering society that publishes the BACnet standard, ASHRAE 135."
-    },
-    "ASN.1": {
-        "full": "Abstract Syntax Notation One",
-        "plain": "A standard language to describe data, turned into bytes by rules such as BER or DER."
-    },
-    "BACnet/IP": {
-        "full": "BACnet over IP",
-        "plain": "BACnet messages carried in UDP datagrams, usually on port 47808."
-    },
-    "BACnet/SC": {
-        "full": "BACnet Secure Connect",
-        "plain": "A newer BACnet transport: messages travel over TLS-encrypted WebSockets through a hub."
-    },
-    "base64": {
-        "full": "Base64 encoding",
-        "plain": "A way to write any bytes as plain letters and digits, so that they fit in text."
-    },
-    "Base64": {
-        "full": "Base64 encoding",
-        "plain": "A way to write any bytes as plain letters and digits, so that they fit in text."
-    },
-    "Basic256Sha256": {
-        "full": "Security policy Basic256Sha256",
-        "plain": "A set of OPC UA security algorithms: 256-bit AES encryption and SHA-256 signatures."
-    },
-    "BBMD": {
-        "full": "BACnet broadcast management device",
-        "plain": "Relays BACnet broadcasts from one IP subnet to another, since routers do not pass them."
-    },
-    "BCC": {
-        "full": "Block Check Character",
-        "plain": "One byte computed from a message, so the receiver can spot damaged bytes."
-    },
-    "BCD": {
-        "full": "Binary-coded decimal",
-        "plain": "A way of writing numbers in which each decimal digit gets its own four bits."
-    },
-    "bdSeq": {
-        "full": "Birth and death sequence number",
-        "plain": "A number that ties an edge node's death message to its birth, one per MQTT session."
-    },
-    "BER": {
-        "full": "Basic Encoding Rules",
-        "plain": "A way to write data as bytes: each item is a tag, a length and a value."
-    },
-    "BI": {
-        "full": "Binary input",
-        "plain": "An on/off input, such as a contact that tells whether a breaker is open or closed."
-    },
-    "BMS": {
-        "full": "Battery management system, or building management system",
-        "plain": "Depends on the lesson: the battery's own guardian, or the computer that runs a building."
-    },
-    "BVLC": {
-        "full": "BACnet virtual link control",
-        "plain": "The small header of every BACnet/IP datagram: its kind and its length."
-    },
-    "C-field": {
-        "full": "Control field",
-        "plain": "The byte that says what kind of message an M-Bus frame is."
-    },
-    "CA": {
-        "full": "Certificate authority",
-        "plain": "The trusted party that signs certificates. A device accepts only certificates signed by a CA it trusts."
-    },
-    "CALL": {
-        "full": "OCPP request",
-        "plain": "An OCPP message that asks for something and expects an answer. It starts with 2."
-    },
-    "CALLERROR": {
-        "full": "OCPP error answer",
-        "plain": "The OCPP answer saying that a request failed. It starts with 4."
-    },
-    "CALLRESULT": {
-        "full": "OCPP answer",
-        "plain": "The OCPP answer saying that a request worked. It starts with 3."
-    },
-    "CAN": {
-        "full": "Controller Area Network",
-        "plain": "A two-wire bus first made for cars. Every device on it hears every short message."
-    },
-    "CBC": {
-        "full": "Cipher block chaining",
-        "plain": "A mode of AES in which each block of data is mixed with the block before it."
-    },
-    "CCITT": {
-        "full": "International Telegraph and Telephone Consultative Committee",
-        "plain": "A former standards body. Its CRC formula is still widely used."
-    },
-    "CCM": {
-        "full": "Counter with CBC-MAC",
-        "plain": "A mode of AES that encrypts the data and adds a tag proving it was not changed."
-    },
-    "CCS": {
-        "full": "Combined Charging System",
-        "plain": "A common electric car plug that adds two large DC pins to an AC plug for fast charging."
-    },
-    "CDAB": {
-        "full": "Word-swapped byte order",
-        "plain": "A 32-bit value sent low 16-bit half first; each half keeps its high byte first."
-    },
-    "CDR": {
-        "full": "Charge detail record",
-        "plain": "The final record of one charge: when, where, which card, how much energy, and the price."
-    },
-    "CF": {
-        "full": "Configuration (functional constraint)",
-        "plain": "The group of IEC 61850 attributes that hold settings such as units and scale factors."
-    },
-    "CFG-1": {
-        "full": "Configuration frame 1",
-        "plain": "A PMU's list of everything it can measure. CFG-2 says what it sends now."
-    },
-    "CFG-2": {
-        "full": "Configuration frame 2",
-        "plain": "A PMU's description of the data it sends: names, units, formats and rate."
-    },
-    "CHK": {
-        "full": "Check word",
-        "plain": "The CRC at the end of a C37.118 frame, used to spot damaged frames."
-    },
-    "CI": {
-        "full": "Control Information field",
-        "plain": "The M-Bus byte that says what kind of header and data follow."
-    },
-    "CiA": {
-        "full": "CAN in Automation",
-        "plain": "The association of CAN makers and users that publishes the CANopen standards."
-    },
-    "CN": {
-        "full": "Common Name",
-        "plain": "The main name inside a certificate, such as the device's name."
-    },
-    "COB-ID": {
-        "full": "Communication object identifier",
-        "plain": "A CANopen frame's identifier: the kind of message plus the number of the node it belongs to."
-    },
-    "ComplexACK": {
-        "full": "Complex acknowledgment",
-        "plain": "A BACnet answer that carries data, such as the value read."
-    },
-    "CON": {
-        "full": "Confirm requested",
-        "plain": "A DNP3 bit that asks the receiver to confirm that it got the message."
-    },
-    "confRev": {
-        "full": "Configuration revision",
-        "plain": "A number that changes when a message's layout changes; sender and receiver must agree on it."
-    },
-    "CONNACK": {
-        "full": "Connect acknowledgment",
-        "plain": "The broker's answer to CONNECT: accepted, or why not."
-    },
-    "CONNECT": {
-        "full": "Connect packet",
-        "plain": "The first MQTT packet: the client's ID, login, keep alive time and will."
-    },
-    "COT": {
-        "full": "Cause of transmission",
-        "plain": "The reason a value was sent: asked for, changed by itself, sent on a timer, and so on."
-    },
-    "COTP": {
-        "full": "Connection-oriented transport protocol (ISO 8073)",
-        "plain": "A small transport layer that MMS runs on, inside TCP."
-    },
-    "COV": {
-        "full": "Change of value",
-        "plain": "A report sent when a value changes; for a measured value, only by more than a set amount."
-    },
-    "CP": {
-        "full": "Control pilot",
-        "plain": "The signal wire in a charging cable that tells car and charger about each other."
-    },
-    "CP32Time2a": {
-        "full": "4-byte time format of IEC 60870-5",
-        "plain": "A time stamp of milliseconds, minutes and hours, without the date."
-    },
-    "CP56Time2a": {
-        "full": "7-byte time format of IEC 60870-5",
-        "plain": "A time stamp from milliseconds up to the year, without a time zone."
-    },
-    "CPO": {
-        "full": "Charge point operator",
-        "plain": "The company that runs public chargers and keeps them working."
-    },
-    "CR": {
-        "full": "Carriage Return",
-        "plain": "A control byte (0x0D) that, with a line feed, ends a line of text."
-    },
-    "CRC": {
-        "full": "Cyclic redundancy check",
-        "plain": "Check bytes computed from the message, so the receiver can tell if it arrived damaged."
-    },
-    "CRL": {
-        "full": "Certificate Revocation List",
-        "plain": "A list, signed by a CA, of certificates canceled before their end date."
-    },
-    "CROB": {
-        "full": "Control relay output block",
-        "plain": "A DNP3 command for one output, such as trip or close a breaker with a pulse."
-    },
-    "CS": {
-        "full": "Checksum",
-        "plain": "The frame's bytes added up, so the receiver can spot a damaged frame."
-    },
-    "CSMS": {
-        "full": "Charging station management system",
-        "plain": "The operator's back office that runs the chargers, checks cards and records each charge."
-    },
-    "CSQ": {
-        "full": "Challenge sequence number",
-        "plain": "A number that goes up with every challenge, so an old answer never fits a new one."
-    },
-    "CT": {
-        "full": "Current transformer",
-        "plain": "A transformer that scales a line's large current down to a small one that devices can measure."
-    },
-    "DAN": {
-        "full": "Doubly attached node",
-        "plain": "A device with two network ports, one on each of two separate networks."
-    },
-    "DataValue": {
-        "full": "DataValue",
-        "plain": "An OPC UA value packed with its status code and timestamps."
-    },
-    "datSet": {
-        "full": "Data set",
-        "plain": "The list of values that a GOOSE message or a report carries."
-    },
-    "DBIRTH": {
-        "full": "Device birth certificate",
-        "plain": "Lists every metric of one device behind an edge node."
-    },
-    "DC": {
-        "full": "Direct current",
-        "plain": "A steady voltage that does not alternate. A DC time code switches between two levels."
-    },
-    "DCBA": {
-        "full": "Little-endian byte order",
-        "plain": "A number's four bytes sent lowest byte first: the reverse of how they are written."
-    },
-    "DCMD": {
-        "full": "Device command",
-        "plain": "A command from the host to a device behind an edge node."
-    },
-    "DDATA": {
-        "full": "Device data",
-        "plain": "New values of a device's metrics, sent by alias: only what changed."
-    },
-    "DDEATH": {
-        "full": "Device death certificate",
-        "plain": "Says a device behind an edge node is gone."
-    },
-    "DER": {
-        "full": "Distributed energy resource; also Distinguished Encoding Rules",
-        "plain": "Small power sources and storage, like rooftop solar or batteries. In data encoding, a strict way to write ASN.1."
-    },
-    "DERControl": {
-        "full": "DER control",
-        "plain": "An IEEE 2030.5 instruction to a device for a set time, such as limiting its output."
-    },
-    "DevAddr": {
-        "full": "Device address",
-        "plain": "The short 4-byte address a sensor gets when it joins, used in every later frame."
-    },
-    "DevEUI": {
-        "full": "Device EUI",
-        "plain": "The sensor's own 64-bit ID, unique in the world."
-    },
-    "DevNonce": {
-        "full": "Device nonce",
-        "plain": "A counter the sensor puts in each join request; a number seen before is refused."
-    },
-    "DFC": {
-        "full": "Data flow control",
-        "plain": "A bit that says the device is busy: wait before sending more data."
-    },
-    "DFREQ": {
-        "full": "Rate of change of frequency",
-        "plain": "How fast the grid frequency is rising or falling, in hertz per second."
-    },
-    "DIF": {
-        "full": "Data Information Field",
-        "plain": "The byte before an M-Bus value that says how it is coded and whether it is stored."
-    },
-    "DIFE": {
-        "full": "Data Information Field Extension",
-        "plain": "Extra bytes after a DIF, for tariffs, subunits and higher storage numbers."
-    },
-    "DIN 70121": {
-        "full": "DIN SPEC 70121",
-        "plain": "An older German specification for DC charging messages, still spoken by many cars and chargers."
-    },
-    "DIR": {
-        "full": "Direction bit",
-        "plain": "A bit that says which way a frame travels, for example from the master."
-    },
-    "DISCONNECT": {
-        "full": "Disconnect packet",
-        "plain": "Ends an MQTT connection cleanly; then the broker does not publish the will."
-    },
-    "DLC": {
-        "full": "Data length code",
-        "plain": "The 4 bits in a CAN frame that tell how many data bytes follow, 0 to 8."
-    },
-    "DMZ": {
-        "full": "Demilitarized zone",
-        "plain": "A buffer network between two others, where connections from both sides end."
-    },
-    "DNP3": {
-        "full": "Distributed Network Protocol 3",
-        "plain": "A protocol for control centers to read and command remote stations, common in North America."
-    },
-    "DPI": {
-        "full": "Double-point information",
-        "plain": "A state held in two bits: 1 is off, 2 is on, 0 and 3 mean moving or faulty."
-    },
-    "DR0": {
-        "full": "Data rate 0",
-        "plain": "The slowest LoRaWAN data rate; in Europe it is SF12 at 125 kHz."
-    },
-    "DSCP": {
-        "full": "Differentiated Services Code Point",
-        "plain": "A number in the IP header that tells routers how urgent a packet is."
-    },
-    "DSO": {
-        "full": "Distribution system operator",
-        "plain": "The company that runs the local grid that brings power to homes and businesses."
-    },
-    "DST": {
-        "full": "Daylight saving time",
-        "plain": "Summer time: clocks set one hour ahead for part of the year."
-    },
-    "EAX'": {
-        "full": "EAX prime",
-        "plain": "A way to use AES that proves who sent a message and can also encrypt it."
-    },
-    "ECDHE": {
-        "full": "Elliptic-curve Diffie-Hellman, ephemeral",
-        "plain": "A way for two sides to agree on a fresh secret key over an open network."
-    },
-    "ECDSA": {
-        "full": "Elliptic Curve Digital Signature Algorithm",
-        "plain": "A way to sign data with a private key, using elliptic-curve math."
-    },
-    "EDS": {
-        "full": "Electronic data sheet",
-        "plain": "A file from the maker that lists every value a CANopen device holds, and its type."
-    },
-    "EMCY": {
-        "full": "Emergency object",
-        "plain": "A CANopen message a node sends at once when an error appears, and again when it clears."
-    },
-    "EMIX": {
-        "full": "Energy Market Information Exchange",
-        "plain": "An OASIS standard for describing energy prices and products, used inside OpenADR messages."
-    },
-    "eMSP": {
-        "full": "E-mobility service provider",
-        "plain": "The company that gives drivers their charging card or app, and bills them."
-    },
-    "EN": {
-        "full": "European Norm",
-        "plain": "A standard adopted by the European standards bodies, such as EN 13757."
-    },
-    "EndDevice": {
-        "full": "End device",
-        "plain": "In IEEE 2030.5, the server's record of one device, such as an inverter."
-    },
-    "EngineeringUnits": {
-        "full": "Engineering units",
-        "plain": "An OPC UA property that names the unit of a value, such as kW."
-    },
-    "EPSEM": {
-        "full": "Extended Protocol Specification for Electronic Metering",
-        "plain": "The C12.22 envelope that holds table requests and sets their security."
-    },
-    "EtherType": {
-        "full": "EtherType",
-        "plain": "Two bytes in an Ethernet frame that say what kind of message follows."
-    },
-    "ETX": {
-        "full": "End of Text",
-        "plain": "A control byte (0x03) that marks where the data ends."
-    },
-    "EVCC": {
-        "full": "Electric vehicle communication controller",
-        "plain": "The computer in the car that talks to the charger."
-    },
-    "EVSE": {
-        "full": "Electric vehicle supply equipment",
-        "plain": "One charging point: the part of a charger that charges one car at a time."
-    },
-    "EXI": {
-        "full": "Efficient XML Interchange",
-        "plain": "A way to pack XML messages into very few bytes, used between car and charger."
-    },
-    "FC": {
-        "full": "Function code",
-        "plain": "A number that says what a frame asks for or answers, such as reset or send data."
-    },
-    "FCB": {
-        "full": "Frame count bit",
-        "plain": "A bit that flips with every new request, so a repeated request can be spotted."
-    },
-    "FCnt": {
-        "full": "Frame counter",
-        "plain": "Counts the frames in each direction; the network refuses an old number as a replay."
-    },
-    "FCtrl": {
-        "full": "Frame control",
-        "plain": "A LoRaWAN byte of flags: adaptive data rate, acknowledgment, more data waiting, options length."
-    },
-    "FCV": {
-        "full": "Frame count valid",
-        "plain": "A bit that says whether the frame count bit counts in this frame."
-    },
-    "FIN": {
-        "full": "Final",
-        "plain": "A bit that marks the last segment or fragment of a DNP3 message."
-    },
-    "FIR": {
-        "full": "First",
-        "plain": "A bit that marks the first segment or fragment of a DNP3 message."
-    },
-    "FOptsLen": {
-        "full": "Frame options length",
-        "plain": "How many bytes of MAC commands ride in the frame header."
-    },
-    "FPort": {
-        "full": "Frame port",
-        "plain": "Says what the payload is: 0 for network commands, 1 to 223 for application data."
-    },
-    "FR": {
-        "full": "Foundational Requirement",
-        "plain": "One of the seven areas of security in IEC 62443, such as identification or data flow."
-    },
-    "FRACSEC": {
-        "full": "Fraction of second",
-        "plain": "The part of a C37.118 time stamp after the whole second, here in millionths."
-    },
-    "FRMPayload": {
-        "full": "Frame payload",
-        "plain": "The encrypted application data of a LoRaWAN frame."
-    },
-    "FT 1.2": {
-        "full": "Frame format FT 1.2 of IEC 60870-5-1",
-        "plain": "The serial frame layout of IEC 101 and 103: start byte, length, checksum and end byte."
-    },
-    "FUN": {
-        "full": "Function type",
-        "plain": "The number of a relay function, such as overcurrent protection, that groups its signals."
-    },
-    "GDOI": {
-        "full": "Group Domain of Interpretation (RFC 6407)",
-        "plain": "A protocol that hands the same secret key to every member of a group."
-    },
-    "GET": {
-        "full": "HTTP GET",
-        "plain": "The HTTP request that reads something from a web address without changing it."
-    },
-    "GetNameList": {
-        "full": "GetNameList (MMS service)",
-        "plain": "The MMS request that asks a device for the names of its objects."
-    },
-    "GI": {
-        "full": "General interrogation",
-        "plain": "A request for the current value of every signal a device has."
-    },
-    "GO": {
-        "full": "GOOSE control (functional constraint)",
-        "plain": "Marks a GOOSE control block in an IEC 61850 name."
-    },
-    "gocbRef": {
-        "full": "GOOSE control block reference",
-        "plain": "The full name of the control block that sends a GOOSE message."
-    },
-    "goID": {
-        "full": "GOOSE ID",
-        "plain": "A short name for a GOOSE stream that subscribers can check."
-    },
-    "GOOSE": {
-        "full": "Generic Object Oriented Substation Event",
-        "plain": "A fast message one substation device sends to all others, used for trips and interlocks."
-    },
-    "GPS": {
-        "full": "Global Positioning System",
-        "plain": "Satellites whose signals also give a very exact time, used to set clocks."
-    },
-    "GUID": {
-        "full": "Globally unique identifier",
-        "plain": "A 16-byte random number used as a name that nobody else will ever pick."
-    },
-    "HDLC": {
-        "full": "High-Level Data Link Control",
-        "plain": "A way to frame messages on a serial line, with addresses and a check value."
-    },
-    "HEL": {
-        "full": "Hello",
-        "plain": "The first OPC UA message: the client's buffer sizes and the endpoint it wants."
-    },
-    "HLS": {
-        "full": "High-Level Security",
-        "plain": "A DLMS login where each side proves it knows a secret key, without sending the key."
-    },
-    "HMAC": {
-        "full": "Hash-based message authentication code",
-        "plain": "A fingerprint of a message made with a secret key: only a key holder can make it."
-    },
-    "HMI": {
-        "full": "Human-machine interface",
-        "plain": "The screens and software operators use to watch and control a substation or plant."
-    },
-    "HomePlug Green PHY": {
-        "full": "HomePlug Green PHY",
-        "plain": "The powerline modem standard that car and charger use to send data over the control pilot."
-    },
-    "HorWdSpd": {
-        "full": "Horizontal wind speed",
-        "plain": "The data object for the wind speed measured level with the ground."
-    },
-    "HSR": {
-        "full": "High-availability Seamless Redundancy",
-        "plain": "Sends each frame both ways around a ring of devices, so one break loses nothing."
-    },
-    "HTTP": {
-        "full": "Hypertext Transfer Protocol",
-        "plain": "The request-and-answer protocol of the web: a client asks for an address, a server answers."
-    },
-    "HTTPS": {
-        "full": "HTTP Secure",
-        "plain": "HTTP inside an encrypted TLS connection: the secure web."
-    },
-    "I-Am": {
-        "full": "I-Am service",
-        "plain": "A device's answer to Who-Is: its number, message size limit and maker."
-    },
-    "I-frame": {
-        "full": "Information frame",
-        "plain": "An IEC 104 frame that carries data, numbered so the receiver can confirm it."
-    },
-    "IA": {
-        "full": "Current, phase A",
-        "plain": "The current in phase A of a three-phase line."
-    },
-    "IANA": {
-        "full": "Internet Assigned Numbers Authority",
-        "plain": "The body that hands out the internet's official numbers, such as ports and organization numbers."
-    },
-    "IB": {
-        "full": "Current, phase B",
-        "plain": "The current in phase B of a three-phase line."
-    },
-    "IC": {
-        "full": "Current, phase C",
-        "plain": "The current in phase C of a three-phase line."
-    },
-    "iCalendar": {
-        "full": "iCalendar",
-        "plain": "The standard calendar format. OpenADR uses its way of writing start times and durations."
-    },
-    "ICC": {
-        "full": "ICC-specific scope",
-        "plain": "Values in one partner's own domain on an ICCP server, which only that partner may see."
-    },
-    "IDCODE": {
-        "full": "Identification code",
-        "plain": "The number of a PMU data stream. Sender and receiver must use the same one."
-    },
-    "idToken": {
-        "full": "Identifier token",
-        "plain": "In OCPP, the identity a driver shows to charge, such as the number of an RFID card."
-    },
-    "IEC": {
-        "full": "International Electrotechnical Commission",
-        "plain": "The world body that writes standards for electrical technology, such as IEC 60870 and IEC 61850."
-    },
-    "IEC 104": {
-        "full": "IEC 60870-5-104",
-        "plain": "A protocol a control center uses to read and command substations over a network."
-    },
-    "IEC 61850": {
-        "full": "IEC 61850",
-        "plain": "The international standard for data models and messages in substations and power plants."
-    },
-    "IED": {
-        "full": "Intelligent electronic device",
-        "plain": "A device with its own processor in a substation, such as a protection relay or a meter."
-    },
-    "IEEE": {
-        "full": "Institute of Electrical and Electronics Engineers",
-        "plain": "A professional body that also writes standards, such as IEEE 1815 (DNP3) and C37.118."
-    },
-    "IEEE 754": {
-        "full": "IEEE standard for floating-point arithmetic",
-        "plain": "How computers store decimal numbers in bits; a single-precision float takes 4 bytes."
-    },
-    "IIN": {
-        "full": "Internal indications",
-        "plain": "Two status bytes in every DNP3 answer: events waiting, clock not set, buffer full and more."
-    },
-    "IKE": {
-        "full": "Internet Key Exchange",
-        "plain": "The protocol two devices use to check each other's certificates and agree on keys."
-    },
-    "IN": {
-        "full": "Neutral current",
-        "plain": "The current in the neutral; zero when the three phases are balanced and healthy."
-    },
-    "INF": {
-        "full": "Information number",
-        "plain": "The number of one signal within a relay's function type (FUN)."
-    },
-    "InformationReport": {
-        "full": "InformationReport (MMS service)",
-        "plain": "The MMS message a device sends without being asked, carrying values that changed."
-    },
-    "IOA": {
-        "full": "Information object address",
-        "plain": "The address of one signal, such as a breaker or a measurement, inside a station."
-    },
-    "IP": {
-        "full": "Internet Protocol",
-        "plain": "The addressing that moves packets across networks: every device has an IP address."
-    },
-    "IPsec": {
-        "full": "Internet Protocol Security",
-        "plain": "Encryption at the network level, often used to build a VPN between two sites."
-    },
-    "IPv4": {
-        "full": "Internet Protocol version 4",
-        "plain": "The common version of IP, with addresses such as 10.1.0.11."
-    },
-    "IPv6": {
-        "full": "Internet Protocol version 6",
-        "plain": "The newer form of internet address, written as groups of hex digits, such as fe80::ff:fe00:a1."
-    },
-    "IRIG": {
-        "full": "Inter-Range Instrumentation Group",
-        "plain": "A US group that defined standard time codes; IRIG-B is the one substations use."
-    },
-    "IRIG-B": {
-        "full": "Inter-Range Instrumentation Group time code, format B",
-        "plain": "A time signal sent on a cable to set the clocks of substation devices."
-    },
-    "ISA": {
-        "full": "International Society of Automation",
-        "plain": "A professional body whose committee wrote the 62443 standards, published jointly with the IEC."
-    },
-    "ISO": {
-        "full": "International Organization for Standardization",
-        "plain": "A world standards body. Its network layers carry MMS and ICCP messages."
-    },
-    "ISO 3166": {
-        "full": "ISO 3166",
-        "plain": "The international list of country codes, such as NL or NLD for the Netherlands."
-    },
-    "ISO 8601": {
-        "full": "ISO 8601",
-        "plain": "The international way to write dates, times and durations, such as PT1H for one hour."
-    },
-    "ISO14443": {
-        "full": "ISO/IEC 14443",
-        "plain": "The standard for contactless cards read at a few centimeters, as most charging cards are."
-    },
-    "IT": {
-        "full": "Information Technology",
-        "plain": "Office computers and networks: email, files, business software."
-    },
-    "IV": {
-        "full": "Initialization Vector",
-        "plain": "A starting value for encryption, so the same message encrypts differently each time."
-    },
-    "JoinAccept": {
-        "full": "Join accept",
-        "plain": "The network's encrypted answer to a join request: an address and the numbers for new keys."
-    },
-    "JoinEUI": {
-        "full": "Join EUI",
-        "plain": "The 64-bit ID of the join server, which checks joins and makes the keys."
-    },
-    "JoinNonce": {
-        "full": "Join nonce",
-        "plain": "A counter the join server puts in each join accept, used to make new keys."
-    },
-    "JoinRequest": {
-        "full": "Join request",
-        "plain": "The message a LoRaWAN sensor sends to ask to join a network."
-    },
-    "JSON": {
-        "full": "JavaScript Object Notation",
-        "plain": "A common text format for data: names and values between curly braces."
-    },
-    "KDC": {
-        "full": "Key distribution center",
-        "plain": "A server that checks devices and gives every member of a group the same secret key."
-    },
-    "LAN": {
-        "full": "Local area network",
-        "plain": "A network inside one building or site, such as a substation."
-    },
-    "LE": {
-        "full": "Light Edition (IEC 61850-9-2 LE)",
-        "plain": "A simple, widely used profile of sampled values with fixed sample rates and eight values."
-    },
-    "LF": {
-        "full": "Line Feed",
-        "plain": "A control byte (0x0A) that, with a carriage return, ends a line of text."
-    },
-    "LFDI": {
-        "full": "Long-form device identifier",
-        "plain": "A device's ID in IEEE 2030.5: the first 20 bytes of its certificate's fingerprint."
-    },
-    "lFDI": {
-        "full": "Long-form device identifier",
-        "plain": "A device's ID in IEEE 2030.5: the first 20 bytes of its certificate's fingerprint."
-    },
-    "LLN0": {
-        "full": "Logical node zero",
-        "plain": "The logical node that holds a device's common data and its control blocks."
-    },
-    "LLS": {
-        "full": "Low-Level Security",
-        "plain": "A DLMS login with a plain password, which travels unprotected."
-    },
-    "LoRa": {
-        "full": "Long Range",
-        "plain": "The radio method LoRaWAN uses: it reaches kilometers with little power, but sends slowly."
-    },
-    "M_DP_TB_1": {
-        "full": "Double-point information with time tag",
-        "plain": "An IEC 104 message with the position of a two-state device, such as a breaker, and its time."
-    },
-    "MAC": {
-        "full": "Media access control, or message authentication code",
-        "plain": "On a network: a card's hardware address or the layer that shares the medium. In security: a check value made with a secret key."
-    },
-    "MBAP": {
-        "full": "Modbus Application Protocol header",
-        "plain": "The 7 bytes that start every Modbus TCP message: transaction ID, protocol ID, length and unit ID."
-    },
-    "MHDR": {
-        "full": "MAC header",
-        "plain": "The first byte of a LoRaWAN frame: the message type and version."
-    },
-    "MIC": {
-        "full": "Message integrity code",
-        "plain": "A few bytes computed with a secret key that prove a message is genuine and unchanged."
-    },
-    "MMS": {
-        "full": "Manufacturing Message Specification",
-        "plain": "A messaging standard for reading and writing named values. IEC 61850 and ICCP run on it."
-    },
-    "MMXU": {
-        "full": "Measurement unit (logical node class)",
-        "plain": "The IEC 61850 logical node that holds measurements: power, voltage, current, frequency."
-    },
-    "Modbus": {
-        "full": "Modbus",
-        "plain": "A simple, old and very common protocol to read and write values in industrial devices."
-    },
-    "mRID": {
-        "full": "Master resource identifier",
-        "plain": "A 128-bit ID, unique worldwide, that names one event, control or program."
-    },
-    "MSG": {
-        "full": "Message",
-        "plain": "An OPC UA service message, such as Read or Browse, on an open secure channel."
-    },
-    "MT": {
-        "full": "Manufacturer Table",
-        "plain": "A C12.19 table whose content the meter's maker decides, numbered from 2048."
-    },
-    "MU": {
-        "full": "Merging unit",
-        "plain": "A box next to the current and voltage transformers that measures them and sends samples on the network."
-    },
-    "MV": {
-        "full": "Measured value (data type)",
-        "plain": "The IEC 61850 type for an analog measurement: its magnitude, quality and time."
-    },
-    "MX": {
-        "full": "Measured values (functional constraint)",
-        "plain": "The group of IEC 61850 attributes that hold measurements."
-    },
-    "NBIRTH": {
-        "full": "Node birth certificate",
-        "plain": "The first Sparkplug message of an edge node: all its metrics, with names, aliases and types."
-    },
-    "NCMD": {
-        "full": "Node command",
-        "plain": "A command from the host to an edge node, such as a request to rebirth."
-    },
-    "NDATA": {
-        "full": "Node data",
-        "plain": "New values of the edge node's own metrics, sent by alias."
-    },
-    "NDEATH": {
-        "full": "Node death certificate",
-        "plain": "Says an edge node is gone; usually the broker publishes it as the node's will."
-    },
-    "ndsCom": {
-        "full": "Needs commissioning",
-        "plain": "A flag saying the sender's setup is not complete yet."
-    },
-    "NetID": {
-        "full": "Network identifier",
-        "plain": "The number of the LoRaWAN network operator; 0 means a private network."
-    },
-    "NMT": {
-        "full": "Network management",
-        "plain": "The CANopen messages that start, stop and reset the nodes on a bus."
-    },
-    "NodeId": {
-        "full": "Node identifier",
-        "plain": "A node's address in an OPC UA server: a namespace index and a number, string, GUID or byte string."
-    },
-    "nonce": {
-        "full": "Number used once",
-        "plain": "A random or counting number used only once, so that an old message cannot be replayed."
-    },
-    "NPDU": {
-        "full": "Network protocol data unit",
-        "plain": "BACnet's network layer header: version, control bits and, if needed, network addresses."
-    },
-    "NTP": {
-        "full": "Network Time Protocol",
-        "plain": "How devices set their clocks from a time server over the network."
-    },
-    "NULL": {
-        "full": "Null value",
-        "plain": "An empty value; in BACnet, writing it releases a command slot."
-    },
-    "NwkSKey": {
-        "full": "Network session key",
-        "plain": "The key the network uses to check that each frame is genuine."
-    },
-    "OASIS": {
-        "full": "Organization for the Advancement of Structured Information Standards",
-        "plain": "The standards body that publishes MQTT."
-    },
-    "OBIS": {
-        "full": "Object Identification System",
-        "plain": "Six numbers that name a value inside a meter, such as 1.8.0 for energy taken from the grid."
-    },
-    "OPC UA": {
-        "full": "OPC Unified Architecture",
-        "plain": "A protocol for industrial systems to exchange data, with built-in security."
-    },
-    "openssl": {
-        "full": "OpenSSL",
-        "plain": "A free command-line tool and library for certificates, keys and encryption."
-    },
-    "OPN": {
-        "full": "OpenSecureChannel",
-        "plain": "The OPC UA message that opens or renews a secure channel."
-    },
-    "OT": {
-        "full": "Operational Technology",
-        "plain": "The computers and controllers that run physical machines, such as a plant or a grid."
-    },
-    "OTAA": {
-        "full": "Over-the-air activation",
-        "plain": "Joining a LoRaWAN network by radio: the sensor and network make fresh session keys each time."
-    },
-    "P-256": {
-        "full": "NIST P-256 elliptic curve (secp256r1)",
-        "plain": "The most widely supported elliptic curve for key exchange and signatures."
-    },
-    "PATCH": {
-        "full": "HTTP PATCH",
-        "plain": "The HTTP request that changes only some fields of an object."
-    },
-    "PCS": {
-        "full": "Power conversion system",
-        "plain": "The large converter between a battery and the grid: it charges and discharges the battery."
-    },
-    "PDC": {
-        "full": "Phasor data concentrator",
-        "plain": "A computer that collects the streams of many PMUs and lines them up by time stamp."
-    },
-    "PDO": {
-        "full": "Process data object",
-        "plain": "A CANopen message of live values, sent on a schedule or on change, without being asked."
-    },
-    "PDU": {
-        "full": "Protocol data unit",
-        "plain": "One message of a protocol layer: its header and its content."
-    },
-    "PE": {
-        "full": "Protective earth",
-        "plain": "The safety ground wire. Control pilot signals are measured against it."
-    },
-    "PIM": {
-        "full": "Protocol Independent Multicast",
-        "plain": "A routing protocol that tells routers where to forward multicast packets."
-    },
-    "PINGREQ": {
-        "full": "Ping request",
-        "plain": "A tiny MQTT packet that says: I am still here."
-    },
-    "PINGRESP": {
-        "full": "Ping response",
-        "plain": "The broker's answer to PINGREQ."
-    },
-    "PKI": {
-        "full": "Public key infrastructure",
-        "plain": "The system of trusted authorities that issue and sign certificates, so that devices can trust each other."
-    },
-    "PLC": {
-        "full": "Programmable logic controller, or powerline communication",
-        "plain": "An industrial control computer; in EV charging, data sent over the charging cable itself."
-    },
-    "Plug & Charge": {
-        "full": "Plug & Charge",
-        "plain": "Charging without a card or app: the car proves the driver's contract itself, with a certificate."
-    },
-    "PMU": {
-        "full": "Phasor measurement unit",
-        "plain": "A device that measures voltage and current waves, with exact time stamps from GPS."
-    },
-    "POST": {
-        "full": "HTTP POST",
-        "plain": "The HTTP request that sends new data to a web address, such as a message or a record."
-    },
-    "PP": {
-        "full": "Proximity pilot",
-        "plain": "A pin in the plug whose resistor tells the charger how much current the cable can carry."
-    },
-    "PPS": {
-        "full": "Pulse per second",
-        "plain": "A clock signal that marks the exact start of every second."
-    },
-    "present-value": {
-        "full": "Present value property",
-        "plain": "The BACnet property that holds an object's current value."
-    },
-    "PRM": {
-        "full": "Primary message bit",
-        "plain": "A bit that says whether a frame starts an exchange (1) or answers one (0)."
-    },
-    "protobuf": {
-        "full": "Protocol Buffers",
-        "plain": "A compact binary format for structured data, smaller and faster to read than JSON."
-    },
-    "PRP": {
-        "full": "Parallel Redundancy Protocol",
-        "plain": "Sends every frame over two separate networks at once, so one failure loses nothing."
-    },
-    "PTP": {
-        "full": "Precision Time Protocol (IEEE 1588)",
-        "plain": "Sends time over a network and corrects each delay, keeping clocks within a microsecond."
-    },
-    "PUBACK": {
-        "full": "Publish acknowledgment",
-        "plain": "The receipt for a QoS 1 PUBLISH: the message has arrived."
-    },
-    "PUBLISH": {
-        "full": "Publish packet",
-        "plain": "An MQTT packet that carries a message to a topic."
-    },
-    "PUT": {
-        "full": "HTTP PUT",
-        "plain": "The HTTP request that creates or replaces the object at a web address."
-    },
-    "PV": {
-        "full": "Photovoltaic",
-        "plain": "Solar panels that turn sunlight into electricity."
-    },
-    "QOI": {
-        "full": "Qualifier of interrogation",
-        "plain": "Says which signals an interrogation asks for: 20 means all of them."
-    },
-    "QoS": {
-        "full": "Quality of service",
-        "plain": "How hard MQTT tries to deliver a message: at most once, at least once, or exactly once."
-    },
-    "R-GOOSE": {
-        "full": "Routable GOOSE",
-        "plain": "GOOSE carried in UDP over IP, so it can cross routers to other substations."
-    },
-    "R-SV": {
-        "full": "Routable sampled values",
-        "plain": "Sampled values carried in UDP over IP, so they can cross routers."
-    },
-    "ReadProperty": {
-        "full": "ReadProperty service",
-        "plain": "Asks a BACnet device for one property of one object."
-    },
-    "REAL": {
-        "full": "REAL data type",
-        "plain": "A decimal number in 4 bytes (IEEE 754 single precision)."
-    },
-    "REQ_UD2": {
-        "full": "Request user data, class 2",
-        "plain": "The M-Bus message that asks a meter to send its readings."
-    },
-    "REST": {
-        "full": "Representational state transfer",
-        "plain": "A style of web interface: each thing has its own web address, read and changed with HTTP."
-    },
-    "RFC": {
-        "full": "Request for Comments",
-        "plain": "A numbered internet standard. RFC 1006 carries ISO messages over TCP."
-    },
-    "RFID": {
-        "full": "Radio-frequency identification",
-        "plain": "Contactless cards and tags, read by holding them near a reader, like a building pass."
-    },
-    "RLRE": {
-        "full": "Release Response",
-        "plain": "The answer confirming that a session has ended."
-    },
-    "RLRQ": {
-        "full": "Release Request",
-        "plain": "A message asking to end a session cleanly."
-    },
-    "rms": {
-        "full": "Root mean square",
-        "plain": "The effective value of an alternating current or voltage: what a meter shows."
-    },
-    "RotSpd": {
-        "full": "Rotor speed",
-        "plain": "The data object for how fast the rotor turns, in revolutions per minute."
-    },
-    "RP": {
-        "full": "Unbuffered report",
-        "plain": "Marks an unbuffered report control block: changes during a lost connection are not kept."
-    },
-    "RP002": {
-        "full": "LoRaWAN Regional Parameters",
-        "plain": "The LoRa Alliance document that sets frequencies, data rates and power limits for each region."
-    },
-    "RptEna": {
-        "full": "Report enable",
-        "plain": "The attribute a client sets to TRUE so that a report control block starts sending."
-    },
-    "RS-232": {
-        "full": "Recommended Standard 232",
-        "plain": "The classic serial port of computers and devices, for short cables."
-    },
-    "RS-485": {
-        "full": "Recommended Standard 485",
-        "plain": "A common two-wire serial cable that links several devices on one line."
-    },
-    "RSA": {
-        "full": "Rivest-Shamir-Adleman",
-        "plain": "A widely used public-key method for signatures and encryption, named after its three inventors."
-    },
-    "RSP_UD": {
-        "full": "Respond with user data",
-        "plain": "A meter's M-Bus answer that carries its readings."
-    },
-    "RSSI": {
-        "full": "Received signal strength indicator",
-        "plain": "How strong a radio signal arrived, in dBm: closer to 0 is stronger."
-    },
-    "RTU": {
-        "full": "Remote terminal unit",
-        "plain": "The box at a site that collects its signals and reports them to the control room."
-    },
-    "RX1": {
-        "full": "Receive window 1",
-        "plain": "The first moment a class A sensor listens: usually 1 s after its uplink, on the same channel."
-    },
-    "RX2": {
-        "full": "Receive window 2",
-        "plain": "The second moment a class A sensor listens: 1 s after RX1, on a fixed channel."
-    },
-    "S-frame": {
-        "full": "Supervisory frame",
-        "plain": "An IEC 104 frame that only confirms the data frames received so far."
-    },
-    "SAv5": {
-        "full": "Secure Authentication version 5",
-        "plain": "The DNP3 security add-on that checks that critical commands come from the real master."
-    },
-    "SCADA": {
-        "full": "Supervisory control and data acquisition",
-        "plain": "The control room's system that watches and operates the grid from afar."
-    },
-    "SCL": {
-        "full": "System Configuration description Language (IEC 61850-6)",
-        "plain": "The XML files that describe IEC 61850 devices, their data and how they talk."
-    },
-    "SDO": {
-        "full": "Service data object",
-        "plain": "A CANopen question and answer that reads or writes one value in a device."
-    },
-    "SDP": {
-        "full": "SECC discovery protocol",
-        "plain": "The car's first network message, asking where the charger's controller can be reached."
-    },
-    "SECC": {
-        "full": "Supply equipment communication controller",
-        "plain": "The computer in the charger that talks to the car."
-    },
-    "secp256r1": {
-        "full": "NIST P-256 elliptic curve",
-        "plain": "The technical name of the P-256 curve, the most widely supported curve for keys and signatures."
-    },
-    "SEQ": {
-        "full": "Sequence number",
-        "plain": "A counter that ties an answer or a confirmation to the message it belongs to."
-    },
-    "seq": {
-        "full": "Sequence number",
-        "plain": "Counts 0 to 255 across an edge node's messages, so that a gap shows a lost message."
-    },
-    "SF12": {
-        "full": "Spreading factor 12",
-        "plain": "The slowest common LoRa setting: longest range, but much longer time on air."
-    },
-    "SF7": {
-        "full": "Spreading factor 7",
-        "plain": "The fastest common LoRa setting: shortest time on air, shortest range."
-    },
-    "SFDI": {
-        "full": "Short-form device identifier",
-        "plain": "A short device ID a person can type: 36 bits of the certificate's fingerprint plus a check digit."
-    },
-    "sFDI": {
-        "full": "Short-form device identifier",
-        "plain": "A short device ID a person can type: 36 bits of the certificate's fingerprint plus a check digit."
-    },
-    "SHA-256": {
-        "full": "Secure Hash Algorithm, 256-bit",
-        "plain": "A method that turns any data into a fixed 32-byte fingerprint."
-    },
-    "SignAndEncrypt": {
-        "full": "Security mode SignAndEncrypt",
-        "plain": "Every OPC UA message is signed against changes and encrypted against reading."
-    },
-    "SimpleACK": {
-        "full": "Simple acknowledgment",
-        "plain": "A BACnet answer that only says: done."
-    },
-    "SIN": {
-        "full": "Supplementary information",
-        "plain": "An extra byte in an IEC 103 message. In a GI answer, it holds the scan number."
-    },
-    "SL": {
-        "full": "Security Level",
-        "plain": "How strong an attacker a zone or product must stand up to, from SL 1 to SL 4."
-    },
-    "SL-A": {
-        "full": "Achieved security level",
-        "plain": "The security level a zone really reaches, as built and run."
-    },
-    "SL-C": {
-        "full": "Capability security level",
-        "plain": "The security level a product can reach when it is set up correctly."
-    },
-    "SL-T": {
-        "full": "Target security level",
-        "plain": "The security level a zone should reach, decided from its risks."
-    },
-    "SLAC": {
-        "full": "Signal level attenuation characterization",
-        "plain": "How a car's powerline modem finds the charger on its own cable, by comparing signal strengths."
-    },
-    "smpCnt": {
-        "full": "Sample counter",
-        "plain": "Numbers each sampled-values frame; it counts up and starts again at 0 every second."
-    },
-    "smpSynch": {
-        "full": "Sample synchronization",
-        "plain": "Says whether samples follow a shared clock: 0 means no; 1 or 2 name the kind of clock."
-    },
-    "SND_NKE": {
-        "full": "Send link reset",
-        "plain": "The M-Bus message that resets the link to a meter before it is read."
-    },
-    "SND_NR": {
-        "full": "Send, no reply",
-        "plain": "A wireless M-Bus message a meter sends on its own, expecting no answer."
-    },
-    "SNR": {
-        "full": "Signal-to-noise ratio",
-        "plain": "How far a signal stands above the background noise, in dB; LoRa still works below 0."
-    },
-    "SOC": {
-        "full": "Second of century",
-        "plain": "The whole seconds of a C37.118 time stamp, counted from 1 January 1970 UTC."
-    },
-    "SOH": {
-        "full": "Start of Heading",
-        "plain": "A control byte (0x01) that starts a command message."
-    },
-    "SP": {
-        "full": "Setting (functional constraint)",
-        "plain": "The group of IEC 61850 attributes that hold settings, such as set points."
-    },
-    "spBv1.0": {
-        "full": "Sparkplug B version 1.0 namespace",
-        "plain": "The first level of every Sparkplug B topic."
-    },
-    "SPDU": {
-        "full": "Session protocol data unit",
-        "plain": "In R-GOOSE, the session header; its number grows with every message, so old ones cannot be replayed."
-    },
-    "sqNum": {
-        "full": "Sequence number",
-        "plain": "Counts the copies of one GOOSE state; it starts again at 0 after each change."
-    },
-    "ST": {
-        "full": "Status (IEC 61850), or standard table (ANSI C12.19)",
-        "plain": "In IEC 61850, the group of status values; in a North American meter, one of the standard data tables."
-    },
-    "STALE": {
-        "full": "Stale quality",
-        "plain": "A value still shown but no longer current, because its source has gone offline."
-    },
-    "STARTDT": {
-        "full": "Start data transfer",
-        "plain": "The IEC 104 command that lets data start flowing on a connection."
-    },
-    "STAT": {
-        "full": "Status word",
-        "plain": "Two bytes of flags in each C37.118 data frame: data valid, clock in sync, and more."
-    },
-    "STATE": {
-        "full": "Host state",
-        "plain": "The retained message in which a Sparkplug host application says it is online or offline."
-    },
-    "stNum": {
-        "full": "State number",
-        "plain": "Counts changes in a GOOSE stream; it goes up by one each time the data changes."
-    },
-    "STP": {
-        "full": "Start of Packet",
-        "plain": "The byte 0xEE that begins every C12.18 packet."
-    },
-    "STX": {
-        "full": "Start of Text",
-        "plain": "A control byte (0x02) that marks where the data begins."
-    },
-    "SUBACK": {
-        "full": "Subscribe acknowledgment",
-        "plain": "The broker's answer to SUBSCRIBE: the QoS granted for each filter, or a refusal."
-    },
-    "SUBSCRIBE": {
-        "full": "Subscribe packet",
-        "plain": "Asks the MQTT broker for the messages of one or more topic filters."
-    },
-    "SubscribeCOV": {
-        "full": "SubscribeCOV service",
-        "plain": "Asks a BACnet device to report the changes of an object's value."
-    },
-    "SV": {
-        "full": "Sampled values",
-        "plain": "Streams of instant measurements of current and voltage, sent thousands of times a second."
-    },
-    "svID": {
-        "full": "Sampled values ID",
-        "plain": "The name of a sampled-values stream, set in the SCL file and checked by subscribers."
-    },
-    "TAI": {
-        "full": "International Atomic Time",
-        "plain": "The time scale of atomic clocks, without leap seconds; now 37 seconds ahead of UTC."
-    },
-    "TC": {
-        "full": "Transparent clock",
-        "plain": "A network switch that measures how long it holds each PTP message and adds that to it."
-    },
-    "TCP": {
-        "full": "Transmission Control Protocol",
-        "plain": "A reliable connection between two computers: data arrives complete and in order."
-    },
-    "TLS": {
-        "full": "Transport Layer Security",
-        "plain": "Encryption around a connection, as in https: it hides the data and proves who is talking."
-    },
-    "TotW": {
-        "full": "Total active power (data object)",
-        "plain": "The IEC 61850 name for the total real power a device produces or uses."
-    },
-    "TPDO1": {
-        "full": "Transmit process data object 1",
-        "plain": "The first process data object a CANopen node sends out."
-    },
-    "TPKT": {
-        "full": "ISO transport packet header (RFC 1006)",
-        "plain": "Four bytes in front of each MMS message that give its length on TCP."
-    },
-    "TR": {
-        "full": "Technical Report",
-        "plain": "An IEC document that gives guidance but is not a full standard."
-    },
-    "TS001": {
-        "full": "LoRaWAN Link Layer Specification",
-        "plain": "The LoRa Alliance document that defines LoRaWAN frames, joining and security."
-    },
-    "TSO": {
-        "full": "Transmission system operator",
-        "plain": "The company that runs the high-voltage grid that carries power over long distances."
-    },
-    "TTL": {
-        "full": "Time to live",
-        "plain": "A counter in an IP packet: each router lowers it, and at zero the packet is dropped."
-    },
-    "TurSt": {
-        "full": "Turbine status",
-        "plain": "The data object that holds the turbine's operating state."
-    },
-    "U-frame": {
-        "full": "Unnumbered frame",
-        "plain": "An IEC 104 control frame, for example to start data transfer or test the link."
-    },
-    "UA TCP": {
-        "full": "OPC UA Connection Protocol (UACP)",
-        "plain": "OPC UA's small protocol on top of TCP: Hello, Acknowledge, then messages cut into chunks."
-    },
-    "UDP": {
-        "full": "User Datagram Protocol",
-        "plain": "A quick way to send messages without a connection or a delivery check."
-    },
-    "UnconfirmedCOVNotification": {
-        "full": "Unconfirmed COV notification",
-        "plain": "A change-of-value report that needs no answer."
-    },
-    "Unix time": {
-        "full": "Unix time",
-        "plain": "Time counted in seconds since 1 January 1970, 00:00 UTC."
-    },
-    "UNS": {
-        "full": "Unsolicited",
-        "plain": "A DNP3 bit that marks a message sent without a request."
-    },
-    "URI": {
-        "full": "Uniform Resource Identifier",
-        "plain": "A unique name written like a web address; it does not have to lead to a real page."
-    },
-    "URL": {
-        "full": "Uniform Resource Locator",
-        "plain": "An address written as text, like a web address, that says where to connect."
-    },
-    "URN": {
-        "full": "Uniform Resource Name",
-        "plain": "A fixed, unique name for something. Unlike a URL, it is not an address to open."
-    },
-    "UTC": {
-        "full": "Coordinated Universal Time",
-        "plain": "The world's standard time, without time zones or summer time."
-    },
-    "UTF-8": {
-        "full": "Unicode Transformation Format, 8-bit",
-        "plain": "The common way to store text in any language as bytes."
-    },
-    "V2G": {
-        "full": "Vehicle-to-grid",
-        "plain": "Communication, and sometimes energy, flowing between electric cars and the power grid."
-    },
-    "V2GTP": {
-        "full": "V2G transfer protocol",
-        "plain": "The 8-byte header in front of every message between car and charger."
-    },
-    "VA": {
-        "full": "Voltage, phase A",
-        "plain": "The voltage of phase A of a three-phase line."
-    },
-    "VAA": {
-        "full": "Virtual Application Association",
-        "plain": "The name a DLMS meter gives to the kind of session that is open."
-    },
-    "varint": {
-        "full": "Variable-length integer",
-        "plain": "A whole number stored in as few bytes as it needs, 7 bits per byte."
-    },
-    "VAT": {
-        "full": "Value-added tax",
-        "plain": "The sales tax added to a price in Europe and many other countries."
-    },
-    "VB": {
-        "full": "Voltage, phase B",
-        "plain": "The voltage of phase B of a three-phase line."
-    },
-    "VC": {
-        "full": "Voltage, phase C",
-        "plain": "The voltage of phase C of a three-phase line."
-    },
-    "VCC": {
-        "full": "Virtual control center",
-        "plain": "The part of an ICCP server shared by all partners, each allowed only what its table lists."
-    },
-    "VEN": {
-        "full": "Virtual end node",
-        "plain": "In OpenADR, the box or program on the customer's side that receives events and acts on them."
-    },
-    "VIF": {
-        "full": "Value Information Field",
-        "plain": "The byte that says what an M-Bus value measures and in which unit."
-    },
-    "VLAN": {
-        "full": "Virtual LAN",
-        "plain": "A tag in an Ethernet frame that splits one network into separate groups and sets a priority."
-    },
-    "VN": {
-        "full": "Neutral voltage",
-        "plain": "The voltage of the neutral; zero when the three phases are balanced and healthy."
-    },
-    "VPN": {
-        "full": "Virtual private network",
-        "plain": "An encrypted tunnel between two sites across a shared network."
-    },
-    "VSQ": {
-        "full": "Variable structure qualifier",
-        "plain": "Says how many values an IEC 60870-5 message carries and how their addresses are given."
-    },
-    "VT": {
-        "full": "Voltage transformer",
-        "plain": "A transformer that scales a line's high voltage down to a small one that devices can measure."
-    },
-    "VTN": {
-        "full": "Virtual top node",
-        "plain": "In OpenADR, the utility's or aggregator's server that sends events."
-    },
-    "WAN": {
-        "full": "Wide area network",
-        "plain": "A network that links distant sites, such as substations many kilometers apart."
-    },
-    "WAPC": {
-        "full": "Wind power plant active power control",
-        "plain": "The logical node that sets how much active power the whole wind park may deliver."
-    },
-    "WCNV": {
-        "full": "Wind turbine converter",
-        "plain": "The logical node for the power converter between the generator and the grid."
-    },
-    "WebSocket": {
-        "full": "WebSocket protocol",
-        "plain": "A lasting two-way web connection, so both sides can send messages at any time."
-    },
-    "WebSockets": {
-        "full": "WebSocket protocol",
-        "plain": "A lasting two-way connection that starts as a web request and passes most firewalls."
-    },
-    "WGEN": {
-        "full": "Wind turbine generator",
-        "plain": "The logical node for the generator, which turns rotation into electricity."
-    },
-    "Who-Is": {
-        "full": "Who-Is service",
-        "plain": "A broadcast question: which devices, in this number range, are out there?"
-    },
-    "WMET": {
-        "full": "Wind power plant meteorological information",
-        "plain": "The logical node for weather data: wind speed and direction, temperature and more."
-    },
-    "WNAC": {
-        "full": "Wind turbine nacelle",
-        "plain": "The logical node for the nacelle, the housing on top of the tower."
-    },
-    "wPort": {
-        "full": "Wrapper port",
-        "plain": "A number in the DLMS header on TCP that says which client or which part of the meter talks."
-    },
-    "WriteProperty": {
-        "full": "WriteProperty service",
-        "plain": "Sets one property of one object in a BACnet device, optionally at a priority."
-    },
-    "WROT": {
-        "full": "Wind turbine rotor",
-        "plain": "The logical node for the rotor: how fast it turns, and its blades."
-    },
-    "WTUR": {
-        "full": "Wind turbine general information",
-        "plain": "The logical node for the turbine as a whole: its power output and operating state."
-    },
-    "X.509": {
-        "full": "X.509 certificate format",
-        "plain": "The usual format of a digital certificate: a device's ID card, signed by a certificate authority."
-    },
-    "xDLMS": {
-        "full": "Extended DLMS",
-        "plain": "The part of DLMS that carries the reads, writes and commands once a session is open."
-    },
-    "XML": {
-        "full": "Extensible Markup Language",
-        "plain": "A text format for structured data, with named tags in angle brackets."
-    },
-    "XMPP": {
-        "full": "Extensible Messaging and Presence Protocol",
-        "plain": "A chat-style messaging protocol in which a server can push messages to clients at any time."
-    },
-    "XOR": {
-        "full": "Exclusive OR",
-        "plain": "A bit operation that flips each bit where the key has a 1. Doing it twice restores the original."
-    }
+    "7E1": { "full": "7 data bits, even parity, 1 stop bit", "plain": "Serial port settings: each character has 7 data bits, a parity check bit and a stop bit." },
+    "8E1": { "full": "8 data bits, even parity, 1 stop bit", "plain": "A serial line setting: each character has 8 data bits, a parity check bit and a stop bit." },
+    "8N1": { "full": "8 data bits, no parity, 1 stop bit", "plain": "A common serial line setting without the parity check bit. IEC 101 and 103 need 8E1 instead." },
+    "A-XDR": { "full": "Adapted External Data Representation", "plain": "A compact way to turn values into bytes, used inside DLMS messages." },
+    "AARE": { "full": "Application Association Response", "plain": "The meter's answer to a login request: accepted or refused, with the services it allows." },
+    "AARQ": { "full": "Application Association Request", "plain": "The first message of a DLMS session: it asks to log in and proposes the rules." },
+    "ABCD": { "full": "Big-endian byte order", "plain": "A number's four bytes sent highest byte first, in the order they are written." },
+    "ABP": { "full": "Activation by personalization", "plain": "Keys and address set by hand in a LoRaWAN sensor, with no join." },
+    "AC": { "full": "Alternating current", "plain": "The kind of electricity in the grid, which changes direction many times a second." },
+    "ACD": { "full": "Access demand", "plain": "A bit in an answer that says: I have urgent (class 1) data, please ask for it." },
+    "ACK": { "full": "Acknowledgment", "plain": "A short reply that means \"I got it\"." },
+    "ACSE": { "full": "Association Control Service Element", "plain": "The layer that opens and closes an association: a session between two MMS programs." },
+    "ADR": { "full": "Adaptive data rate", "plain": "Lets the network choose a sensor's data rate and transmit power from how well it is heard." },
+    "AE": { "full": "Application entity", "plain": "Part of a program's network name: the AE qualifier adds a number to the AP title." },
+    "AES": { "full": "Advanced Encryption Standard", "plain": "A widely used cipher that turns data into secret form with a key." },
+    "AES-128": { "full": "Advanced Encryption Standard, 128-bit key", "plain": "AES encryption with a 128-bit secret key, far too long to guess." },
+    "AES-128-GCM": { "full": "Advanced Encryption Standard, 128-bit key, Galois/Counter Mode", "plain": "Encryption that hides the data and adds a tag proving nobody changed it on the way." },
+    "AES-CMAC": { "full": "AES cipher-based message authentication code", "plain": "A short code computed from a message with a secret key; only a key holder can make it." },
+    "AES-GCM-128": { "full": "AES in Galois/Counter Mode, 128-bit key", "plain": "AES encryption that also adds a check value, so any change to the message is noticed." },
+    "AHU": { "full": "Air handling unit", "plain": "The large fan unit that heats or cools air and moves it through a building." },
+    "AI": { "full": "Analog input", "plain": "An input that measures a value that varies, such as a voltage, instead of on or off." },
+    "allData": { "full": "All data", "plain": "The part of a GOOSE message that holds the values of its data set." },
+    "ANSI": { "full": "American National Standards Institute", "plain": "The body that publishes national standards in the United States." },
+    "AP": { "full": "Application process (AP title)", "plain": "The AP title is the unique name a program uses on the network to say who it is." },
+    "APC": { "full": "Controllable analog process value", "plain": "An IEC 61850 data type for a set point a client can change, such as a power limit." },
+    "APDU": { "full": "Application protocol data unit", "plain": "The BACnet message itself: the service and its data." },
+    "API": { "full": "Application programming interface", "plain": "The set of requests a program offers, so that other programs can use it." },
+    "APN": { "full": "Access Point Name", "plain": "A gateway of a mobile network. A private one keeps devices off the public internet." },
+    "APPID": { "full": "Application identifier", "plain": "A number in a GOOSE or sampled-values frame that receivers use to pick the messages they want." },
+    "AppKey": { "full": "Application key", "plain": "The sensor's secret root key; the session keys are made from it at each join." },
+    "AppSKey": { "full": "Application session key", "plain": "The key that encrypts the payload, shared by the sensor and the application server." },
+    "ASCII": { "full": "American Standard Code for Information Interchange", "plain": "The basic code that stores each letter, digit or sign as one byte." },
+    "ASDU": { "full": "Application service data unit", "plain": "The data part of an IEC 60870-5 message: its type, cause, addresses and values." },
+    "ASHRAE": { "full": "American Society of Heating, Refrigerating and Air-Conditioning Engineers", "plain": "The engineering society that publishes the BACnet standard, ASHRAE 135." },
+    "ASN.1": { "full": "Abstract Syntax Notation One", "plain": "A standard language to describe data, turned into bytes by rules such as BER or DER." },
+    "BACnet/IP": { "full": "BACnet over IP", "plain": "BACnet messages carried in UDP datagrams, usually on port 47808." },
+    "BACnet/SC": { "full": "BACnet Secure Connect", "plain": "A newer BACnet transport: messages travel over TLS-encrypted WebSockets through a hub." },
+    "base64": { "full": "Base64 encoding", "plain": "A way to write any bytes as plain letters and digits, so that they fit in text." },
+    "Base64": { "full": "Base64 encoding", "plain": "A way to write any bytes as plain letters and digits, so that they fit in text." },
+    "Basic256Sha256": { "full": "Security policy Basic256Sha256", "plain": "A set of OPC UA security algorithms: 256-bit AES encryption and SHA-256 signatures." },
+    "BBMD": { "full": "BACnet broadcast management device", "plain": "Relays BACnet broadcasts from one IP subnet to another, since routers do not pass them." },
+    "BCC": { "full": "Block Check Character", "plain": "One byte computed from a message, so the receiver can spot damaged bytes." },
+    "BCD": { "full": "Binary-coded decimal", "plain": "A way of writing numbers in which each decimal digit gets its own four bits." },
+    "bdSeq": { "full": "Birth and death sequence number", "plain": "A number that ties an edge node's death message to its birth, one per MQTT session." },
+    "BER": { "full": "Basic Encoding Rules", "plain": "A way to write data as bytes: each item is a tag, a length and a value." },
+    "BI": { "full": "Binary input", "plain": "An on/off input, such as a contact that tells whether a breaker is open or closed." },
+    "BMS": { "full": "Battery management system, or building management system", "plain": "Depends on the lesson: the battery's own guardian, or the computer that runs a building." },
+    "BVLC": { "full": "BACnet virtual link control", "plain": "The small header of every BACnet/IP datagram: its kind and its length." },
+    "C-field": { "full": "Control field", "plain": "The byte that says what kind of message an M-Bus frame is." },
+    "CA": { "full": "Certificate authority", "plain": "The trusted party that signs certificates. A device accepts only certificates signed by a CA it trusts." },
+    "CALL": { "full": "OCPP request", "plain": "An OCPP message that asks for something and expects an answer. It starts with 2." },
+    "CALLERROR": { "full": "OCPP error answer", "plain": "The OCPP answer saying that a request failed. It starts with 4." },
+    "CALLRESULT": { "full": "OCPP answer", "plain": "The OCPP answer saying that a request worked. It starts with 3." },
+    "CAN": { "full": "Controller Area Network", "plain": "A two-wire bus first made for cars. Every device on it hears every short message." },
+    "CBC": { "full": "Cipher block chaining", "plain": "A mode of AES in which each block of data is mixed with the block before it." },
+    "CCITT": { "full": "International Telegraph and Telephone Consultative Committee", "plain": "A former standards body. Its CRC formula is still widely used." },
+    "CCM": { "full": "Counter with CBC-MAC", "plain": "A mode of AES that encrypts the data and adds a tag proving it was not changed." },
+    "CCS": { "full": "Combined Charging System", "plain": "A common electric car plug that adds two large DC pins to an AC plug for fast charging." },
+    "CDAB": { "full": "Word-swapped byte order", "plain": "A 32-bit value sent low 16-bit half first; each half keeps its high byte first." },
+    "CDR": { "full": "Charge detail record", "plain": "The final record of one charge: when, where, which card, how much energy, and the price." },
+    "CF": { "full": "Configuration (functional constraint)", "plain": "The group of IEC 61850 attributes that hold settings such as units and scale factors." },
+    "CFG-1": { "full": "Configuration frame 1", "plain": "A PMU's list of everything it can measure. CFG-2 says what it sends now." },
+    "CFG-2": { "full": "Configuration frame 2", "plain": "A PMU's description of the data it sends: names, units, formats and rate." },
+    "CHK": { "full": "Check word", "plain": "The CRC at the end of a C37.118 frame, used to spot damaged frames." },
+    "CI": { "full": "Control Information field", "plain": "The M-Bus byte that says what kind of header and data follow." },
+    "CiA": { "full": "CAN in Automation", "plain": "The association of CAN makers and users that publishes the CANopen standards." },
+    "CN": { "full": "Common Name", "plain": "The main name inside a certificate, such as the device's name." },
+    "COB-ID": { "full": "Communication object identifier", "plain": "A CANopen frame's identifier: the kind of message plus the number of the node it belongs to." },
+    "ComplexACK": { "full": "Complex acknowledgment", "plain": "A BACnet answer that carries data, such as the value read." },
+    "CON": { "full": "Confirm requested", "plain": "A DNP3 bit that asks the receiver to confirm that it got the message." },
+    "confRev": { "full": "Configuration revision", "plain": "A number that changes when a message's layout changes; sender and receiver must agree on it." },
+    "CONNACK": { "full": "Connect acknowledgment", "plain": "The broker's answer to CONNECT: accepted, or why not." },
+    "CONNECT": { "full": "Connect packet", "plain": "The first MQTT packet: the client's ID, login, keep alive time and will." },
+    "COT": { "full": "Cause of transmission", "plain": "The reason a value was sent: asked for, changed by itself, sent on a timer, and so on." },
+    "COTP": { "full": "Connection-oriented transport protocol (ISO 8073)", "plain": "A small transport layer that MMS runs on, inside TCP." },
+    "COV": { "full": "Change of value", "plain": "A report sent when a value changes; for a measured value, only by more than a set amount." },
+    "CP": { "full": "Control pilot", "plain": "The signal wire in a charging cable that tells car and charger about each other." },
+    "CP32Time2a": { "full": "4-byte time format of IEC 60870-5", "plain": "A time stamp of milliseconds, minutes and hours, without the date." },
+    "CP56Time2a": { "full": "7-byte time format of IEC 60870-5", "plain": "A time stamp from milliseconds up to the year, without a time zone." },
+    "CPO": { "full": "Charge point operator", "plain": "The company that runs public chargers and keeps them working." },
+    "CR": { "full": "Carriage Return", "plain": "A control byte (0x0D) that, with a line feed, ends a line of text." },
+    "CRC": { "full": "Cyclic redundancy check", "plain": "Check bytes computed from the message, so the receiver can tell if it arrived damaged." },
+    "CRL": { "full": "Certificate Revocation List", "plain": "A list, signed by a CA, of certificates canceled before their end date." },
+    "CROB": { "full": "Control relay output block", "plain": "A DNP3 command for one output, such as trip or close a breaker with a pulse." },
+    "CS": { "full": "Checksum", "plain": "The frame's bytes added up, so the receiver can spot a damaged frame." },
+    "CSMS": { "full": "Charging station management system", "plain": "The operator's back office that runs the chargers, checks cards and records each charge." },
+    "CSQ": { "full": "Challenge sequence number", "plain": "A number that goes up with every challenge, so an old answer never fits a new one." },
+    "CT": { "full": "Current transformer", "plain": "A transformer that scales a line's large current down to a small one that devices can measure." },
+    "DAN": { "full": "Doubly attached node", "plain": "A device with two network ports, one on each of two separate networks." },
+    "DataValue": { "full": "DataValue", "plain": "An OPC UA value packed with its status code and timestamps." },
+    "datSet": { "full": "Data set", "plain": "The list of values that a GOOSE message or a report carries." },
+    "DBIRTH": { "full": "Device birth certificate", "plain": "Lists every metric of one device behind an edge node." },
+    "DC": { "full": "Direct current", "plain": "A steady voltage that does not alternate. A DC time code switches between two levels." },
+    "DCBA": { "full": "Little-endian byte order", "plain": "A number's four bytes sent lowest byte first: the reverse of how they are written." },
+    "DCMD": { "full": "Device command", "plain": "A command from the host to a device behind an edge node." },
+    "DDATA": { "full": "Device data", "plain": "New values of a device's metrics, sent by alias: only what changed." },
+    "DDEATH": { "full": "Device death certificate", "plain": "Says a device behind an edge node is gone." },
+    "DER": { "full": "Distributed energy resource; also Distinguished Encoding Rules", "plain": "Small power sources and storage, like rooftop solar or batteries. In data encoding, a strict way to write ASN.1." },
+    "DERControl": { "full": "DER control", "plain": "An IEEE 2030.5 instruction to a device for a set time, such as limiting its output." },
+    "DevAddr": { "full": "Device address", "plain": "The short 4-byte address a sensor gets when it joins, used in every later frame." },
+    "DevEUI": { "full": "Device EUI", "plain": "The sensor's own 64-bit ID, unique in the world." },
+    "DevNonce": { "full": "Device nonce", "plain": "A counter the sensor puts in each join request; a number seen before is refused." },
+    "DFC": { "full": "Data flow control", "plain": "A bit that says the device is busy: wait before sending more data." },
+    "DFREQ": { "full": "Rate of change of frequency", "plain": "How fast the grid frequency is rising or falling, in hertz per second." },
+    "DIF": { "full": "Data Information Field", "plain": "The byte before an M-Bus value that says how it is coded and whether it is stored." },
+    "DIFE": { "full": "Data Information Field Extension", "plain": "Extra bytes after a DIF, for tariffs, subunits and higher storage numbers." },
+    "DIN 70121": { "full": "DIN SPEC 70121", "plain": "An older German specification for DC charging messages, still spoken by many cars and chargers." },
+    "DIR": { "full": "Direction bit", "plain": "A bit that says which way a frame travels, for example from the master." },
+    "DISCONNECT": { "full": "Disconnect packet", "plain": "Ends an MQTT connection cleanly; then the broker does not publish the will." },
+    "DLC": { "full": "Data length code", "plain": "The 4 bits in a CAN frame that tell how many data bytes follow, 0 to 8." },
+    "DMZ": { "full": "Demilitarized zone", "plain": "A buffer network between two others, where connections from both sides end." },
+    "DNP3": { "full": "Distributed Network Protocol 3", "plain": "A protocol for control centers to read and command remote stations, common in North America." },
+    "DPI": { "full": "Double-point information", "plain": "A state held in two bits: 1 is off, 2 is on, 0 and 3 mean moving or faulty." },
+    "DR0": { "full": "Data rate 0", "plain": "The slowest LoRaWAN data rate; in Europe it is SF12 at 125 kHz." },
+    "DSCP": { "full": "Differentiated Services Code Point", "plain": "A number in the IP header that tells routers how urgent a packet is." },
+    "DSO": { "full": "Distribution system operator", "plain": "The company that runs the local grid that brings power to homes and businesses." },
+    "DST": { "full": "Daylight saving time", "plain": "Summer time: clocks set one hour ahead for part of the year." },
+    "EAX'": { "full": "EAX prime", "plain": "A way to use AES that proves who sent a message and can also encrypt it." },
+    "ECDHE": { "full": "Elliptic-curve Diffie-Hellman, ephemeral", "plain": "A way for two sides to agree on a fresh secret key over an open network." },
+    "ECDSA": { "full": "Elliptic Curve Digital Signature Algorithm", "plain": "A way to sign data with a private key, using elliptic-curve math." },
+    "EDS": { "full": "Electronic data sheet", "plain": "A file from the maker that lists every value a CANopen device holds, and its type." },
+    "EMCY": { "full": "Emergency object", "plain": "A CANopen message a node sends at once when an error appears, and again when it clears." },
+    "EMIX": { "full": "Energy Market Information Exchange", "plain": "An OASIS standard for describing energy prices and products, used inside OpenADR messages." },
+    "eMSP": { "full": "E-mobility service provider", "plain": "The company that gives drivers their charging card or app, and bills them." },
+    "EN": { "full": "European Norm", "plain": "A standard adopted by the European standards bodies, such as EN 13757." },
+    "EndDevice": { "full": "End device", "plain": "In IEEE 2030.5, the server's record of one device, such as an inverter." },
+    "EngineeringUnits": { "full": "Engineering units", "plain": "An OPC UA property that names the unit of a value, such as kW." },
+    "EPSEM": { "full": "Extended Protocol Specification for Electronic Metering", "plain": "The C12.22 envelope that holds table requests and sets their security." },
+    "EtherType": { "full": "EtherType", "plain": "Two bytes in an Ethernet frame that say what kind of message follows." },
+    "ETX": { "full": "End of Text", "plain": "A control byte (0x03) that marks where the data ends." },
+    "EVCC": { "full": "Electric vehicle communication controller", "plain": "The computer in the car that talks to the charger." },
+    "EVSE": { "full": "Electric vehicle supply equipment", "plain": "One charging point: the part of a charger that charges one car at a time." },
+    "EXI": { "full": "Efficient XML Interchange", "plain": "A way to pack XML messages into very few bytes, used between car and charger." },
+    "FC": { "full": "Function code", "plain": "A number that says what a frame asks for or answers, such as reset or send data." },
+    "FCB": { "full": "Frame count bit", "plain": "A bit that flips with every new request, so a repeated request can be spotted." },
+    "FCnt": { "full": "Frame counter", "plain": "Counts the frames in each direction; the network refuses an old number as a replay." },
+    "FCtrl": { "full": "Frame control", "plain": "A LoRaWAN byte of flags: adaptive data rate, acknowledgment, more data waiting, options length." },
+    "FCV": { "full": "Frame count valid", "plain": "A bit that says whether the frame count bit counts in this frame." },
+    "FIN": { "full": "Final", "plain": "A bit that marks the last segment or fragment of a DNP3 message." },
+    "FIR": { "full": "First", "plain": "A bit that marks the first segment or fragment of a DNP3 message." },
+    "FOptsLen": { "full": "Frame options length", "plain": "How many bytes of MAC commands ride in the frame header." },
+    "FPort": { "full": "Frame port", "plain": "Says what the payload is: 0 for network commands, 1 to 223 for application data." },
+    "FR": { "full": "Foundational Requirement", "plain": "One of the seven areas of security in IEC 62443, such as identification or data flow." },
+    "FRACSEC": { "full": "Fraction of second", "plain": "The part of a C37.118 time stamp after the whole second, here in millionths." },
+    "FRMPayload": { "full": "Frame payload", "plain": "The encrypted application data of a LoRaWAN frame." },
+    "FT 1.2": { "full": "Frame format FT 1.2 of IEC 60870-5-1", "plain": "The serial frame layout of IEC 101 and 103: start byte, length, checksum and end byte." },
+    "FUN": { "full": "Function type", "plain": "The number of a relay function, such as overcurrent protection, that groups its signals." },
+    "GDOI": { "full": "Group Domain of Interpretation (RFC 6407)", "plain": "A protocol that hands the same secret key to every member of a group." },
+    "GET": { "full": "HTTP GET", "plain": "The HTTP request that reads something from a web address without changing it." },
+    "GetNameList": { "full": "GetNameList (MMS service)", "plain": "The MMS request that asks a device for the names of its objects." },
+    "GI": { "full": "General interrogation", "plain": "A request for the current value of every signal a device has." },
+    "GO": { "full": "GOOSE control (functional constraint)", "plain": "Marks a GOOSE control block in an IEC 61850 name." },
+    "gocbRef": { "full": "GOOSE control block reference", "plain": "The full name of the control block that sends a GOOSE message." },
+    "goID": { "full": "GOOSE ID", "plain": "A short name for a GOOSE stream that subscribers can check." },
+    "GOOSE": { "full": "Generic Object Oriented Substation Event", "plain": "A fast message one substation device sends to all others, used for trips and interlocks." },
+    "GPS": { "full": "Global Positioning System", "plain": "Satellites whose signals also give a very exact time, used to set clocks." },
+    "GUID": { "full": "Globally unique identifier", "plain": "A 16-byte random number used as a name that nobody else will ever pick." },
+    "HDLC": { "full": "High-Level Data Link Control", "plain": "A way to frame messages on a serial line, with addresses and a check value." },
+    "HEL": { "full": "Hello", "plain": "The first OPC UA message: the client's buffer sizes and the endpoint it wants." },
+    "HLS": { "full": "High-Level Security", "plain": "A DLMS login where each side proves it knows a secret key, without sending the key." },
+    "HMAC": { "full": "Hash-based message authentication code", "plain": "A fingerprint of a message made with a secret key: only a key holder can make it." },
+    "HMI": { "full": "Human-machine interface", "plain": "The screens and software operators use to watch and control a substation or plant." },
+    "HomePlug Green PHY": { "full": "HomePlug Green PHY", "plain": "The powerline modem standard that car and charger use to send data over the control pilot." },
+    "HorWdSpd": { "full": "Horizontal wind speed", "plain": "The data object for the wind speed measured level with the ground." },
+    "HSR": { "full": "High-availability Seamless Redundancy", "plain": "Sends each frame both ways around a ring of devices, so one break loses nothing." },
+    "HTTP": { "full": "Hypertext Transfer Protocol", "plain": "The request-and-answer protocol of the web: a client asks for an address, a server answers." },
+    "HTTPS": { "full": "HTTP Secure", "plain": "HTTP inside an encrypted TLS connection: the secure web." },
+    "I-Am": { "full": "I-Am service", "plain": "A device's answer to Who-Is: its number, message size limit and maker." },
+    "I-frame": { "full": "Information frame", "plain": "An IEC 104 frame that carries data, numbered so the receiver can confirm it." },
+    "IA": { "full": "Current, phase A", "plain": "The current in phase A of a three-phase line." },
+    "IANA": { "full": "Internet Assigned Numbers Authority", "plain": "The body that hands out the internet's official numbers, such as ports and organization numbers." },
+    "IB": { "full": "Current, phase B", "plain": "The current in phase B of a three-phase line." },
+    "IC": { "full": "Current, phase C", "plain": "The current in phase C of a three-phase line." },
+    "iCalendar": { "full": "iCalendar", "plain": "The standard calendar format. OpenADR uses its way of writing start times and durations." },
+    "ICC": { "full": "ICC-specific scope", "plain": "Values in one partner's own domain on an ICCP server, which only that partner may see." },
+    "IDCODE": { "full": "Identification code", "plain": "The number of a PMU data stream. Sender and receiver must use the same one." },
+    "idToken": { "full": "Identifier token", "plain": "In OCPP, the identity a driver shows to charge, such as the number of an RFID card." },
+    "IEC": { "full": "International Electrotechnical Commission", "plain": "The world body that writes standards for electrical technology, such as IEC 60870 and IEC 61850." },
+    "IEC 104": { "full": "IEC 60870-5-104", "plain": "A protocol a control center uses to read and command substations over a network." },
+    "IEC 61850": { "full": "IEC 61850", "plain": "The international standard for data models and messages in substations and power plants." },
+    "IED": { "full": "Intelligent electronic device", "plain": "A device with its own processor in a substation, such as a protection relay or a meter." },
+    "IEEE": { "full": "Institute of Electrical and Electronics Engineers", "plain": "A professional body that also writes standards, such as IEEE 1815 (DNP3) and C37.118." },
+    "IEEE 754": { "full": "IEEE standard for floating-point arithmetic", "plain": "How computers store decimal numbers in bits; a single-precision float takes 4 bytes." },
+    "IIN": { "full": "Internal indications", "plain": "Two status bytes in every DNP3 answer: events waiting, clock not set, buffer full and more." },
+    "IKE": { "full": "Internet Key Exchange", "plain": "The protocol two devices use to check each other's certificates and agree on keys." },
+    "IN": { "full": "Neutral current", "plain": "The current in the neutral; zero when the three phases are balanced and healthy." },
+    "INF": { "full": "Information number", "plain": "The number of one signal within a relay's function type (FUN)." },
+    "InformationReport": { "full": "InformationReport (MMS service)", "plain": "The MMS message a device sends without being asked, carrying values that changed." },
+    "IOA": { "full": "Information object address", "plain": "The address of one signal, such as a breaker or a measurement, inside a station." },
+    "IP": { "full": "Internet Protocol", "plain": "The addressing that moves packets across networks: every device has an IP address." },
+    "IPsec": { "full": "Internet Protocol Security", "plain": "Encryption at the network level, often used to build a VPN between two sites." },
+    "IPv4": { "full": "Internet Protocol version 4", "plain": "The common version of IP, with addresses such as 10.1.0.11." },
+    "IPv6": { "full": "Internet Protocol version 6", "plain": "The newer form of internet address, written as groups of hex digits, such as fe80::ff:fe00:a1." },
+    "IRIG": { "full": "Inter-Range Instrumentation Group", "plain": "A US group that defined standard time codes; IRIG-B is the one substations use." },
+    "IRIG-B": { "full": "Inter-Range Instrumentation Group time code, format B", "plain": "A time signal sent on a cable to set the clocks of substation devices." },
+    "ISA": { "full": "International Society of Automation", "plain": "A professional body whose committee wrote the 62443 standards, published jointly with the IEC." },
+    "ISO": { "full": "International Organization for Standardization", "plain": "A world standards body. Its network layers carry MMS and ICCP messages." },
+    "ISO 3166": { "full": "ISO 3166", "plain": "The international list of country codes, such as NL or NLD for the Netherlands." },
+    "ISO 8601": { "full": "ISO 8601", "plain": "The international way to write dates, times and durations, such as PT1H for one hour." },
+    "ISO14443": { "full": "ISO/IEC 14443", "plain": "The standard for contactless cards read at a few centimeters, as most charging cards are." },
+    "IT": { "full": "Information Technology", "plain": "Office computers and networks: email, files, business software." },
+    "IV": { "full": "Initialization Vector", "plain": "A starting value for encryption, so the same message encrypts differently each time." },
+    "JoinAccept": { "full": "Join accept", "plain": "The network's encrypted answer to a join request: an address and the numbers for new keys." },
+    "JoinEUI": { "full": "Join EUI", "plain": "The 64-bit ID of the join server, which checks joins and makes the keys." },
+    "JoinNonce": { "full": "Join nonce", "plain": "A counter the join server puts in each join accept, used to make new keys." },
+    "JoinRequest": { "full": "Join request", "plain": "The message a LoRaWAN sensor sends to ask to join a network." },
+    "JSON": { "full": "JavaScript Object Notation", "plain": "A common text format for data: names and values between curly braces." },
+    "KDC": { "full": "Key distribution center", "plain": "A server that checks devices and gives every member of a group the same secret key." },
+    "LAN": { "full": "Local area network", "plain": "A network inside one building or site, such as a substation." },
+    "LE": { "full": "Light Edition (IEC 61850-9-2 LE)", "plain": "A simple, widely used profile of sampled values with fixed sample rates and eight values." },
+    "LF": { "full": "Line Feed", "plain": "A control byte (0x0A) that, with a carriage return, ends a line of text." },
+    "LFDI": { "full": "Long-form device identifier", "plain": "A device's ID in IEEE 2030.5: the first 20 bytes of its certificate's fingerprint." },
+    "lFDI": { "full": "Long-form device identifier", "plain": "A device's ID in IEEE 2030.5: the first 20 bytes of its certificate's fingerprint." },
+    "LLN0": { "full": "Logical node zero", "plain": "The logical node that holds a device's common data and its control blocks." },
+    "LLS": { "full": "Low-Level Security", "plain": "A DLMS login with a plain password, which travels unprotected." },
+    "LoRa": { "full": "Long Range", "plain": "The radio method LoRaWAN uses: it reaches kilometers with little power, but sends slowly." },
+    "M_DP_TB_1": { "full": "Double-point information with time tag", "plain": "An IEC 104 message with the position of a two-state device, such as a breaker, and its time." },
+    "MAC": { "full": "Media access control, or message authentication code", "plain": "On a network: a card's hardware address or the layer that shares the medium. In security: a check value made with a secret key." },
+    "MBAP": { "full": "Modbus Application Protocol header", "plain": "The 7 bytes that start every Modbus TCP message: transaction ID, protocol ID, length and unit ID." },
+    "MHDR": { "full": "MAC header", "plain": "The first byte of a LoRaWAN frame: the message type and version." },
+    "MIC": { "full": "Message integrity code", "plain": "A few bytes computed with a secret key that prove a message is genuine and unchanged." },
+    "MMS": { "full": "Manufacturing Message Specification", "plain": "A messaging standard for reading and writing named values. IEC 61850 and ICCP run on it." },
+    "MMXU": { "full": "Measurement unit (logical node class)", "plain": "The IEC 61850 logical node that holds measurements: power, voltage, current, frequency." },
+    "Modbus": { "full": "Modbus", "plain": "A simple, old and very common protocol to read and write values in industrial devices." },
+    "mRID": { "full": "Master resource identifier", "plain": "A 128-bit ID, unique worldwide, that names one event, control or program." },
+    "MSG": { "full": "Message", "plain": "An OPC UA service message, such as Read or Browse, on an open secure channel." },
+    "MT": { "full": "Manufacturer Table", "plain": "A C12.19 table whose content the meter's maker decides, numbered from 2048." },
+    "MU": { "full": "Merging unit", "plain": "A box next to the current and voltage transformers that measures them and sends samples on the network." },
+    "MV": { "full": "Measured value (data type)", "plain": "The IEC 61850 type for an analog measurement: its magnitude, quality and time." },
+    "MX": { "full": "Measured values (functional constraint)", "plain": "The group of IEC 61850 attributes that hold measurements." },
+    "NBIRTH": { "full": "Node birth certificate", "plain": "The first Sparkplug message of an edge node: all its metrics, with names, aliases and types." },
+    "NCMD": { "full": "Node command", "plain": "A command from the host to an edge node, such as a request to rebirth." },
+    "NDATA": { "full": "Node data", "plain": "New values of the edge node's own metrics, sent by alias." },
+    "NDEATH": { "full": "Node death certificate", "plain": "Says an edge node is gone; usually the broker publishes it as the node's will." },
+    "ndsCom": { "full": "Needs commissioning", "plain": "A flag saying the sender's setup is not complete yet." },
+    "NetID": { "full": "Network identifier", "plain": "The number of the LoRaWAN network operator; 0 means a private network." },
+    "NMT": { "full": "Network management", "plain": "The CANopen messages that start, stop and reset the nodes on a bus." },
+    "NodeId": { "full": "Node identifier", "plain": "A node's address in an OPC UA server: a namespace index and a number, string, GUID or byte string." },
+    "nonce": { "full": "Number used once", "plain": "A random or counting number used only once, so that an old message cannot be replayed." },
+    "NPDU": { "full": "Network protocol data unit", "plain": "BACnet's network layer header: version, control bits and, if needed, network addresses." },
+    "NTP": { "full": "Network Time Protocol", "plain": "How devices set their clocks from a time server over the network." },
+    "NULL": { "full": "Null value", "plain": "An empty value; in BACnet, writing it releases a command slot." },
+    "NwkSKey": { "full": "Network session key", "plain": "The key the network uses to check that each frame is genuine." },
+    "OASIS": { "full": "Organization for the Advancement of Structured Information Standards", "plain": "The standards body that publishes MQTT." },
+    "OBIS": { "full": "Object Identification System", "plain": "Six numbers that name a value inside a meter, such as 1.8.0 for energy taken from the grid." },
+    "OPC UA": { "full": "OPC Unified Architecture", "plain": "A protocol for industrial systems to exchange data, with built-in security." },
+    "openssl": { "full": "OpenSSL", "plain": "A free command-line tool and library for certificates, keys and encryption." },
+    "OPN": { "full": "OpenSecureChannel", "plain": "The OPC UA message that opens or renews a secure channel." },
+    "OT": { "full": "Operational Technology", "plain": "The computers and controllers that run physical machines, such as a plant or a grid." },
+    "OTAA": { "full": "Over-the-air activation", "plain": "Joining a LoRaWAN network by radio: the sensor and network make fresh session keys each time." },
+    "P-256": { "full": "NIST P-256 elliptic curve (secp256r1)", "plain": "The most widely supported elliptic curve for key exchange and signatures." },
+    "PATCH": { "full": "HTTP PATCH", "plain": "The HTTP request that changes only some fields of an object." },
+    "PCS": { "full": "Power conversion system", "plain": "The large converter between a battery and the grid: it charges and discharges the battery." },
+    "PDC": { "full": "Phasor data concentrator", "plain": "A computer that collects the streams of many PMUs and lines them up by time stamp." },
+    "PDO": { "full": "Process data object", "plain": "A CANopen message of live values, sent on a schedule or on change, without being asked." },
+    "PDU": { "full": "Protocol data unit", "plain": "One message of a protocol layer: its header and its content." },
+    "PE": { "full": "Protective earth", "plain": "The safety ground wire. Control pilot signals are measured against it." },
+    "PIM": { "full": "Protocol Independent Multicast", "plain": "A routing protocol that tells routers where to forward multicast packets." },
+    "PINGREQ": { "full": "Ping request", "plain": "A tiny MQTT packet that says: I am still here." },
+    "PINGRESP": { "full": "Ping response", "plain": "The broker's answer to PINGREQ." },
+    "PKI": { "full": "Public key infrastructure", "plain": "The system of trusted authorities that issue and sign certificates, so that devices can trust each other." },
+    "PLC": { "full": "Programmable logic controller, or powerline communication", "plain": "An industrial control computer; in EV charging, data sent over the charging cable itself." },
+    "Plug & Charge": { "full": "Plug & Charge", "plain": "Charging without a card or app: the car proves the driver's contract itself, with a certificate." },
+    "PMU": { "full": "Phasor measurement unit", "plain": "A device that measures voltage and current waves, with exact time stamps from GPS." },
+    "POST": { "full": "HTTP POST", "plain": "The HTTP request that sends new data to a web address, such as a message or a record." },
+    "PP": { "full": "Proximity pilot", "plain": "A pin in the plug whose resistor tells the charger how much current the cable can carry." },
+    "PPS": { "full": "Pulse per second", "plain": "A clock signal that marks the exact start of every second." },
+    "present-value": { "full": "Present value property", "plain": "The BACnet property that holds an object's current value." },
+    "PRM": { "full": "Primary message bit", "plain": "A bit that says whether a frame starts an exchange (1) or answers one (0)." },
+    "protobuf": { "full": "Protocol Buffers", "plain": "A compact binary format for structured data, smaller and faster to read than JSON." },
+    "PRP": { "full": "Parallel Redundancy Protocol", "plain": "Sends every frame over two separate networks at once, so one failure loses nothing." },
+    "PTP": { "full": "Precision Time Protocol (IEEE 1588)", "plain": "Sends time over a network and corrects each delay, keeping clocks within a microsecond." },
+    "PUBACK": { "full": "Publish acknowledgment", "plain": "The receipt for a QoS 1 PUBLISH: the message has arrived." },
+    "PUBLISH": { "full": "Publish packet", "plain": "An MQTT packet that carries a message to a topic." },
+    "PUT": { "full": "HTTP PUT", "plain": "The HTTP request that creates or replaces the object at a web address." },
+    "PV": { "full": "Photovoltaic", "plain": "Solar panels that turn sunlight into electricity." },
+    "QOI": { "full": "Qualifier of interrogation", "plain": "Says which signals an interrogation asks for: 20 means all of them." },
+    "QoS": { "full": "Quality of service", "plain": "How hard MQTT tries to deliver a message: at most once, at least once, or exactly once." },
+    "R-GOOSE": { "full": "Routable GOOSE", "plain": "GOOSE carried in UDP over IP, so it can cross routers to other substations." },
+    "R-SV": { "full": "Routable sampled values", "plain": "Sampled values carried in UDP over IP, so they can cross routers." },
+    "ReadProperty": { "full": "ReadProperty service", "plain": "Asks a BACnet device for one property of one object." },
+    "REAL": { "full": "REAL data type", "plain": "A decimal number in 4 bytes (IEEE 754 single precision)." },
+    "REQ_UD2": { "full": "Request user data, class 2", "plain": "The M-Bus message that asks a meter to send its readings." },
+    "REST": { "full": "Representational state transfer", "plain": "A style of web interface: each thing has its own web address, read and changed with HTTP." },
+    "RFC": { "full": "Request for Comments", "plain": "A numbered internet standard. RFC 1006 carries ISO messages over TCP." },
+    "RFID": { "full": "Radio-frequency identification", "plain": "Contactless cards and tags, read by holding them near a reader, like a building pass." },
+    "RLRE": { "full": "Release Response", "plain": "The answer confirming that a session has ended." },
+    "RLRQ": { "full": "Release Request", "plain": "A message asking to end a session cleanly." },
+    "rms": { "full": "Root mean square", "plain": "The effective value of an alternating current or voltage: what a meter shows." },
+    "RotSpd": { "full": "Rotor speed", "plain": "The data object for how fast the rotor turns, in revolutions per minute." },
+    "RP": { "full": "Unbuffered report", "plain": "Marks an unbuffered report control block: changes during a lost connection are not kept." },
+    "RP002": { "full": "LoRaWAN Regional Parameters", "plain": "The LoRa Alliance document that sets frequencies, data rates and power limits for each region." },
+    "RptEna": { "full": "Report enable", "plain": "The attribute a client sets to TRUE so that a report control block starts sending." },
+    "RS-232": { "full": "Recommended Standard 232", "plain": "The classic serial port of computers and devices, for short cables." },
+    "RS-485": { "full": "Recommended Standard 485", "plain": "A common two-wire serial cable that links several devices on one line." },
+    "RSA": { "full": "Rivest-Shamir-Adleman", "plain": "A widely used public-key method for signatures and encryption, named after its three inventors." },
+    "RSP_UD": { "full": "Respond with user data", "plain": "A meter's M-Bus answer that carries its readings." },
+    "RSSI": { "full": "Received signal strength indicator", "plain": "How strong a radio signal arrived, in dBm: closer to 0 is stronger." },
+    "RTU": { "full": "Remote terminal unit", "plain": "The box at a site that collects its signals and reports them to the control room." },
+    "RX1": { "full": "Receive window 1", "plain": "The first moment a class A sensor listens: usually 1 s after its uplink, on the same channel." },
+    "RX2": { "full": "Receive window 2", "plain": "The second moment a class A sensor listens: 1 s after RX1, on a fixed channel." },
+    "S-frame": { "full": "Supervisory frame", "plain": "An IEC 104 frame that only confirms the data frames received so far." },
+    "SAv5": { "full": "Secure Authentication version 5", "plain": "The DNP3 security add-on that checks that critical commands come from the real master." },
+    "SCADA": { "full": "Supervisory control and data acquisition", "plain": "The control room's system that watches and operates the grid from afar." },
+    "SCL": { "full": "System Configuration description Language (IEC 61850-6)", "plain": "The XML files that describe IEC 61850 devices, their data and how they talk." },
+    "SDO": { "full": "Service data object", "plain": "A CANopen question and answer that reads or writes one value in a device." },
+    "SDP": { "full": "SECC discovery protocol", "plain": "The car's first network message, asking where the charger's controller can be reached." },
+    "SECC": { "full": "Supply equipment communication controller", "plain": "The computer in the charger that talks to the car." },
+    "secp256r1": { "full": "NIST P-256 elliptic curve", "plain": "The technical name of the P-256 curve, the most widely supported curve for keys and signatures." },
+    "SEQ": { "full": "Sequence number", "plain": "A counter that ties an answer or a confirmation to the message it belongs to." },
+    "seq": { "full": "Sequence number", "plain": "Counts 0 to 255 across an edge node's messages, so that a gap shows a lost message." },
+    "SF12": { "full": "Spreading factor 12", "plain": "The slowest common LoRa setting: longest range, but much longer time on air." },
+    "SF7": { "full": "Spreading factor 7", "plain": "The fastest common LoRa setting: shortest time on air, shortest range." },
+    "SFDI": { "full": "Short-form device identifier", "plain": "A short device ID a person can type: 36 bits of the certificate's fingerprint plus a check digit." },
+    "sFDI": { "full": "Short-form device identifier", "plain": "A short device ID a person can type: 36 bits of the certificate's fingerprint plus a check digit." },
+    "SHA-256": { "full": "Secure Hash Algorithm, 256-bit", "plain": "A method that turns any data into a fixed 32-byte fingerprint." },
+    "SignAndEncrypt": { "full": "Security mode SignAndEncrypt", "plain": "Every OPC UA message is signed against changes and encrypted against reading." },
+    "SimpleACK": { "full": "Simple acknowledgment", "plain": "A BACnet answer that only says: done." },
+    "SIN": { "full": "Supplementary information", "plain": "An extra byte in an IEC 103 message. In a GI answer, it holds the scan number." },
+    "SL": { "full": "Security Level", "plain": "How strong an attacker a zone or product must stand up to, from SL 1 to SL 4." },
+    "SL-A": { "full": "Achieved security level", "plain": "The security level a zone really reaches, as built and run." },
+    "SL-C": { "full": "Capability security level", "plain": "The security level a product can reach when it is set up correctly." },
+    "SL-T": { "full": "Target security level", "plain": "The security level a zone should reach, decided from its risks." },
+    "SLAC": { "full": "Signal level attenuation characterization", "plain": "How a car's powerline modem finds the charger on its own cable, by comparing signal strengths." },
+    "smpCnt": { "full": "Sample counter", "plain": "Numbers each sampled-values frame; it counts up and starts again at 0 every second." },
+    "smpSynch": { "full": "Sample synchronization", "plain": "Says whether samples follow a shared clock: 0 means no; 1 or 2 name the kind of clock." },
+    "SND_NKE": { "full": "Send link reset", "plain": "The M-Bus message that resets the link to a meter before it is read." },
+    "SND_NR": { "full": "Send, no reply", "plain": "A wireless M-Bus message a meter sends on its own, expecting no answer." },
+    "SNR": { "full": "Signal-to-noise ratio", "plain": "How far a signal stands above the background noise, in dB; LoRa still works below 0." },
+    "SOC": { "full": "Second of century", "plain": "The whole seconds of a C37.118 time stamp, counted from 1 January 1970 UTC." },
+    "SOH": { "full": "Start of Heading", "plain": "A control byte (0x01) that starts a command message." },
+    "SP": { "full": "Setting (functional constraint)", "plain": "The group of IEC 61850 attributes that hold settings, such as set points." },
+    "spBv1.0": { "full": "Sparkplug B version 1.0 namespace", "plain": "The first level of every Sparkplug B topic." },
+    "SPDU": { "full": "Session protocol data unit", "plain": "In R-GOOSE, the session header; its number grows with every message, so old ones cannot be replayed." },
+    "sqNum": { "full": "Sequence number", "plain": "Counts the copies of one GOOSE state; it starts again at 0 after each change." },
+    "ST": { "full": "Status (IEC 61850), or standard table (ANSI C12.19)", "plain": "In IEC 61850, the group of status values; in a North American meter, one of the standard data tables." },
+    "STALE": { "full": "Stale quality", "plain": "A value still shown but no longer current, because its source has gone offline." },
+    "STARTDT": { "full": "Start data transfer", "plain": "The IEC 104 command that lets data start flowing on a connection." },
+    "STAT": { "full": "Status word", "plain": "Two bytes of flags in each C37.118 data frame: data valid, clock in sync, and more." },
+    "STATE": { "full": "Host state", "plain": "The retained message in which a Sparkplug host application says it is online or offline." },
+    "stNum": { "full": "State number", "plain": "Counts changes in a GOOSE stream; it goes up by one each time the data changes." },
+    "STP": { "full": "Start of Packet", "plain": "The byte 0xEE that begins every C12.18 packet." },
+    "STX": { "full": "Start of Text", "plain": "A control byte (0x02) that marks where the data begins." },
+    "SUBACK": { "full": "Subscribe acknowledgment", "plain": "The broker's answer to SUBSCRIBE: the QoS granted for each filter, or a refusal." },
+    "SUBSCRIBE": { "full": "Subscribe packet", "plain": "Asks the MQTT broker for the messages of one or more topic filters." },
+    "SubscribeCOV": { "full": "SubscribeCOV service", "plain": "Asks a BACnet device to report the changes of an object's value." },
+    "SV": { "full": "Sampled values", "plain": "Streams of instant measurements of current and voltage, sent thousands of times a second." },
+    "svID": { "full": "Sampled values ID", "plain": "The name of a sampled-values stream, set in the SCL file and checked by subscribers." },
+    "TAI": { "full": "International Atomic Time", "plain": "The time scale of atomic clocks, without leap seconds; now 37 seconds ahead of UTC." },
+    "TC": { "full": "Transparent clock", "plain": "A network switch that measures how long it holds each PTP message and adds that to it." },
+    "TCP": { "full": "Transmission Control Protocol", "plain": "A reliable connection between two computers: data arrives complete and in order." },
+    "TLS": { "full": "Transport Layer Security", "plain": "Encryption around a connection, as in https: it hides the data and proves who is talking." },
+    "TotW": { "full": "Total active power (data object)", "plain": "The IEC 61850 name for the total real power a device produces or uses." },
+    "TPDO1": { "full": "Transmit process data object 1", "plain": "The first process data object a CANopen node sends out." },
+    "TPKT": { "full": "ISO transport packet header (RFC 1006)", "plain": "Four bytes in front of each MMS message that give its length on TCP." },
+    "TR": { "full": "Technical Report", "plain": "An IEC document that gives guidance but is not a full standard." },
+    "TS001": { "full": "LoRaWAN Link Layer Specification", "plain": "The LoRa Alliance document that defines LoRaWAN frames, joining and security." },
+    "TSO": { "full": "Transmission system operator", "plain": "The company that runs the high-voltage grid that carries power over long distances." },
+    "TTL": { "full": "Time to live", "plain": "A counter in an IP packet: each router lowers it, and at zero the packet is dropped." },
+    "TurSt": { "full": "Turbine status", "plain": "The data object that holds the turbine's operating state." },
+    "U-frame": { "full": "Unnumbered frame", "plain": "An IEC 104 control frame, for example to start data transfer or test the link." },
+    "UA TCP": { "full": "OPC UA Connection Protocol (UACP)", "plain": "OPC UA's small protocol on top of TCP: Hello, Acknowledge, then messages cut into chunks." },
+    "UDP": { "full": "User Datagram Protocol", "plain": "A quick way to send messages without a connection or a delivery check." },
+    "UnconfirmedCOVNotification": { "full": "Unconfirmed COV notification", "plain": "A change-of-value report that needs no answer." },
+    "Unix time": { "full": "Unix time", "plain": "Time counted in seconds since 1 January 1970, 00:00 UTC." },
+    "UNS": { "full": "Unsolicited", "plain": "A DNP3 bit that marks a message sent without a request." },
+    "URI": { "full": "Uniform Resource Identifier", "plain": "A unique name written like a web address; it does not have to lead to a real page." },
+    "URL": { "full": "Uniform Resource Locator", "plain": "An address written as text, like a web address, that says where to connect." },
+    "URN": { "full": "Uniform Resource Name", "plain": "A fixed, unique name for something. Unlike a URL, it is not an address to open." },
+    "UTC": { "full": "Coordinated Universal Time", "plain": "The world's standard time, without time zones or summer time." },
+    "UTF-8": { "full": "Unicode Transformation Format, 8-bit", "plain": "The common way to store text in any language as bytes." },
+    "V2G": { "full": "Vehicle-to-grid", "plain": "Communication, and sometimes energy, flowing between electric cars and the power grid." },
+    "V2GTP": { "full": "V2G transfer protocol", "plain": "The 8-byte header in front of every message between car and charger." },
+    "VA": { "full": "Voltage, phase A", "plain": "The voltage of phase A of a three-phase line." },
+    "VAA": { "full": "Virtual Application Association", "plain": "The name a DLMS meter gives to the kind of session that is open." },
+    "varint": { "full": "Variable-length integer", "plain": "A whole number stored in as few bytes as it needs, 7 bits per byte." },
+    "VAT": { "full": "Value-added tax", "plain": "The sales tax added to a price in Europe and many other countries." },
+    "VB": { "full": "Voltage, phase B", "plain": "The voltage of phase B of a three-phase line." },
+    "VC": { "full": "Voltage, phase C", "plain": "The voltage of phase C of a three-phase line." },
+    "VCC": { "full": "Virtual control center", "plain": "The part of an ICCP server shared by all partners, each allowed only what its table lists." },
+    "VEN": { "full": "Virtual end node", "plain": "In OpenADR, the box or program on the customer's side that receives events and acts on them." },
+    "VIF": { "full": "Value Information Field", "plain": "The byte that says what an M-Bus value measures and in which unit." },
+    "VLAN": { "full": "Virtual LAN", "plain": "A tag in an Ethernet frame that splits one network into separate groups and sets a priority." },
+    "VN": { "full": "Neutral voltage", "plain": "The voltage of the neutral; zero when the three phases are balanced and healthy." },
+    "VPN": { "full": "Virtual private network", "plain": "An encrypted tunnel between two sites across a shared network." },
+    "VSQ": { "full": "Variable structure qualifier", "plain": "Says how many values an IEC 60870-5 message carries and how their addresses are given." },
+    "VT": { "full": "Voltage transformer", "plain": "A transformer that scales a line's high voltage down to a small one that devices can measure." },
+    "VTN": { "full": "Virtual top node", "plain": "In OpenADR, the utility's or aggregator's server that sends events." },
+    "WAN": { "full": "Wide area network", "plain": "A network that links distant sites, such as substations many kilometers apart." },
+    "WAPC": { "full": "Wind power plant active power control", "plain": "The logical node that sets how much active power the whole wind park may deliver." },
+    "WCNV": { "full": "Wind turbine converter", "plain": "The logical node for the power converter between the generator and the grid." },
+    "WebSocket": { "full": "WebSocket protocol", "plain": "A lasting two-way web connection, so both sides can send messages at any time." },
+    "WebSockets": { "full": "WebSocket protocol", "plain": "A lasting two-way connection that starts as a web request and passes most firewalls." },
+    "WGEN": { "full": "Wind turbine generator", "plain": "The logical node for the generator, which turns rotation into electricity." },
+    "Who-Is": { "full": "Who-Is service", "plain": "A broadcast question: which devices, in this number range, are out there?" },
+    "WMET": { "full": "Wind power plant meteorological information", "plain": "The logical node for weather data: wind speed and direction, temperature and more." },
+    "WNAC": { "full": "Wind turbine nacelle", "plain": "The logical node for the nacelle, the housing on top of the tower." },
+    "wPort": { "full": "Wrapper port", "plain": "A number in the DLMS header on TCP that says which client or which part of the meter talks." },
+    "WriteProperty": { "full": "WriteProperty service", "plain": "Sets one property of one object in a BACnet device, optionally at a priority." },
+    "WROT": { "full": "Wind turbine rotor", "plain": "The logical node for the rotor: how fast it turns, and its blades." },
+    "WTUR": { "full": "Wind turbine general information", "plain": "The logical node for the turbine as a whole: its power output and operating state." },
+    "X.509": { "full": "X.509 certificate format", "plain": "The usual format of a digital certificate: a device's ID card, signed by a certificate authority." },
+    "xDLMS": { "full": "Extended DLMS", "plain": "The part of DLMS that carries the reads, writes and commands once a session is open." },
+    "XML": { "full": "Extensible Markup Language", "plain": "A text format for structured data, with named tags in angle brackets." },
+    "XMPP": { "full": "Extensible Messaging and Presence Protocol", "plain": "A chat-style messaging protocol in which a server can push messages to clients at any time." },
+    "XOR": { "full": "Exclusive OR", "plain": "A bit operation that flips each bit where the key has a 1. Doing it twice restores the original." }
 }

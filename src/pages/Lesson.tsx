@@ -313,9 +313,7 @@ function Facts({ meta, words, keys }: { meta: Meta; words: Words; keys: readonly
                         return value ? (
                             <div key={key} className="contents">
                                 <dt className="text-muted-foreground">{t(`fact.${key}` as MessageKey)}</dt>
-                                <dd>
-                                    <Rich text={value} />
-                                </dd>
+                                <dd>{value}</dd>
                             </div>
                         ) : null;
                     })}

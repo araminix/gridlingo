@@ -14,7 +14,13 @@ export function valuesAt(row: Points["rows"][number], steps: readonly Step[], cu
 export function DeviceState({ points, steps, current, words }: { points: Points; steps: readonly Step[]; current: number; words: Words }) {
     const { t } = useI18n();
     return (
-        <table className="w-full text-sm [overflow-wrap:anywhere]">
+        <table className="w-full table-fixed text-sm">
+            <colgroup>
+                <col className="w-[30%]" />
+                <col className="w-[30%]" />
+                <col className="w-[20%]" />
+                <col className="w-[20%]" />
+            </colgroup>
             <thead>
                 <tr className="border-b text-start text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
                     <th className="py-2 pe-2 text-start font-semibold">{t("points.address")}</th>
@@ -23,12 +29,12 @@ export function DeviceState({ points, steps, current, words }: { points: Points;
                     <th className="py-2 text-start font-semibold">{words.device(points.receiver)}</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody className="break-words">
                 {points.rows.map((row) => {
                     const { inDevice, inReceiver } = valuesAt(row, steps, current);
                     return (
                         <tr key={row.id} className="border-b last:border-0">
-                            <td dir="ltr" className="py-2 pe-2 text-left font-mono text-xs rtl:text-right">
+                            <td dir="ltr" className="py-2 pe-2 text-left font-mono text-xs [overflow-wrap:anywhere] rtl:text-right">
                                 {row.address}
                             </td>
                             <td className="py-2 pe-2">{words.point(row.id)}</td>

@@ -21,6 +21,7 @@ messages between them, every byte of each frame and what it means, and what each
 
 ## What a lesson shows
 
+- **In plain words**: what the protocol is for, with an everyday comparison and no jargon, before anything else.
 - **The site**: the devices drawn in place (SCADA, RTUs, relays, inverters, batteries, turbines, meters, chargers),
   the cables between them, and each frame travelling on its way.
 - **The sequence**: who sends what to whom, in order.
@@ -33,6 +34,8 @@ messages between them, every byte of each frame and what it means, and what each
 - **A playground**: turn a number into bytes in each byte order (and see what a wrong order makes of it), walk an
   IEC 61850 SCL file as a tree (the sample or your own, read in your browser), read sample files line by line.
 - **Watch out in the field**: the mistakes people really make.
+- **A glossary on every term**: abbreviations such as ACK, RTU or CRC are underlined; a tap shows the full name and
+  one plain sentence, in your language.
 
 ## 38 protocols
 
@@ -48,6 +51,8 @@ messages between them, every byte of each frame and what it means, and what each
 
 ## For everyone
 
+- **Three kinds of readers**: professionals get the exact bytes, students get every term explained where it first
+  appears, and someone with no background can read the plain-words box and follow the pictures.
 - **14 languages:** English, 中文, हिन्दी, Español, Français, العربية, فارسی, Português, Русский, 日本語, Deutsch, 한국어,
   Türkçe and Italiano, with Arabic and Persian right to left.
 - **Light and dark themes**, following your system until you choose.
@@ -84,6 +89,7 @@ Pushes to `main` publish it on GitHub Pages ([CI](.github/workflows/ci.yml)).
 ```
 src/
   lessons/        one folder per protocol: lesson.ts (data and bytes), <lang>.json (texts), lesson.test.ts (byte checks)
+  glossary/       the terms explained on a tap, one file per language
   viz/            the site, the sequence, the single-line diagram, the byte inspector, timing, the step player
   playground/     the number encoder, the SCL explorer, sample files
   pages/          the library and the lesson workspace

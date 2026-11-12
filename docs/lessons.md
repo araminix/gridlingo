@@ -21,6 +21,9 @@ nothing in `en.json` is unused, every step has a frame, and every translation ha
 
 ## What a good lesson has
 
+- **`plain`**: 2 to 4 sentences for someone with no technical background. Say what the protocol is for with an
+  everyday comparison (a roll call, numbered lockers, a fire alarm every room hears). No abbreviations, no jargon.
+  It is shown first, in a box titled "In plain words".
 - **One scenario from a real site**, told in 4 to 7 steps: connect, ask, answer, something changes, it is
   acknowledged. Pick the job the protocol is really used for (an RTU reporting a breaker trip, a charger starting a
   session, a meter read at midnight).
@@ -54,12 +57,17 @@ nothing in `en.json` is unused, every step has a frame, and every translation ha
 
 ## How to write the words
 
-People read this to learn, often in their second language, and it is translated into 13 more. So:
+Three kinds of people read a lesson: professionals, students, and people who only want to know what the protocol is
+for. They often read in their second language, and every text is translated into 13 more. So:
 
 - Short sentences. Plain words. One idea per sentence.
 - Say what happens and why it matters, nothing else. No "In this lesson we will…", no "Let's dive in", no praise of
   the protocol, no filler.
-- Write for someone who knows what a network is, but not this protocol. Explain a term the first time, in a few words.
+- In the intro and the step texts, say what a term or an abbreviation means the first time it appears, in a few
+  words: "an RTU (remote terminal unit: the box that collects a site's signals)". Field notes, frame texts and tips
+  may use abbreviations: the glossary explains them (below). But a note still says what a value means, not only its
+  name.
+- Step titles are 2 to 4 words that make sense on their own: "Ask for everything", not "GI".
 - A frame's text (`frames.<id>`) is what it says, as a person would: "Please start sending data", "CB-1 is closed".
 - A field's note says what the bytes mean here, with their value decoded: "0x0D = 13: a measured value as a float".
 - Write numbers, hex, names of types and services exactly as on the wire (`C_IC_NA_1`, `0x88B8`, `MMXU1`). Translators
@@ -67,6 +75,15 @@ People read this to learn, often in their second language, and it is translated 
 - Never copy text, tables or figures from a standard. IEC, IEEE and the DNP Users Group own theirs. Explain in your
   own words; cite the standard's number in `facts.standard`.
 - Be exact. If you are not sure that a byte, a port or a rule is right, find out or leave it out.
+
+## The glossary
+
+`src/glossary/en.json` holds the abbreviations and technical tokens a beginner would not know, each with its full
+name and one plain sentence: `"ACK": { "full": "Acknowledgment", "plain": "A short reply that means \"I got it\"." }`.
+Wherever a lesson's text holds one of them, the site underlines it, and a tap shows the entry. Add the terms your
+lesson uses that are not there yet. A term is written the same in every language (Latin letters), so a word that
+gets translated, like "outstation", is not one; explain those in the text. Each language has its own file with the
+same terms (`src/glossary/<lang>.json`); the tests check that every term is used by a lesson and translated.
 
 ## Check your lesson
 

@@ -46,13 +46,13 @@
     --gold: #f59e0b;
     --gold-foreground: #92400e;
     --gold-soft: #fef3c7;
-    --group-substation: #7c3aed;
+    --group-substation: #6d28d9;
     --group-control: #1d4ed8;
-    --group-plant: #b45309;
-    --group-ev: #047857;
-    --group-metering: #c2410c;
-    --group-iot: #0e7490;
-    --group-security: #be123c;
+    --group-plant: #92400e;
+    --group-ev: #065f46;
+    --group-metering: #9a3412;
+    --group-iot: #155e75;
+    --group-security: #9f1239;
 
     --field-frame: #e0e7ff;
     --field-control: #ccf5f9;
