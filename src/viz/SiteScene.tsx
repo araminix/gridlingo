@@ -103,8 +103,8 @@ export function SiteScene({ scene, frame, words, plate = false }: { scene: Scene
     const shadows = useMemo(
         () =>
             scene.devices.map((device) => {
-                const body = bodyOf(device.kind, device.at[0] * GRID, device.at[1] * GRID);
-                return { id: device.id, cast: shadowOf(body), foot: shadowOf({ ...body, w: body.w + 5, d: body.d + 5, h: 0 }) };
+                const [body, ...parts] = bodyOf(device.kind, device.at[0] * GRID, device.at[1] * GRID);
+                return { id: device.id, cast: [body!, ...parts].map(shadowOf), foot: shadowOf({ ...body!, w: body!.w + 5, d: body!.d + 5, h: 0 }) };
             }),
         [scene],
     );
@@ -148,7 +148,9 @@ export function SiteScene({ scene, frame, words, plate = false }: { scene: Scene
             <g fill="var(--viz-shade)" filter={`url(#${soft})`}>
                 {shadows.map((shadow) => (
                     <Fragment key={shadow.id}>
-                        <polygon points={shadow.cast} />
+                        {shadow.cast.map((points) => (
+                            <polygon key={points} points={points} />
+                        ))}
                         <polygon points={shadow.foot} />
                     </Fragment>
                 ))}

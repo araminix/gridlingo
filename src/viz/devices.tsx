@@ -4,7 +4,7 @@ import { faces, points, project, round, type Box } from "./iso";
 
 /** Each kind's footprint (w along x, d along y) and height, in plan units. */
 const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
-    scada: { w: 52, d: 40, h: 64 },
+    scada: { w: 52, d: 40, h: 46 },
     rtu: { w: 28, d: 22, h: 62 },
     gateway: { w: 30, d: 22, h: 22 },
     relay: { w: 26, d: 20, h: 52 },
@@ -31,8 +31,32 @@ const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     firewall: { w: 36, d: 22, h: 30 },
 };
 
-/** The box a device fills, standing on the ground at (cx, cy): what casts its shadow. */
-export const bodyOf = (kind: DeviceKind, cx: number, cy: number): Box => ({ cx, cy, ...SIZE[kind] });
+/**
+ * A SCADA master as the operator's desk in a control room: a desk top on a side panel and a drawer unit, open below
+ * with a panel at the back, two screens on stands at its back edge, and a keyboard.
+ */
+function scadaParts(cx: number, cy: number) {
+    const { w, d } = SIZE.scada;
+    const [x0, x1, y0] = [cx - w / 2, cx + w / 2, cy - d / 2];
+    const desk: Box = { cx, cy, w, d, h: 24 };
+    const top: Box = { cx, cy, w, d, h: 3, z: 21 };
+    const side: Box = { cx: x0 + 1.5, cy, w: 3, d, h: 21 };
+    const drawers: Box = { cx: x1 - 8, cy, w: 16, d, h: 21 };
+    const back: Box = { cx: (x0 + 3 + x1 - 16) / 2, cy: y0 + 1.5, w: w - 19, d: 2, h: 15, z: 4 };
+    const screens = [-1, 1].map((at): Box => ({ cx: cx + at * 12.75, cy: y0 + 5, w: 24, d: 2.5, h: 18, z: 29 }));
+    const stands = screens.map((screen): Box => ({ cx: screen.cx, cy: screen.cy - 0.5, w: 5, d: 4, h: 5, z: 24 }));
+    const keyboard: Box = { cx: cx - 6, cy: cy + 9, w: 20, d: 7, h: 1.2, z: 24 };
+    return { desk, top, side, drawers, back, screens, stands, keyboard };
+}
+
+/** The boxes a device fills, standing on the ground at (cx, cy): what casts its shadow. */
+export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
+    if (kind === "scada") {
+        const { desk, screens } = scadaParts(cx, cy);
+        return [desk, ...screens];
+    }
+    return [{ cx, cy, ...SIZE[kind] }];
+}
 
 /** How high a device reaches above the ground. */
 export const heightOf = (kind: DeviceKind) => (kind === "turbine" ? SIZE.turbine.h + 44 : kind === "radio" ? SIZE.radio.h + 12 : kind === "sensor" ? SIZE.sensor.h + 10 : SIZE[kind].h);
@@ -62,14 +86,16 @@ const tones = (active: boolean) =>
         ? { top: "var(--viz-active-top)", left: "var(--viz-active-left)", right: "var(--viz-active-right)", edge: "var(--primary)", width: 1.5 }
         : { top: "var(--viz-top)", left: "var(--viz-left)", right: "var(--viz-right)", edge: "var(--viz-edge)", width: 1 };
 
-function Solid({ box, active }: { box: Box; active: boolean }) {
+/** A box in the scene's light; `fine` draws its edges thinner, for small parts. */
+function Solid({ box, active, fine = false }: { box: Box; active: boolean; fine?: boolean }) {
     const f = faces(box);
     const tone = tones(active);
+    const width = fine ? tone.width * 0.6 : tone.width;
     return (
         <>
-            <polygon points={f.left} fill={tone.left} stroke={tone.edge} strokeWidth={tone.width} strokeLinejoin="round" />
-            <polygon points={f.right} fill={tone.right} stroke={tone.edge} strokeWidth={tone.width} strokeLinejoin="round" />
-            <polygon points={f.top} fill={tone.top} stroke={tone.edge} strokeWidth={tone.width} strokeLinejoin="round" />
+            <polygon points={f.left} fill={tone.left} stroke={tone.edge} strokeWidth={width} strokeLinejoin="round" />
+            <polygon points={f.right} fill={tone.right} stroke={tone.edge} strokeWidth={width} strokeLinejoin="round" />
+            <polygon points={f.top} fill={tone.top} stroke={tone.edge} strokeWidth={width} strokeLinejoin="round" />
         </>
     );
 }
@@ -106,29 +132,60 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
     let detail: ReactNode = null;
 
     switch (kind) {
-        case "scada":
-        case "laptop": {
-            if (kind === "laptop") {
-                // A thin base and a screen standing at its back
-                const base: Box = { cx, cy, w: size.w, d: size.d, h: 3 };
-                const screen: Box = { cx, cy: cy - size.d / 2 + 1.5, w: size.w, d: 3, h: size.h };
-                const s = faces(screen);
-                return (
-                    <g>
-                        <Solid box={base} active={active} />
-                        <Solid box={screen} active={active} />
-                        <Panel on={s.onLeft} u0={0.1} v0={0.25} u1={0.9} v1={0.9} fill="var(--viz-screen)" />
-                    </g>
-                );
-            }
-            const trend = [0.16, 0.3, 0.44, 0.58, 0.72, 0.84].map((u, i) => f.onLeft(u, [0.62, 0.7, 0.55, 0.66, 0.5, 0.58][i]!));
-            detail = (
-                <>
-                    <Panel on={f.onLeft} u0={0.1} v0={0.4} u1={0.9} v1={0.88} fill="var(--viz-screen)" />
-                    <Lines list={[trend]} stroke="var(--viz-token)" width={1.5} />
-                </>
+        case "scada": {
+            const { top, side, drawers, back, screens, stands, keyboard } = scadaParts(cx, cy);
+            const unit = faces(drawers).onLeft;
+            const [trend, mimic] = screens.map((screen) => faces(screen).onLeft);
+            // One screen shows two values over time, the other the station's single line with its breakers
+            const wave = (values: number[]) => values.map((v, i) => trend!(0.14 + (i * 0.72) / (values.length - 1), v));
+            const bus = [mimic!(0.14, 0.72), mimic!(0.86, 0.72)];
+            const feeders = [0.3, 0.5, 0.7].map((u) => [mimic!(u, 0.72), mimic!(u, 0.26)]);
+            return (
+                <g>
+                    <Solid box={back} active={active} fine />
+                    <Solid box={side} active={active} fine />
+                    <Solid box={drawers} active={active} fine />
+                    <Lines
+                        list={[
+                            [unit(0, 1 / 3), unit(1, 1 / 3)],
+                            [unit(0, 2 / 3), unit(1, 2 / 3)],
+                            ...[0.17, 0.5, 0.83].map((v) => [unit(0.38, v), unit(0.62, v)]),
+                        ]}
+                        width={0.8}
+                    />
+                    <Solid box={top} active={active} />
+                    {stands.map((stand) => (
+                        <Solid key={stand.cx} box={stand} active={active} fine />
+                    ))}
+                    {screens.map((screen) => (
+                        <Solid key={screen.cx} box={screen} active={active} />
+                    ))}
+                    {screens.map((screen) => (
+                        <Panel key={screen.cx} on={faces(screen).onLeft} u0={0.07} v0={0.12} u1={0.93} v1={0.9} fill="var(--viz-screen)" />
+                    ))}
+                    <Lines list={[wave([0.5, 0.62, 0.56, 0.7, 0.64, 0.76])]} stroke="var(--viz-token)" width={1.2} />
+                    <Lines list={[wave([0.3, 0.34, 0.28, 0.4, 0.36, 0.42])]} stroke="var(--viz-ok)" width={1.2} />
+                    <Lines list={[bus, ...feeders]} stroke="var(--viz-pv)" width={1} />
+                    {[0.3, 0.5, 0.7].map((u, i) => {
+                        const [x, y] = mimic!(u, 0.48);
+                        return <rect key={u} x={round(x - 1.8)} y={round(y - 1.8)} width={3.6} height={3.6} fill={i === 2 ? "var(--viz-token)" : "var(--viz-ok)"} />;
+                    })}
+                    <Solid box={keyboard} active={active} fine />
+                </g>
             );
-            break;
+        }
+        case "laptop": {
+            // A thin base and a screen standing at its back
+            const base: Box = { cx, cy, w: size.w, d: size.d, h: 3 };
+            const screen: Box = { cx, cy: cy - size.d / 2 + 1.5, w: size.w, d: 3, h: size.h };
+            const s = faces(screen);
+            return (
+                <g>
+                    <Solid box={base} active={active} />
+                    <Solid box={screen} active={active} />
+                    <Panel on={s.onLeft} u0={0.1} v0={0.25} u1={0.9} v1={0.9} fill="var(--viz-screen)" />
+                </g>
+            );
         }
         case "rtu":
         case "gateway":
