@@ -91,7 +91,12 @@ export function Home() {
                     <h2 id="library" className="text-2xl font-bold tracking-tight">
                         {t("home.library", { count: CATALOG.length })}
                     </h2>
-                    <div role="group" aria-label={t("home.filter")} className="flex flex-wrap gap-2">
+                    {/* On a phone the filters are one row that scrolls sideways, running to the screen's edges */}
+                    <div
+                        role="group"
+                        aria-label={t("home.filter")}
+                        className="-mx-4 -my-1 flex w-[calc(100%+2rem)] gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] sm:m-0 sm:w-auto sm:flex-wrap sm:overflow-visible sm:p-0"
+                    >
                         {[null, ...FILTERS].map((kind) => (
                             <button
                                 key={kind ?? "all"}
@@ -99,7 +104,7 @@ export function Home() {
                                 aria-pressed={device === kind}
                                 onClick={() => setDevice(kind)}
                                 className={cn(
-                                    "min-h-9 rounded-full border px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                                    "min-h-9 shrink-0 rounded-full border px-3 text-sm whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-ring",
                                     device === kind ? "border-primary bg-primary font-semibold text-primary-foreground" : "bg-card hover:border-primary/60",
                                 )}
                             >
