@@ -62,7 +62,7 @@ export function LessonPage({ id }: { id: string }) {
     );
 }
 
-function Section({ title, hint, children, action, testId }: { title: string; hint?: string; children: ReactNode; action?: ReactNode; testId?: string }) {
+function Section({ title, hint, children, action, testId }: { title: string; hint?: string | undefined; children: ReactNode; action?: ReactNode; testId?: string }) {
     return (
         <Card className="gap-0 overflow-hidden py-0" data-testid={testId}>
             <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 border-b px-4 py-3 [.border-b]:pb-3">
