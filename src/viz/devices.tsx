@@ -62,6 +62,17 @@ function pvParts(cx: number, cy: number): Box[] {
     return [0, 1, 2].map((row) => ({ cx: cx - w / 2 + row * (w / 3) + (w / 3 - 8) / 2, cy, w: w / 3 - 8, d, h }));
 }
 
+/** A wind turbine: a foundation, a round tower narrowing upward, and the nacelle on top, its rotor at the +y end. */
+function turbineParts(cx: number, cy: number) {
+    const top = SIZE.turbine.h - 4;
+    return {
+        pad: { cx, cy, w: 16, d: 16, h: 2 } satisfies Box,
+        tower: { cx, cy, w: SIZE.turbine.w, d: SIZE.turbine.d, h: top } satisfies Box,
+        nacelle: { cx, cy: cy - 6, w: 10, d: 24, h: 9, z: top } satisfies Box,
+        hub: [cx, cy + 7, top + 4.5] as const,
+    };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -79,6 +90,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "turbine") {
+        const { pad, tower, nacelle } = turbineParts(cx, cy);
+        return [pad, tower, nacelle];
+    }
     if (kind === "battery") {
         const { pad, container } = batteryParts(cx, cy);
         return [pad, container];
@@ -485,25 +500,37 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             );
         }
         case "turbine": {
-            const nacelle: Box = { cx, cy: cy - 6, w: 12, d: 22, h: 10, z: size.h - 4 };
-            const [hx, hy] = project(cx, cy + 6, size.h + 1);
+            // The tower is round and narrows upward, lit on its left; the blades turn in the upright plane across the
+            // nacelle (along x and z), drawn flat around the hub and laid into that plane by one matrix
+            const { pad, tower, nacelle, hub } = turbineParts(cx, cy);
+            const ring = (z: number, angle: number) => {
+                const r = 5 - (z / tower.h) * 2.2;
+                const a = (angle * Math.PI) / 180;
+                return project(cx + r * Math.cos(a), cy + r * Math.sin(a), z);
+            };
+            const shell = (from: number, to: number) => quad(ring(2, from), ring(tower.h, from), ring(tower.h, to), ring(2, to));
+            const [hx, hy] = project(...hub);
+            const [ux, uy] = project(hub[0] + 1, hub[1], hub[2]);
+            const [vx, vy] = project(hub[0], hub[1], hub[2] + 1);
+            const plane = `matrix(${[ux - hx, uy - hy, vx - hx, vy - hy, hx, hy].map(round).join(" ")})`;
+            const blade = "M-1.3,3 L-2.9,10 L-0.7,40 L0.4,40 L1.7,10 L1.3,3 Z";
+            const door = quad(ring(3, 80), ring(11, 80), ring(11, 100), ring(3, 100));
             return (
                 <g>
-                    <Solid box={box} active={active} />
+                    <Solid box={pad} active={active} fine />
+                    <polygon points={shell(135, 45)} fill={tone.top} />
+                    <polygon points={shell(45, -45)} fill={tone.right} />
+                    <polygon points={shell(135, -45)} fill="none" stroke={tone.edge} strokeWidth={tone.width} strokeLinejoin="round" />
+                    <polygon points={door} fill={tone.left} stroke={tone.edge} strokeWidth={0.6} />
                     <Solid box={nacelle} active={active} />
-                    <g className="turbine-rotor" style={{ transformOrigin: `${round(hx)}px ${round(hy)}px` }}>
-                        {[0, 120, 240].map((angle) => (
-                            <path
-                                key={angle}
-                                d={`M${round(hx)},${round(hy)} l0,-40`}
-                                transform={`rotate(${angle} ${round(hx)} ${round(hy)})`}
-                                stroke={tone.edge}
-                                strokeWidth={3}
-                                strokeLinecap="round"
-                            />
-                        ))}
+                    <g transform={plane}>
+                        <g className="turbine-rotor" style={{ transformOrigin: "0px 0px" }}>
+                            {[0, 120, 240].map((angle) => (
+                                <path key={angle} d={blade} transform={`rotate(${angle})`} fill={tone.top} stroke={tone.edge} strokeWidth={0.8} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                            ))}
+                        </g>
+                        <circle r={3.2} fill={tone.top} stroke={tone.edge} strokeWidth={1} vectorEffect="non-scaling-stroke" />
                     </g>
-                    <circle cx={round(hx)} cy={round(hy)} r={3} fill={tone.top} stroke={tone.edge} />
                 </g>
             );
         }
