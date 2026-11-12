@@ -49,11 +49,22 @@ function scadaParts(cx: number, cy: number) {
     return { desk, top, side, drawers, back, screens, stands, keyboard };
 }
 
-/** The boxes a device fills, standing on the ground at (cx, cy): what casts its shadow. */
+/** A PV inverter hung on a steel frame of two posts, its cables running down into the ground. */
+function inverterParts(cx: number, cy: number) {
+    const body: Box = { cx, cy: cy + 2, w: SIZE.inverter.w, d: 14, h: 28, z: 10 };
+    const posts = [-1, 1].map((at): Box => ({ cx: cx + at * 10, cy: cy - 6.5, w: 2, d: 2, h: SIZE.inverter.h }));
+    return { body, posts };
+}
+
+/** The boxes a device fills, standing on the ground at (cx, cy) (some raised by z): what casts its shadow. */
 export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
     if (kind === "scada") {
         const { desk, screens } = scadaParts(cx, cy);
         return [desk, ...screens];
+    }
+    if (kind === "inverter") {
+        const { body, posts } = inverterParts(cx, cy);
+        return [...posts, body];
     }
     return [{ cx, cy, ...SIZE[kind] }];
 }
@@ -272,14 +283,32 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
                 </>
             );
             break;
-        case "inverter":
-            detail = (
-                <>
-                    <Panel on={f.onLeft} u0={0.2} v0={0.62} u1={0.8} v1={0.8} fill="var(--viz-screen)" />
-                    <Lines list={[0.2, 0.35, 0.5, 0.65, 0.8].map((u) => [f.onRight(u, 0.15), f.onRight(u, 0.85)])} />
-                </>
+        case "inverter": {
+            // Fins on its side to shed heat; in front a display and lights, and the yellow DC switch with its red handle
+            const { body, posts } = inverterParts(cx, cy);
+            const front = faces(body).onLeft;
+            const fins = faces(body).onRight;
+            const [kx, ky] = front(0.3, 0.24);
+            const bottom = cy + 2 + 7;
+            return (
+                <g>
+                    {posts.map((post) => (
+                        <Solid key={post.cx} box={post} active={active} fine />
+                    ))}
+                    <Lines list={[-7, -2.5, 2, 6.5].map((dx) => [project(cx + dx, bottom - 2, 10), project(cx + dx, bottom - 2, 0)])} width={1.3} />
+                    <Solid box={body} active={active} />
+                    <Lines list={[0.12, 0.25, 0.38, 0.5, 0.62, 0.75, 0.88].map((u) => [fins(u, 0.1), fins(u, 0.9)])} width={1.1} />
+                    <Panel on={front} u0={0.2} v0={0.6} u1={0.6} v1={0.84} fill="var(--viz-screen)" />
+                    <Lines list={[[front(0.26, 0.72), front(0.52, 0.72)]]} stroke="var(--viz-ok)" width={0.8} />
+                    {["var(--viz-ok)", "var(--viz-ok)", "var(--viz-token)"].map((fill, i) => {
+                        const [x, y] = front(0.75, 0.8 - i * 0.1);
+                        return <circle key={i} cx={round(x)} cy={round(y)} r={1} fill={fill} />;
+                    })}
+                    <circle cx={round(kx)} cy={round(ky)} r={2.8} fill="var(--viz-token)" stroke={tone.edge} strokeWidth={0.6} />
+                    <Lines list={[[front(0.22, 0.24), front(0.38, 0.24)]]} stroke="var(--destructive)" width={1.6} />
+                </g>
             );
-            break;
+        }
         case "battery":
             detail = <Lines list={[0.33, 0.66].map((u) => [f.onLeft(u, 0.06), f.onLeft(u, 0.94)])} />;
             break;
