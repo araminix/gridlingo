@@ -1,0 +1,129 @@
+{
+    "intro": "変電所が、サンプル値と同じEthernetを使って、すべてのマージングユニットと保護リレーを1マイクロ秒以内で1つの時計にそろえるしくみです。GPSグランドマスタクロックが毎秒時刻を送ります。各スイッチはメッセージを手元に保持した時間を測ってそれに書き加えるので、どのクロックも途中の遅延を1つずつ補正できます。",
+    "steps": {
+        "announce": { "title": "最良マスタ", "text": "GPSクロックが1秒に1回、グランドマスタとして名乗り出ます。GPSにロック（クロッククラス6）、優先度128です。各クロックは受信したAnnounceメッセージを比べ、最良のものに従います。" },
+        "pdelay": { "title": "ケーブルを測る", "text": "各ポートは1秒に1回、自分のケーブルの遅延を測ります。MUがt1にPdelay_Reqを送り、スイッチがt2に受け取ってt3に応答し、MUはt4に応答を受け取ります。遅延 = ((t4 − t1) − (t3 − t2)) / 2 = 1486 ns。2つのクロックの時刻は合っていなくてかまいません。どちらも差を測るだけだからです。" },
+        "sync": { "title": "Sync", "text": "グランドマスタはSyncを送り、送出した正確な瞬間を記録します。2ステップ方式では、その時刻は後続のFollow_Upで届きます。スイッチはSyncを転送し、入ってきた時刻と出ていった時刻を記録します。" },
+        "correct": { "title": "遅延を加算", "text": "スイッチは、Syncを保持した時間（7.436 µs）と、グランドマスタからのケーブル遅延（0.412 µs）を、Follow_Upの補正フィールドに加えます。オフセット = 到着時刻 − 送出時刻 − 補正値 − MU自身のケーブル遅延 = +2.461318 ms。" },
+        "lock": { "title": "ロック", "text": "MUは時計を2.461318 msだけ一気に戻し、その後はSyncのたびに進み方を微調整します。数秒たつと、オフセットは1 µs未満に収まります。" },
+        "sv": { "title": "そろったサンプル", "text": "MUはサンプル値に同期済みの時刻を付け、そのことをsmpSynchで示します。これでリレーは、他のマージングユニットのサンプルと組み合わせて使えます。" }
+    },
+    "frames": {
+        "announce": "私はグランドマスタ：クラス6、GPSにロック中",
+        "pdelay-req": "このケーブルの遅延は？（t1を記録済み）",
+        "pdelay-resp": "あなたの要求はt2に届きました",
+        "pdelay-fup": "私の応答はt3に出ました",
+        "sync": "これが届いた時刻を記録してください",
+        "fup-gm": "そのSyncは10:41:07.000 000 120 UTCに送出",
+        "fup-tc": "同じく、途中で7848 nsかかった分を加算",
+        "lock": "SyncとFollow_Upを、また毎秒",
+        "sv": "サンプル、同期済みの印付き"
+    },
+    "notes": {
+        "lock": "前と同じ組で、シーケンス番号が大きくなっています。スイッチがSyncを保持する時間は毎回違うので、補正フィールドも毎回違います。MUのオフセットは今や+38 nsです。",
+        "sv": "これはPTPではなくサンプル値のストリームです。そのバイトはIEC 61850 Sampled Valuesのレッスンで見られます。smpSynch = 2は、サンプルがグローバルクロック（ここではPTP経由のGPS）に従っていることを示します。"
+    },
+    "fields": {
+        "dst-all": { "name": "宛先", "note": "01-1B-19-00-00-00：Ethernet上のPTP用マルチキャストアドレス。トランスペアレントクロックは全ポートへ転送します。" },
+        "dst-peer": { "name": "宛先", "note": "01-80-C2-00-00-0E：リンクローカルのマルチキャストアドレス。どのスイッチも転送しないので、Pdelayは1本のケーブルの中にとどまります。" },
+        "src-gm": { "name": "送信元", "note": "グランドマスタのMACアドレス。スイッチはフレームを転送するとき、これを変えません。" },
+        "src-sw": { "name": "送信元", "note": "スイッチのポート3のMACアドレス。" },
+        "src-mu": { "name": "送信元", "note": "マージングユニットのMACアドレス。" },
+        "ethertype": { "name": "EtherType", "note": "0x88F7はPTPを表します。IPもUDPもありません。" },
+        "type-announce": { "name": "Announce", "note": "下位4ビット：メッセージタイプ0xB、Announce。上位4ビット：transportSpecific 0。" },
+        "type-sync": { "name": "Sync", "note": "メッセージタイプ0x0：Sync。" },
+        "type-fup": { "name": "Follow_Up", "note": "メッセージタイプ0x8：Follow_Up。" },
+        "type-preq": { "name": "Pdelay_Req", "note": "メッセージタイプ0x2：ピア遅延要求。" },
+        "type-presp": { "name": "Pdelay_Resp", "note": "メッセージタイプ0x3：ピア遅延応答。" },
+        "type-pfup": { "name": "Pdelay_Resp_Follow_Up", "note": "メッセージタイプ0xA：応答の後続メッセージ。" },
+        "version": { "name": "versionPTP", "note": "2：PTPバージョン2（IEEE 1588-2008）。" },
+        "len64": { "name": "messageLength", "note": "64バイト。ヘッダからメッセージの末尾までです。" },
+        "len54": { "name": "messageLength", "note": "54バイト。3つのPdelayメッセージはどれもこの長さです。" },
+        "len44": { "name": "messageLength", "note": "44バイト：ヘッダとタイムスタンプ1つ。" },
+        "domain": { "name": "domainNumber", "note": "0、IEC 61850-9-3の既定値です。クロックは別のドメインのメッセージを無視します。" },
+        "reserved1": { "name": "予約", "note": "0。" },
+        "reserved4": { "name": "予約", "note": "0。" },
+        "flags-announce": { "name": "flagField", "note": "0x003C：UTCオフセットが有効、PTPタイムスケールを使用、時刻と周波数が（GPSに）トレーサブル。" },
+        "flags-two-step": { "name": "flagField", "note": "0x0200：twoStepFlag。正確な送出時刻は2つ目のメッセージで届きます。" },
+        "flags-0": { "name": "flagField", "note": "フラグなし。" },
+        "corr-0": { "name": "correctionField", "note": "0：まだ加算するものはありません。" },
+        "corr-tc": { "name": "correctionField", "note": "0x1EA80000、単位はナノ秒 × 2^16：7848 ns = スイッチ内の7436 ns + グランドマスタからのケーブル412 ns。" },
+        "port-gm": { "name": "sourcePortIdentity", "note": "MACアドレスから作ったグランドマスタのclockIdentityと、ポート1。" },
+        "port-sw": { "name": "sourcePortIdentity", "note": "スイッチのclockIdentityと、ポート3。" },
+        "port-mu": { "name": "sourcePortIdentity", "note": "MUのclockIdentityと、ポート1。" },
+        "seq-announce": { "name": "sequenceId", "note": "0x02A7 = 679。メッセージタイプごとに別々に数えます。" },
+        "seq-sync": { "name": "sequenceId", "note": "0x2C1B = 11291。" },
+        "seq-fup": { "name": "sequenceId", "note": "0x2C1B：対応するSyncと同じ番号。" },
+        "seq-pdelay": { "name": "sequenceId", "note": "0x0151 = 337。2つの応答はどちらも要求の番号を持ちます。" },
+        "control-other": { "name": "controlField", "note": "0x05：その他のメッセージ。PTPバージョン1の機器のために残されているフィールドです。" },
+        "control-sync": { "name": "controlField", "note": "0x00：Sync。" },
+        "control-fup": { "name": "controlField", "note": "0x02：Follow_Up。" },
+        "interval-1s": { "name": "logMessageInterval", "note": "0：2^0 = 1 sに1回。" },
+        "interval-none": { "name": "logMessageInterval", "note": "0x7F：このメッセージには送信間隔がありません。" },
+        "origin-announce": { "name": "originTimestamp", "note": "0：Announceでは空のままでかまいません。" },
+        "utc-offset": { "name": "currentUtcOffset", "note": "0x0025 = 37 s。PTPはTAIで時刻を数えます：UTC = TAI − 37 s。" },
+        "priority1": { "name": "priority1", "note": "128。最初に比較され、小さいほうが勝ちます。" },
+        "class6": { "name": "clockClass", "note": "6：一次基準（ここではGPS）にロック中。" },
+        "accuracy": { "name": "clockAccuracy", "note": "0x21：100 ns以内。" },
+        "variance": { "name": "offsetScaledLogVariance", "note": "0x4E5D：クロックの安定度。小さいほど安定しています。" },
+        "priority2": { "name": "priority2", "note": "128。クロックの品質の後に比較されます。" },
+        "gm-id": { "name": "grandmasterIdentity", "note": "このクロックが知る最良のクロック：自分自身です。" },
+        "steps-removed": { "name": "stepsRemoved", "note": "0：グランドマスタから直接。トランスペアレントクロックはこれを増やしません。" },
+        "source-gps": { "name": "timeSource", "note": "0x20：GPS。" },
+        "origin-preq": { "name": "originTimestamp", "note": "0。要求を送った時刻t1は、MUが自分で覚えておきます。" },
+        "reserved10": { "name": "予約", "note": "空の10バイト：要求を応答と同じ長さにするためです。" },
+        "t2": { "name": "requestReceiptTimestamp", "note": "t2：要求が届いた時刻、スイッチのクロック基準。0x6AF597E7 sと0x2BC1CA3A = 734120506 ns：10:41:06.734 120 506 UTC。" },
+        "t3": { "name": "responseOriginTimestamp", "note": "t3：Pdelay_Respがスイッチを出た時刻。t2の48216 ns後です。" },
+        "requesting": { "name": "requestingPortIdentity", "note": "MUのポート：この応答はMU宛てです。" },
+        "origin-sync": { "name": "originTimestamp", "note": "0。2ステップ方式では、正確な時刻はFollow_Upで届きます。" },
+        "t-origin": { "name": "preciseOriginTimestamp", "note": "Syncが出た時刻：秒が6バイト（0x6AF597E8 = 1794480104）、ナノ秒が4バイト（0x78 = 120）。TAIなので、10:41:07.000 000 120 UTCより37 s進んでいます。" },
+        "padding": { "name": "パディング", "note": "2バイト：Ethernetフレームは最低60バイト必要です。" },
+        "a-oui": { "name": "MACの前半", "note": "02-00-00：MACアドレスの先頭3バイト。" },
+        "a-fffe": { "name": "FF FE", "note": "真ん中に挟み込みます。これで6バイトのMACが8バイトのclockIdentityになります。" },
+        "a-nic": { "name": "MACの後半", "note": "00-01-01：MACアドレスの末尾3バイト。" },
+        "a-port": { "name": "portNumber", "note": "1：このクロックの最初のポート。" }
+    },
+    "devices": {
+        "antenna": "GPSアンテナ",
+        "gm": "GPSクロック",
+        "switch": "スイッチ（TC）",
+        "mu": "マージングユニット MU1",
+        "relay": "フィーダ保護リレー"
+    },
+    "facts": {
+        "standard": "IEC/IEEE 61850-9-3（2016）とIEEE C37.238-2017。いずれもIEEE 1588-2008（PTPバージョン2）のプロファイル",
+        "between": "グランドマスタ → トランスペアレントクロック対応スイッチ → マージングユニット、保護リレー、PMU",
+        "transport": "Ethernetマルチキャスト、EtherType 0x88F7、IPなし",
+        "security": "組み込みのものはなし：どの機器でも、より良いクロックだと名乗り出られる",
+        "speed": "Sync、Announce、Pdelayは1秒に1回。すべてのクロックで1 µs未満"
+    },
+    "tips": [
+        "グランドマスタとクロックの間にあるスイッチは、すべてPTPトランスペアレントクロック（またはバウンダリクロック）でなければなりません。普通のスイッチはトラフィックによって変わる遅延を加え、それを誰も補正しません。",
+        "PTPはTAIで時刻を数え、UTCより37 s進んでいます。currentUtcOffsetを無視する機器は、すべてのイベントに37 sずれた時刻を付けます。",
+        "すべての機器でドメイン番号を確認してください。IEC 61850-9-3の既定は0、IEEE C37.238-2017は254です。クロックは別のドメインのメッセージを無視します。",
+        "PTPはケーブルの速さが往復で同じだと仮定しています。1つのリンクに長さの違う光ファイバが2本あると、その差の半分がそのままオフセットになります。"
+    ],
+    "points": {
+        "class": "クロッククラス",
+        "utc": "UTCオフセット",
+        "delay": "自分のケーブルの遅延",
+        "offset": "クロックのオフセット"
+    },
+    "values": {
+        "reference": "基準"
+    },
+    "timing": {
+        "title": "1つのSyncの道のり",
+        "note": "時刻はSyncがグランドマスタを出た瞬間からの経過です。スイッチまでのケーブルに0.412 µs、スイッチ内の保持に7.436 µs、MUまでのケーブルに1.486 µsかかります。Follow_Upは送出時刻と7.848 µsの補正値を運び、MUは自分のケーブル遅延を知っています。到着時刻 − 送出時刻からこれらを引いた残りが、MUのクロックの誤差です。",
+        "gm": "GPSクロック",
+        "switch": "スイッチ（TC）",
+        "mu": "MU1",
+        "leave": "Sync送出：送出時刻",
+        "in": "入力",
+        "out": "出力、7.436 µs後",
+        "arrive": "Sync到着：到着時刻"
+    },
+    "anatomy": {
+        "port": "MACアドレスから作るポートID"
+    }
+}

@@ -1,0 +1,83 @@
+{
+    "intro": "전력망에 여유가 없을 때 전력 회사가 건물에 전력 사용을 줄여 달라고 요청하는 방법이에요. 전력 회사 서버는 VTN(virtual top node), 고객 쪽은 VEN(virtual end node)이에요. 이 레슨은 현장 제품 대부분이 쓰는 OpenADR 2.0b를 다뤄요: HTTPS 위의 XML이고, VEN이 폴링하니 건물에 열린 포트가 필요 없어요. VTN은 무엇을, 언제 할지 말하고, 어떻게 할지는 건물이 정해요.",
+    "steps": {
+        "poll": { "title": "소식 묻기", "text": "12:00 UTC에 VEN이 평소처럼 1분마다 하는 폴링을 해요. 이번에는 VTN이 이벤트로 답해요: 레벨 1, 17:00부터 18:00 UTC까지." },
+        "optin": { "title": "참여 선택", "text": "이벤트가 응답을 요구해요. VEN이 참여(opt-in)를 선택하고, VTN이 확인해요." },
+        "shed": { "title": "부하 감축", "text": "자기 시계로 17:00이 되면 VEN이 건물 제어기에 동작을 지시해요: 냉방 설정 온도를 2 °C 올리고 복도 조명을 어둡게 해요. 부하가 420 kW에서 340 kW로 떨어져요." },
+        "report": { "title": "보고", "text": "VEN이 등록할 때 합의한 대로 측정한 부하를 보내요. 전력 회사는 부하가 줄어든 걸 확인해요." },
+        "end": { "title": "정상 복귀", "text": "18:00에 이벤트가 끝나요. VEN이 명령을 거둬들이고, 건물은 원래 일정으로 돌아가요." }
+    },
+    "frames": {
+        "tls": "제 인증서로 TLS 연결 열기",
+        "poll": "저한테 새로운 거 있어요?",
+        "distribute": "피크 이벤트: 레벨 1, 17:00~18:00",
+        "created": "참여할게요",
+        "response": "확인했어요",
+        "shed": "지금 레벨 1: 냉방 설정 온도를 올리고 조명을 어둡게",
+        "update-report": "현재 부하는 340 kW예요",
+        "updated-report": "보고 받았어요",
+        "restore": "이벤트 종료: 정상으로 복귀"
+    },
+    "notes": {
+        "tls": "연결은 언제나 VEN이 열어요. 양쪽이 OpenADR용으로 발급된 인증서를 보여 줘요. TLS 1.2이고, OpenADR이 요구하는 두 스위트 중 하나를 써요: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 또는 TLS_RSA_WITH_AES_128_CBC_SHA256.",
+        "poll": "/OpenADR2/Simple/2.0b/OadrPoll로 보내는 HTTP POST예요. 작은 oadrPoll 메시지에 VEN의 venID만 담겨요. 폴링 주기는 VEN을 등록할 때 VTN이 정했어요.",
+        "distribute": "폴링에 대한 응답이에요. 새것만이 아니라 이 VEN의 대기 중·진행 중인 이벤트를 모두 나열해요. '직접 해 보기'에서 한 줄씩 볼 수 있어요.",
+        "created": "EiEvent로 보내는 POST: 이벤트(eventID PEAK-20260715, modificationNumber 0)를 가리키는 oadrCreatedEvent에 responseCode 200과 optType optIn이 담겨요. optOut이면 전력 회사에 이 건물을 기대하지 말라고 알리는 거예요.",
+        "response": "responseCode 200인 oadrResponse예요. VTN은 새 소식이 없을 때도 폴링에 같은 메시지로 답해요.",
+        "shed": "OpenADR가 아니에요: VEN이 건물 제어기에 보내는 BACnet 쓰기예요. OpenADR는 레벨 1이라고만 말해요. 레벨 1이 무엇을 뜻하는지는 전력 회사가 아니라 건물에서 정해요.",
+        "update-report": "EiReport로 보내는 POST: 15분마다 건물의 실제 전력을 담은 TELEMETRY_USAGE 리포트가 들어 있는 oadrUpdateReport예요. VEN이 보낼 수 있는 리포트를 등록한 뒤, VTN이 oadrCreateReport로 요청했어요.",
+        "updated-report": "responseCode 200인 oadrUpdatedReport예요.",
+        "restore": "이것도 OpenADR가 아니에요. VEN이 자기 BACnet 우선순위에 NULL을 써서 명령을 해제해요. 부하가 다시 415 kW로 올라가요."
+    },
+    "fields": {
+        "a-host": { "name": "VTN", "note": "전력 회사 서버. VTN은 나머지 앞에 자체 경로를 붙일 수 있어요." },
+        "a-transport": { "name": "전송 방식", "note": "Simple HTTP. OpenADR 2.0b는 VTN이 푸시하는 XMPP 위에서도 동작해요." },
+        "a-profile": { "name": "프로파일", "note": "2.0b: 이벤트, 리포트, 참여 일정. 2.0a는 단순한 기기를 위한 작은 프로파일로, 이벤트만 있어요." },
+        "a-service": { "name": "서비스", "note": "OadrPoll. 메시지마다 해당 서비스로 가요: 이벤트는 EiEvent, 리포트는 EiReport, 등록은 EiRegisterParty, 참여 일정은 EiOpt로." }
+    },
+    "devices": {
+        "vtn": "전력 회사 VTN",
+        "ven": "건물 VEN",
+        "bms": "BMS 제어기",
+        "building": "사무용 건물"
+    },
+    "facts": {
+        "standard": "OpenADR 2.0b(IEC 62746-10-1)",
+        "between": "전력 회사 또는 애그리게이터(VTN) → 건물과 애그리게이터(VEN)",
+        "transport": "HTTPS 위의 XML, VEN이 폴링(또는 XMPP)",
+        "security": "TLS 1.2, 양쪽에 인증서. XML 서명은 선택",
+        "frames": "서비스: EiEvent, EiReport, EiRegisterParty, EiOpt, OadrPoll"
+    },
+    "tips": [
+        "이벤트가 바뀔 때마다 modificationNumber가 올라가요. 새 번호마다 답하세요. 그렇지 않으면 VTN은 VEN이 변경을 받지 못했다고 생각해요.",
+        "VEN은 자기 시계로 이벤트를 실행해요. NTP로 맞춰 두세요: 10분 늦은 시계는 부하도 10분 늦게 줄여요.",
+        "전력 회사는 참여 응답을 모두 계획에 넣어요. 건물이 부하를 줄일 수 없다면 이벤트가 시작된 뒤가 아니라 미리 불참(opt-out)하세요."
+    ],
+    "points": {
+        "status": "이벤트 상태",
+        "opt": "응답",
+        "load": "건물 부하"
+    },
+    "anatomy": {
+        "endpoint": "VEN이 폴링하는 주소"
+    },
+    "playground": {
+        "file": "1단계의 oadrDistributeEvent를 VEN이 받는 그대로 보여 줘요. 표시된 줄을 골라 의미를 확인해 보세요.",
+        "payload": "모든 OpenADR 2.0b 메시지는 oadrPayload예요. 네임스페이스가 각 부분의 출처를 보여 줘요: OpenADR 자체, Energy Interoperation(ei), EMIX, iCalendar(xcal).",
+        "signed": "XML 서명이 적용될 범위예요. 서명은 선택이에요: 연결은 이미 TLS가 보호해요.",
+        "distribute": "메시지: VTN이 보낸 oadrDistributeEvent.",
+        "vtn": "VTN의 이름.",
+        "event-id": "이벤트의 이름. VEN의 응답에 이 이름이 들어가야 해요.",
+        "modification": "0: 첫 버전. 이벤트가 바뀔 때마다 올라가고, VEN은 다시 답해야 해요.",
+        "market": "이벤트가 속한 프로그램. 건물이 이 프로그램에 가입했어요.",
+        "status": "far: 이벤트가 아직 몇 시간 남았어요. 이후 응답에서는 active, 그다음 completed로 나와요.",
+        "test": "false: 실제 이벤트. 시험 이벤트는 전체 연결을 점검하고, VEN이 실제로 동작할 필요는 없어요.",
+        "start": "이벤트는 17:00 UTC에 시작해요.",
+        "length": "PT1H: 한 시간 동안 이어져요(ISO 8601 기간 표기).",
+        "level": "이 구간의 값: 1.0. SIMPLE 신호에서 0은 정상, 1은 보통, 2는 높음, 3은 특별이에요.",
+        "simple": "SIMPLE: 모든 OpenADR VEN이 이해해야 하는 유일한 신호.",
+        "current": "현재 값: 0.0, 이벤트가 아직 시작되지 않았으니까요.",
+        "target": "이 이벤트는 이 VEN만을 위한 거예요.",
+        "response": "always: VEN은 oadrCreatedEvent로 참여나 불참을 답해야 해요."
+    }
+}

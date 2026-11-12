@@ -1,0 +1,121 @@
+{
+    "intro": "IEC 101, IEC 104 ile aynı mesajları taşır; ama bir seri hat, modem ya da telsiz üzerinden, çoğu zaman 9600 bit/s hızla. Yaygın kullanılan dengesiz modda SCADA sorgular, RTU yalnızca yanıt verir. Sağlama toplamı bozulan çerçeveleri, çerçeve sayma biti kaybolanları yakalar; her yanıttaki bir bit de SCADA'ya acil verinin beklediğini söyler.",
+    "steps": {
+        "link": { "title": "Bağlantıyı sıfırla", "text": "SCADA ve RTU, 9600 bit/s hızındaki bir telsiz kanalını paylaşır. SCADA bağlantıyı sıfırlar; böylece iki taraf da çerçeveleri yeniden saymaya başlar. Dengesiz modda RTU hiçbir zaman ilk konuşan olmaz: yalnızca yanıt verir." },
+        "ask": { "title": "Her şeyi sor", "text": "SCADA genel sorgulama gönderir. RTU şimdilik bunu yalnızca kısa bir ACK ile onaylayabilir. Ama ACK'te ACD = 1'dir: RTU'da bekleyen sınıf 1 verisi var." },
+        "values": { "title": "Yanıtı topla", "text": "ACD 1 olduğu sürece SCADA sınıf 1 verisi ister. Her istek bir ASDU getirir: önce onay, sonra kesici durumları, en sonda bitiş. FCB her istekte tersine döner." },
+        "trip": { "title": "Kesici açıyor", "text": "Saat 10:41:07.280'de CB-1 açar. RTU sorulmayı beklemek zorundadır. Bir sonraki sınıf 2 sorgusu \"veri yok\" yanıtı alır, ama ACD = 1 ile. SCADA sınıf 1 verisini ister ve değişikliği, olduğu zamanla birlikte alır." }
+    },
+    "frames": {
+        "reset": "Bağlantını sıfırla",
+        "reset-ack": "Tamam",
+        "gi-act": "Genel sorgulama: bana her şeyi gönder",
+        "gi-ack": "Aldım. Bende acil veri var",
+        "poll-1": "Bana sınıf 1 verisini gönder",
+        "gi-con": "Sorgulama onaylandı",
+        "poll-2": "Sıradaki sınıf 1 verisi, lütfen",
+        "states": "CB-1 ve CB-2 kapalı",
+        "poll-3": "Sıradaki sınıf 1 verisi, lütfen",
+        "gi-term": "Hepsi bu kadardı",
+        "poll-class2": "Sınıf 2'de bir şey var mı?",
+        "no-data": "Sınıf 2'de bir şey yok, ama bekleyen acil veri var",
+        "poll-4": "Bana sınıf 1 verisini gönder",
+        "trip": "CB-1 10:41:07.280'de açıldı"
+    },
+    "fields": {
+        "start-fixed": { "name": "Başlangıç", "note": "0x10: sabit uzunlukta kısa bir çerçeve. Ardından kontrol, adres, sağlama toplamı ve bitiş gelir. Veri yoktur." },
+        "link": { "name": "Bağlantı adresi 1", "note": "Hattaki RTU. Dengesiz modda çerçeve, iki yönde de RTU'nun adresini taşır. Boyutu (burada 1 bayt) bir ayardır." },
+        "cs-fixed": { "name": "Sağlama toplamı", "note": "Kontrol ve adres baytlarının toplamı, mod 256." },
+        "end": { "name": "Bitiş", "note": "Her çerçeve 0x16 ile biter." },
+        "head-9": { "name": "Başlangıç · uzunluk 9", "note": "68, iki kez uzunluk, sonra yine 68. Ardından kontrol alanından ASDU'nun sonuna kadar 9 bayt gelir. Uzunluğun iki kopyası aynı olmalıdır." },
+        "head-12": { "name": "Başlangıç · uzunluk 12", "note": "Kontrol alanından ASDU'nun sonuna kadar 12 bayt." },
+        "head-16": { "name": "Başlangıç · uzunluk 16", "note": "Kontrol alanından ASDU'nun sonuna kadar 16 bayt." },
+        "cs-var": { "name": "Sağlama toplamı", "note": "Kontrol alanından ASDU'nun sonuna kadar tüm baytların toplamı, mod 256." },
+        "c-reset": { "name": "Kontrol · FC 0", "note": "0x40: SCADA'dan (PRM 1), uzak bağlantının sıfırlanması. FCV 0: bu çerçeve sayılmaz. Birçok ana istasyon önce bağlantı durumunu sorar (fonksiyon 9)." },
+        "c-ack": { "name": "Kontrol · ACK", "note": "0x00: bir yanıt (PRM 0), fonksiyon 0: ACK. ACD 0: acil bir şey yok. Bazı RTU'lar bunun yerine tek bir E5 baytı gönderir." },
+        "c-send": { "name": "Kontrol · FC 3", "note": "0x73: kullanıcı verisi, onay bekleniyor (SEND/CONFIRM). FCV 1 ve FCB 1: sıfırlamadan sonraki ilk sayılan çerçevede FCB 1'dir." },
+        "c-ack-acd": { "name": "Kontrol · ACK", "note": "0x20: ACK, ACD 1 ile: RTU'da bekleyen sınıf 1 verisi var." },
+        "c-class1-fcb0": { "name": "Kontrol · FC 10", "note": "0x5A: sınıf 1 verisi iste. FCB 0: son isteğin tersi." },
+        "c-class1-fcb1": { "name": "Kontrol · FC 10", "note": "0x7A: sınıf 1 verisi iste. FCB 1: yine tersine döndü; demek ki bu bir tekrar değil, yeni bir istek." },
+        "c-class2-fcb1": { "name": "Kontrol · FC 11", "note": "0x7B: sınıf 2 verisi iste, FCB 1. SCADA soracak başka bir şeyi olmadığında bunu her 2 s'de bir gönderir." },
+        "c-data-acd": { "name": "Kontrol · FC 8", "note": "0x28: kullanıcı verisi, ardından bir ASDU gelir. ACD 1: bekleyen başka sınıf 1 verisi de var." },
+        "c-data": { "name": "Kontrol · FC 8", "note": "0x08: kullanıcı verisi. ACD 0: sınıf 1 verisi kalmadı." },
+        "c-no-data-acd": { "name": "Kontrol · FC 9", "note": "0x29: istenen sınıfta veri yok. Ama ACD 1: bekleyen sınıf 1 verisi var." },
+        "type100": { "name": "Tür 100", "note": "C_IC_NA_1: sorgulama komutu." },
+        "vsq1": { "name": "Sayı", "note": "Tek bir bilgi nesnesi." },
+        "vsq2": { "name": "Sayı", "note": "Her birinin kendi adresi olan iki nesne." },
+        "cot6": { "name": "Neden 6", "note": "Aktivasyon. Neden burada 1 bayttır: IEC 104'ten farklı olarak kaynak (originator) adresi yoktur." },
+        "cot7": { "name": "Neden 7", "note": "Aktivasyon onaylandı." },
+        "cot10": { "name": "Neden 10", "note": "Aktivasyon bitti: yanıt tamamlandı." },
+        "cot20": { "name": "Neden 20", "note": "İstasyon sorgulaması nedeniyle gönderildi." },
+        "cot3": { "name": "Neden 3", "note": "Kendiliğinden: değer değişti, kimse sormadı." },
+        "ca": { "name": "Ortak adres", "note": "İstasyon 1, 1 baytta." },
+        "ioa0": { "name": "IOA 0", "note": "2 bayt. Komut tek bir nokta için değil, tüm istasyon için." },
+        "qoi20": { "name": "QOI 20", "note": "İstasyon sorgulaması: tüm gruplar." },
+        "type3": { "name": "Tür 3", "note": "M_DP_NA_1: zaman etiketi olmayan çift nokta." },
+        "ioa2001": { "name": "IOA 2001", "note": "CB-1 kesicisi: 2 baytta 0x07D1, düşük bayt önce." },
+        "ioa2002": { "name": "IOA 2002", "note": "CB-2 kesicisi: 0x07D2." },
+        "diq-on": { "name": "Durum 2", "note": "Devrede (on): kesici kapalı. 1 devre dışı (off) demektir; 0 ve 3 ara konum ya da arıza anlamına gelir." },
+        "diq-off": { "name": "Durum 1", "note": "Devre dışı (off): kesici açık." },
+        "type31": { "name": "Tür 31", "note": "M_DP_TB_1: CP56Time2a zaman etiketli çift nokta." },
+        "cp56": { "name": "CP56Time2a", "note": "7.280 s, 41 dk, 10 sa, Perşembe 12 Kasım, (20)26. RTU zamanı çerçeveyi gönderdiği anda değil, kesici hareket ettiği anda aldı." },
+        "a-res": { "name": "RES", "note": "Ayrılmış, 0. Dengeli modda bu bit DIR'dir: yön." },
+        "a-prm1": { "name": "PRM 1", "note": "Birincil: bu çerçeve bir aktarımı başlatır. Dengesiz modda bunları yalnızca SCADA gönderir." },
+        "a-fcb": { "name": "FCB 1", "note": "Çerçeve sayma biti. Her yeni istekte tersine döner. Tekrarda aynı kalır ve RTU son yanıtını yeniden gönderir." },
+        "a-fcv": { "name": "FCV 1", "note": "Bu çerçevede FCB dikkate alınır. Sıfırlamalarda ve bağlantı durumu isteklerinde FCV 0'dır." },
+        "a-fc3": { "name": "Fonksiyon 3", "note": "Kullanıcı verisi, onay bekleniyor." },
+        "a-prm0": { "name": "PRM 0", "note": "İkincil: bir yanıt." },
+        "a-acd": { "name": "ACD 1", "note": "Erişim talebi: bekleyen sınıf 1 verisi var, SCADA onu istemeli." },
+        "a-dfc": { "name": "DFC 0", "note": "Veri akış kontrolü. 1 olsaydı RTU'nun dolu olduğu anlamına gelirdi: daha fazla göndermeden önce bekle." },
+        "a-fc8": { "name": "Fonksiyon 8", "note": "Kullanıcı verisi: ardından bir ASDU gelir." }
+    },
+    "devices": {
+        "scada": "SCADA ana istasyonu",
+        "radio-cc": "Kontrol odası telsizi",
+        "radio-rtu": "Trafo merkezi telsizi",
+        "rtu": "RTU",
+        "cb1": "CB-1 kesicisi",
+        "cb2": "CB-2 kesicisi"
+    },
+    "facts": {
+        "standard": "IEC 60870-5-101, 2. baskı (2003)",
+        "between": "RTU → SCADA; seri hatlar, modemler ve telsiz üzerinden",
+        "transport": "Seri, FT 1.2 çerçeveleri: 8 veri biti, çift eşlik, 1 dur biti",
+        "security": "Protokolde yok. IEC 62351-5 kimlik doğrulama ekler.",
+        "frames": "Sabit: 10 … 16 · değişken: 68 L L 68 … 16 · tek bayt: E5",
+        "speed": "Genellikle 1200 ile 19200 bit/s arası; burada 9600"
+    },
+    "tips": [
+        "Bağlantı adresi, neden, ortak adres ve IOA boyutları birer ayardır. Burada sırasıyla 1, 1, 1 ve 2 bayt. SCADA ile RTU uyuşmazsa hata mesajı çıkmaz: yalnızca yanlış değerler gelir.",
+        "FT 1.2, çift eşlikli 8 veri biti kullanır (8E1). 8N1'de bırakılmış bir seri port çalışmaz.",
+        "Yanıt zaman aşımını telsizin gidiş-dönüş süresinden uzun tutun. Daha kısa olursa SCADA, RTU'nun zaten yanıtladığı istekleri tekrarlar ve yavaş hat tekrarlarla dolar.",
+        "IEC 104 aynı ASDU'ları TCP üzerinden taşır; 2 baytlık neden, 2 baytlık ortak adres ve 3 baytlık IOA ile. FCB, sınıflar ve sorgulama döngüsü yoktur: çerçeveleri TCP iletir, RTU da verisi olur olmaz gönderir."
+    ],
+    "points": {
+        "cb1": "CB-1 kesicisi",
+        "cb2": "CB-2 kesicisi"
+    },
+    "values": {
+        "closed": "kapalı",
+        "open": "açık"
+    },
+    "anatomy": {
+        "primary": "Bir isteğin kontrol baytı (0x73)",
+        "secondary": "Bir yanıtın kontrol baytı (0x28)"
+    },
+    "playground": {
+        "file": "RTU'nun hat ayarları ve nokta listesi. SCADA aynı hızı, formatı, adresleri ve boyutları kullanmalı. Yoksa hiçbir şey okuyamaz ya da yanlış değerler okur.",
+        "baud": "9600 bit/s. Her karakter 11 bit sürer; bu yüzden 5 baytlık bir çerçeve hatta yaklaşık 6 ms tutar.",
+        "format": "8 veri biti, çift eşlik, 1 dur biti: FT 1.2'nin istediği.",
+        "mode": "Dengesiz: SCADA sorgular, RTU yanıt verir. Dengeli modda iki taraf da gönderebilir, ama yalnızca iki istasyon arasındaki bir hatta.",
+        "link-address": "RTU'nun bağlantı adresi. Her çerçevede bulunur.",
+        "sizes": "Her adres alanının bayt cinsinden boyutu. İki taraf da aynısını kullanmalı.",
+        "common-address": "İstasyonun adresi. Her ASDU'da bulunur.",
+        "class2": "SCADA'nın, yapacak başka işi yokken sınıf 2 verisini ne sıklıkla istediği.",
+        "timeout": "SCADA'nın bir yanıt için ne kadar beklediği. Sonra isteği aynı FCB ile tekrarlar.",
+        "ioa": "Kesicinin bilgi nesnesi adresi.",
+        "class": "Değişiklikleri sınıf 1'e gider: RTU, bekleyen bir değişiklik olur olmaz ACD'yi kurar.",
+        "spontaneous": "Bir değişiklik, zaman etiketiyle tür 31 olarak gönderilir.",
+        "time": "Zaman etiketlerinin hangi saati kullandığını not edin: burada UTC."
+    }
+}

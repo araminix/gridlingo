@@ -1,0 +1,99 @@
+{
+    "intro": "Así se leen los medidores norteamericanos. C12.19 guarda todo lo que sabe un medidor en tablas numeradas. C12.18 lee y escribe esas tablas por el puerto óptico, tras iniciar sesión y dar una contraseña. C12.22 lleva los mismos servicios de tablas por una red.",
+    "steps": {
+        "identify": { "title": "Identificar", "text": "El portátil envía Identification a 9600 baudios, 8N1. El medidor confirma cada paquete con un byte, 0x06 (ACK), y luego responde. Cada paquete termina con un CRC de 2 bytes, que esta lección omite." },
+        "logon": { "title": "Iniciar sesión", "text": "Logon da el nombre del usuario, para el registro del medidor. Security envía la contraseña de 20 bytes. Solo ahora puede el portátil leer o escribir las tablas protegidas." },
+        "read": { "title": "Leer la tabla 23", "text": "Una lectura completa de la tabla 23, Current Register Data: 12 bytes y una suma de comprobación. Lo que significan los bytes está en otras tablas: ST 0 dice cómo se codifican los números, ST 21 cuántos hay, ST 12 y ST 22 qué miden." },
+        "end": { "title": "Cerrar sesión", "text": "Logoff termina la sesión, Terminate termina la conversación. Sin ellos, el medidor mantiene la sesión abierta hasta que vence un tiempo de espera." },
+        "network": { "title": "Por la red", "text": "Más tarde, el head-end lee la misma tabla con C12.22. El mismo servicio, 30 00 17, viaja ahora en un mensaje ACSE por el puerto 1153. No hace falta iniciar sesión: cada mensaje lleva su propia seguridad." }
+    },
+    "frames": {
+        "ident": "Identifícate",
+        "ident-ok": "OK, hablo C12.18",
+        "logon": "Inicio sesión como usuario 2, TECH01",
+        "logon-ok": "OK",
+        "security": "La contraseña es tech2026",
+        "security-ok": "OK, contraseña aceptada",
+        "read": "Envíame toda la tabla 23",
+        "table": "12 345 678 Wh entregados, 123 456 Wh recibidos",
+        "logoff": "Cierro sesión",
+        "logoff-ok": "OK",
+        "terminate": "Fin de la conversación",
+        "terminate-ok": "OK",
+        "c1222-read": "Envíame toda la tabla 23 (por la red)",
+        "c1222-table": "Tabla 23: los mismos 12 bytes"
+    },
+    "notes": {
+        "ident-ok": "La respuesta empieza por 0x00 (OK), y luego el protocolo (0x00: C12.18), su versión y su revisión. Los medidores más nuevos también enumeran funciones opcionales. A continuación, el portátil podría enviar Negotiate (0x60 a 0x6B) para tener más velocidad o paquetes más grandes; aquí mantiene los valores por defecto.",
+        "c1222-read": "Un mensaje ACSE (etiqueta 0x60) por el puerto UDP o TCP 1153. Su cabecera identifica al medidor (called AP title), al head-end (calling AP title) y esta petición (calling AP invocation ID). Su información de usuario contiene EPSEM: un byte de control que fija el modo de seguridad, y luego el mismo servicio que en el puerto óptico, 30 00 17. En los modos seguros, AES-128 en modo EAX' autentica el mensaje, o lo autentica y lo cifra, con una clave que conoce el medidor.",
+        "c1222-table": "Un mensaje ACSE de vuelta al head-end. Su cabecera permite al head-end emparejarlo con la petición. Dentro va la misma respuesta que en el puerto óptico: 0x00 (OK), la cantidad, los 12 bytes de la tabla 23 y su suma de comprobación."
+    },
+    "fields": {
+        "stp": { "name": "STP", "note": "0xEE inicia cada paquete. Lo termina un CRC de 2 bytes (polinomio CCITT), que aquí no se muestra." },
+        "identity": { "name": "Identidad", "note": "Aquí, 0x00." },
+        "ctrl-0": { "name": "Control", "note": "0x00: un solo paquete, bit de alternancia 0." },
+        "ctrl-1": { "name": "Control", "note": "0x20: el bit de alternancia vale 1. Cada lado lo invierte con cada paquete nuevo, así se detecta un paquete enviado dos veces." },
+        "seq": { "name": "Número de secuencia", "note": "0: no siguen más paquetes. Un mensaje demasiado grande para un paquete llega en varios, contados hacia atrás hasta 0." },
+        "len-1": { "name": "Longitud", "note": "0x0001: un byte de datos. Los números del paquete se envían con el byte más significativo primero." },
+        "len-3": { "name": "Longitud", "note": "3 bytes de datos." },
+        "len-13": { "name": "Longitud", "note": "0x000D = 13 bytes de datos." },
+        "len-16": { "name": "Longitud", "note": "0x0010 = 16 bytes de datos." },
+        "len-21": { "name": "Longitud", "note": "0x0015 = 21 bytes de datos." },
+        "ident": { "name": "Identification", "note": "0x20: el primer servicio de toda sesión." },
+        "logon": { "name": "Logon", "note": "0x50: inicia una sesión como usuario con nombre." },
+        "user-id": { "name": "ID de usuario", "note": "0x0002: un número que el medidor anota en su registro de eventos." },
+        "user": { "name": "Usuario", "note": "\"TECH01\", completado con espacios hasta 10 bytes." },
+        "security": { "name": "Security", "note": "0x51: sigue la contraseña." },
+        "password": { "name": "Contraseña", "note": "20 bytes: \"tech2026\" y 12 espacios. Cruza el puerto óptico en claro." },
+        "ok": { "name": "OK", "note": "Código de respuesta 0x00: OK. 0x01 es un error; 0x03 significa que esta contraseña no lo permite." },
+        "read-full": { "name": "Lectura completa", "note": "0x30: lee una tabla entera." },
+        "table-23": { "name": "Tabla 23", "note": "0x0017 = 23: ST 23, Current Register Data. Las tablas del fabricante suman 2048: MT 23 es 0x0817." },
+        "ok-read": { "name": "OK", "note": "0x00: OK, sigue la tabla." },
+        "count": { "name": "Cantidad", "note": "0x000C: 12 bytes de datos de la tabla." },
+        "sum-0": { "name": "Totalizador 0", "note": "6 bytes, el byte bajo primero, como indica la ST 0 de este medidor. 0x00BC614E = 12 345 678 Wh entregados." },
+        "sum-1": { "name": "Totalizador 1", "note": "0x01E240 = 123 456 Wh recibidos: la energía que la casa envió a la red." },
+        "cksum": { "name": "Suma de comprobación", "note": "0x72: los bytes de la tabla y este byte suman 0, módulo 256." },
+        "logoff": { "name": "Logoff", "note": "0x52: termina la sesión." },
+        "terminate": { "name": "Terminate", "note": "0x21: termina la conversación." }
+    },
+    "devices": {
+        "laptop": "Portátil del técnico",
+        "meter": "Medidor",
+        "relay": "Concentrador",
+        "headend": "Head-end"
+    },
+    "facts": {
+        "standard": "ANSI C12.18 (puerto óptico), C12.19 (tablas), C12.22 (redes); también IEEE 1701, 1377, 1703",
+        "between": "Portátil o head-end → medidor",
+        "transport": "Puerto óptico a 9600 baudios, 8N1; C12.22 por UDP o TCP 1153",
+        "security": "C12.18: una contraseña de 20 bytes en claro. C12.22: AES-128 (EAX') en cada mensaje",
+        "model": "Tablas: estándar (ST 0, ST 1, ST 23 …) y del fabricante (MT, desde 2048)"
+    },
+    "tips": [
+        "Lee primero la ST 0. Dice cómo se codifican los números y en qué orden de bytes; sin ella, la tabla 23 no son más que bytes.",
+        "Muchos medidores cuentan las contraseñas erróneas y bloquean el puerto durante un tiempo. Comprueba la contraseña antes de volver a intentarlo.",
+        "Una tabla mayor que un paquete llega en varios. Espera al número de secuencia 0, o lee la tabla por partes con una lectura parcial (0x3F: un desplazamiento y una cantidad).",
+        "Las tablas del fabricante (MT, desde 2048) se organizan como decide cada fabricante. Necesitas su documentación para leerlas."
+    ],
+    "points": {
+        "session": "Sesión",
+        "delivered": "Wh entregados",
+        "received": "Wh recibidos"
+    },
+    "values": {
+        "identified": "identificado",
+        "logged-on": "sesión iniciada",
+        "closed": "cerrada"
+    },
+    "playground": {
+        "file": "Las tablas que tiene este medidor. Un lector C12.19 las conoce gracias a la ST 0, y después lee por número lo que necesita.",
+        "st0": "Léela primero: cómo se codifican los números, en qué orden de bytes y qué tablas existen.",
+        "st1": "Quién fabricó el medidor: un código de fabricante de 4 letras, el modelo, las versiones de hardware y firmware, y un número de serie.",
+        "procedures": "Los procedimientos, como una reposición de demanda o el ajuste del reloj, empiezan con una escritura en la ST 7. Sus resultados vuelven en la ST 8.",
+        "st12": "Qué mide cada fuente: aquí, la energía entregada y recibida, en Wh.",
+        "st21": "Cuántos valores guardan las tablas de registros. Fija el tamaño de la ST 23.",
+        "st22": "De qué fuente viene cada totalizador de la ST 23.",
+        "st23": "La tabla que lee esta lección: dos totales de 6 bytes cada uno.",
+        "mt": "Tablas del fabricante: su número más 2048. El fabricante decide qué contienen."
+    }
+}

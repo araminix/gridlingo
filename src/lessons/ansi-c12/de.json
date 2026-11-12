@@ -1,0 +1,99 @@
+{
+    "intro": "So werden nordamerikanische Zähler ausgelesen. C12.19 legt alles, was ein Zähler weiß, in nummerierten Tabellen ab. C12.18 liest und schreibt diese Tabellen über die optische Schnittstelle, nach einem Logon mit Passwort. C12.22 transportiert dieselben Tabellendienste über ein Netzwerk.",
+    "steps": {
+        "identify": { "title": "Identifizieren", "text": "Der Laptop sendet Identification mit 9600 Baud, 8N1. Der Zähler bestätigt jedes Paket mit einem Byte, 0x06 (ACK), und antwortet dann. Jedes Paket endet mit einem CRC von 2 Bytes, den diese Lektion weglässt." },
+        "logon": { "title": "Anmelden", "text": "Logon nennt den Benutzer, für das Protokoll des Zählers. Security sendet das Passwort mit 20 Bytes. Erst jetzt darf der Laptop geschützte Tabellen lesen oder schreiben." },
+        "read": { "title": "Tabelle 23 lesen", "text": "Ein vollständiges Lesen von Tabelle 23, Current Register Data: 12 Bytes und eine Prüfsumme. Was die Bytes bedeuten, steht in anderen Tabellen: ST 0 sagt, wie Zahlen kodiert sind, ST 21, wie viele es sind, ST 12 und ST 22, was sie messen." },
+        "end": { "title": "Abmelden", "text": "Logoff beendet die Sitzung, Terminate beendet das Gespräch. Ohne sie hält der Zähler die Sitzung bis zu einem Timeout offen." },
+        "network": { "title": "Über das Netzwerk", "text": "Später liest das Head-End dieselbe Tabelle mit C12.22. Derselbe Dienst, 30 00 17, reist jetzt in einer ACSE-Nachricht auf Port 1153. Ein Logon ist nicht nötig: Jede Nachricht trägt ihre eigene Sicherheit." }
+    },
+    "frames": {
+        "ident": "Identifiziere dich",
+        "ident-ok": "OK, ich spreche C12.18",
+        "logon": "Anmelden als Benutzer 2, TECH01",
+        "logon-ok": "OK",
+        "security": "Das Passwort ist tech2026",
+        "security-ok": "OK, Passwort angenommen",
+        "read": "Schick mir die ganze Tabelle 23",
+        "table": "12 345 678 Wh geliefert, 123 456 Wh empfangen",
+        "logoff": "Abmelden",
+        "logoff-ok": "OK",
+        "terminate": "Ende des Gesprächs",
+        "terminate-ok": "OK",
+        "c1222-read": "Schick mir die ganze Tabelle 23 (über das Netzwerk)",
+        "c1222-table": "Tabelle 23: dieselben 12 Bytes"
+    },
+    "notes": {
+        "ident-ok": "Die Antwort beginnt mit 0x00 (OK), dann das Protokoll (0x00: C12.18), seine Version und seine Revision. Neuere Zähler listen außerdem optionale Funktionen auf. Als Nächstes könnte der Laptop Negotiate (0x60 bis 0x6B) senden, für eine höhere Geschwindigkeit oder größere Pakete; hier behält er die Standardwerte.",
+        "c1222-read": "Eine ACSE-Nachricht (Tag 0x60) auf UDP- oder TCP-Port 1153. Ihr Header nennt den Zähler (Called AP Title), das Head-End (Calling AP Title) und diese Anfrage (Calling AP Invocation ID). Ihre User Information enthält EPSEM: ein Steuerbyte, das den Sicherheitsmodus festlegt, dann derselbe Dienst wie an der optischen Schnittstelle, 30 00 17. In den sicheren Modi authentifiziert AES-128 im Modus EAX' die Nachricht oder authentifiziert und verschlüsselt sie, mit einem Schlüssel, den der Zähler kennt.",
+        "c1222-table": "Eine ACSE-Nachricht zurück an das Head-End. Ihr Header lässt das Head-End sie der Anfrage zuordnen. Darin steht dieselbe Antwort wie an der optischen Schnittstelle: 0x00 (OK), die Anzahl, die 12 Bytes von Tabelle 23 und ihre Prüfsumme."
+    },
+    "fields": {
+        "stp": { "name": "STP", "note": "0xEE beginnt jedes Paket. Ein CRC von 2 Bytes (CCITT-Polynom) beendet es; er ist hier nicht gezeigt." },
+        "identity": { "name": "Identity", "note": "Hier 0x00." },
+        "ctrl-0": { "name": "Steuerung", "note": "0x00: ein Paket, Toggle-Bit 0." },
+        "ctrl-1": { "name": "Steuerung", "note": "0x20: Das Toggle-Bit ist 1. Jede Seite kippt es bei jedem neuen Paket, so lässt sich ein doppelt gesendetes Paket erkennen." },
+        "seq": { "name": "Sequenznummer", "note": "0: Es folgen keine weiteren Pakete. Eine Nachricht, die für ein Paket zu groß ist, kommt in mehreren, rückwärts bis 0 gezählt." },
+        "len-1": { "name": "Länge", "note": "0x0001: ein Byte Daten. Zahlen im Paket werden mit dem höchstwertigen Byte zuerst gesendet." },
+        "len-3": { "name": "Länge", "note": "3 Bytes Daten." },
+        "len-13": { "name": "Länge", "note": "0x000D = 13 Bytes Daten." },
+        "len-16": { "name": "Länge", "note": "0x0010 = 16 Bytes Daten." },
+        "len-21": { "name": "Länge", "note": "0x0015 = 21 Bytes Daten." },
+        "ident": { "name": "Identification", "note": "0x20: der erste Dienst jeder Sitzung." },
+        "logon": { "name": "Logon", "note": "0x50: eine Sitzung als benannter Benutzer beginnen." },
+        "user-id": { "name": "Benutzer-ID", "note": "0x0002: eine Nummer, die der Zähler in sein Ereignisprotokoll schreibt." },
+        "user": { "name": "Benutzer", "note": "\"TECH01\", mit Leerzeichen auf 10 Bytes aufgefüllt." },
+        "security": { "name": "Security", "note": "0x51: Das Passwort folgt." },
+        "password": { "name": "Passwort", "note": "20 Bytes: \"tech2026\" und 12 Leerzeichen. Es geht im Klartext über die optische Schnittstelle." },
+        "ok": { "name": "OK", "note": "Antwortcode 0x00: OK. 0x01 ist ein Fehler; 0x03 bedeutet, dass dieses Passwort das nicht erlaubt." },
+        "read-full": { "name": "Vollständiges Lesen", "note": "0x30: eine ganze Tabelle lesen." },
+        "table-23": { "name": "Tabelle 23", "note": "0x0017 = 23: ST 23, Current Register Data. Herstellertabellen addieren 2048: MT 23 ist 0x0817." },
+        "ok-read": { "name": "OK", "note": "0x00: OK, die Tabelle folgt." },
+        "count": { "name": "Anzahl", "note": "0x000C: 12 Bytes Tabellendaten." },
+        "sum-0": { "name": "Summation 0", "note": "6 Bytes, niederwertiges Byte zuerst, wie ST 0 dieses Zählers sagt. 0x00BC614E = 12 345 678 Wh geliefert." },
+        "sum-1": { "name": "Summation 1", "note": "0x01E240 = 123 456 Wh empfangen: Energie, die das Haus ins Netz geliefert hat." },
+        "cksum": { "name": "Prüfsumme", "note": "0x72: Die Tabellenbytes und dieses Byte ergeben zusammen 0, modulo 256." },
+        "logoff": { "name": "Logoff", "note": "0x52: die Sitzung beenden." },
+        "terminate": { "name": "Terminate", "note": "0x21: das Gespräch beenden." }
+    },
+    "devices": {
+        "laptop": "Laptop des Technikers",
+        "meter": "Zähler",
+        "relay": "Datensammler",
+        "headend": "Head-End"
+    },
+    "facts": {
+        "standard": "ANSI C12.18 (optische Schnittstelle), C12.19 (Tabellen), C12.22 (Netzwerke); auch IEEE 1701, 1377, 1703",
+        "between": "Laptop oder Head-End → Zähler",
+        "transport": "Optische Schnittstelle mit 9600 Baud, 8N1; C12.22 über UDP oder TCP 1153",
+        "security": "C12.18: ein Passwort mit 20 Bytes im Klartext. C12.22: AES-128 (EAX') für jede Nachricht",
+        "model": "Tabellen: Standard (ST 0, ST 1, ST 23 …) und Hersteller (MT, ab 2048)"
+    },
+    "tips": [
+        "Zuerst ST 0 lesen. Sie sagt, wie Zahlen kodiert sind und in welcher Byte-Reihenfolge; ohne sie ist Tabelle 23 nur eine Folge von Bytes.",
+        "Viele Zähler zählen falsche Passwörter und sperren die Schnittstelle eine Zeit lang. Das Passwort prüfen, bevor man es erneut versucht.",
+        "Eine Tabelle, die größer als ein Paket ist, kommt in mehreren. Auf Sequenznummer 0 warten oder die Tabelle stückweise mit einem Partial Read lesen (0x3F: ein Offset und eine Anzahl).",
+        "Herstellertabellen (MT, ab 2048) sind so aufgebaut, wie jeder Hersteller es will. Um sie zu lesen, braucht man die Dokumentation des Herstellers."
+    ],
+    "points": {
+        "session": "Sitzung",
+        "delivered": "Wh geliefert",
+        "received": "Wh empfangen"
+    },
+    "values": {
+        "identified": "identifiziert",
+        "logged-on": "angemeldet",
+        "closed": "geschlossen"
+    },
+    "playground": {
+        "file": "Die Tabellen dieses Zählers. Ein C12.19-Leser erfährt sie aus ST 0 und liest dann über die Nummer, was er braucht.",
+        "st0": "Zuerst lesen: wie Zahlen kodiert sind, in welcher Byte-Reihenfolge und welche Tabellen es gibt.",
+        "st1": "Wer den Zähler gebaut hat: ein Herstellerkürzel mit 4 Buchstaben, das Modell, Hardware- und Firmware-Versionen und eine Seriennummer.",
+        "procedures": "Prozeduren, etwa ein Rücksetzen des Leistungsmaximums oder das Stellen der Uhr, beginnen mit einem Schreiben in ST 7. Ihre Ergebnisse kommen in ST 8 zurück.",
+        "st12": "Was jede Quelle misst: hier gelieferte und empfangene Energie, in Wh.",
+        "st21": "Wie viele Werte die Registertabellen enthalten. Davon hängt die Größe von ST 23 ab.",
+        "st22": "Aus welcher Quelle jede Summation in ST 23 stammt.",
+        "st23": "Die Tabelle, die diese Lektion liest: zwei Summen zu je 6 Bytes.",
+        "mt": "Herstellertabellen: ihre Nummer plus 2048. Was darin steht, entscheidet der Hersteller."
+    }
+}

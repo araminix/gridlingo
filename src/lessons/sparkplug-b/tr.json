@@ -1,0 +1,98 @@
+{
+    "intro": "Sparkplug B, SCADA için MQTT'nin üstüne kurulan bir kurallar bütünüdür. Sabit topic adları kimin neyi gönderdiğini söyler. Bir doğum (birth) mesajı her metriği bir kez, adı, alias'ı ve veri türüyle listeler; bundan sonra yalnızca değişiklikler alias ile taşınır. Bir ölüm (death) mesajı da bir ağ geçidi gittiğinde SCADA'ya bunu hemen bildirir.",
+    "steps": {
+        "host": { "title": "SCADA çevrim içi", "text": "Birincil host olan SCADA, broker'a bir will mesajıyla bağlanır, her Sparkplug topic'ine abone olur, sonra STATE'ini yayınlar: online, retained." },
+        "connect": { "title": "Edge node bağlanıyor", "text": "Edge node GW1, bdSeq 0 numaralı kendi will mesajı NDEATH ile bağlanır. SCADA'nın retained STATE'ini okur: SCADA çevrim içi, yani başlayabilir." },
+        "birth": { "title": "Doğum", "text": "NBIRTH edge node'un, DBIRTH de arkasındaki inverterin her metriğini listeler: ad, alias, veri türü ve değer. Artık SCADA modelin tamamını biliyor." },
+        "data": { "title": "Değişiklikte raporla", "text": "Yalnızca inverterin gücü değişti. DDATA, bir sonraki sıra numarasıyla yalnızca o metriği, alias'ıyla taşır." },
+        "rebirth": { "title": "Yeniden doğum", "text": "SCADA, seq 2'den sonra seq 4'ü alır: 3 numaralı mesaj kaybolmuş. SCADA artık kendi kopyasına güvenemez, bu yüzden bir yeniden doğum (rebirth) ister. Edge node NBIRTH ve DBIRTH'i yeniden gönderir." },
+        "death": { "title": "Ölüm", "text": "Edge node'un bağlantısı, son paketinden hemen sonra 300. saniyede kopar. 45 s sonra (broker'ın duyduğu son paketten itibaren sayılan, 30 s'lik keep alive'ın 1.5 katı) broker onun will mesajını, NDEATH'i yayınlar. SCADA GW1'i çevrim dışı, değerlerini de STALE olarak işaretler." }
+    },
+    "frames": {
+        "host-connect": "Ben SCADA1. Kaybolursam çevrim dışı olduğumu yayınla",
+        "state": "SCADA1 çevrim içi",
+        "edge-connect": "Ben GW1. Kaybolursam ölümümü yayınla, bdSeq 0",
+        "state-seen": "SCADA1 çevrim içi (broker'ın sakladığı)",
+        "nbirth": "GW1 hayatta: işte tüm metrikleri",
+        "dbirth": "INV1 hayatta: işte tüm metrikleri",
+        "ddata": "INV1: alias 2 = 4820.5",
+        "ddata-gap": "INV1: seq 4 (3 nerede?)",
+        "ncmd": "GW1, her şeyi yeniden gönder",
+        "nbirth-again": "GW1: tüm metrikleri, yeniden",
+        "dbirth-again": "INV1: tüm metrikleri, yeniden",
+        "ndeath": "GW1 öldü (bdSeq 0)"
+    },
+    "notes": {
+        "host-connect": "Clean session ile bir MQTT CONNECT. Will mesajı spBv1.0/STATE/SCADA1'e gider: {\"online\":false,\"timestamp\":1794480000000}, QoS 1, retained. Sonra SCADA her Sparkplug mesajını kapsayan spBv1.0/#'e abone olur.",
+        "edge-connect": "Clean session ve 30 s'lik keep alive ile bir MQTT CONNECT. Will mesajı spBv1.0/SolarPark/NDEATH/GW1 üzerinde NDEATH'tir; QoS 1, retained değil, tek bir metrikle: bdSeq = 0. Sonra edge node kendi NCMD ve DCMD topic'lerine ve spBv1.0/STATE/SCADA1'e abone olur.",
+        "state-seen": "Broker, edge node abone olur olmaz retained STATE'i gönderir. SCADA çevrim dışı olsaydı edge node bekler ve hiçbir şey yayınlamazdı.",
+        "nbirth": "spBv1.0/SolarPark/NBIRTH/GW1 üzerinde, QoS 0, seq 0. Edge node'un kendisine ait her metriği, her biri bir ad, bir alias, bir veri türü ve bir değerle içerir. İkisi her zaman bulunmalıdır: will mesajındakiyle aynı numara olan bdSeq = 0 ve Node Control/Rebirth = false.",
+        "dbirth": "spBv1.0/SolarPark/DBIRTH/GW1/INV1 üzerinde, seq 1: edge node'un Modbus üzerinden okuduğu inverterin her metriği. AC/Power alias 2'yi ve Float türünü alır. Bu mesajı çözülmüş hâliyle deneme alanı gösteriyor.",
+        "ddata-gap": "Bu DDATA'nın seq'i 4, ama SCADA 3'ü bekliyordu. 3 geç gelir diye bir süre (reorder timeout) bekler. Gelmez.",
+        "ncmd": "spBv1.0/SolarPark/NCMD/GW1 üzerinde, tek bir metrikle: Node Control/Rebirth = true. SCADA bildiklerinden şüphe ettiği her an bunu gönderir.",
+        "nbirth-again": "Aynı MQTT oturumu, dolayısıyla aynı bdSeq 0. Edge node doğum mesajları çıkana kadar veri göndermeyi keser.",
+        "dbirth-again": "INV1'in tüm metrikleri yeniden; güç artık 4835.0 kW. SCADA'nın kopyası yeniden tam.",
+        "ndeath": "Edge node'un CONNECT'indeki will mesajı. bdSeq 0, son NBIRTH ile eşleşiyor; yani mevcut oturuma ait. SCADA, GW1'i ve INV1'i çevrim dışı, tüm metriklerini de STALE olarak işaretler: son değerler eski olarak işaretlenmiş hâlde ekranda kalır."
+    },
+    "fields": {
+        "publish-q1-retain": { "name": "MQTT PUBLISH", "note": "0x33: QoS 1 ve retained. Broker onu sonradan abone olacak her edge node için saklar." },
+        "rl-65": { "name": "Kalan uzunluk", "note": "Ardından 65 bayt gelir." },
+        "state-topic": { "name": "Topic", "note": "spBv1.0/STATE/SCADA1: kimliği SCADA1 olan host'un STATE topic'i." },
+        "packet-id": { "name": "Paket kimliği 1", "note": "Her QoS 1 mesajında olduğu gibi, broker'ın PUBACK'i için." },
+        "state-online": { "name": "online", "note": "{\"online\":true, SCADA çevrim içi. STATE, JSON olan tek Sparkplug mesajıdır; diğerlerinin hepsi protobuf'tur." },
+        "state-time": { "name": "timestamp", "note": "1970'ten beri 1794480000000 ms = 10:40:00.000 UTC. CONNECT'indeki will mesajıyla aynı değer: edge node'lar bu oturumu eskisinden ayırmak için bunu kullanır." },
+        "publish-q0": { "name": "MQTT PUBLISH", "note": "0x30: QoS 0, retained değil. Sonradan bağlanan bir host değerleri eski veriden değil, bir doğum mesajından öğrenir." },
+        "rl-59": { "name": "Kalan uzunluk", "note": "Ardından 59 bayt gelir: topic ve payload." },
+        "ddata-topic": { "name": "Topic", "note": "spBv1.0/SolarPark/DDATA/GW1/INV1, 32 bayt (0x0020). Buradan itibaren baytlar bir protobuf Payload'dır." },
+        "payload-time": { "name": "timestamp", "note": "Etiket 0x08: alan 1, bir varint. Mesajın gönderildiği an: 1970'ten beri 1794480067280 ms = 10:41:07.280 UTC. Bir varint, en düşük önce olmak üzere bayt başına 7 bit tutar; üst bitin 1 olması devamının geldiği demektir." },
+        "metric": { "name": "metrics", "note": "Etiket 0x12: alan 2, tek bir metrik. Ardından 0x0E = 14 bayt gelir." },
+        "alias": { "name": "alias", "note": "Etiket 0x10: metriğin alan 2'si, alias 2. Doğum mesajı 2'nin AC/Power olduğunu söyledi, bu yüzden ad gönderilmez." },
+        "metric-time": { "name": "timestamp", "note": "Etiket 0x18: metriğin alan 3'ü, değerin okunduğu an: 1794480067250, mesaj gönderilmeden 30 ms önce." },
+        "float": { "name": "float_value", "note": "Etiket 0x65: alan 12, 4 bayt, düşük bayt önce: 4820.5 (kW). Veri türü gönderilmez: onu doğum mesajı verdi." },
+        "seq": { "name": "seq", "note": "Yine etiket 0x18, bu kez metriğin dışında: payload'ın alan 3'ü, seq 2. Bir metriğin içinde alan 3 zaman damgasıdır." },
+        "a-namespace": { "name": "Namespace", "note": "spBv1.0: Sparkplug B, topic düzeninin 1.0 sürümü." },
+        "a-group": { "name": "group_id", "note": "Bir edge node grubu, burada tek bir santral." },
+        "a-type": { "name": "message_type", "note": "Mesajın ne olduğu. NBIRTH, NDATA, NCMD ve NDEATH edge node hakkındadır; DBIRTH, DDATA, DCMD ve DDEATH bir cihaz hakkında." },
+        "a-node": { "name": "edge_node_id", "note": "Ağ geçidi. Grubu içinde benzersiz olmalıdır." },
+        "a-device": { "name": "device_id", "note": "Edge node'un arkasındaki bir cihaz. Edge node'un kendisiyle ilgili bir topic GW1'de biter." }
+    },
+    "devices": {
+        "inv1": "INV1 inverteri",
+        "gw": "Edge node GW1",
+        "broker": "MQTT broker",
+        "scada": "SCADA (SCADA1)"
+    },
+    "facts": {
+        "standard": "Eclipse Sparkplug 3.0 (2022), ayrıca ISO/IEC 20237:2023",
+        "between": "Edge node'lar → MQTT broker → host uygulamaları (SCADA, historian)",
+        "transport": "TCP 1883 ya da TLS 8883 üzerinde MQTT 3.1.1 veya 5.0",
+        "security": "Yalnızca MQTT'ninki: TLS ve broker girişleri. Sparkplug bir şey eklemez.",
+        "frames": "NBIRTH, DBIRTH, NDATA, DDATA, NCMD, DCMD, NDEATH, DDEATH, STATE",
+        "model": "Protocol Buffers ile ad, alias, veri türü ve değer içeren metrikler"
+    },
+    "tips": [
+        "Her edge node'un grubu içinde benzersiz bir edge_node_id'si ve kendi MQTT istemci kimliği olmalıdır. Aynı kimliklere sahip iki ağ geçidi birbirini düşürür ve SCADA bütün gün doğumlar ve ölümler görür.",
+        "Bir alias yalnızca bir sonraki doğuma kadar geçerlidir. Yeniden doğumdan sonra eski alias'ları tutan bir araç, değerleri yanlış metriğe yazar.",
+        "Doğum mesajında olmayan bir metrik SCADA için yoktur. Bir metrik ekledikten sonra yeni bir doğum mesajı yayınlayın.",
+        "Her edge node'da birincil host kimliğini ayarlayın. O zaman doğum mesajından önce SCADA'nın STATE'ini bekler. Bu olmadan doğum mesajları SCADA yokken çıkar ve SCADA yeniden doğum istemek zorunda kalır."
+    ],
+    "points": {
+        "node": "Edge node durumu",
+        "power": "İnverter gücü"
+    },
+    "values": {
+        "online": "çevrim içi",
+        "offline": "çevrim dışı"
+    },
+    "anatomy": {
+        "topic": "Bir Sparkplug topic'i: kim, hangi cihaz hakkında, ne gönderiyor"
+    },
+    "playground": {
+        "file": "INV1'in DBIRTH'i, okunabilsin diye protobuf'tan JSON'a çözülmüş. Hatta, yukarıdaki DDATA gibi ikili (binary) biçimdedir.",
+        "payload-time": "Mesajın gönderildiği an, 1970'ten beri milisaniye cinsinden, UTC.",
+        "metric": "Tek bir metrik: adı, alias'ı, ne zaman okunduğu, veri türü ve değeri. Sparkplug'da birim alanı yoktur: santral, AC/Power'ın kW cinsinden olduğunda anlaşır.",
+        "double": "Double olarak MWh cinsinden toplam enerji. Bir metrik veri türünü bir sonraki doğuma kadar korur.",
+        "string": "Metin de olur. DDATA yalnızca alias 5'i ve yeni metni gönderirdi.",
+        "seq": "seq 1: NBIRTH'te 0'dı. Edge node'dan gelen her mesaj 255'e kadar sayar, sonra yeniden 0'dan başlar."
+    }
+}

@@ -1,0 +1,108 @@
+{
+    "intro": "電力会社が、インターネット越しにスマートインバータ、蓄電池、充電器に指示を出すしくみです。機器の側がクライアントです。電力会社のサーバからHTTPSでXMLのリソースを取得し、その中のリンクをたどり、応答や計測値をPOSTで返します。双方の証明書が、誰が話しているかを証明します。",
+    "steps": {
+        "tls": { "title": "証明書の提示", "text": "インバータが電力会社のサーバにTLS 1.2接続を開きます。双方が証明書を示し、使える暗号スイートは1つだけです。これで互いに相手が誰かがわかります。" },
+        "discover": { "title": "自分を探す", "text": "インバータが知っているアドレスは/dcapの1つだけです。そこからリンクをたどってエンドデバイスの一覧に行き、lFDIが自分の証明書と一致するものを見つけます。" },
+        "control": { "title": "制御の取得", "text": "インバータはプログラムを通じてDERControlを読みます。内容は「11:00 UTCから2時間、出力を50 %に制限」です。" },
+        "received": { "title": "受信の確認", "text": "この制御は応答を求めています。インバータは応答をPOSTします：status 1、受信。" },
+        "start": { "title": "出力制限", "text": "自分の時計で11:00になると、インバータは出力を9.6 kWから5.0 kW（定格10 kWの50 %）に下げ、status 2（開始）をPOSTします。" },
+        "report": { "title": "出力の報告", "text": "インバータは、測った電力をサーバ上の自分のミラーにPOSTします。電力会社は制限が守られていることを確認できます。" }
+    },
+    "frames": {
+        "client-hello": "こんにちは。TLS 1.2、この暗号スイート1つで話せます",
+        "server-hello": "了解。こちらの証明書です。そちらのも見せてください",
+        "client-finished": "こちらの証明書と、その鍵を持っている証拠です",
+        "server-finished": "証明書を確認しました。ここから暗号化します",
+        "get-dcap": "このサーバは何を提供していますか？",
+        "dcap": "一覧はこちら：エンドデバイス、ミラー、時刻ほか",
+        "get-edev": "どのエンドデバイスを知っていますか？",
+        "edev": "EndDevice /edev/3があなたのlFDIを持っています",
+        "get-derc": "私向けの制御はどれですか？",
+        "derc": "出力を50 %に制限、11:00〜13:00",
+        "post-received": "制御を受信しました",
+        "created": "保存しました",
+        "post-started": "制限を開始しました",
+        "post-reading": "現在の有効電力は5000 W"
+    },
+    "notes": {
+        "server-hello": "1回の送信に4つのメッセージが入っています。ServerHelloは0xC0AEを選びます。Certificateにはサーバの証明書チェーン、ServerKeyExchangeにはECDHE鍵合意のサーバ側の半分が入ります。CertificateRequestはクライアントの証明書を求めます。これがないと、TLSはサーバしか確認しません。",
+        "client-finished": "インバータは機器証明書と鍵合意の自分の側の半分を送ります。続いてハンドシェイク全体に秘密鍵で署名します（CertificateVerify）。これができるのは証明書の本当の持ち主だけです。証明書は工場でIEEE 2030.5のPKIのもとで書き込まれ、有効期限はありません。",
+        "server-finished": "サーバはインバータの証明書チェーンを、自分が信頼するルートまでたどって確認し、自分のFinishedを送ります。ここから先のレコードはすべて暗号化されます。その中をHTTPが流れ、途中の誰も読むことも改ざんすることもできません。",
+        "get-dcap": "TLSの中で：GET /dcap HTTP/1.1、Accept: application/sep+xml。クライアントに与えられるアドレスは/dcapだけで、ほかのアドレスはすべてリンクで見つけます。",
+        "dcap": "DeviceCapabilityリソースです。EndDeviceListLink href=\"/edev\"、MirrorUsagePointListLink href=\"/mup\"、TimeLink href=\"/tm\"などのリンクを持ちます。pollRate=\"900\"：これらのリソースを900 sごとにポーリングします。",
+        "get-edev": "エンドデバイスの一覧です。サーバは、この証明書に見ることが許された機器だけを並べることがあります。",
+        "edev": "各EndDeviceはlFDIとsFDIを持ちます。/edev/3が持つBB1309569EF761C13E620EA80AA3E84D2B6B553Dは、このインバータ自身のものです。設置時に、施工者がSFDIを電力会社に伝えています。",
+        "get-derc": "この前に、同じようなGETがあと2回あります。/edev/3からそのFunctionSetAssignmentsへ、さらにDERプログラムの一覧へ。プログラム/derp/1が自分の制御へリンクしています。",
+        "derc": "DERControlが1つ。各行の意味は「試してみる」で見られます。opModMaxLimW 5000（50.00 %）を7200 s、1781694000（11:00 UTC）から。",
+        "post-received": "DERControlResponseを、制御のreplyToアドレスにPOSTします。中身はインバータのlFDI、subjectとしての制御のmRID、そしてstatus 1：受信です。",
+        "created": "HTTP 201 Created。Locationヘッダが、保存された応答のアドレスを示します。",
+        "post-started": "同じ応答でstatus 2：開始。13:00になると、インバータはstatus 3（完了）をPOSTし、既定の制御に戻ります。",
+        "post-reading": "MirrorMeterReadingです。サーバはインバータのメーターのミラー（MirrorUsagePoint）を持ち、インバータがそれを埋めます。ReadingTypeが単位を示し、uom 38はワットです。"
+    },
+    "fields": {
+        "record-type": { "name": "レコード種別", "note": "22（0x16）：ハンドシェイクメッセージ。" },
+        "record-version": { "name": "バージョン", "note": "0x0303：TLS 1.2。IEEE 2030.5はTLS 1.2を必須としています。" },
+        "record-length": { "name": "レコード長", "note": "このレコードには69バイトが続きます。" },
+        "client-hello": { "name": "ClientHello", "note": "ハンドシェイク種別1。" },
+        "hello-length": { "name": "長さ", "note": "65バイトのClientHelloが続きます。" },
+        "client-version": { "name": "クライアントのバージョン", "note": "インバータが話せる最も新しいバージョン：TLS 1.2。" },
+        "random": { "name": "乱数", "note": "ランダムな32バイト。双方がこれをセッション鍵に混ぜ込みます。" },
+        "session-id": { "name": "セッションID", "note": "長さ0：再開する以前のセッションはありません。" },
+        "suites-length": { "name": "暗号スイート", "note": "2バイトの暗号スイートが続きます。つまり1つだけです。" },
+        "suite": { "name": "0xC0AE", "note": "TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8。IEEE 2030.5が必須とするスイートです。ECDHEが鍵を合意し、ECDSAが証明書に署名し、CCMモードのAES-128が8バイトのタグ付きでデータを暗号化します。" },
+        "compression": { "name": "圧縮", "note": "方式は1つ：0、圧縮なし。" },
+        "extensions-length": { "name": "拡張", "note": "22バイトの拡張が続きます。" },
+        "groups": { "name": "supported_groups", "note": "拡張0x000A：secp256r1（0x0017）、つまりP-256曲線のみ。" },
+        "point-formats": { "name": "ec_point_formats", "note": "拡張0x000B：曲線上の点は非圧縮（0）で送ります。" },
+        "signatures": { "name": "signature_algorithms", "note": "拡張0x000D：0x0403（ECDSAとSHA-256）のみ。" },
+        "a-first36": { "name": "先頭36ビット", "note": "先頭の16進9桁。ここからSFDIを作ります。" },
+        "a-rest": { "name": "LFDIの残り", "note": "先頭9桁と合わせて、フィンガープリントの先頭20バイト（16進40桁）がLFDIです。" },
+        "a-dropped": { "name": "使わない部分", "note": "SHA-256フィンガープリントの最後の12バイトは捨てます。" },
+        "s-number": { "name": "36ビットを10進で", "note": "0xBB1309569を10進数で書いたもの。" },
+        "s-check": { "name": "チェックディジット", "note": "全桁の和を10の倍数にする桁です：5+0+2+1+7+3+9+1+4+6+5 = 43、43 + 7 = 50。打ち間違えると和が合わなくなります。" }
+    },
+    "devices": {
+        "pv": "PVアレイ",
+        "inverter": "PVインバータ",
+        "router": "構内ルータ",
+        "server": "電力会社のサーバ"
+    },
+    "facts": {
+        "standard": "IEEE 2030.5-2018（Smart Energy Profile 2.0）",
+        "between": "電力会社またはアグリゲーターのサーバ → インバータ、蓄電池、EV充電器",
+        "transport": "TLS上のHTTP、XML（application/sep+xml）",
+        "security": "0xC0AEを使うTLS 1.2、双方に証明書",
+        "model": "URLでリンクされたリソース：DeviceCapability → EndDevice → DERProgram → DERControl"
+    },
+    "tips": [
+        "LFDIは証明書から作られます。証明書が変わればLFDIもSFDIも変わり、機器を登録し直す必要があります。",
+        "制御にはUTCのUnix時刻を使います。時計のずれたインバータは間違った時刻に制限をかけるので、サーバのTimeリソース（/tm）に合わせておきましょう。",
+        "毎回/dcapから始めてリンクをたどってください。ほかのアドレスはすべてサーバのもので、変わることがあります。",
+        "ほとんどのインバータは外からの接続を遮断するルータの内側にあるため、ポーリングします。pollRateより速くポーリングしないでください。1台のサーバを何千台もの機器が共有しています。"
+    ],
+    "points": {
+        "limit": "出力上限",
+        "status": "応答ステータス",
+        "power": "有効電力"
+    },
+    "values": {
+        "planned": "11:00から50 %",
+        "received": "1：受信",
+        "started": "2：開始"
+    },
+    "anatomy": {
+        "lfdi": "LFDI：証明書のSHA-256フィンガープリントの先頭20バイト",
+        "sfdi": "SFDI：人が入力できる短い形"
+    },
+    "playground": {
+        "file": "ステップ3でインバータが読むDERControlです。印の付いた行を選ぶと意味がわかります。",
+        "href": "制御自身のアドレス。名前空間urn:ieee:std:2030.5:nsは、IEEE 2030.5のすべての文書に付いています。",
+        "reply": "応答のPOST先（replyTo）と、求める応答の種類。responseRequired 03は、受信、続いて開始と完了を求めます。",
+        "mrid": "世界で一意の128ビットのID。応答はこれを名指しします。最後の16進8桁は発行者のIANAエンタープライズ番号で、32473（0x7ED9）は例示用に確保された番号です。",
+        "created": "時刻はUTCのUnix秒です：1781686800は2026-06-17 09:00。",
+        "status": "0：予定済み。1なら実行中、2なら取り消し。",
+        "duration": "7200 s：2時間。",
+        "start": "1781694000：11:00 UTC。インバータは自分の時計でこの時刻を待ちます。",
+        "limit": "最大出力。インバータに設定された最大電力（setMaxW）に対する、0.01 %単位の値です：5000 = 50.00 %。"
+    }
+}

@@ -1,0 +1,108 @@
+{
+    "intro": "Bir elektrik şirketinin akıllı inverterlere, bataryalara ve şarj cihazlarına internet üzerinden ne yapacaklarını söylemesinin yolu. İstemci cihazdır: elektrik şirketinin sunucusundan HTTPS üzerinden XML kaynakları alır, içlerindeki bağlantıları izler ve yanıtlarını ve okumalarını geri gönderir (POST). Her taraftaki bir sertifika, kimin konuştuğunu kanıtlar.",
+    "steps": {
+        "tls": { "title": "Sertifikaları göster", "text": "İnverter, elektrik şirketinin sunucusuna bir TLS 1.2 bağlantısı açar. İki taraf da bir sertifika gösterir ve yalnızca tek bir şifre takımına izin verilir. Artık her taraf diğerinin kim olduğunu biliyor." },
+        "discover": { "title": "Kendini bul", "text": "İnverter tek bir adres bilir: /dcap. Oradan bağlantıları izleyerek uç cihaz listesine ulaşır ve lFDI'si kendi sertifikasıyla eşleşeni bulur." },
+        "control": { "title": "Kontrolü al", "text": "İnverter, programı aracılığıyla bir DERControl okur: 11:00 UTC'den itibaren iki saat boyunca çıkışı %50 ile sınırla." },
+        "received": { "title": "Alındığını onayla", "text": "Kontrol yanıt istiyor. İnverter bir yanıt gönderir: durum 1, alındı." },
+        "start": { "title": "Çıkışı sınırla", "text": "Kendi saatine göre 11:00'da inverter çıkışını 9.6 kW'tan 5.0 kW'a (10 kW'ının %50'si) düşürür ve durum 2, başladı yanıtını gönderir." },
+        "report": { "title": "Çıkışı bildir", "text": "İnverter ölçtüğü gücü sunucudaki aynasına gönderir. Elektrik şirketi sınıra uyulduğunu görür." }
+    },
+    "frames": {
+        "client-hello": "Merhaba. TLS 1.2 konuşuyorum, şu tek şifre takımıyla",
+        "server-hello": "Anlaştık. İşte sertifikam. Seninkini göster",
+        "client-finished": "İşte sertifikam ve anahtarına sahip olduğumun kanıtı",
+        "server-finished": "Sertifikan geçerli. Bundan sonra şifreliyiz",
+        "get-dcap": "Bu sunucu ne sunuyor?",
+        "dcap": "Listelerim: uç cihazlar, aynalar, zaman ve dahası",
+        "get-edev": "Hangi uç cihazları tanıyorsun?",
+        "edev": "EndDevice /edev/3'te senin lFDI'n var",
+        "get-derc": "Benim için hangi kontroller var?",
+        "derc": "Çıkışı %50 ile sınırla, 11:00'dan 13:00'a",
+        "post-received": "Kontrol alındı",
+        "created": "Kaydedildi",
+        "post-started": "Sınır başladı",
+        "post-reading": "Aktif gücüm şimdi 5000 W"
+    },
+    "notes": {
+        "server-hello": "Tek seferde dört mesaj. ServerHello, 0xC0AE'yi seçer. Certificate, sunucunun sertifika zincirini taşır. ServerKeyExchange, ECDHE anahtar anlaşmasının sunucuya düşen yarısını taşır. CertificateRequest istemcinin sertifikasını ister: bu olmadan TLS yalnızca sunucuyu denetlerdi.",
+        "client-finished": "İnverter cihaz sertifikasını ve anahtar anlaşmasının kendi yarısını gönderir. Sonra tüm el sıkışmayı özel anahtarıyla imzalar (CertificateVerify): bunu yalnızca sertifikanın gerçek sahibi yapabilir. Sertifika fabrikada, IEEE 2030.5 PKI'ı altında yüklendi ve süresi hiç dolmaz.",
+        "server-finished": "Sunucu, inverterin sertifika zincirini güvendiği köke kadar denetler, sonra kendi Finished mesajını gönderir. Buradan itibaren her kayıt şifrelidir. HTTP içeride taşınır ve yol üzerindeki hiç kimse onu okuyamaz ya da değiştiremez.",
+        "get-dcap": "TLS içinde: Accept: application/sep+xml ile GET /dcap HTTP/1.1. /dcap, bir istemciye verilen tek adrestir. Diğer her adresi bağlantılar aracılığıyla bulur.",
+        "dcap": "Bir DeviceCapability kaynağı: EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\" ve TimeLink href=\"/tm\" gibi bağlantılar. pollRate=\"900\": bu kaynakları her 900 s'de bir sorgula.",
+        "get-edev": "Uç cihazların listesi. Sunucu yalnızca bu sertifikanın görmesine izin verilen cihazları listeleyebilir.",
+        "edev": "Her EndDevice bir lFDI ve bir sFDI tutar. /edev/3, inverterin kendisine ait olan BB1309569EF761C13E620EA80AA3E84D2B6B553D'yi tutar. Kurulumu yapan, inverter kurulduğunda SFDI'sini elektrik şirketine verdi.",
+        "get-derc": "Bundan önce buna benzer iki GET daha: /edev/3'ten FunctionSetAssignments'ına, sonra DER programları listesine. /derp/1 programı kendi kontrollerine bağlantı verir.",
+        "derc": "Deneme alanında satır satır gösterilen tek bir DERControl: 1781694000'den (11:00 UTC) itibaren 7200 s boyunca opModMaxLimW 5000 (%50.00).",
+        "post-received": "Kontrolün replyTo adresine gönderilen bir DERControlResponse. İnverterin lFDI'sini, konu (subject) olarak kontrolün mRID'sini ve durum 1'i tutar: alındı.",
+        "created": "HTTP 201 Created. Location başlığı, kaydedilen yanıtın adresini verir.",
+        "post-started": "Durum 2 ile aynı yanıt: başladı. 13:00'te inverter durum 3'ü, tamamlandı, gönderecek ve varsayılan kontrolüne dönecek.",
+        "post-reading": "Bir MirrorMeterReading. Sunucu inverterin sayacının bir aynasını (bir MirrorUsagePoint) tutar, inverter de onu doldurur. ReadingType birimi verir: uom 38 watt demektir."
+    },
+    "fields": {
+        "record-type": { "name": "Kayıt türü", "note": "22 (0x16): bir el sıkışma mesajı." },
+        "record-version": { "name": "Sürüm", "note": "0x0303: TLS 1.2. IEEE 2030.5, TLS 1.2 ister." },
+        "record-length": { "name": "Kayıt uzunluğu", "note": "Bu kayıtta ardından 69 bayt gelir." },
+        "client-hello": { "name": "ClientHello", "note": "El sıkışma türü 1." },
+        "hello-length": { "name": "Uzunluk", "note": "Ardından 65 baytlık ClientHello gelir." },
+        "client-version": { "name": "İstemci sürümü", "note": "İnverterin konuştuğu en yüksek sürüm: TLS 1.2." },
+        "random": { "name": "Random", "note": "32 rastgele bayt. İki taraf da bunları oturum anahtarlarına katar." },
+        "session-id": { "name": "Oturum kimliği", "note": "Uzunluk 0: sürdürülecek önceki bir oturum yok." },
+        "suites-length": { "name": "Şifre takımları", "note": "Ardından 2 baytlık şifre takımı gelir: yalnızca bir tane." },
+        "suite": { "name": "0xC0AE", "note": "IEEE 2030.5'in istediği takım olan TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8. ECDHE anahtarları belirler, ECDSA sertifikaları imzalar, CCM modunda AES-128 de veriyi 8 baytlık bir etiketle şifreler." },
+        "compression": { "name": "Sıkıştırma", "note": "Tek yöntem: 0, sıkıştırma yok." },
+        "extensions-length": { "name": "Uzantılar", "note": "Ardından 22 bayt uzantı gelir." },
+        "groups": { "name": "supported_groups", "note": "Uzantı 0x000A: yalnızca secp256r1 (0x0017), yani P-256 eğrisi." },
+        "point-formats": { "name": "ec_point_formats", "note": "Uzantı 0x000B: eğri noktaları sıkıştırılmadan (0) gönderilir." },
+        "signatures": { "name": "signature_algorithms", "note": "Uzantı 0x000D: yalnızca 0x0403, SHA-256 ile ECDSA." },
+        "a-first36": { "name": "İlk 36 bit", "note": "İlk 9 hex hane. SFDI'yi bunlar oluşturur." },
+        "a-rest": { "name": "LFDI'nin geri kalanı", "note": "İlk 9 haneyle birlikte parmak izinin ilk 20 baytı (40 hex hane): LFDI." },
+        "a-dropped": { "name": "Kullanılmıyor", "note": "SHA-256 parmak izinin son 12 baytı atılır." },
+        "s-number": { "name": "Ondalık olarak 36 bit", "note": "0xBB1309569'un ondalık yazılışı." },
+        "s-check": { "name": "Kontrol hanesi", "note": "Tüm hanelerin toplamını 10'un katı yapar: 5+0+2+1+7+3+9+1+4+6+5 = 43, 43 + 7 = 50. Bir yazım hatası toplamı bozar." }
+    },
+    "devices": {
+        "pv": "PV dizisi",
+        "inverter": "PV inverteri",
+        "router": "Saha yönlendiricisi",
+        "server": "Elektrik şirketi sunucusu"
+    },
+    "facts": {
+        "standard": "IEEE 2030.5-2018 (Smart Energy Profile 2.0)",
+        "between": "Elektrik şirketi ya da toplayıcı sunucusu → inverterler, bataryalar, elektrikli araç şarj cihazları",
+        "transport": "TLS üzerinden HTTP, XML (application/sep+xml)",
+        "security": "0xC0AE ile TLS 1.2, her tarafta bir sertifika",
+        "model": "URL'lerle bağlı kaynaklar: DeviceCapability → EndDevice → DERProgram → DERControl"
+    },
+    "tips": [
+        "LFDI sertifikadan gelir. Yeni bir sertifika yeni bir LFDI ve SFDI demektir; cihazın yeniden kaydedilmesi gerekir.",
+        "Kontroller UTC cinsinden Unix zamanı kullanır. Saati yanlış olan bir inverter yanlış zamanda sınırlar; bu yüzden onu sunucunun Time kaynağına (/tm) göre senkron tutun.",
+        "Her seferinde /dcap'ten başlayın ve bağlantıları izleyin. Diğer her adres sunucuya aittir ve değişebilir.",
+        "Çoğu inverter gelen bağlantıları engelleyen bir yönlendiricinin arkasındadır, bu yüzden sorgulama (polling) yapar. pollRate ile sorgulayın, daha hızlı değil: binlerce cihaz tek bir sunucuyu paylaşır."
+    ],
+    "points": {
+        "limit": "Çıkış sınırı",
+        "status": "Yanıt durumu",
+        "power": "Aktif güç"
+    },
+    "values": {
+        "planned": "11:00'dan itibaren %50",
+        "received": "1: alındı",
+        "started": "2: başladı"
+    },
+    "anatomy": {
+        "lfdi": "LFDI: sertifikanın SHA-256 parmak izinin ilk 20 baytı",
+        "sfdi": "SFDI: bir insanın yazabileceği kısa biçim"
+    },
+    "playground": {
+        "file": "İnverterin 3. adımda okuduğu DERControl. Ne anlama geldiğini görmek için işaretli bir satır seçin.",
+        "href": "Kontrolün kendi adresi. urn:ieee:std:2030.5:ns namespace'i her IEEE 2030.5 belgesini işaretler.",
+        "reply": "Yanıtların nereye (replyTo) ve hangilerinin gönderileceği: responseRequired 03, alındı, sonra başladı ve tamamlandı yanıtlarını ister.",
+        "mrid": "Dünya çapında benzersiz, 128 bitlik bir kimlik; yanıtlar onu belirtir. Son 8 hex hanesi, yayıncının IANA kurum numarasıdır: 32473 (0x7ED9), örnekler için ayrılmış olandır.",
+        "created": "Zamanlar UTC cinsinden Unix saniyesidir: 1781686800, 2026-06-17 09:00'dır.",
+        "status": "0: planlandı. 1 etkin, 2 iptal edildi anlamına gelirdi.",
+        "duration": "7200 s: iki saat.",
+        "start": "1781694000: 11:00 UTC. İnverter bu anı kendi saatine göre bekler.",
+        "limit": "Maksimum çıkış, inverterin ayarlı maksimum gücünün (setMaxW) yüzde birinin yüzde biri cinsinden: 5000 = %50.00."
+    }
+}

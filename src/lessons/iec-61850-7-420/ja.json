@@ -1,0 +1,103 @@
+{
+    "intro": "IEC 61850-7-420は、IEC 61850のデータモデルを分散型エネルギーに広げる規格です。対象は蓄電池、インバータ、発電機、そしてそれらを制御する機能です。発電所コントローラは、変電所の保護リレーと同じMMSサービスでこれらを読み、制御します。新しいのは名前だけです。",
+    "steps": {
+        "associate": { "title": "アソシエーション", "text": "発電所コントローラが蓄電池用インバータのTCPポート102を開き、MMSアソシエーションを確立します。IEC 61850のどの接続とも同じ手順です。" },
+        "read": { "title": "充電状態と電力を読む", "text": "1回のReadで2つの値を求めます。DSTO1の充電状態と、MMXU1の有効電力です。応答には両方が同じ順で入っています。" },
+        "subscribe": { "title": "レポートを要求", "text": "コントローラは同じ2つの値についてレポートを有効にします。これ以降、インバータは値が変わるたびに送ってきます。" },
+        "limit": { "title": "出力を制限", "text": "系統運用者が許すのは最大2000 kWです。コントローラは、有効電力に上限をかける機能DWMX1の設定値WMaxSptを操作します。インバータはこれを受け入れ、出力を下げ始めます。" },
+        "report": { "title": "電力が落ち着く", "text": "TotWが下がる間、インバータはレポートを送ります。最後のレポートは2000.0 kW：制限が守られています。" }
+    },
+    "frames": {
+        "tcp": "ポート102へのTCPを開き、続いてトランスポート接続",
+        "initiate-req": "MMSで話しましょう：こちらのサイズとサービスです",
+        "initiate-resp": "了解：こちらのはこれです",
+        "read-req": "充電状態と有効電力はいくつですか？",
+        "read-resp": "68.5 %と3000.0 kW",
+        "enable": "レポートurcbDER01を有効化",
+        "oper-req": "有効電力を2000 kWに制限してください",
+        "oper-resp": "完了",
+        "report": "TotWは2000.0 kWに"
+    },
+    "notes": {
+        "tcp": "ポート102へのただのTCPで、その上にISOトランスポート接続（COTP）を張ります。この手順はIEC 61850 MMSのレッスンで見られます。",
+        "initiate-req": "セッション、プレゼンテーション、ACSEの各層に包まれたMMS Initiateです。コントローラは最大メッセージサイズと、使いたいサービスを提示します。認証を使う場合は、ここで行います（IEC 62351-4）。",
+        "initiate-resp": "インバータは自分のサイズとサービスで応えます。これ以降、どの要求も論理デバイスとアイテムで変数を指定します。",
+        "enable": "レポート制御ブロックLLN0$RP$urcbDER01のRptEnaにTRUEをWriteします。そのデータセットdsDERには、DSTO1.UseSocPctとMMXU1.TotWが入っています。",
+        "report": "非要求のInformationReportです。dsDER内の値が変わるたびに、インバータが問い合わせなしで送ります。"
+    },
+    "fields": {
+        "tpkt-110": { "name": "TPKT", "note": "バージョン3、続いてメッセージ全体の長さ：0x006E = 110バイト。" },
+        "tpkt-43": { "name": "TPKT", "note": "バージョン3、続いて長さ：0x002B = 43バイト。" },
+        "tpkt-111": { "name": "TPKT", "note": "バージョン3、続いて長さ：0x006F = 111バイト。" },
+        "tpkt-29": { "name": "TPKT", "note": "バージョン3、続いて長さ：0x001D = 29バイト。" },
+        "cotp-dt": { "name": "COTP", "note": "データユニット（0xF0）で、メッセージの最後の1つ（0x80）です。" },
+        "session": { "name": "セッション", "note": "短いセッションヘッダが2つ：トークン付与とデータ転送。" },
+        "presentation": { "name": "プレゼンテーション", "note": "完全符号化データ、プレゼンテーションコンテキスト3：この後に続くのはMMSです。" },
+        "confirmed-req": { "name": "確認型リクエスト", "note": "タグA0：応答を待つリクエストです。次のバイトは中身のバイト数です。" },
+        "confirmed-resp": { "name": "確認型レスポンス", "note": "タグA1：リクエストへの応答。" },
+        "invoke-7": { "name": "Invoke ID 7", "note": "コントローラが選ぶ番号です。応答にも同じ番号が入ります。" },
+        "invoke-7-resp": { "name": "Invoke ID 7", "note": "リクエストと同じ番号：これがその応答です。" },
+        "invoke-8": { "name": "Invoke ID 8", "note": "新しいリクエストには新しい番号。" },
+        "invoke-8-resp": { "name": "Invoke ID 8", "note": "設定値を送ったリクエストへの応答です。" },
+        "read": { "name": "Read", "note": "タグA4：Readサービス。" },
+        "spec": { "name": "変数リスト", "note": "名前で指定した変数のリスト。ここでは2つです。" },
+        "var": { "name": "変数", "note": "リストの1項目。この後に名前が続きます。" },
+        "domain-specific": { "name": "ドメイン固有名", "note": "2つの部分からなる名前：ドメインとアイテム。" },
+        "domain": { "name": "ドメイン", "note": "「BESS1DER」：IED BESS1の論理デバイスDER。" },
+        "item-soc": { "name": "アイテム", "note": "「DSTO1$MX$UseSocPct$mag$f」：蓄電ユニットの充電状態。利用可能なエネルギーに対するパーセントです。" },
+        "item-totw": { "name": "アイテム", "note": "「MMXU1$MX$TotW$mag$f」：インバータのAC側の合計有効電力。" },
+        "results": { "name": "結果", "note": "変数ごとに1つの結果が、要求した順に並びます。" },
+        "float-tag": { "name": "浮動小数点", "note": "タグ0x87（浮動小数点）、5バイト。08：IEEE 754単精度浮動小数点が続きます。" },
+        "soc": { "name": "UseSocPct", "note": "68.5（%）、上位バイトが先。" },
+        "totw": { "name": "TotW", "note": "3000.0。単位のkWは属性units（CF）にあります。" },
+        "write": { "name": "Write", "note": "タグA5：Writeサービス。IEC 61850では、コマンドをOperへのWriteとして送ります。" },
+        "write-spec": { "name": "変数", "note": "名前で指定した変数1つだけのリスト。" },
+        "item-oper": { "name": "アイテム", "note": "「DWMX1$CO$WMaxSpt$Oper」：設定値WMaxSptのOper構造体。COは制御を表します。" },
+        "data-list": { "name": "データ", "note": "書き込む値。変数ごとに1つです。" },
+        "oper-struct": { "name": "Oper", "note": "6つの部分からなる構造体（タグA2）。並び順はデータモデルが決めています。" },
+        "ctlval": { "name": "ctlVal", "note": "新しい値：浮動小数点1つの構造体、0x44FA0000 = 2000.0（kW）。" },
+        "origin": { "name": "origin", "note": "送り主：orCat 5（automatic-station：発電所内のコントローラ）とorIdent「PPC」。" },
+        "ctlnum": { "name": "ctlNum", "note": "1：クライアントはコマンドに番号を振るので、1つずつ区別できます。" },
+        "oper-t": { "name": "T", "note": "コントローラが送った時刻：10:41:12.250 UTC。秒が4バイト、秒の小数部が3バイト、時刻品質が1バイトです。" },
+        "test": { "name": "Test", "note": "FALSE：試験ではなく本物のコマンド。" },
+        "check": { "name": "Check", "note": "2ビット：同期検定とインターロック検査。どちらもオフです。設定値にはどちらも不要です。" },
+        "write-resp": { "name": "Write応答", "note": "タグA5：Writeへの応答。変数ごとに1つの結果です。" },
+        "success": { "name": "成功", "note": "タグ0x81、中身なし：書き込みは成功しました。直接制御なので、新しい制限はすぐに適用されます。" },
+        "a-ld": { "name": "論理デバイス", "note": "BESS1DER：IED名BESS1とインスタンスDER。" },
+        "a-ln": { "name": "論理ノード", "note": "DWMX1：有効電力に上限をかける機能、インスタンス1。" },
+        "a-fc": { "name": "機能制約", "note": "CO：制御。ここへのWriteは設定ではなくコマンドです。" },
+        "a-do": { "name": "データオブジェクト", "note": "WMaxSpt：最大有効電力の設定値。型はAPC（制御可能なアナログ値）です。" },
+        "a-da": { "name": "データ属性", "note": "Oper：クライアントがコマンドを出すために書き込む構造体。" }
+    },
+    "devices": {
+        "meter": "系統側メーター",
+        "ppc": "発電所コントローラ",
+        "bess": "インバータ BESS1",
+        "battery": "蓄電池"
+    },
+    "facts": {
+        "standard": "IEC 61850-7-420 第2版（2021）。IEC 61850-7-4とIEC 61850-8-1のMMSマッピングに基づく",
+        "between": "発電所コントローラ、SCADA、アグリゲーター → インバータ、蓄電池、発電機",
+        "transport": "TCP 102上のMMS",
+        "security": "TLS（IEC 62351-4）、TCP 3782",
+        "model": "DERの論理ノード：DSTO、DBAT、DINV、DGEN、およびDWMXなどの機能"
+    },
+    "tips": [
+        "第1版（2009）と第2版（2021）では名前が違います。第1版にはZINV、ZBAT、DRCTがあり、第2版にはDINV、DBAT、DSTOとDWMXなどの機能があります。マッピングを始める前に、機器のSCLファイルがどちらの版かを確認してください。",
+        "操作の前にctlModel（CF）を読んでください。direct-with-normal-securityならWrite応答で終わりです。enhanced securityでは、機器が処理を終えたときにCommandTerminationが続きます。",
+        "第2版の機能は、RvrtTmsで設定した時間がたつと既定値に戻ることがあります。制限を1回だけ送ってそれきりのコントローラでは、制限が消えてしまうかもしれません。",
+        "電力の符号を取り決めてください。放電を正と数える機器もあれば、負と数える機器もあります。最初は小さな設定値で試しましょう。"
+    ],
+    "points": {
+        "soc": "充電状態",
+        "totw": "有効電力",
+        "wmax": "電力制限"
+    },
+    "anatomy": {
+        "control": "設定値の名前と、MMSでの書き方"
+    },
+    "playground": {
+        "scl": "蓄電池用インバータの設定済み記述ファイル（.cid）です。DERを開き、ここで読んだ2つの値はDSTO1とMMXU1、WMaxSptはDWMX1で見てください。Oper構造体とctlModelもそこにあります。自分のファイルがあれば、それも開いてみましょう。",
+        "encoder": "MMSは浮動小数点値を上位バイトから送ります（ABCD）。制限値2000.0は44 FA 00 00として送られます。"
+    }
+}

@@ -1,0 +1,99 @@
+{
+    "intro": "Il bus dei contatori di calore, acqua e gas in Europa (EN 13757). Un master alimenta due fili e interroga a turno ogni contatore. Il contatore risponde con un'intestazione e dei record di dati; ogni record dice cosa misura e in quale unità. Il Wireless M-Bus invia gli stessi record via radio, senza che nessuno li chieda.",
+    "steps": {
+        "reset": { "title": "Reset del link", "text": "Il concentratore invia SND_NKE all'indirizzo primario 5. Il contatore risponde con un byte, E5. Il bus va a 2400 baud, 8 bit di dati, parità pari." },
+        "ask": { "title": "Chiedi i dati", "text": "REQ_UD2 chiede i dati al contatore di calore. Il frame count bit (FCB) è 1, come deve essere nella prima richiesta dopo un reset." },
+        "answer": { "title": "Record di dati", "text": "Un frame lungo: un'intestazione fissa, poi i record di dati. Ogni record inizia con un DIF (come è codificato il valore) e un VIF (cos'è, in quale unità). L'ultimo byte prima del checksum, 0x1F, dice: c'è altro nel prossimo telegramma." },
+        "next": { "title": "Telegramma successivo", "text": "Il concentratore inverte l'FCB e chiede di nuovo. Il contatore invia il suo secondo telegramma: i valori memorizzati all'ultima data di scadenza, il giorno su cui l'azienda fattura." },
+        "radio": { "title": "Wireless M-Bus", "text": "Il contatore dell'acqua non ha un filo verso il bus. Ogni 16 secondi invia i suoi valori via radio, cifrati con AES-128. Per leggerli, il concentratore ha bisogno della chiave di questo contatore." }
+    },
+    "frames": {
+        "snd-nke": "Contatore 5, resetta il tuo link",
+        "e5": "OK",
+        "req-1": "Contatore 5, mandami i tuoi dati",
+        "rsp-1": "12 345 kWh, 456.78 m³, 70.2 °C e 45.3 °C, altro in arrivo",
+        "req-2": "Il prossimo telegramma, per favore",
+        "rsp-2": "Al 2025-12-31: 9 876 kWh e 381.23 m³",
+        "wmbus": "Contatore dell'acqua 87654321: i miei valori (cifrati)"
+    },
+    "notes": {
+        "wmbus": "Nessuno ha chiesto: un contatore T1 si limita a trasmettere. In chiaro arrivano la lunghezza, il C-field 0x44 (SND_NR: invio senza risposta), il costruttore EXA, l'ID 87654321, una versione e il tipo 0x07 (acqua). Poi CI 0x7A con un access number, un byte di stato e una parola di configurazione che indica il modo 5: AES-128 in modalità CBC. Il resto è cifrato. L'IV è costruito da costruttore, indirizzo e access number; la chiave appartiene a questo solo contatore. Una volta decifrati, i dati iniziano con 2F 2F, poi record DIF e VIF come quelli cablati. Ogni blocco del frame ha il proprio CRC. In aria, ogni gruppo di 4 bit viaggia come 6 chip (il codice 3 su 6)."
+    },
+    "fields": {
+        "short": { "name": "Inizio", "note": "0x10 apre un frame corto: 5 byte in tutto." },
+        "c-nke": { "name": "C-field 0x40", "note": "SND_NKE: reset del link. Il contatore azzera il suo frame count bit." },
+        "a-5": { "name": "Indirizzo 5", "note": "L'indirizzo primario del contatore. Da 1 a 250 sono per i contatori, e un contatore nuovo risponde a 0. 253 significa: usa invece l'indirizzo secondario (l'ID). 254 e 255 raggiungono tutti i contatori." },
+        "cs-nke": { "name": "Checksum", "note": "0x45 = 0x40 + 0x05: la somma di C e A, modulo 256." },
+        "stop": { "name": "Stop", "note": "0x16 chiude ogni frame M-Bus." },
+        "e5": { "name": "ACK", "note": "Un byte, 0xE5: la conferma del contatore." },
+        "c-req-1": { "name": "C-field 0x7B", "note": "REQ_UD2: mandami i tuoi dati utente. Il frame count bit (0x20) è 1: la prima richiesta dopo un reset porta FCB 1." },
+        "cs-req-1": { "name": "Checksum", "note": "0x80 = 0x7B + 0x05." },
+        "long-42": { "name": "Inizio", "note": "Un frame lungo: 0x68, la lunghezza due volte, di nuovo 0x68. 0x2A = 42 byte da C all'ultimo byte di dati." },
+        "c-rsp": { "name": "C-field 0x08", "note": "RSP_UD: i dati utente del contatore." },
+        "a-5-rsp": { "name": "Indirizzo 5", "note": "La risposta indica il suo mittente." },
+        "ci": { "name": "CI-field 0x72", "note": "Dati variabili con l'intestazione lunga che segue, numeri con il byte meno significativo per primo." },
+        "id": { "name": "Numero ID", "note": "12345678 in BCD, prima il byte meno significativo. È stampato sul contatore ed è il suo indirizzo secondario." },
+        "maker": { "name": "Costruttore", "note": "0x1701 = EXA, un codice inventato: tre lettere compresse in 15 bit (scomposte qui sotto)." },
+        "version": { "name": "Versione", "note": "1: la versione di questo tipo di contatore." },
+        "medium": { "name": "Vettore", "note": "0x04: calore, con il sensore di portata sul tubo di ritorno. 0x07 è acqua, 0x03 gas." },
+        "access-42": { "name": "Access number", "note": "0x2A = 42. Aumenta di uno a ogni risposta." },
+        "access-43": { "name": "Access number", "note": "0x2B = 43: uno in più dell'ultima risposta." },
+        "status": { "name": "Stato", "note": "0x00: nessun errore, batteria a posto." },
+        "signature": { "name": "Signature", "note": "0x0000: non cifrato." },
+        "energy": { "name": "Energia", "note": "DIF 0x0C: 8 cifre BCD. VIF 0x06: energia in kWh. 00012345 = 12 345 kWh." },
+        "volume": { "name": "Volume", "note": "DIF 0x0C. VIF 0x14: volume a passi di 0.01 m³. 00045678 = 456.78 m³." },
+        "flow": { "name": "Temperatura di mandata", "note": "DIF 0x0A: 4 cifre BCD. VIF 0x5A: temperatura di mandata a passi di 0.1 °C. 0702 = 70.2 °C." },
+        "return": { "name": "Temperatura di ritorno", "note": "VIF 0x5E: temperatura di ritorno a passi di 0.1 °C. 0453 = 45.3 °C." },
+        "now": { "name": "Data e ora", "note": "DIF 0x04: 32 bit. VIF 0x6D: data e ora (tipo F), compresse in bit: 2026-11-12 08:15." },
+        "more": { "name": "Altro", "note": "DIF 0x1F: altri record seguono nel prossimo telegramma." },
+        "cs-rsp-1": { "name": "Checksum", "note": "0xA1: la somma di tutti i byte da C all'ultimo byte di dati, modulo 256." },
+        "c-req-2": { "name": "C-field 0x5B", "note": "REQ_UD2 con FCB 0. Il bit è cambiato, quindi il contatore invia il telegramma successivo. Con lo stesso bit, invierebbe di nuovo l'ultimo." },
+        "cs-req-2": { "name": "Checksum", "note": "0x60 = 0x5B + 0x05." },
+        "long-31": { "name": "Inizio", "note": "0x1F = 31 byte da C all'ultimo byte di dati." },
+        "due-date": { "name": "Data di scadenza", "note": "DIF 0x42: memoria 1, 16 bit. VIF 0x6C: una data (tipo G): 2025-12-31." },
+        "due-energy": { "name": "Energia alla data di scadenza", "note": "DIF 0x4C: memoria 1, 8 cifre BCD. VIF 0x06: kWh. 00009876 = 9 876 kWh." },
+        "due-volume": { "name": "Volume alla data di scadenza", "note": "DIF 0x4C, VIF 0x14. 00038123 = 381.23 m³." },
+        "cs-rsp-2": { "name": "Checksum", "note": "0x6B: la somma da C all'ultimo byte di dati." },
+        "m-1": { "name": "Prima lettera", "note": "E = 5 (A è 1, Z è 26), per 1024." },
+        "m-2": { "name": "Seconda lettera", "note": "X = 24, per 32." },
+        "m-3": { "name": "Terza lettera", "note": "A = 1." },
+        "d-extension": { "name": "Estensione", "note": "0: non segue nessun byte DIFE. I DIFE aggiungono bit per numeri di memoria più alti, fasce e sottounità." },
+        "d-storage": { "name": "Numero di memoria", "note": "1. 0 è il valore attuale; i numeri più alti sono valori memorizzati. In questo contatore, 1 è l'ultima data di scadenza." },
+        "d-function": { "name": "Funzione", "note": "00: un valore istantaneo. 01 è un massimo, 10 un minimo, 11 un valore durante un errore." },
+        "d-data": { "name": "Campo dati", "note": "1100: 8 cifre BCD, in 4 byte. 0100 sarebbe un intero a 32 bit." }
+    },
+    "devices": {
+        "heat": "Contatore di calore",
+        "collector": "Concentratore dati",
+        "water": "Contatore dell'acqua"
+    },
+    "facts": {
+        "standard": "EN 13757-2 (cablato), -3 (dati), -4 (wireless), -7 (sicurezza)",
+        "between": "Concentratore dati (master) → contatori di calore, acqua, gas ed elettricità",
+        "transport": "Due fili, alimentati dal master, 2400 baud 8E1; radio a 868 MHz (T1: 868.95 MHz)",
+        "security": "Cablato: nessuna. Wireless: AES-128 con una chiave per ogni contatore (modo 5 o 7)",
+        "frames": "E5: conferma · 10 … 16: frame corto · 68 L L 68 … 16: frame lungo"
+    },
+    "tips": [
+        "Ogni contatore sul bus ha bisogno del proprio indirizzo primario. I contatori nuovi rispondono a 0, e due di loro a 0 si disturbano a vicenda. Imposta prima l'indirizzo, oppure indirizza i contatori con il loro numero ID (indirizzamento secondario).",
+        "Inverti l'FCB solo per avere il telegramma successivo. Un concentratore che non lo inverte mai legge sempre il telegramma 1 e non vede mai i valori memorizzati.",
+        "Prendi l'unità dal VIF di ogni record. 0x13 sono litri, 0x14 decine di litri: copiare la scalatura da un altro tipo di contatore produce bollette sbagliate di un fattore dieci.",
+        "Chiedi al fornitore la chiave AES di ogni contatore wireless insieme alla consegna. Senza, il concentratore vede l'ID e il tipo, ma nessun valore."
+    ],
+    "points": {
+        "energy": "Energia termica",
+        "volume": "Volume",
+        "flow": "Temperatura di mandata",
+        "due": "Energia al 2025-12-31"
+    },
+    "timing": {
+        "title": "Come viaggiano i bit sui due fili",
+        "note": "SND_NKE dal master, poi E5 dal contatore. Il master segnala con la tensione: circa 36 V per un 1, 12 V in meno per uno 0. Il contatore segnala con la corrente: 1.5 mA per un 1, da 11 a 20 mA in più per uno 0. Così gli stessi due fili portano alimentazione e dati in entrambe le direzioni. Ogni carattere è di 11 bit: un bit di start, 8 bit di dati (prima il meno significativo), parità pari e un bit di stop. A 2400 baud un bit dura 0.42 ms.",
+        "master": "Master: tensione",
+        "meter": "Contatore: corrente"
+    },
+    "anatomy": {
+        "maker": "Il codice del costruttore, compresso in due byte",
+        "dif": "DIF 0x4C, bit per bit"
+    }
+}

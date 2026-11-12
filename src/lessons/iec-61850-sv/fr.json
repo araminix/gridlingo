@@ -1,0 +1,125 @@
+{
+    "intro": "Une merging unit se trouve à côté des transformateurs de courant et de tension d'une travée. Elle les mesure 4000 fois par seconde et publie chaque jeu d'échantillons dans une trame Ethernet sur le bus de processus. Les relais de protection s'y abonnent et travaillent sur ces échantillons, au lieu de fils de cuivre venant des transformateurs.",
+    "steps": {
+        "sync": { "title": "Synchroniser", "text": "Une horloge PTP règle l'heure de la merging unit et du relais à environ une microseconde près. La merging unit prend ses échantillons sur cette horloge : l'échantillon 0 au début de chaque seconde." },
+        "sample": { "title": "Flux", "text": "Toutes les 250 µs, la merging unit envoie une trame de huit valeurs : les trois courants de phase, le courant de neutre, les trois tensions de phase et la tension de neutre. Chaque valeur est un instant de l'onde, pas une valeur efficace." },
+        "gap": { "title": "Un échantillon perdu", "text": "Les trames continuent d'arriver, chacune avec le smpCnt suivant. Après 1236 vient 1238 : la trame 1237 s'est perdue en route. Le relais voit le trou. Il peut combler un échantillon manquant ; s'il en manque plusieurs à la suite, il bloque les fonctions qui en ont besoin." },
+        "unsync": { "title": "Horloge perdue", "text": "L'horloge PTP tombe en panne. La merging unit garde l'heure sur son propre oscillateur pendant un moment, puis passe smpSynch à 0. Ce relais n'utilise que cette merging unit : il continue de protéger et lève une alarme. Une protection qui compare plusieurs merging units, comme une différentielle de barres ou de ligne, se bloquerait." },
+        "fault": { "title": "Défaut", "text": "Un court-circuit entre la phase A et la terre sur F1. Les échantillons montrent 2.8 kA sur la phase A et du courant dans le neutre. La fonction maximum de courant du relais déclenche : elle renvoie un message GOOSE à la merging unit, qui ferme le contact de déclenchement de Q1." },
+        "open": { "title": "Ouverture", "text": "80 ms après le défaut, Q1 est ouvert. Les échantillons ne montrent presque plus de courant, et le relais retombe." }
+    },
+    "frames": {
+        "ptp-sync": "Voici l'heure exacte",
+        "sv-0": "Échantillon 0 : IA 531.57 A, VA 28 169.13 V …",
+        "sv-gap": "Échantillon 1238 (1237 n'est jamais arrivé)",
+        "sv-unsync": "Échantillon 2650, non synchronisé",
+        "sv-fault": "Échantillon 3127 : IA −3796.73 A",
+        "goose-trip": "Déclenche Q1 !",
+        "trip-wire": "Alimente la bobine de déclenchement de Q1",
+        "sv-open": "Plus de courant dans F1"
+    },
+    "notes": {
+        "ptp-sync": "PTP avec le profil power (IEC 61850-9-3) envoie Sync une fois par seconde, en multicast. Chaque switch ajoute le temps que la trame a passé en lui : chaque équipement peut ainsi le corriger. La leçon PTP l'explique.",
+        "goose-trip": "Un message GOOSE sur le bus de processus, du relais vers la merging unit. La leçon GOOSE en décompose un.",
+        "trip-wire": "Un fil de cuivre, pas un message réseau. Cette merging unit a des sorties vers le disjoncteur à côté de ses entrées venant des transformateurs.",
+        "sv-open": "La même trame que précédemment, avec smpCnt 3447. IA, IB et IC sont proches de 0 : Q1 s'est ouvert."
+    },
+    "fields": {
+        "dst": { "name": "Destination", "note": "Une adresse multicast de la plage qu'IEC 61850 réserve aux sampled values (01-0C-CD-04-…). Chaque abonné l'écoute." },
+        "src": { "name": "Source", "note": "L'adresse MAC de la merging unit elle-même." },
+        "vlan": { "name": "Étiquette VLAN", "note": "0x8100, puis la priorité 4 et le VLAN 20, celui du bus de processus." },
+        "ethertype": { "name": "EtherType", "note": "0x88BA signifie sampled values. Il n'y a ni IP ni TCP dans cette trame." },
+        "appid": { "name": "APPID", "note": "0x4000 : la première valeur de la plage qu'utilise le profil 9-2 LE (0x4000 à 0x7FFF)." },
+        "length": { "name": "Longueur", "note": "106 octets, de l'APPID jusqu'à la fin." },
+        "reserved": { "name": "Réservé", "note": "Deux champs réservés, ici à zéro." },
+        "savpdu": { "name": "savPdu", "note": "Le tag 0x60 ouvre le message. Sa longueur vaut aussi 0x60 : 96 octets suivent." },
+        "noasdu": { "name": "noASDU", "note": "1 : un seul jeu d'échantillons (un ASDU) dans cette trame. À 80 échantillons par période, chaque échantillon a sa propre trame." },
+        "seqasdu": { "name": "seqASDU", "note": "Tag 0xA2 : la liste des ASDU, 91 octets." },
+        "asdu": { "name": "ASDU", "note": "Tag 0x30 : un jeu d'échantillons, 89 octets." },
+        "svid": { "name": "svID", "note": "\"F1MUSV01\" : le nom de ce flux, défini dans le fichier SCL. Le relais le vérifie." },
+        "smpcnt-0": { "name": "smpCnt 0", "note": "Le compteur d'échantillons : 0, le premier échantillon de cette seconde. Il compte jusqu'à 3999, puis repart à 0." },
+        "smpcnt-1238": { "name": "smpCnt 1238", "note": "0x04D6 = 1238. La dernière trame reçue par le relais était la 1236 : l'échantillon 1237 manque." },
+        "smpcnt-2650": { "name": "smpCnt 2650", "note": "0x0A5A = 2650. La merging unit compte toujours de 0 à 3999, mais sur son propre oscillateur : 0 ne tombe plus au début d'une seconde." },
+        "smpcnt-3127": { "name": "smpCnt 3127", "note": "0x0C37 = 3127." },
+        "confrev": { "name": "confRev 1", "note": "La révision de configuration. Elle doit correspondre à celle avec laquelle le relais a été configuré." },
+        "synch-1": { "name": "smpSynch 1", "note": "Synchronisé : les échantillons sont pris sur l'horloge commune." },
+        "synch-0": { "name": "smpSynch 0", "note": "Non synchronisé. Un relais qui combine ce flux avec d'autres ne peut pas être sûr que leurs échantillons ont été pris au même instant." },
+        "seqdata": { "name": "seqData", "note": "Tag 0x87, 64 octets : huit valeurs de 4 octets, chacune suivie de 4 octets de qualité." },
+        "ia": { "name": "IA", "note": "0x00081C72 = 531 570 mA : 531.57 A. Un pas vaut 1 mA." },
+        "ib": { "name": "IB", "note": "0xFFF96344 = −433 340 mA : −433.34 A. Les valeurs sont signées : FF… est un nombre négatif." },
+        "ic": { "name": "IC", "note": "−98.23 A." },
+        "in": { "name": "IN", "note": "Le courant de neutre : 0. Sur un départ sain, IA + IB + IC est nul." },
+        "va": { "name": "VA", "note": "0x002AFB91 = 2 816 913 × 10 mV : 28 169.13 V. La phase A est au sommet de son onde (34.5 kV ÷ √3 × √2). Un pas vaut 10 mV." },
+        "vb": { "name": "VB", "note": "−14 084.57 V." },
+        "vc": { "name": "VC", "note": "−14 084.56 V." },
+        "vn": { "name": "VN", "note": "La tension de neutre : 0. Sur un réseau sain, VA + VB + VC est nul." },
+        "q": { "name": "Qualité", "note": "Bonne : aucun indicateur n'est levé. Les deux bits de poids faible donnent la validité : 01 non valide, 11 douteuse." },
+        "x-ia": { "name": "IA", "note": "Courant de la phase A : un nombre signé de mA, comme dans la première trame." },
+        "x-ib": { "name": "IB", "note": "Courant de la phase B, en mA." },
+        "x-ic": { "name": "IC", "note": "Courant de la phase C, en mA." },
+        "x-in": { "name": "IN", "note": "Courant de neutre, en mA : 0 tant que le départ est sain." },
+        "x-va": { "name": "VA", "note": "Tension de la phase A : un nombre signé de pas de 10 mV." },
+        "x-vb": { "name": "VB", "note": "Tension de la phase B, en pas de 10 mV." },
+        "x-vc": { "name": "VC", "note": "Tension de la phase C, en pas de 10 mV." },
+        "x-vn": { "name": "VN", "note": "Tension de neutre, en pas de 10 mV : 0 tant que le réseau est sain." },
+        "ia-f": { "name": "IA", "note": "0xFFC61104 = −3796.73 A à cet instant. Cela fait 2.8 kA efficaces, sept fois le courant de charge." },
+        "ib-f": { "name": "IB", "note": "−83.61 A : la phase B porte toujours sa charge." },
+        "ic-f": { "name": "IC", "note": "526.32 A : la phase C porte toujours sa charge." },
+        "in-f": { "name": "IN", "note": "−3354.02 A. La somme des trois phases n'est plus nulle : du courant passe par la terre." },
+        "va-f": { "name": "VA", "note": "0xFFFA62AA = −3679.58 V : le quart de ce que la phase A devrait montrer à cet instant. Le défaut est sur la phase A." },
+        "vb-f": { "name": "VB", "note": "−13 441.15 V." },
+        "vc-f": { "name": "VC", "note": "28 159.48 V." },
+        "vn-f": { "name": "VN", "note": "11 038.75 V : plus du tout nulle." }
+    },
+    "devices": {
+        "ctvt": "TC · TT de F1",
+        "q1": "Disjoncteur Q1",
+        "mu": "MU de F1",
+        "switch": "Switch",
+        "relay": "F1 PROT",
+        "clock": "Horloge PTP"
+    },
+    "facts": {
+        "standard": "IEC 61850-9-2, avec le profil 9-2 LE (aujourd'hui IEC 61869-9)",
+        "between": "Merging unit → relais de protection, compteurs et enregistreurs",
+        "transport": "Multicast Ethernet sur le bus de processus, sans IP",
+        "frames": "Un seul flux, ni requêtes ni réponses : 4000 trames par seconde à 50 Hz, 4800 à 60 Hz",
+        "speed": "Environ 5 Mbit/s par merging unit"
+    },
+    "tips": [
+        "Le relais vérifie svID, confRev, l'APPID et l'adresse MAC de destination. Si l'un d'eux diffère de sa configuration, il rejette le flux et sa protection devient aveugle.",
+        "Comptez les flux par port de switch. Chaque flux 9-2 LE prend environ 5 Mbit/s, et un port qui diffuse tous les flux vers tous les équipements sature.",
+        "Les merging units récentes suivent IEC 61869-9 : 4800 échantillons par seconde, deux ASDU par trame. Le relais doit attendre le même profil.",
+        "En édition 2, smpSynch 2 désigne une horloge globale, comme le GPS, et 1 une horloge locale. Vérifiez ce qu'acceptent vos relais avant la mise en service."
+    ],
+    "points": {
+        "smpcnt": "Compteur d'échantillons",
+        "synch": "Synchronisé",
+        "ia": "Courant phase A, cet échantillon"
+    },
+    "values": {
+        "gap": "1238 (1237 manquant)"
+    },
+    "timing": {
+        "title": "80 échantillons par période",
+        "note": "À 50 Hz, une période dure 20 ms. La merging unit l'échantillonne 80 fois, toutes les 250 µs, et envoie chaque échantillon dans sa propre trame. Le relais reconstruit l'onde à partir de ces marches.",
+        "va": "VA, telle qu'échantillonnée",
+        "frames": "Trames SV",
+        "smp0": "smpCnt 0",
+        "smp40": "smpCnt 40"
+    },
+    "singleLine": {
+        "title": "Schéma unifilaire du jeu de barres 34.5 kV",
+        "bus": "34.5 kV · barre A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "ouvert",
+        "fault": "défaut · 2.8 kA",
+        "station": "Bus de station · Ethernet",
+        "process": "Bus de processus · Ethernet",
+        "f1": "F1 · Ligne aérienne",
+        "f2": "F2 · Auxiliaires du poste"
+    },
+    "playground": {
+        "scl": "Le fichier SCL du bus de processus. Ouvrez F1MUMU01 : le bloc de contrôle MSVCB01 envoie le jeu de données PhsMeas1 vers 01-0C-CD-04-00-01. TCTR1.Amp.sVC explique pourquoi un pas vaut 1 mA. Dans F1PROT, les entrées de PTOC1 montrent à quoi le relais est abonné."
+    }
+}

@@ -1,0 +1,98 @@
+{
+    "intro": "충전소와 이를 운영하는 서버, CSMS(충전소 관리 시스템) 사이의 언어예요. 충전기는 WebSocket 하나를 계속 열어 두고 JSON 메시지를 보내요: 자기가 누구인지, 커넥터 상태가 어떤지, 어떤 카드가 충전하려는지, 그리고 충전 중의 계량값. CSMS는 모든 메시지에 답하고, 같은 연결로 자기 요청도 보낼 수 있어요.",
+    "steps": {
+        "connect": { "title": "연결", "text": "충전기가 CSMS로 보안 WebSocket을 열어요. 연결은 계속 열려 있어서 양쪽 어디서든 언제든 보낼 수 있어요." },
+        "boot": { "title": "부팅", "text": "전원이 켜진 뒤 첫 메시지로 충전기가 자기가 누구인지 알려요. CSMS는 이를 수락하고, 시각을 알려 주고, 하트비트 주기를 정해요. 그다음 충전기가 커넥터마다 상태를 보고해요: 커넥터 1은 Available이에요." },
+        "authorize": { "title": "카드 태그", "text": "운전자가 RFID 카드를 리더기에 대요. 충전기가 CSMS에 이 카드로 충전해도 되는지 물어요. 돼요." },
+        "start": { "title": "시작", "text": "차가 연결되고 에너지를 받기 시작해요. 충전기가 트랜잭션을 열고 시작 시점의 계량값을 보내요." },
+        "charge": { "title": "계량값", "text": "차가 충전되는 동안 충전기는 15분마다 계량값을 보내요. CSMS는 에너지가 늘어나는 걸 봐요." },
+        "stop": { "title": "종료", "text": "운전자가 카드를 다시 대요. 트랜잭션이 1시간, 11040 Wh로 끝나요. 이제 CSMS가 요금을 청구할 수 있어요." }
+    },
+    "frames": {
+        "upgrade": "WebSocket으로 전환, 서브프로토콜 ocpp2.0.1",
+        "switch": "좋아요, ocpp2.0.1로 해요",
+        "boot": "ExampleVendor의 AC-22예요, 방금 켜졌어요",
+        "boot-conf": "수락. 지금 시각이에요. 하트비트는 300초마다",
+        "status": "커넥터 1은 Available이에요",
+        "status-conf": "확인했어요",
+        "authorize": "카드 04A2B3C4D5E6F7로 충전해도 돼요?",
+        "authorize-conf": "네: Accepted",
+        "started": "트랜잭션 TX-0187이 12840 Wh에서 시작됐어요",
+        "started-conf": "확인했어요, 카드는 여전히 Accepted예요",
+        "updated": "지금 15600 Wh, 11040 W로 충전 중",
+        "updated-conf": "확인했어요",
+        "ended": "TX-0187이 23880 Wh에서 끝났어요",
+        "ended-conf": "확인했어요"
+    },
+    "notes": {
+        "upgrade": "TLS 안에서 충전기가 이 HTTP 연결을 WebSocket으로 바꿔 달라고 요청해요. 주소는 충전기의 식별자 CS-0042로 끝나요. Sec-WebSocket-Protocol 헤더는 ocpp2.0.1을 요청하고, HTTP Basic 인증에는 충전기의 비밀번호가 담겨요.",
+        "switch": "CSMS가 동의하면서 고른 서브프로토콜을 밝혀요: ocpp2.0.1. 이제부터 양쪽은 WebSocket 프레임을 보내고, 프레임마다 JSON으로 된 OCPP 메시지가 하나씩 들어 있어요.",
+        "status": "timestamp, connectorStatus Available, evseId 1, connectorId 1이 담긴 CALL이에요. EVSE는 충전 지점 하나이고, 커넥터를 여러 개 가질 수 있어요.",
+        "status-conf": "페이로드가 빈 CALLRESULT예요: [3,\"1002\",{}]. 할 말이 없어도 모든 CALL은 응답을 받아요.",
+        "authorize": "idToken 04A2B3C4D5E6F7, 유형 ISO14443: RFID 카드의 7바이트 일련번호예요. 많은 충전기가 묻지 않고 판단할 수 있도록 카드 목록을 로컬에도 보관해요.",
+        "authorize-conf": "상태가 Accepted인 idTokenInfo예요. Blocked, Expired, Invalid, Unknown 같은 다른 응답이면 충전기는 시작하면 안 돼요.",
+        "started": "eventType Started, triggerReason ChargingStateChanged, seqNo 0. transactionId TX-0187은 충전기가 정해요. 이벤트에는 카드의 idToken, chargingState Charging, 그리고 컨텍스트가 Transaction.Begin인 계량값 12840 Wh가 담겨요.",
+        "started-conf": "이벤트에 카드가 담겨 있었으니, 응답에도 그 상태가 다시 담겨요: idTokenInfo Accepted.",
+        "updated": "eventType Updated, triggerReason MeterValuePeriodic, seqNo 1, 그리고 측정값 두 개: 에너지 레지스터와 전력. 메시지 전체는 '직접 해 보기'에서 볼 수 있어요.",
+        "updated-conf": "빈 페이로드: CSMS는 덧붙일 게 없어요.",
+        "ended": "eventType Ended, triggerReason StopAuthorized, seqNo 2, stoppedReason Local, chargingState EVConnected(케이블은 아직 꽂혀 있어요), 그리고 컨텍스트가 Transaction.End인 마지막 계량값 23880 Wh.",
+        "ended-conf": "빈 페이로드. CSMS는 23880 − 12840 = 11040 Wh를 카드 주인에게 청구해요."
+    },
+    "fields": {
+        "ws-text": { "name": "FIN · opcode", "note": "0x81: FIN 비트(0x80)는 메시지 전체가 이 프레임에 들어 있다는 뜻이에요. opcode 0x1은 UTF-8 텍스트라는 뜻이에요." },
+        "ws-mask-126": { "name": "마스크 · 길이", "note": "0xFE: 클라이언트는 보내는 데이터를 반드시 마스킹해야 해서 마스크 비트(0x80)가 켜져 있어요. 나머지 126(0x7E)은 길이가 2바이트로 이어진다는 뜻이에요." },
+        "ws-len-170": { "name": "길이", "note": "0x00AA = JSON 170바이트가 이어져요. '직접 해 보기'에서 볼 수 있어요." },
+        "ws-key": { "name": "마스킹 키", "note": "무작위 4바이트. JSON의 각 바이트를 이 키와 차례로 XOR해요: \"[\"(0x5B)는 0x61로 전송돼요. 이건 암호화가 아니에요. 암호화는 TLS가 해요." },
+        "ws-len-88": { "name": "길이", "note": "0x58 = JSON 88바이트가 이어져요. 서버는 절대 마스킹하지 않으니 마스크 비트가 0이고, 마스킹 키도 이어지지 않아요." },
+        "a-type": { "name": "MessageTypeId", "note": "2는 CALL, 즉 요청이에요. 응답은 3(CALLRESULT) 또는 4(CALLERROR)예요." },
+        "a-id": { "name": "MessageId", "note": "보내는 쪽이 고르고, 이 연결 안에서 고유해요. 응답에도 같은 id가 담겨요. 둘을 잇는 건 이것뿐이에요." },
+        "a-action": { "name": "Action", "note": "어떤 메시지인지. 응답에는 action이 없어요: id가 어느 CALL에 대한 응답인지 알려 줘요." },
+        "a-payload": { "name": "Payload", "note": "요청 자체, JSON 객체예요. 필드는 BootNotificationRequest의 JSON 스키마로 검사해요." }
+    },
+    "devices": {
+        "car": "자동차",
+        "charger": "AC 충전기",
+        "charger2": "AC 충전기",
+        "csms": "CSMS"
+    },
+    "facts": {
+        "standard": "OCPP 2.0.1(Open Charge Alliance, 2020). OCPP 1.6J도 여전히 흔해요.",
+        "between": "충전소 → CSMS(충전소 관리 시스템)",
+        "transport": "TLS 위의 WebSocket(RFC 6455), 서브프로토콜 ocpp2.0.1: 텍스트 프레임 하나에 JSON 메시지 하나",
+        "security": "TLS. 보안 프로파일 2는 비밀번호(HTTP Basic)를, 프로파일 3은 클라이언트 인증서를 더해요.",
+        "frames": "CALL [2, …] · CALLRESULT [3, …] · CALLERROR [4, …]"
+    },
+    "tips": [
+        "CSMS가 충전기가 요청한 서브프로토콜로 답하지 않으면 충전기는 연결을 닫아야 해요. \"연결됐다가 바로 끊긴다\"면 이게 원인인 경우가 많아요.",
+        "CALL은 한 번에 하나만 보내고, 응답이나 타임아웃을 기다린 뒤 다음을 보내세요. 너무 일찍 보낸 두 번째 CALL은 사라질 수 있어요.",
+        "트랜잭션이 언제 시작되는지는 설정값(TxStartPoint)이에요: 케이블 연결 시, 인증 시, 또는 에너지가 흐를 때. CSMS 팀과 합의하세요. 그렇지 않으면 트랜잭션이 너무 길거나 짧아 보여요.",
+        "타임스탬프는 UTC예요. BootNotification 응답의 currentTime으로 충전기 시계를 맞추세요. 그렇지 않으면 계량값이 엉뚱한 요금 시간대에 들어가요."
+    ],
+    "points": {
+        "card": "카드",
+        "tx": "트랜잭션",
+        "energy": "전력량계"
+    },
+    "anatomy": {
+        "call": "OCPP 메시지 하나: 네 부분으로 된 JSON 배열"
+    },
+    "playground": {
+        "file": "이 레슨의 메시지 하나를 충전기가 보내는 그대로, 읽기 쉽게 정리했어요. 회선에서는 공백 없는 한 줄이에요.",
+        "call": "2: CALL, 응답을 기대하는 요청.",
+        "message-id": "메시지 id. CSMS의 응답에도 같은 id가 담겨요.",
+        "action": "action: 어떤 메시지인지. 이어서 페이로드가 와요.",
+        "reason": "충전기가 부팅한 이유: PowerUp. 그 밖에 FirmwareUpdate, RemoteReset, Watchdog 등이 있어요.",
+        "model": "chargingStation의 필수 필드는 model과 vendorName뿐이에요.",
+        "firmware": "지금 돌아가는 펌웨어. CSMS가 업데이트를 계획할 때 써요.",
+        "event-type": "Started, Updated 또는 Ended. 트랜잭션 하나에는 Started와 Ended가 정확히 하나씩 있어요.",
+        "timestamp": "Z가 붙은 UTC. 보낸 시각이 아니라 이벤트 시각이에요: 오프라인일 때 저장한 이벤트도 원래 시각을 유지해요.",
+        "trigger": "이 이벤트를 보낸 이유: 계량 주기(TxUpdatedInterval)가 지났어요.",
+        "seq": "seqNo는 이 트랜잭션의 이벤트를 0부터 세요. 번호가 비면 CSMS는 메시지가 빠졌다는 걸 알아요.",
+        "transaction-id": "충전기가 시작할 때 정해요. 이번 충전의 모든 이벤트에 담겨요.",
+        "charging-state": "Charging: 에너지가 흐르고 있어요. 다른 상태로는 EVConnected, SuspendedEV, SuspendedEVSE, Idle이 있어요.",
+        "energy": "계량기 레지스터의 15600 Wh, 가정용 계량기의 숫자판과 같아요. 새 트랜잭션이라고 0부터 다시 시작하지 않아요.",
+        "measurand": "무엇을 측정했는지. measurand가 없으면 값은 Energy.Active.Import.Register를 뜻해요.",
+        "unit": "Wh, 에너지의 기본 단위.",
+        "power": "11040 W: 230 V에서 3상 각각 16 A."
+    }
+}

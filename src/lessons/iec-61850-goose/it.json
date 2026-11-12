@@ -1,0 +1,108 @@
+{
+    "intro": "Come i relè di protezione si dicono a vicenda di scattare, in pochi millisecondi, sulla rete di sottostazione invece che con fili di rame. Un relè pubblica i suoi dati su un indirizzo multicast; ogni relè che ne ha bisogno si iscrive. Nessuno risponde, quindi chi pubblica ripete ogni variazione, prima in fretta e poi più lentamente.",
+    "steps": {
+        "heartbeat": { "title": "Heartbeat", "text": "Va tutto bene. Ogni secondo il relè ripete il suo ultimo stato a chiunque sia in ascolto." },
+        "fault": { "title": "Guasto", "text": "Un cortocircuito sulla linea F1. Il relè vede 2.8 kA e chiude il suo contatto di scatto verso l'interruttore." },
+        "publish": { "title": "Pubblicazione", "text": "Nello stesso istante invia il nuovo stato. Il numero di stato aumenta di uno e il numero di sequenza riparte da 0." },
+        "repeat": { "title": "Ripeti in fretta", "text": "Nessun subscriber risponde a GOOSE, quindi il relè invia di nuovo lo stesso messaggio 2 ms dopo, poi 4, 8, 16 … finché non torna a una volta al secondo." },
+        "act": { "title": "I subscriber agiscono", "text": "F2 PROT avvia il suo timer di mancata apertura interruttore. Il gateway trasmette lo scatto allo SCADA." },
+        "open": { "title": "L'interruttore si apre", "text": "48 ms dopo il guasto, Q1 è aperto e la corrente di guasto si interrompe." }
+    },
+    "frames": {
+        "heartbeat": "Ancora nessuno scatto (heartbeat)",
+        "trip-wire": "Eccita la bobina di apertura di Q1",
+        "event": "Scatto! Tr.general = TRUE",
+        "repeat": "Scatto, di nuovo (copia 1)",
+        "to-scada": "Q1 scattato, con il suo orario",
+        "opened": "Q1 è aperto"
+    },
+    "notes": {
+        "trip-wire": "Un filo di rame, non un messaggio di rete: il relè chiude un contatto e la corrente scorre nella bobina di apertura dell'interruttore.",
+        "to-scada": "Questo è IEC 104, non GOOSE: il gateway traduce tra i due. La lezione su IEC 104 mostra questi byte.",
+        "opened": "Un contatto ausiliario dell'interruttore segnala al relè che si è aperto."
+    },
+    "fields": {
+        "dst": { "name": "Destinazione", "note": "Un indirizzo multicast dell'intervallo che IEC 61850 riserva a GOOSE (01-0C-CD-01-…). Lo sente ogni dispositivo della rete; lo tengono solo i subscriber." },
+        "src": { "name": "Sorgente", "note": "L'indirizzo MAC del relè stesso." },
+        "vlan": { "name": "Tag VLAN", "note": "0x8100, poi priorità 4 e VLAN 10. La priorità permette agli switch di far passare il frame prima di altro traffico." },
+        "ethertype": { "name": "EtherType", "note": "0x88B8 significa GOOSE. In questo frame non ci sono né IP né TCP." },
+        "appid": { "name": "APPID", "note": "0x0001: un numero su cui filtrano i subscriber." },
+        "length": { "name": "Lunghezza", "note": "115 byte, dall'APPID alla fine." },
+        "reserved": { "name": "Riservato", "note": "Due campi riservati, qui a zero. IEC 62351-6 li usa quando il frame è firmato." },
+        "pdu": { "name": "Messaggio GOOSE", "note": "0x61 apre il messaggio; seguono 105 byte (0x69). Ogni campo successivo è un tag, una lunghezza e un valore." },
+        "gocbref": { "name": "gocbRef", "note": "Tag 0x80, 25 byte: il nome del control block, F1PROTLD0/LLN0$GO$gcbTrip." },
+        "tal": { "name": "Time allowed to live", "note": "2000 ms. Se in questo tempo non arriva nessuna copia, i subscriber considerano i dati non validi." },
+        "datset": { "name": "datSet", "note": "Il data set che il messaggio trasporta: F1PROTLD0/LLN0$dsTrip." },
+        "goid": { "name": "goID", "note": "F1PROT_Trip, un ID che i subscriber possono verificare." },
+        "t-old": { "name": "t", "note": "Quando i dati sono cambiati l'ultima volta: oggi alle 08:00:00, UTC. Un heartbeat mantiene l'orario dell'ultima variazione." },
+        "t-event": { "name": "t", "note": "Quando i dati sono cambiati: 10:41:07.232 UTC. 4 byte di secondi, 3 di frazioni di secondo, 1 di qualità dell'orologio." },
+        "stnum-12": { "name": "stNum 12", "note": "Il numero di stato: invariato dall'ultima variazione." },
+        "stnum-13": { "name": "stNum 13", "note": "Il numero di stato è aumentato di uno: i dati sono cambiati." },
+        "sqnum-3": { "name": "sqNum 3", "note": "Il numero di sequenza: la quarta copia dello stesso stato." },
+        "sqnum-0": { "name": "sqNum 0", "note": "La prima copia del nuovo stato." },
+        "sqnum-1": { "name": "sqNum 1", "note": "Lo stesso stato, inviato di nuovo." },
+        "simulation": { "name": "simulation", "note": "False. True indica messaggi di prova, che i subscriber ignorano se non sono in modalità test." },
+        "confrev": { "name": "confRev 1", "note": "La revisione di configurazione. Deve coincidere con quella con cui è stato configurato il subscriber." },
+        "ndscom": { "name": "ndsCom", "note": "Needs commissioning: false. True significherebbe che la configurazione del publisher è incompleta." },
+        "entries": { "name": "Voci", "note": "2 valori nel data set." },
+        "data-idle": { "name": "allData", "note": "I valori: Tr.general = FALSE (nessuno scatto), e la sua qualità: buona." },
+        "data-trip": { "name": "allData", "note": "I valori: Tr.general = TRUE (scatto!), e la sua qualità: buona." },
+        "a-ied": { "name": "IED", "note": "Il nome del dispositivo nel file SCL." },
+        "a-ld": { "name": "Dispositivo logico", "note": "LD0, un gruppo di funzioni dentro l'IED." },
+        "a-ln": { "name": "Nodo logico", "note": "LLN0, dove stanno i control block." },
+        "a-fc": { "name": "Functional constraint", "note": "GO: un control block GOOSE." },
+        "a-cb": { "name": "Control block", "note": "gcbTrip, il suo nome." }
+    },
+    "devices": {
+        "q1": "Interruttore Q1",
+        "f1prot": "F1 PROT",
+        "f2prot": "F2 PROT",
+        "switch": "Switch di stazione",
+        "hmi": "HMI di stazione",
+        "gateway": "Gateway",
+        "scada": "SCADA"
+    },
+    "facts": {
+        "standard": "IEC 61850-8-1",
+        "between": "Un relè → ogni relè, controllore e gateway iscritto",
+        "transport": "Multicast Ethernet, senza IP",
+        "frames": "Un solo messaggio, ripetuto: niente richieste, niente risposte",
+        "speed": "Uno scatto deve arrivare entro 3 ms (IEC 61850-5, tipo 1A)"
+    },
+    "tips": [
+        "Un subscriber verifica gocbRef, APPID, data set e revisione di configurazione. Se uno di questi è diverso dalla sua configurazione, ignora il frame senza dire nulla.",
+        "GOOSE non ha indirizzo IP, quindi i router lo scartano. Per raggiungere un'altra sottostazione serve R-GOOSE.",
+        "Fai le prove con il flag simulation e il subscriber in modalità test. Altrimenti uno scatto di prova apre un interruttore vero.",
+        "Ogni switch lungo il percorso deve mantenere il tag VLAN e la sua priorità. Uno switch che lo toglie può far aspettare uno scatto dietro altro traffico."
+    ],
+    "points": {
+        "tr": "Scatto",
+        "stnum": "Numero di stato",
+        "sqnum": "Numero di sequenza"
+    },
+    "anatomy": {
+        "gocbref": "Il nome del control block GOOSE, e come viaggia"
+    },
+    "timing": {
+        "title": "Perché GOOSE non aspetta mai una risposta",
+        "note": "GOOSE non ha conferme. Il publisher ripete ogni variazione rapidamente, poi rallenta fino a un heartbeat. Se un subscriber non sente nulla entro il time allowed to live, marca i dati come non validi. I tempi di ripetizione qui sono tipici; ogni costruttore imposta i propri.",
+        "publisher": "F1 PROT",
+        "event": "stNum 12 → 13",
+        "repeats": "sqNum 1, 2, 3 …",
+        "heartbeat": "heartbeat"
+    },
+    "singleLine": {
+        "title": "Schema unifilare della sbarra a 34.5 kV",
+        "bus": "34.5 kV · sbarra A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "aperto",
+        "fault": "guasto · 2.8 kA",
+        "station": "Bus di stazione · Ethernet",
+        "f1": "F1 · Impianto FV",
+        "f2": "F2 · Batteria",
+        "f3": "F3 · Servizi ausiliari"
+    },
+    "playground": {
+        "scl": "Il file SCL della sottostazione. Trova il control block GOOSE di F1PROT, il suo data set e l'indirizzo MAC e l'APPID verso cui trasmette. Poi trova l'ingresso di F2PROT che lo ascolta."
+    }
+}

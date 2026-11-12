@@ -1,0 +1,115 @@
+{
+    "intro": "漫游让司机用一张卡就能在许多公司的充电桩上充电。OCPI 连接运营充电桩的充电运营商（CPO）和给司机发卡、提供 App 的电动出行服务商（eMSP）。双方各提供一个 REST API，由对方调用：用于站点、卡、充电会话，以及每次充电的账单。",
+    "steps": {
+        "discover": { "title": "发现", "text": "两家公司在任何司机漫游之前先对接一次。eMSP 读取 CPO 提供哪些 OCPI 版本，以及其 API 的各个部分在哪里。" },
+        "register": { "title": "交换令牌", "text": "eMSP 用一个临时令牌 A 注册。最终双方各有一个调用对方的令牌：eMSP 用令牌 C 调用 CPO，CPO 用令牌 B 调用 eMSP。" },
+        "location": { "title": "发布充电桩", "text": "CPO 发送它的站点，其中有一个 EVSE（充电点），这样 eMSP 的 App 就能把它展示给司机。" },
+        "authorize": { "title": "验卡", "text": "一位持有 eMSP 卡的司机在充电桩上刷卡。CPO 不认识这张卡，于是去问 eMSP。" },
+        "session": { "title": "充电会话", "text": "开始充电。CPO 上报会话，并在车辆充电期间发送更新。" },
+        "cdr": { "title": "账单", "text": "充电结束后，CPO 发送 CDR，即充电明细记录：eMSP 为这次充电应付多少钱。" }
+    },
+    "frames": {
+        "versions": "你支持哪些 OCPI 版本，在哪里？",
+        "endpoints": "2.2.1，这些是我的端点",
+        "post-credentials": "这是我的令牌 B 和我的地址",
+        "check": "你支持哪些版本？（用令牌 B）",
+        "credentials": "已注册。从现在起用令牌 C 调用我",
+        "put-location": "站点 LOC-0042，EVSE 为 NL*ABC*E12345*1",
+        "location-ok": "已保存",
+        "authorize": "卡 04A2B3C4D5E6F7 在 LOC-0042：能充电吗？",
+        "allowed": "可以：ALLOWED",
+        "put-session": "会话 SES-0187 已开始，0 kWh",
+        "patch-session": "SES-0187：目前 6.25 kWh",
+        "post-cdr": "账单：12.5 kWh，6.05 EUR",
+        "cdr-ok": "已保存，在这个地址"
+    },
+    "notes": {
+        "versions": "eMSP 通过电子邮件或门户网站从 CPO 拿到两样东西：它的版本列表 URL 和令牌 A。它发出 GET，带上 Authorization: Token 头，后面是 Base64 编码的令牌 A。然后它向 2.2.1 版本的 URL 发出 GET。",
+        "endpoints": "每个 OCPI 应答都有同样的外层结构：data、status_code、status_message 和 timestamp。这里的 data 先列出版本，再列出 2.2.1 的端点：每个模块一个 URL，各自标为 SENDER 或 RECEIVER。CPO 是站点、会话和 CDR 的发送方，是令牌的接收方。",
+        "post-credentials": "eMSP 仍然用令牌 A，提交自己的凭据：给 CPO 使用的新令牌 B、它自己的版本列表 URL，以及它的角色：EMSP，country_code DE，party_id XYZ。",
+        "check": "CPO 在应答之前，用同样的方法检查 eMSP：用令牌 B 先 GET 它的版本，再 GET 它的 2.2.1 端点。",
+        "credentials": "CPO 用它的凭据应答：令牌 C、它的版本 URL，以及它的角色：CPO，country_code NL，party_id ABC。令牌 A 失效。从现在起，eMSP 用令牌 C 调用，CPO 用令牌 B 调用。",
+        "put-location": "CPO 把站点放进 eMSP 的 locations 端点。URL 中写明了它的所有者和 id；逐段拆解里把它拆开了，动手试试里展示了消息体。",
+        "location-ok": "status_code 1000 表示成功。要读它，不能只看 HTTP 状态：2xxx 是客户端错误，3xxx 是服务器错误。",
+        "authorize": "实时授权。卡属于 eMSP，所以 CPO 向 eMSP 的 tokens 端点提交：URL 中是卡的 uid，加上 ?type=RFID，消息体中是站点和 EVSE。",
+        "allowed": "data.allowed 为 ALLOWED，并附上卡的完整令牌对象。其他应答有 BLOCKED、EXPIRED、NO_CREDIT 和 NOT_ALLOWED。CPO 通过 OCPP 通知充电桩开始充电。",
+        "put-session": "CPO 在 eMSP 那边创建会话：start_date_time，kwh 0，卡作为 cdr_token，auth_method AUTH_REQUEST，站点、EVSE 和充电枪，currency EUR，status ACTIVE。",
+        "patch-session": "只传变化的内容：kwh 6.25 和 last_updated。现在 eMSP 的 App 可以向司机显示目前已充的电量。",
+        "post-cdr": "CDR 是两家公司之间的账单：何时、何地、哪张卡、多少电量和时间，以及价格。动手试试里展示了它。",
+        "cdr-ok": "eMSP 保存 CDR，并在 Location 头中返回它自己的 URL。现在它可以向司机收费了。"
+    },
+    "fields": {
+        "a-country": { "name": "国家", "note": "NL：运营商所在国家的 ISO 3166 两字母代码。" },
+        "a-operator": { "name": "运营商", "note": "ABC：运营商的 ID，在本国唯一。在 OCPI 中，它就是 CPO 的 party_id。" },
+        "a-type": { "name": "类型", "note": "E：这个 ID 指的是一个 EVSE。" },
+        "a-evse": { "name": "EVSE", "note": "12345*1：运营商给这个充电点的编号。" },
+        "u-endpoint": { "name": "端点", "note": "eMSP 的 locations 端点，取自它的端点列表。CPO 绝不自己拼凑。" },
+        "u-country": { "name": "country_code", "note": "拥有这个对象的一方（CPO）的国家。" },
+        "u-party": { "name": "party_id", "note": "CPO 的参与方 ID。它和 country_code 一起，在每个 OCPI 对象中标明一家公司。" },
+        "u-location": { "name": "location_id", "note": "CPO 给这个站点的 id。再加上 /1，就指向其中 uid 为 1 的 EVSE。" }
+    },
+    "devices": {
+        "car": "汽车",
+        "charger": "充电桩",
+        "cpo": "CPO 平台",
+        "emsp": "eMSP 平台"
+    },
+    "facts": {
+        "standard": "OCPI 2.2.1（EVRoaming Foundation）",
+        "between": "CPO（运营充电桩）↔ eMSP（给司机发卡和提供 App），直连或经漫游平台",
+        "transport": "HTTPS，REST，JSON",
+        "security": "TLS。每个请求都带 Authorization: Token 头，后面是 Base64 编码的令牌。",
+        "frames": "模块：credentials、locations、tokens、sessions、cdrs、tariffs、commands"
+    },
+    "tips": [
+        "使用对方在端点列表中给出的 URL。绝不要按某种格式自己拼：每个平台都不一样。",
+        "令牌 A 只能用于注册。注册后出现 401 错误，常见原因是把令牌 B 和 C 搞混了。",
+        "HTTP 200 还不够：要读消息体里的 status_code。1000 表示成功，2xxx 是客户端错误，3xxx 是服务器错误。",
+        "CDR 一经发出即为最终版本。错了也不修改：CPO 先发一个冲红 CDR，再发一个新的。"
+    ],
+    "points": {
+        "to-cpo": "调用 CPO 的令牌",
+        "to-emsp": "调用 eMSP 的令牌",
+        "kwh": "电量，kWh",
+        "cost": "含增值税价格"
+    },
+    "values": {
+        "token-a": "令牌 A",
+        "token-b": "令牌 B",
+        "token-c": "令牌 C"
+    },
+    "anatomy": {
+        "evse-id": "EVSE ID，即司机在充电桩上看到的样子",
+        "url": "eMSP 一侧某个站点的地址"
+    },
+    "playground": {
+        "file": "本课中 CPO 发送的一个对象，JSON 格式。选一行带下划线的内容。",
+        "owner": "拥有这个站点的 CPO：国家 NL，参与方 ABC。它们出现在每个对象及其 URL 中。",
+        "location-id": "CPO 自己给站点的 id。加上 country_code 和 party_id，它就是唯一的。",
+        "publish": "true：eMSP 可以向司机展示它。false 则让私人充电桩不出现在公共地图上。",
+        "country": "这里是三个字母（ISO 3166-1 alpha-3），而 country_code 是两个。",
+        "coordinates": "纬度和经度是字符串，不是数字，保留 5 到 7 位小数。",
+        "evse-uid": "uid：CPO 内部给 EVSE 的 id，用在 URL 和会话中。",
+        "evse-id": "evse_id：印在充电桩上、给司机看的 ID。逐段拆解里把它拆开了。",
+        "status": "AVAILABLE。状态变化时，CPO 发一个带新状态的 PATCH。",
+        "standard": "IEC_62196_T2：Type 2 插座。format SOCKET 表示司机自带线缆。",
+        "max-voltage": "230 V：对三相交流电来说，这是相线与中性线之间的电压。",
+        "max-power": "22080 W = 3 × 230 V × 32 A。",
+        "tariff": "这里适用的电价。CPO 在 tariffs 模块中发布它。",
+        "time-zone": "当地时区。OCPI 中的时间都是 UTC；这一项告诉 App 当地时钟是几点。",
+        "last-updated": "这个对象最后一次变化的时间。错过更新的一方会请求自上次同步以来变化的全部内容。",
+        "cdr-id": "CPO 给这个 CDR 的 id。",
+        "session-id": "这个 CDR 结束的会话：就是 eMSP 看着电量增长的那个。",
+        "cdr-token": "充电所用的卡。它属于德国（DE）的 eMSP XYZ。",
+        "contract": "contract_id：司机与 eMSP 的合同。eMSP 按这个合同收费。",
+        "auth-method": "AUTH_REQUEST：CPO 实时询问了 eMSP。WHITELIST 表示使用事先发送的卡片列表。",
+        "cdr-location": "发生地点的副本，这样即使站点之后有变化，CDR 读起来仍然正确。",
+        "currency": "这个 CDR 中的所有金额都以 EUR 计。",
+        "periods": "把这次充电按电价切分成若干时段。这里只有一个时段。",
+        "dimensions": "这个时段 12.5 kWh。下一行：1.25 h 的时长。",
+        "excl-vat": "5.00 EUR：12.5 kWh × 0.40 EUR，不含增值税。",
+        "incl-vat": "6.05 EUR：含 21 % 的荷兰增值税。",
+        "total-energy": "始终以 kWh 计。",
+        "total-time": "以小时计：14:05 到 15:20 是 1.25 h。"
+    }
+}

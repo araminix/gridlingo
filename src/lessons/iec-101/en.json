@@ -58,7 +58,7 @@
         "diq-on": { "name": "State 2", "note": "On: the breaker is closed. 1 is off; 0 and 3 mean moving or faulty." },
         "diq-off": { "name": "State 1", "note": "Off: the breaker is open." },
         "type31": { "name": "Type 31", "note": "M_DP_TB_1: a double point with a CP56Time2a time tag." },
-        "cp56": { "name": "CP56Time2a", "note": "7.280 s, 41 min, 10 h, Thursday 12, November, (20)26. The RTU took the time when the breaker moved, not when it sent the frame." },
+        "cp56": { "name": "CP56Time2a", "note": "7.280 s, 41 min, 10 h, Thursday 12 November (20)26. The RTU took the time when the breaker moved, not when it sent the frame." },
         "a-res": { "name": "RES", "note": "Reserved, 0. In balanced mode this bit is DIR: the direction." },
         "a-prm1": { "name": "PRM 1", "note": "Primary: this frame starts a transfer. In unbalanced mode only SCADA sends these." },
         "a-fcb": { "name": "FCB 1", "note": "Frame count bit. It flips with each new request. A repeat keeps it, and the RTU sends its last answer again." },

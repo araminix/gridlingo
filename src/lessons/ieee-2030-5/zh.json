@@ -1,0 +1,108 @@
+{
+    "intro": "电网公司如何通过互联网告诉智能逆变器、电池和充电桩该做什么。设备是客户端：它通过 HTTPS 从电网公司的服务器获取 XML 资源，顺着其中的链接往下找，再把它的响应和读数回传。双方各有一张证书，用来证明是谁在通信。",
+    "steps": {
+        "tls": { "title": "出示证书", "text": "逆变器向电网公司的服务器建立 TLS 1.2 连接。双方都出示证书，而且只允许一种密码套件。现在双方都知道对方是谁。" },
+        "discover": { "title": "找到自己", "text": "逆变器只知道一个地址：/dcap。它从那里顺着链接找到终端设备列表，再找到 lFDI 与自己证书相符的那一台。" },
+        "control": { "title": "获取控制", "text": "通过它所属的计划，逆变器读到一个 DERControl：从 11:00 UTC 起，两小时内把出力限制到 50 %。" },
+        "received": { "title": "确认收到", "text": "这个控制要求回复。逆变器回传一条：状态 1，已收到。" },
+        "start": { "title": "限制出力", "text": "按它自己的时钟到了 11:00，逆变器把出力从 9.6 kW 降到 5.0 kW（其 10 kW 的 50 %），并回传状态 2，已开始。" },
+        "report": { "title": "上报出力", "text": "逆变器把测得的功率写入它在服务器上的镜像。电网公司看到限值得到了遵守。" }
+    },
+    "frames": {
+        "client-hello": "你好。我用 TLS 1.2，只用这一种密码套件",
+        "server-hello": "同意。这是我的证书。请出示你的",
+        "client-finished": "这是我的证书，以及我持有其私钥的证明",
+        "server-finished": "你的证书验证通过。从现在起我们加密通信",
+        "get-dcap": "这台服务器提供什么？",
+        "dcap": "我的列表：终端设备、镜像、时间等等",
+        "get-edev": "你知道哪些终端设备？",
+        "edev": "EndDevice /edev/3 的 lFDI 与你的相同",
+        "get-derc": "有哪些针对我的控制？",
+        "derc": "11:00 到 13:00，出力限制到 50 %",
+        "post-received": "控制已收到",
+        "created": "已保存",
+        "post-started": "限值已开始执行",
+        "post-reading": "我现在的有功功率是 5000 W"
+    },
+    "notes": {
+        "server-hello": "一次发出四条消息。ServerHello 选定 0xC0AE。Certificate 携带服务器的证书链。ServerKeyExchange 携带它那一半的 ECDHE 密钥协商。CertificateRequest 要求客户端出示证书：没有这一步，TLS 只会验证服务器。",
+        "client-finished": "逆变器发送它的设备证书和它那一半的密钥协商。然后用私钥对整个握手过程签名（CertificateVerify）：只有证书的真正持有者才做得到。证书是在工厂里按 IEEE 2030.5 PKI 写入的，永不过期。",
+        "server-finished": "服务器把逆变器的证书链一直验证到它信任的根证书，然后发出自己的 Finished。从此每条记录都是加密的。HTTP 在里面传输，途中谁也无法读取或篡改。",
+        "get-dcap": "在 TLS 里面：GET /dcap HTTP/1.1，带 Accept: application/sep+xml。/dcap 是客户端唯一被告知的地址。其他所有地址都通过链接找到。",
+        "dcap": "一个 DeviceCapability 资源：其中有 EndDeviceListLink href=\"/edev\"、MirrorUsagePointListLink href=\"/mup\" 和 TimeLink href=\"/tm\" 等链接。pollRate=\"900\"：每 900 s 轮询一次这些资源。",
+        "get-edev": "终端设备列表。服务器可以只列出这张证书有权查看的设备。",
+        "edev": "每个 EndDevice 都有一个 lFDI 和一个 sFDI。/edev/3 的是 BB1309569EF761C13E620EA80AA3E84D2B6B553D，正是这台逆变器的。安装时，安装人员把它的 SFDI 交给了电网公司。",
+        "get-derc": "在此之前还有两个类似的 GET：从 /edev/3 到它的 FunctionSetAssignments，再到 DER 计划列表。计划 /derp/1 链接到它的各个控制。",
+        "derc": "一个 DERControl，在动手试试里逐行展示：opModMaxLimW 5000（50.00 %），持续 7200 s，从 1781694000（11:00 UTC）开始。",
+        "post-received": "一个 DERControlResponse，发往该控制的 replyTo 地址。它包含逆变器的 lFDI、作为主题的控制 mRID，以及状态 1：已收到。",
+        "created": "HTTP 201 Created。Location 头给出已保存响应的地址。",
+        "post-started": "同样的响应，状态为 2：已开始。13:00 时逆变器会回传状态 3，已完成，并回到它的默认控制。",
+        "post-reading": "一个 MirrorMeterReading。服务器为逆变器的电表保留一个镜像（MirrorUsagePoint），由逆变器填写。它的 ReadingType 给出单位：uom 38 表示瓦。"
+    },
+    "fields": {
+        "record-type": { "name": "记录类型", "note": "22（0x16）：握手消息。" },
+        "record-version": { "name": "版本", "note": "0x0303：TLS 1.2。IEEE 2030.5 要求 TLS 1.2。" },
+        "record-length": { "name": "记录长度", "note": "这条记录后面跟 69 个字节。" },
+        "client-hello": { "name": "ClientHello", "note": "握手类型 1。" },
+        "hello-length": { "name": "长度", "note": "后面跟 65 个字节的 ClientHello。" },
+        "client-version": { "name": "客户端版本", "note": "逆变器支持的最高版本：TLS 1.2。" },
+        "random": { "name": "随机数", "note": "32 个随机字节。双方把它们混入会话密钥。" },
+        "session-id": { "name": "会话 ID", "note": "长度 0：没有可恢复的旧会话。" },
+        "suites-length": { "name": "密码套件", "note": "后面跟 2 个字节的密码套件：只有一种。" },
+        "suite": { "name": "0xC0AE", "note": "TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8，IEEE 2030.5 要求的套件。ECDHE 协商密钥，ECDSA 签署证书，AES-128 以 CCM 模式加密数据，带 8 字节标签。" },
+        "compression": { "name": "压缩", "note": "一种方法：0，不压缩。" },
+        "extensions-length": { "name": "扩展", "note": "后面跟 22 个字节的扩展。" },
+        "groups": { "name": "supported_groups", "note": "扩展 0x000A：只有 secp256r1（0x0017），即 P-256 曲线。" },
+        "point-formats": { "name": "ec_point_formats", "note": "扩展 0x000B：曲线点以非压缩格式发送（0）。" },
+        "signatures": { "name": "signature_algorithms", "note": "扩展 0x000D：只有 0x0403，即 ECDSA 配 SHA-256。" },
+        "a-first36": { "name": "前 36 位", "note": "前 9 个十六进制数字。它们构成 SFDI。" },
+        "a-rest": { "name": "LFDI 其余部分", "note": "连同前 9 个数字，就是指纹的前 20 个字节（40 个十六进制数字）：LFDI。" },
+        "a-dropped": { "name": "未使用", "note": "SHA-256 指纹的最后 12 个字节被丢弃。" },
+        "s-number": { "name": "36 位的十进制形式", "note": "0xBB1309569 写成十进制。" },
+        "s-check": { "name": "校验位", "note": "它让所有数字之和成为 10 的倍数：5+0+2+1+7+3+9+1+4+6+5 = 43，43 + 7 = 50。输错一位，和就对不上了。" }
+    },
+    "devices": {
+        "pv": "光伏阵列",
+        "inverter": "光伏逆变器",
+        "router": "现场路由器",
+        "server": "电网公司服务器"
+    },
+    "facts": {
+        "standard": "IEEE 2030.5-2018（Smart Energy Profile 2.0）",
+        "between": "电网公司或聚合商的服务器 → 逆变器、电池、电动汽车充电桩",
+        "transport": "HTTP over TLS，XML（application/sep+xml）",
+        "security": "TLS 1.2，使用 0xC0AE，双方各一张证书",
+        "model": "通过 URL 链接的资源：DeviceCapability → EndDevice → DERProgram → DERControl"
+    },
+    "tips": [
+        "LFDI 来自证书。换了证书，LFDI 和 SFDI 就都变了，设备必须重新注册。",
+        "控制使用 UTC 的 Unix 时间。时钟不准的逆变器会在错误的时间限功率，所以要让它与服务器的 Time 资源（/tm）保持同步。",
+        "每次都从 /dcap 开始，顺着链接走。其他所有地址都归服务器管，随时可能变。",
+        "大多数逆变器位于阻止入站连接的路由器后面，所以它们靠轮询。按 pollRate 轮询，不要更快：成千上万台设备共用一台服务器。"
+    ],
+    "points": {
+        "limit": "出力限值",
+        "status": "响应状态",
+        "power": "有功功率"
+    },
+    "values": {
+        "planned": "11:00 起 50 %",
+        "received": "1：已收到",
+        "started": "2：已开始"
+    },
+    "anatomy": {
+        "lfdi": "LFDI：证书 SHA-256 指纹的前 20 个字节",
+        "sfdi": "SFDI：便于人工输入的短格式"
+    },
+    "playground": {
+        "file": "逆变器在第 3 步读取的 DERControl。选一行带标记的内容，看看它的含义。",
+        "href": "这个控制自己的地址。命名空间 urn:ieee:std:2030.5:ns 标识每个 IEEE 2030.5 文档。",
+        "reply": "响应发往哪里（replyTo），以及需要哪些响应：responseRequired 03 要求先回复已收到，再回复已开始和已完成。",
+        "mrid": "128 位 ID，全球唯一；响应中会引用它。最后 8 个十六进制数字是发布方的 IANA 企业编号：32473（0x7ED9）是专供示例使用的编号。",
+        "created": "时间为 UTC 的 Unix 秒：1781686800 即 2026-06-17 09:00。",
+        "status": "0：已计划。1 表示生效中，2 表示已取消。",
+        "duration": "7200 s：两小时。",
+        "start": "1781694000：11:00 UTC。逆变器按自己的时钟等待这一刻。",
+        "limit": "最大出力，以逆变器设定最大功率（setMaxW）的万分之一为单位：5000 = 50.00 %。"
+    }
+}

@@ -1,0 +1,98 @@
+{
+    "intro": "La lingua tra una stazione di ricarica e il server che la gestisce, il CSMS (charging station management system). La colonnina tiene aperto un WebSocket e invia messaggi JSON: chi è, lo stato dei suoi connettori, quale tessera vuole ricaricare e il contatore durante ogni ricarica. Il CSMS risponde a ogni messaggio e può inviare richieste proprie sulla stessa connessione.",
+    "steps": {
+        "connect": { "title": "Connessione", "text": "La colonnina apre un WebSocket sicuro verso il suo CSMS. La connessione resta aperta, così entrambe le parti possono trasmettere in qualsiasi momento." },
+        "boot": { "title": "Avvio", "text": "Il primo messaggio dopo l'accensione dice chi è la colonnina. Il CSMS la accetta, comunica l'ora e imposta l'intervallo di heartbeat. Poi la colonnina riporta ogni connettore: il connettore 1 è Available." },
+        "authorize": { "title": "Avvicina una tessera", "text": "Un conducente avvicina una tessera RFID al lettore. La colonnina chiede al CSMS se questa tessera può ricaricare. Può." },
+        "start": { "title": "Inizio", "text": "L'auto è collegata e inizia a prelevare energia. La colonnina apre una transazione e invia la lettura del contatore all'inizio." },
+        "charge": { "title": "Letture del contatore", "text": "Mentre l'auto si ricarica, la colonnina invia il contatore ogni 15 minuti. Il CSMS vede crescere l'energia." },
+        "stop": { "title": "Fine", "text": "Il conducente avvicina di nuovo la tessera. La transazione termina dopo un'ora e 11040 Wh. Ora il CSMS può fatturarla." }
+    },
+    "frames": {
+        "upgrade": "Passa a WebSocket, subprotocol ocpp2.0.1",
+        "switch": "OK, parliamo ocpp2.0.1",
+        "boot": "Sono una AC-22 di ExampleVendor, appena accesa",
+        "boot-conf": "Accettata. Ecco l'ora; heartbeat ogni 300 s",
+        "status": "Il connettore 1 è Available",
+        "status-conf": "Preso nota",
+        "authorize": "La tessera 04A2B3C4D5E6F7 può ricaricare?",
+        "authorize-conf": "Sì: Accepted",
+        "started": "Transazione TX-0187 avviata a 12840 Wh",
+        "started-conf": "Preso nota, la tessera è ancora Accepted",
+        "updated": "Ora 15600 Wh, prelievo di 11040 W",
+        "updated-conf": "Preso nota",
+        "ended": "TX-0187 terminata a 23880 Wh",
+        "ended-conf": "Preso nota"
+    },
+    "notes": {
+        "upgrade": "Dentro TLS, la colonnina chiede di trasformare questa connessione HTTP in un WebSocket. L'indirizzo termina con la sua identità, CS-0042. L'intestazione Sec-WebSocket-Protocol chiede ocpp2.0.1, e l'autenticazione HTTP Basic porta la password della colonnina.",
+        "switch": "Il CSMS accetta e indica il subprotocol scelto: ocpp2.0.1. Da ora entrambe le parti inviano frame WebSocket, ciascuno con un messaggio OCPP in JSON.",
+        "status": "Una CALL con timestamp, connectorStatus Available, evseId 1 e connectorId 1. Un EVSE è un punto di ricarica; può avere più connettori.",
+        "status-conf": "Un CALLRESULT con payload vuoto: [3,\"1002\",{}]. Ogni CALL riceve una risposta, anche quando non c'è niente da dire.",
+        "authorize": "idToken 04A2B3C4D5E6F7, tipo ISO14443: il numero di serie di 7 byte della tessera RFID. Molte colonnine tengono anche una lista locale di tessere, per decidere senza chiedere.",
+        "authorize-conf": "idTokenInfo con stato Accepted. Altre risposte, come Blocked, Expired, Invalid o Unknown, significano che la colonnina non deve avviare la ricarica.",
+        "started": "eventType Started, triggerReason ChargingStateChanged, seqNo 0. La colonnina sceglie il transactionId, TX-0187. L'evento porta l'idToken della tessera, chargingState Charging e una lettura del contatore con contesto Transaction.Begin: 12840 Wh.",
+        "started-conf": "L'evento portava la tessera, quindi la risposta ne riporta lo stato: idTokenInfo Accepted.",
+        "updated": "eventType Updated, triggerReason MeterValuePeriodic, seqNo 1, con due letture: il registro dell'energia e la potenza. Il laboratorio mostra il messaggio completo.",
+        "updated-conf": "Un payload vuoto: il CSMS non ha niente da aggiungere.",
+        "ended": "eventType Ended, triggerReason StopAuthorized, seqNo 2, stoppedReason Local, chargingState EVConnected (il cavo è ancora inserito) e l'ultima lettura del contatore con contesto Transaction.End: 23880 Wh.",
+        "ended-conf": "Un payload vuoto. Il CSMS fattura 23880 − 12840 = 11040 Wh al titolare della tessera."
+    },
+    "fields": {
+        "ws-text": { "name": "FIN · opcode", "note": "0x81: il bit FIN (0x80) dice che l'intero messaggio è in questo frame. L'opcode 0x1 dice che è testo, UTF-8." },
+        "ws-mask-126": { "name": "Maschera · lunghezza", "note": "0xFE: il bit di maschera (0x80) è a 1, perché un client deve mascherare ciò che invia. Il resto, 126 (0x7E), dice che la lunghezza segue in 2 byte." },
+        "ws-len-170": { "name": "Lunghezza", "note": "0x00AA = seguono 170 byte di JSON. Il laboratorio li mostra." },
+        "ws-key": { "name": "Masking key", "note": "4 byte casuali. Ogni byte del JSON viene combinato in XOR con loro, a turno: \"[\" (0x5B) viaggia come 0x61. Non è cifratura; a quella pensa TLS." },
+        "ws-len-88": { "name": "Lunghezza", "note": "0x58 = seguono 88 byte di JSON. Il bit di maschera è 0, perché un server non maschera mai, quindi non segue nessuna masking key." },
+        "a-type": { "name": "MessageTypeId", "note": "2 è una CALL, una richiesta. La sua risposta è un 3 (CALLRESULT) o un 4 (CALLERROR)." },
+        "a-id": { "name": "MessageId", "note": "Scelto da chi invia, unico su questa connessione. La risposta porta lo stesso id; nient'altro lega le due." },
+        "a-action": { "name": "Action", "note": "Quale messaggio è questo. Una risposta non ha action: il suo id dice a quale CALL risponde." },
+        "a-payload": { "name": "Payload", "note": "La richiesta vera e propria, un oggetto JSON. I suoi campi vengono verificati con lo schema JSON di BootNotificationRequest." }
+    },
+    "devices": {
+        "car": "Auto",
+        "charger": "Colonnina AC",
+        "charger2": "Colonnina AC",
+        "csms": "CSMS"
+    },
+    "facts": {
+        "standard": "OCPP 2.0.1 (Open Charge Alliance, 2020). OCPP 1.6J è ancora diffuso.",
+        "between": "Stazione di ricarica → CSMS (charging station management system)",
+        "transport": "WebSocket (RFC 6455) su TLS, subprotocol ocpp2.0.1: un messaggio JSON per frame di testo",
+        "security": "TLS. Il security profile 2 aggiunge una password (HTTP Basic), il profile 3 un certificato client.",
+        "frames": "CALL [2, …] · CALLRESULT [3, …] · CALLERROR [4, …]"
+    },
+    "tips": [
+        "Se il CSMS non risponde con il subprotocol chiesto dalla colonnina, la colonnina deve chiudere la connessione. \"Si connette, poi cade\" spesso è proprio questo.",
+        "Invia una CALL alla volta e aspetta la sua risposta, o un timeout, prima della successiva. Una seconda CALL inviata troppo presto può andare persa.",
+        "Quando inizia una transazione è un'impostazione (TxStartPoint): all'inserimento della spina, all'autorizzazione o quando passa energia. Concordala con il team del CSMS, altrimenti le transazioni sembrano troppo lunghe o troppo corte.",
+        "I timestamp sono in UTC. Imposta l'orologio della colonnina da currentTime nella risposta a BootNotification, altrimenti le letture finiscono nella fascia tariffaria sbagliata."
+    ],
+    "points": {
+        "card": "Tessera",
+        "tx": "Transazione",
+        "energy": "Contatore di energia"
+    },
+    "anatomy": {
+        "call": "Un messaggio OCPP: un array JSON di quattro parti"
+    },
+    "playground": {
+        "file": "Un messaggio di questa lezione, come lo invia la colonnina, impaginato per la lettura. Sulla linea è una sola riga senza spazi.",
+        "call": "2: una CALL, una richiesta che attende una risposta.",
+        "message-id": "L'id del messaggio. La risposta del CSMS porta lo stesso.",
+        "action": "L'action: quale messaggio è questo. Segue il suo payload.",
+        "reason": "Perché la colonnina si è avviata: PowerUp. Altri motivi sono FirmwareUpdate, RemoteReset, Watchdog e altri ancora.",
+        "model": "model e vendorName sono gli unici campi obbligatori di chargingStation.",
+        "firmware": "Il firmware in esecuzione ora. Il CSMS lo usa per pianificare gli aggiornamenti.",
+        "event-type": "Started, Updated o Ended. Una transazione ha esattamente un Started e un Ended.",
+        "timestamp": "UTC, con Z. È l'ora dell'evento, non dell'invio: un evento memorizzato mentre si era offline mantiene la sua ora.",
+        "trigger": "Perché è stato inviato questo evento: è trascorso l'intervallo del contatore (TxUpdatedInterval).",
+        "seq": "seqNo conta gli eventi di questa transazione a partire da 0. Un buco dice al CSMS che manca un messaggio.",
+        "transaction-id": "Scelto dalla colonnina all'inizio. Ogni evento di questa ricarica lo porta.",
+        "charging-state": "Charging: passa energia. Altri stati sono EVConnected, SuspendedEV, SuspendedEVSE e Idle.",
+        "energy": "15600 Wh sul registro del contatore, come il totalizzatore di un contatore di casa. Non riparte da 0 a ogni nuova transazione.",
+        "measurand": "Cosa è stato misurato. Senza measurand, un valore significa Energy.Active.Import.Register.",
+        "unit": "Wh, l'unità predefinita per l'energia.",
+        "power": "11040 W: 16 A su ciascuna delle 3 fasi a 230 V."
+    }
+}

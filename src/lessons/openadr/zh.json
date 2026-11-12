@@ -1,0 +1,83 @@
+{
+    "intro": "电网供电紧张时，电网公司如何请楼宇少用电。电网公司的服务器叫 VTN（虚拟顶层节点）；用户一侧叫 VEN（虚拟末端节点）。本课用的是 OpenADR 2.0b，现场大多数产品支持的版本：XML over HTTPS，由 VEN 轮询，所以楼宇无需开放任何端口。VTN 说明做什么、什么时候做；怎么做由楼宇决定。",
+    "steps": {
+        "poll": { "title": "询问新消息", "text": "12:00 UTC，VEN 照例每分钟轮询一次。这次 VTN 回了一个事件：等级 1，17:00 到 18:00 UTC。" },
+        "optin": { "title": "确认参与", "text": "这个事件要求回复。VEN 选择参与，VTN 确认。" },
+        "shed": { "title": "削减负荷", "text": "按它自己的时钟到了 17:00，VEN 通知楼宇控制器行动：空调设定温度调高 2 °C，走廊灯调暗。负荷从 420 kW 降到 340 kW。" },
+        "report": { "title": "上报", "text": "VEN 按注册时的约定，发送它测得的负荷。电网公司看到了负荷下降。" },
+        "end": { "title": "恢复正常", "text": "18:00 事件结束。VEN 撤回它的命令，楼宇回到原定的运行计划。" }
+    },
+    "frames": {
+        "tls": "用我的证书建立 TLS 连接",
+        "poll": "有我的新消息吗？",
+        "distribute": "高峰事件：等级 1，17:00 到 18:00",
+        "created": "我们参与",
+        "response": "已记录",
+        "shed": "现在是等级 1：调高空调设定温度，调暗照明",
+        "update-report": "我们的负荷现在是 340 kW",
+        "updated-report": "报告已收到",
+        "restore": "事件结束：恢复正常"
+    },
+    "notes": {
+        "tls": "连接总是由 VEN 发起。双方都出示为 OpenADR 签发的证书。TLS 1.2，使用 OpenADR 要求的两种套件之一：TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 或 TLS_RSA_WITH_AES_128_CBC_SHA256。",
+        "poll": "向 /OpenADR2/Simple/2.0b/OadrPoll 发出 HTTP POST，携带一条很小的 oadrPoll 消息：只有 VEN 的 venID。轮询频率由 VTN 在 VEN 注册时设定。",
+        "distribute": "对轮询的应答。它列出这个 VEN 所有待执行和执行中的事件，而不只是新事件。动手试试里逐行展示了这条消息。",
+        "created": "向 EiEvent 发出 POST：一条 oadrCreatedEvent，指明事件（eventID PEAK-20260715，modificationNumber 0），responseCode 为 200，optType 为 optIn。若为 optOut，则告诉电网公司不要指望这栋楼。",
+        "response": "一条 responseCode 为 200 的 oadrResponse。没有新消息时，VTN 也用这条消息应答轮询。",
+        "shed": "这不是 OpenADR：而是 VEN 向楼宇控制器发出的一次 BACnet 写操作。OpenADR 只说等级 1。等级 1 具体意味着什么，由楼宇自己设定，而不是电网公司。",
+        "update-report": "向 EiReport 发出 POST：一条带 TELEMETRY_USAGE 报告的 oadrUpdateReport，即楼宇每 15 分钟的实际功率。VEN 注册了它能发送的报告之后，VTN 用 oadrCreateReport 请求了这份报告。",
+        "updated-report": "一条 responseCode 为 200 的 oadrUpdatedReport。",
+        "restore": "这也不是 OpenADR。VEN 在它的 BACnet 优先级上写入 NULL，释放它的命令。负荷回升到 415 kW。"
+    },
+    "fields": {
+        "a-host": { "name": "VTN", "note": "电网公司的服务器。VTN 可以在其余部分前面加上自己的路径。" },
+        "a-transport": { "name": "传输方式", "note": "Simple HTTP。OpenADR 2.0b 也可以运行在 XMPP 上，那时由 VTN 主动推送。" },
+        "a-profile": { "name": "配置文件", "note": "2.0b：事件、报告和参与计划。2.0a 是面向简单设备的精简配置文件，只有事件。" },
+        "a-service": { "name": "服务", "note": "OadrPoll。每条消息发往各自的服务：事件发往 EiEvent，报告发往 EiReport，注册发往 EiRegisterParty，参与计划发往 EiOpt。" }
+    },
+    "devices": {
+        "vtn": "电网公司 VTN",
+        "ven": "楼宇 VEN",
+        "bms": "楼宇自控控制器",
+        "building": "办公楼"
+    },
+    "facts": {
+        "standard": "OpenADR 2.0b（IEC 62746-10-1）",
+        "between": "电网公司或聚合商（VTN）→ 楼宇和聚合商（VEN）",
+        "transport": "XML over HTTPS；由 VEN 轮询（或用 XMPP）",
+        "security": "TLS 1.2，双方各一张证书；XML 签名可选",
+        "frames": "服务：EiEvent、EiReport、EiRegisterParty、EiOpt、OadrPoll"
+    },
+    "tips": [
+        "事件每修改一次，modificationNumber 就加一。每个新编号都要回复，否则 VTN 会以为 VEN 没收到这次修改。",
+        "VEN 按自己的时钟执行事件。让它用 NTP 对时：时钟慢 10 分钟，削负荷也会晚 10 分钟。",
+        "电网公司会把每个参与承诺都算进计划。如果楼宇削减不了负荷，要尽早退出，不要等事件开始之后。"
+    ],
+    "points": {
+        "status": "事件状态",
+        "opt": "回复",
+        "load": "楼宇负荷"
+    },
+    "anatomy": {
+        "endpoint": "VEN 轮询的地址"
+    },
+    "playground": {
+        "file": "第 1 步的 oadrDistributeEvent，即 VEN 收到的样子。选一行带标记的内容，看看它的含义。",
+        "payload": "每条 OpenADR 2.0b 消息都是一个 oadrPayload。命名空间说明了各部分的来源：OpenADR 本身、Energy Interoperation（ei）、EMIX 和 iCalendar（xcal）。",
+        "signed": "XML 签名会覆盖的范围。签名是可选的：TLS 已经保护了连接。",
+        "distribute": "消息本身：oadrDistributeEvent，来自 VTN。",
+        "vtn": "VTN 的名称。",
+        "event-id": "事件的名称。VEN 的回复必须指明它。",
+        "modification": "0：第一个版本。事件每修改一次就加一，VEN 必须重新回复。",
+        "market": "事件所属的项目。这栋楼报名参加了它。",
+        "status": "far：事件还有好几个小时。之后的应答会显示为 active，然后是 completed。",
+        "test": "false：真实事件。测试事件用来检查整条链路；VEN 不必执行。",
+        "start": "事件在 17:00 UTC 开始。",
+        "length": "PT1H：持续一小时（ISO 8601 时长格式）。",
+        "level": "这个时段的值：1.0。对 SIMPLE 信号来说，0 为正常，1 为中等，2 为高，3 为特殊。",
+        "simple": "SIMPLE：每个 OpenADR VEN 都必须理解的那个信号。",
+        "current": "当前值：0.0，因为事件还没开始。",
+        "target": "这个事件只针对这个 VEN。",
+        "response": "always：VEN 必须用 oadrCreatedEvent 回复，选择参与或退出。"
+    }
+}

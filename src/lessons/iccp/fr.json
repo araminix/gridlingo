@@ -1,0 +1,112 @@
+{
+    "intro": "La façon dont les centres de conduite échangent des données en temps réel : un gestionnaire de réseau de transport (GRT, ou TSO) avec les gestionnaires de réseau de distribution (GRD, ou DSO), les centrales et les GRT voisins. ICCP, aussi appelé TASE.2, fonctionne sur MMS. Une table bilatérale, convenue entre les deux entreprises, liste exactement ce que chaque partenaire peut lire, et le serveur la fait respecter.",
+    "steps": {
+        "connect": { "title": "Connexion et association", "text": "Le client ICCP du GRD ouvre TCP 102 vers le serveur du GRT, à travers un VPN. MMS établit ensuite l'association : le client se nomme par un AP title, et le serveur n'accepte que les noms présents dans l'une de ses tables bilatérales." },
+        "check": { "title": "Vérifier l'ID de table", "text": "Le client lit Bilateral_Table_ID dans son propre domaine sur le serveur et le compare à sa copie. Ils concordent : les deux côtés travaillent sur le même accord." },
+        "subscribe": { "title": "Demander des rapports", "text": "Le client crée un jeu de données, DS_TIELINES, dans son domaine : les valeurs qu'il veut recevoir ensemble. Un transfer set indique au serveur quand l'envoyer. Le client en demande un libre (Next_DSTransfer_Set), puis écrit dedans : toutes les 4 s, et aussitôt à chaque changement." },
+        "interval": { "title": "Rapport toutes les 4 s", "text": "Le serveur envoie tout le jeu de données toutes les 4 secondes, sous forme d'InformationReport. Personne ne le demande et personne n'y répond." },
+        "change": { "title": "Rapport sur changement", "text": "Le disjoncteur de la ligne d'interconnexion 2 s'ouvre dans le poste. Le serveur n'attend pas l'intervalle suivant : il envoie un rapport aussitôt. Le transit est passé sur la ligne 1." },
+        "denied": { "title": "Hors de la table", "text": "Un opérateur du GRD demande GEN_K1_MW, la production d'un groupe du GRT. Cette valeur n'est pas dans la table bilatérale de DSO_EAST : le serveur répond par une erreur d'accès au lieu d'une valeur." }
+    },
+    "frames": {
+        "connect": "Ouvrir TCP 102 et une connexion de transport ISO",
+        "initiate-req": "Je suis DSO_EAST : parlons MMS",
+        "initiate-resp": "Accepté : tu es dans mes tables bilatérales",
+        "blt-req": "Quel ID de table bilatérale as-tu pour moi ?",
+        "blt-resp": "DSOEAST-2026-03",
+        "define-ds": "Crée le jeu de données DS_TIELINES : TIE1_MW, TIE2_MW, TIE2_CB",
+        "define-ok": "Jeu de données créé",
+        "next-ts": "Donne-moi un transfer set libre",
+        "next-ts-resp": "Utilise DSTS_07",
+        "ts-start": "DSTS_07 : envoie DS_TIELINES toutes les 4 s et à chaque changement",
+        "report-interval": "TIE1 212.4 MW, TIE2 36.2 MW, disjoncteur TIE2 fermé",
+        "report-change": "Disjoncteur TIE2 ouvert : TIE1 248.9 MW, TIE2 0.0 MW",
+        "denied-req": "Que vaut GEN_K1_MW ?",
+        "denied-resp": "Erreur d'accès : absent de ta table"
+    },
+    "notes": {
+        "connect": "TCP vers le port 102, puis une connexion COTP par-dessus, exactement comme pour IEC 61850 MMS. Entre deux entreprises, cela passe en général dans un VPN IPsec, car ICCP lui-même ne chiffre rien.",
+        "initiate-req": "Les couches session, présentation et ACSE enveloppent le MMS Initiate. ACSE porte les AP titles des deux côtés. Le serveur cherche l'AP title de l'appelant pour savoir quelle table bilatérale, et donc quel domaine, appartient à ce client.",
+        "initiate-resp": "Un AP title absent de toute table bilatérale est refusé ici, avant qu'aucune donnée ne puisse être lue. La partie MMS fixe les tailles de message et les services.",
+        "define-ds": "MMS DefineNamedVariableList, dans le domaine DSO_EAST. Le jeu de données d'un transfer set peut commencer par trois membres spéciaux, Transfer_Set_Name, Transfer_Set_Time_Stamp et DSConditions_Detected : chaque rapport dit ainsi quel transfer set l'a envoyé, quand et pourquoi.",
+        "define-ok": "Le serveur vérifie chaque nom dans la table bilatérale avant de créer la liste. Un seul nom que le client n'a pas le droit de lire fait échouer la requête.",
+        "next-ts": "Un Read de la variable spéciale Next_DSTransfer_Set dans le domaine DSO_EAST. Chaque lecture attribue un transfer set libre, pris dans la réserve du serveur.",
+        "next-ts-resp": "Le nom d'un transfer set que le client peut maintenant utiliser : DSTS_07.",
+        "ts-start": "Un Write des attributs du transfer set : DataSetName DSO_EAST/DS_TIELINES, Interval 4 s, conditions IntervalTimeOut et ObjectChange, Status enabled. Le serveur confirme l'écriture, puis commence à envoyer des rapports.",
+        "report-interval": "Un InformationReport MMS non confirmé, au nom du jeu de données. Il porte le nom du transfer set, l'heure, le motif (fin d'intervalle) et toutes les valeurs, chacune avec des indicateurs de qualité : valide, figée (held), douteuse (suspect) ou non valide.",
+        "report-change": "Envoyé entre deux rapports périodiques parce qu'une valeur a changé (motif : changement d'objet). Il ne reçoit pas de réponse non plus, sauf si le transfer set est marqué critique : le client doit alors l'acquitter.",
+        "denied-req": "Un Read d'une valeur du périmètre propre du GRT (VCC), hors du domaine DSO_EAST. D'autres partenaires ont peut-être le droit de la lire ; pas DSO_EAST.",
+        "denied-resp": "Le résultat de la lecture est une erreur d'accès MMS au lieu d'une valeur. La solution n'est pas logicielle : les deux entreprises ajoutent la valeur à la table et en augmentent l'ID."
+    },
+    "fields": {
+        "tpkt-67": { "name": "TPKT", "note": "Version 3, puis la longueur du message entier : 0x0043 = 67 octets." },
+        "tpkt-46": { "name": "TPKT", "note": "Version 3, puis la longueur : 0x002E = 46 octets." },
+        "cotp-dt": { "name": "COTP", "note": "Une unité de données (0xF0), la dernière de son message (0x80)." },
+        "session": { "name": "Session", "note": "Deux courts en-têtes de session : give tokens, transfert de données." },
+        "presentation": { "name": "Présentation", "note": "Données entièrement encodées, contexte de présentation 3 : la suite est du MMS." },
+        "confirmed-req": { "name": "Requête confirmée", "note": "Tag A0, 45 octets : une requête qui attend une réponse." },
+        "confirmed-resp": { "name": "Réponse confirmée", "note": "Tag A1, 24 octets : la réponse." },
+        "invoke": { "name": "Invoke ID 1", "note": "Un numéro choisi par le client. La réponse porte le même." },
+        "invoke-resp": { "name": "Invoke ID 1", "note": "Le même numéro que la requête : ceci y répond." },
+        "read": { "name": "Read", "note": "Tag A4 : le service MMS Read." },
+        "spec": { "name": "Liste de variables", "note": "Une liste d'une seule variable, donnée par son nom." },
+        "domain-specific": { "name": "Nom propre à un domaine", "note": "Un nom en deux parties : le domaine et l'item." },
+        "domain": { "name": "Domaine", "note": "\"DSO_EAST\" : le domaine de ce client sur le serveur, au nom de sa table bilatérale. Les valeurs destinées à ce seul partenaire (périmètre ICC) s'y trouvent." },
+        "item": { "name": "Item", "note": "\"Bilateral_Table_ID\" : une variable qu'un serveur ICCP tient dans le domaine de chaque client." },
+        "results": { "name": "Résultats", "note": "Une liste de résultats, un par variable demandée." },
+        "blt-value": { "name": "Chaîne visible", "note": "Tag 0x8A, 15 caractères : DSOEAST-2026-03. Le client la compare à l'ID de sa propre table. S'ils diffèrent, il doit fermer l'association." }
+    },
+    "devices": {
+        "dso": "Centre de conduite GRD",
+        "dsovpn": "Routeur VPN du GRD",
+        "tsovpn": "Routeur VPN du GRT",
+        "tso": "Centre de conduite GRT",
+        "sub": "Poste d'interconnexion"
+    },
+    "facts": {
+        "standard": "IEC 60870-6-503 (services) et IEC 60870-6-802 (objets) : TASE.2",
+        "between": "Centre de conduite ↔ centre de conduite : GRT, GRD, centrales, opérateurs de marché",
+        "transport": "MMS sur ISO, sur TCP 102 (RFC 1006), en général dans un VPN IPsec",
+        "security": "Aucune en propre. Secure ICCP ajoute TLS avec certificats (IEC 62351-3 et -4).",
+        "model": "Tables bilatérales, data values, jeux de données, transfer sets"
+    },
+    "tips": [
+        "Modifiez la table bilatérale des deux côtés en même temps. Si le Bilateral_Table_ID diffère, le client ferme l'association et aucune donnée ne circule.",
+        "Vérifiez les indicateurs de qualité, pas seulement la valeur. Une valeur marquée held ou suspect est un chiffre ancien ou douteux qui a pourtant l'air normal à l'écran.",
+        "Mettez-vous d'accord sur les unités et les signes. 212.4 MW du GRT vers le GRD peuvent devenir −212.4 MW dans le SCADA du GRD. Inscrivez le sens dans la table.",
+        "ICCP n'a aucune sécurité en propre. Gardez-le dans un VPN ou utilisez Secure ICCP, et n'ouvrez jamais le port 102 sur Internet."
+    ],
+    "points": {
+        "blt": "ID de table",
+        "tie1": "Transit ligne 1",
+        "tie2": "Transit ligne 2",
+        "cb2": "Disjoncteur ligne 2"
+    },
+    "values": {
+        "closed": "fermé",
+        "open": "ouvert"
+    },
+    "timing": {
+        "title": "Quand un transfer set envoie ses rapports",
+        "note": "Le serveur envoie DS_TIELINES toutes les 4 s (intervalle) et aussitôt qu'une valeur change (changement d'objet). Un transfer set peut aussi demander un contrôle d'intégrité : un rapport complet toutes les quelques minutes, quoi qu'il arrive. Une fois le transfer set lancé, le client ne redemande plus rien.",
+        "dso": "Client GRD",
+        "interval": "Rapports périodiques",
+        "change": "Rapports sur changement",
+        "start": "Status = enabled",
+        "every-4s": "toutes les 4 s",
+        "tie2-open": "TIE2_CB s'ouvre"
+    },
+    "playground": {
+        "file": "Une table bilatérale, telle qu'un des côtés pourrait la tenir (inventée : chaque fournisseur a son propre format). Les deux entreprises en détiennent le même contenu.",
+        "table": "Le nom de la table. Sur le serveur, c'est aussi le domaine du client : DSO_EAST.",
+        "table-id": "La version convenue par les deux côtés. Le client la relit sur le serveur après chaque association.",
+        "client-ap": "L'AP title du client (avec son AE qualifier en dessous) : c'est ainsi que le serveur sait qui appelle.",
+        "blocks": "Les blocs de conformité utilisés par les partenaires : 1, les services de base, et 2, les rapports sur changement.",
+        "read": "Les valeurs que le GRD peut lire. Elles se trouvent dans son domaine, DSO_EAST (périmètre ICC). Tout le reste donne une erreur d'accès.",
+        "data-value": "Data_RealQ : un flottant avec indicateurs de qualité.",
+        "state": "Data_State : un état comme ouvert ou fermé, avec indicateurs de qualité.",
+        "write": "Rien ne peut être écrit : le GRD ne peut modifier aucune valeur du GRT.",
+        "devices": "La commande d'équipements (bloc 5) n'est pas autorisée : aucun équipement n'est listé, le GRD ne peut donc manœuvrer aucun disjoncteur du GRT.",
+        "transfer-sets": "Le nombre de transfer sets que ce client peut utiliser en même temps."
+    }
+}

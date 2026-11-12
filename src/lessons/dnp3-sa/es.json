@@ -1,0 +1,114 @@
+{
+    "intro": "Secure Authentication permite que una outstation DNP3 compruebe que un comando viene de verdad de su maestro y que nadie lo cambió por el camino. Antes de ejecutar una petición crítica, la outstation envía un desafío; solo un equipo que tenga la clave de sesión secreta puede responderlo. No se cifra nada: SA demuestra quién envió un mensaje, no lo oculta.",
+    "steps": {
+        "keys": { "title": "Fijar claves de sesión", "text": "Antes de cualquier comando, el SCADA entrega a la RTU dos claves de sesión nuevas, una para cada sentido. Las envía envueltas (cifradas) con la clave de actualización, un secreto que ambos lados recibieron de antemano. Lo repite con regularidad, para que ninguna clave de sesión dure mucho." },
+        "operate": { "title": "Comando crítico", "text": "El operador abre CB-1 para que una cuadrilla pueda trabajar en la línea. El SCADA envía un direct operate. La RTU lo trata como crítico y todavía no actúa. Aquí solo se muestra la capa de aplicación: las capas de enlace y de transporte son las mismas que en la lección de DNP3." },
+        "challenge": { "title": "Desafío", "text": "La RTU responde con un desafío: un número de desafío nuevo (CSQ 5) y 16 bytes aleatorios. Solo quien tenga la clave de sesión puede responderlo. Los bytes aleatorios que se muestran aquí son inventados." },
+        "reply": { "title": "Respuesta", "text": "El SCADA calcula un HMAC con la clave de sesión, sobre el desafío y su comando, y envía los primeros 16 bytes. La clave nunca viaja. El MAC que se muestra aquí es inventado: uno real depende de la clave." },
+        "execute": { "title": "Ejecutar", "text": "La RTU calcula el mismo HMAC con su copia de la clave. Los dos coinciden, así que activa la salida de disparo con un pulso y lo confirma. CB-1 se abre." },
+        "replay": { "title": "Ataque de repetición", "text": "Un atacante en la red de la subestación grabó ayer el comando de cierre y su respuesta. Ahora vuelve a enviar ambos. La RTU desafía con CSQ 6 y bytes aleatorios nuevos, pero la respuesta grabada contesta a CSQ 2, con una clave antigua. La RTU la rechaza: CB-1 sigue abierto y la cuadrilla, a salvo." }
+    },
+    "frames": {
+        "key-status-request": "¿En qué estado están tus claves de sesión?",
+        "key-status": "Todavía no tengo claves de sesión",
+        "key-change": "Aquí tienes dos claves de sesión nuevas, envueltas",
+        "key-ok": "Claves fijadas. Aquí tienes mi prueba",
+        "operate": "Dispara CB-1 ahora",
+        "challenge": "Demuéstralo: responde al desafío 5",
+        "reply": "Mi HMAC para el desafío 5",
+        "pulse": "La salida de disparo se cierra durante 1 s",
+        "response": "Hecho: el pulso de disparo ha empezado",
+        "replay-operate": "Cierra CB-1 ahora (una copia grabada)",
+        "challenge-6": "Demuéstralo: responde al desafío 6",
+        "replay-reply": "Un HMAC para el desafío 2 (grabado)"
+    },
+    "notes": {
+        "key-status-request": "El SCADA pregunta por el estado de las claves de sesión del usuario 1: g120v4, en un AUTH_REQUEST (función 0x20). Aquí no se muestran los bytes del intercambio de claves.",
+        "key-status": "La RTU todavía no tiene claves de sesión válidas: estado NOT_INIT. Su respuesta, g120v5, también lleva un número de cambio de clave y datos aleatorios nuevos.",
+        "key-change": "El SCADA genera dos claves de sesión aleatorias: una para lo que envía y otra para lo que envía la RTU. Envuelve ambas con la clave de actualización del usuario 1 (AES key wrap) y las envía en g120v6.",
+        "key-ok": "La RTU desenvuelve las claves con su propia copia de la clave de actualización. Responde con el estado OK y un MAC hecho con las claves nuevas, que demuestra que las tiene.",
+        "pulse": "No es DNP3: la RTU cierra su salida de disparo durante 1000 ms, el tiempo de activación del comando, y CB-1 se abre."
+    },
+    "fields": {
+        "ac-3": { "name": "Control de aplicación", "note": "0xC3: FIR y FIN, una petición en un solo fragmento, secuencia 3." },
+        "fc-direct-operate": { "name": "Función 5", "note": "DIRECT_OPERATE: actúa ahora, sin un select previo." },
+        "g12v1": { "name": "g12v1", "note": "Grupo 12, variación 1: un bloque de salida de relé de control (CROB), un comando para una salida." },
+        "q17": { "name": "Calificador 0x17", "note": "Una cantidad de 1 byte y, después, un índice de 1 byte delante de cada objeto." },
+        "count-1": { "name": "Cantidad 1", "note": "Un comando." },
+        "index-0": { "name": "Índice 0", "note": "Salida 0: las bobinas de disparo y de cierre de CB-1." },
+        "trip": { "name": "Código de control", "note": "0x81: TRIP, como pulso (PULSE_ON)." },
+        "close": { "name": "Código de control", "note": "0x41: CLOSE, como pulso. Volvería a poner la línea en tensión, con la cuadrilla trabajando en ella." },
+        "pulses": { "name": "Cantidad", "note": "Un pulso." },
+        "on-time": { "name": "Tiempo de activación", "note": "1000 ms, el byte bajo primero: cuánto tiempo queda cerrada la salida." },
+        "off-time": { "name": "Tiempo de desactivación", "note": "0 ms: no hay un segundo pulso." },
+        "status-request": { "name": "Estado", "note": "0 en una petición." },
+        "status-success": { "name": "Estado 0", "note": "SUCCESS: la RTU aceptó el comando e inició el pulso." },
+        "ac-3-challenge": { "name": "Control de aplicación", "note": "0xC3: secuencia 3, la misma que el comando que desafía." },
+        "fc-auth-response": { "name": "Función 0x83", "note": "AUTH_RESPONSE: un mensaje de Secure Authentication de la outstation." },
+        "iin": { "name": "IIN", "note": "Indicaciones internas: ningún indicador activo." },
+        "g120v1": { "name": "g120v1", "note": "Grupo 120, variación 1: desafío de autenticación." },
+        "size-24": { "name": "Calificador 0x5B", "note": "Un objeto (01) cuyo tamaño sigue en 2 bytes: 0x0018 = 24 bytes." },
+        "csq-5": { "name": "CSQ 5", "note": "Número de secuencia del desafío. Aumenta con cada desafío, así que una respuesta antigua nunca encaja con uno nuevo." },
+        "user-1": { "name": "Usuario 1", "note": "El usuario cuyas claves deben responder. Cada usuario tiene su propia clave de actualización." },
+        "mal-4": { "name": "Algoritmo MAC 4", "note": "HMAC-SHA-256, recortado a 16 bytes." },
+        "rfc-1": { "name": "Motivo 1", "note": "CRITICAL: la petición era crítica, así que hay que demostrarla." },
+        "data-5": { "name": "Datos del desafío", "note": "16 bytes aleatorios, nuevos en cada desafío, mostrados en dos partes. Aquí son inventados." },
+        "data-end": { "name": "Datos del desafío", "note": "Los últimos 8 de los 16 bytes aleatorios." },
+        "ac-3-reply": { "name": "Control de aplicación", "note": "0xC3: sigue siendo la secuencia 3. El comando, el desafío, la respuesta al desafío y la respuesta final van juntos." },
+        "fc-auth-request": { "name": "Función 0x20", "note": "AUTH_REQUEST: un mensaje de Secure Authentication del maestro." },
+        "g120v2": { "name": "g120v2", "note": "Grupo 120, variación 2: respuesta de autenticación." },
+        "size-22": { "name": "Calificador 0x5B", "note": "Un objeto de 0x0016 = 22 bytes." },
+        "csq-5-reply": { "name": "CSQ 5", "note": "El desafío al que responde esta respuesta." },
+        "mac-5": { "name": "MAC", "note": "El HMAC sobre el desafío y el comando, con la clave de sesión, recortado a 16 bytes y mostrado en dos partes. Aquí es inventado: el valor real depende de la clave secreta." },
+        "mac-end": { "name": "MAC", "note": "Los últimos 8 de sus 16 bytes." },
+        "ac-3-response": { "name": "Control de aplicación", "note": "0xC3: secuencia 3, la respuesta al comando." },
+        "fc-response": { "name": "Función 0x81", "note": "RESPONSE: la respuesta normal, que solo se envía después de verificar la respuesta al desafío." },
+        "ac-10": { "name": "Control de aplicación", "note": "0xCA: secuencia 10. Cada byte de aquí es una copia del mensaje de ayer." },
+        "ac-10-challenge": { "name": "Control de aplicación", "note": "0xCA: secuencia 10, la misma que el comando." },
+        "csq-6": { "name": "CSQ 6", "note": "Un número de desafío nuevo. Nadie ha respondido todavía al desafío 6." },
+        "data-6": { "name": "Datos del desafío", "note": "Bytes aleatorios nuevos, mostrados en dos partes. Aquí son inventados." },
+        "ac-10-reply": { "name": "Control de aplicación", "note": "0xCA: copiado, como el resto." },
+        "csq-2": { "name": "CSQ 2", "note": "El número de desafío de ayer. La RTU espera una respuesta al 6." },
+        "mac-2": { "name": "MAC", "note": "Correcto para el desafío y la clave de ayer, incorrecto para los de hoy. La RTU rechaza el comando. Aquí es inventado." }
+    },
+    "devices": {
+        "scada": "Maestro SCADA",
+        "switch": "Switch de la subestación",
+        "attacker": "Atacante",
+        "rtu": "RTU",
+        "breaker": "Interruptor CB-1"
+    },
+    "facts": {
+        "standard": "IEEE 1815-2012: Secure Authentication versión 5 (SAv5)",
+        "between": "Maestro SCADA ↔ outstation, dentro de DNP3",
+        "transport": "La capa de aplicación de DNP3: sobre TCP 20000, UDP o serie",
+        "security": "HMAC-SHA-256 con claves de sesión. Sin cifrado.",
+        "frames": "g120: desafío v1, respuesta v2, estado de claves v4 y v5, cambio de claves v6"
+    },
+    "tips": [
+        "SA demuestra quién envió un mensaje. No lo oculta: cualquiera en la línea puede seguir leyendo comandos y valores. Añade TLS (IEC 62351-3) cuando eso importe.",
+        "El modo agresivo ahorra un viaje de ida y vuelta: el maestro pone su MAC en la propia petición (g120v3 y g120v9), basado en el último desafío que recibió. Ambos lados deben permitirlo.",
+        "La mayoría de los fallos en la puesta en servicio se deben a una clave de actualización o un número de usuario incorrectos. Entonces falla el cambio de claves y la RTU rechaza todas las peticiones críticas.",
+        "SA no necesita reloj: lo que impide que los mensajes antiguos vuelvan a funcionar son los números de desafío y los datos aleatorios, no las marcas de tiempo."
+    ],
+    "points": {
+        "cb": "Interruptor CB-1",
+        "csq": "Número de desafío"
+    },
+    "values": {
+        "closed": "cerrado",
+        "open": "abierto"
+    },
+    "playground": {
+        "file": "Los parámetros de Secure Authentication de la RTU. El SCADA debe usar el mismo número de usuario, el mismo algoritmo MAC y el mismo key wrap, y tener la misma clave de actualización.",
+        "version": "SAv5, de IEEE 1815-2012. Ambos lados deben hablar la misma versión.",
+        "user": "Usuario 1. Cada usuario tiene su propia clave de actualización, así la RTU sabe quién envió un comando.",
+        "update-key": "La clave de actualización es el secreto a largo plazo. Se queda en el almacén protegido del equipo y nunca viaja en claro.",
+        "key-wrap": "Cómo se envuelven las claves de sesión en g120v6: AES-256 key wrap.",
+        "mac": "El MAC de cada respuesta: HMAC-SHA-256, recortado a 16 bytes.",
+        "interval": "El maestro cambia las claves de sesión cada 15 minutos.",
+        "timeout": "Cuánto espera la RTU la respuesta a un desafío. Pasado ese tiempo, descarta el comando.",
+        "aggressive": "El modo agresivo está desactivado: todas las peticiones críticas se desafían.",
+        "critical": "Las funciones que la RTU desafía. Las lecturas no están en la lista, así que el sondeo no cuesta nada extra."
+    }
+}

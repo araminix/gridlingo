@@ -1,5 +1,5 @@
 {
-    "intro": "LoRaWAN lets battery sensors send a few bytes over many kilometres. A sensor sends into the air, and every gateway in range passes what it hears to one network server. The network server keeps one copy and checks it; only the application server can read the payload. A sensor hears the network only for a moment after it sends.",
+    "intro": "LoRaWAN lets battery sensors send a few bytes over many kilometers. A sensor sends into the air, and every gateway in range passes what it hears to one network server. The network server keeps one copy and checks it; only the application server can read the payload. A sensor hears the network only for a moment after it sends.",
     "steps": {
         "join": { "title": "Join", "text": "The sensor sends a JoinRequest, and both gateways hear it. 5 s later the network answers with a JoinAccept: a short address, and the numbers both sides need to derive the same session keys. The keys themselves never travel." },
         "uplink": { "title": "Uplink", "text": "A few seconds later the sensor sends its first reading. It does not know who listens: both gateways receive it." },

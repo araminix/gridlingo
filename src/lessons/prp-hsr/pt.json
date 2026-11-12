@@ -1,0 +1,86 @@
+{
+    "intro": "O PRP envia cada quadro duas vezes, por duas redes separadas: a LAN A e a LAN B. O receptor fica com a cópia que chega primeiro e descarta a outra. Quando uma rede falha, a outra cópia continua chegando: nada se perde, e nada espera a rede se recompor. O HSR faz o mesmo num anel.",
+    "steps": {
+        "two": { "title": "Duas redes", "text": "O relé e o controlador têm duas portas cada: uma na LAN A, outra na LAN B. Um equipamento assim é um DAN, um nó com dupla conexão. As duas LANs não dividem nenhum switch, nenhum cabo e nenhuma fonte de alimentação. A cada 2 s, cada DAN se anuncia nas duas LANs." },
+        "send": { "title": "Enviar duas vezes", "text": "O relé tem uma mensagem GOOSE para o controlador. A camada PRP dele acrescenta um trailer de 6 bytes e envia uma cópia por cada porta no mesmo instante. Esta cópia vai pela LAN A." },
+        "drop": { "title": "Descartar a duplicata", "text": "A cópia da LAN B chega 4 µs depois. Mesma origem, mesmo número de sequência: o controlador já a tem, então a descarta. A aplicação dele vê a mensagem uma vez só." },
+        "break": { "title": "Um cabo se rompe", "text": "O cabo do switch A até o controlador é cortado. Bem nessa hora o relé dá trip. A cópia da LAN A só chega até o switch A. A cópia da LAN B chega normalmente: nada se perde, nada atrasa, nada precisa comutar." },
+        "alarm": { "title": "Consertar a reserva", "text": "A proteção não percebeu nada. O controlador percebe: a porta A dele está sem link, e os quadros do relé agora chegam só pela LAN B. Ele gera um alarme. Até a LAN A ser consertada, mais uma falha isolaria o relé." }
+    },
+    "frames": {
+        "sup-a": "Estou aqui, com duas portas",
+        "sup-b": "Estou aqui, com duas portas",
+        "copy-a": "Heartbeat: sem trip (cópia na LAN A)",
+        "copy-b": "Heartbeat: sem trip (cópia na LAN B)",
+        "trip-a": "Trip! (cópia na LAN A, perdida)",
+        "trip-b": "Trip! (cópia na LAN B)",
+        "sup-only": "Estou aqui (ouvido só na LAN B)"
+    },
+    "notes": {
+        "sup-a": "Um quadro de supervisão PRP, enviado a cada 2 s nas duas LANs para 01-15-4E-00-01-00, EtherType 0x88FB. Ele avisa os outros nós que o relé tem dupla conexão e que os dois caminhos dele funcionam.",
+        "sup-b": "O mesmo quadro de supervisão, enviado no mesmo instante na LAN B.",
+        "trip-a": "A cópia da LAN A chega ao switch A. O cabo dele até o controlador está cortado, então esta cópia não vai adiante.",
+        "sup-only": "O próximo quadro de supervisão do relé. Ele continua saindo pelas duas LANs, mas só a cópia da LAN B chega ao controlador."
+    },
+    "fields": {
+        "dst": { "name": "Destino", "note": "O endereço multicast GOOSE do F1 PROT, como na lição de GOOSE. O PRP não muda nada antes do trailer." },
+        "src": { "name": "Origem", "note": "O endereço MAC do relé. As duas portas usam este mesmo endereço, então as duas cópias são iguais." },
+        "vlan": { "name": "Tag de VLAN", "note": "Prioridade 4, VLAN 10." },
+        "ethertype": { "name": "EtherType", "note": "0x88B8: GOOSE. O PRP não acrescenta cabeçalho na frente: o trailer no final é tudo o que ele acrescenta." },
+        "goose-header": { "name": "Cabeçalho GOOSE", "note": "APPID 0x0001, comprimento 115 e dois campos reservados, sem alteração." },
+        "goose-pdu": { "name": "Mensagem GOOSE", "note": "0x61 inicia a mensagem GOOSE; seguem 105 bytes. O PRP deixa tudo como está." },
+        "gocbref": { "name": "gocbRef", "note": "F1PROTLD0/LLN0$GO$gcbTrip, o bloco de controle." },
+        "tal": { "name": "Time allowed to live", "note": "2000 ms." },
+        "datset": { "name": "datSet", "note": "F1PROTLD0/LLN0$dsTrip." },
+        "goid": { "name": "goID", "note": "F1PROT_Trip." },
+        "t-old": { "name": "t", "note": "08:00:00 UTC, o horário da última mudança." },
+        "t-event": { "name": "t", "note": "10:41:07.232 UTC, o horário do trip." },
+        "st-12": { "name": "stNum 12 · sqNum 3", "note": "Nada mudou: a quarta cópia do estado 12." },
+        "st-13": { "name": "stNum 13 · sqNum 0", "note": "Um estado novo: a primeira cópia dele." },
+        "flags-1": { "name": "simulation · confRev", "note": "Não é mensagem de teste; revisão da configuração 1." },
+        "flags-2": { "name": "ndsCom · entries", "note": "Configuração completa; seguem 2 valores." },
+        "data-idle": { "name": "allData", "note": "Tr.general = FALSE (sem trip), qualidade boa." },
+        "data-trip": { "name": "allData", "note": "Tr.general = TRUE (trip!), qualidade boa." },
+        "seq-3900": { "name": "Número de sequência", "note": "0x0F3C = 3900. O relé numera cada quadro que envia; as duas cópias levam o mesmo número." },
+        "seq-3905": { "name": "Número de sequência", "note": "0x0F41 = 3905: o relé enviou outros quadros desde então." },
+        "lan-a": { "name": "LAN e tamanho", "note": "A: enviado na LAN A. Depois 0x079 = 121, o número de bytes depois do EtherType, trailer incluído." },
+        "lan-b": { "name": "LAN e tamanho", "note": "B: enviado na LAN B. É o único byte diferente da cópia da LAN A." },
+        "suffix": { "name": "Sufixo PRP", "note": "0x88FB marca o fim de um trailer PRP." },
+        "a-seq": { "name": "SeqNr", "note": "16 bits. O receptor fica com o primeiro quadro com um número novo vindo desta origem e descarta o segundo." },
+        "a-lan": { "name": "LanId", "note": "4 bits: 1010 (A) ou 1011 (B), a LAN em que a cópia foi enviada." },
+        "a-size": { "name": "LSDUsize", "note": "12 bits: 121 bytes. O receptor compara com o tamanho real do quadro: se baterem, os últimos 6 bytes são um trailer. A tag de VLAN não conta, porque os switches podem acrescentá-la ou removê-la." },
+        "a-suffix": { "name": "PRPsuffix", "note": "0x88FB, o mesmo número do EtherType dos quadros de supervisão." }
+    },
+    "devices": {
+        "relay": "F1 PROT",
+        "swa": "Switch A",
+        "swb": "Switch B",
+        "controller": "Controlador de bay"
+    },
+    "facts": {
+        "standard": "IEC 62439-3 (PRP na cláusula 4, HSR na cláusula 5)",
+        "between": "Nós com dupla conexão: relés, controladores, merging units, gateways",
+        "transport": "Ethernet, abaixo do IP: GOOSE, SV e MMS trafegam todos sobre ele",
+        "frames": "PRP: um trailer de 6 bytes no final (0x88FB). HSR: uma tag de 6 bytes depois do endereço de origem (0x892F)",
+        "speed": "Sem tempo de recuperação: nenhum quadro se perde quando uma LAN falha"
+    },
+    "tips": [
+        "Nunca ligue a LAN A à LAN B. Mantenha as duas separadas em switches, cabos, cores e alimentação. Um nó conta os quadros que chegam com a LAN errada no trailer: verifique esse contador depois do comissionamento.",
+        "Uma LAN com falha não para nada, então ninguém percebe. Gere alarme para cada porta e para a falta de quadros de supervisão, senão a próxima falha derruba tudo.",
+        "O trailer acrescenta 6 bytes. Um quadro de tamanho máximo (1522 bytes com tag de VLAN) vira 1528: todo switch precisa aceitá-lo, ou os nós precisam enviar quadros menores.",
+        "O HSR não tem switches no anel: cada nó repassa os quadros do anel. Um nó desligado abre o anel naquele ponto, e um segundo o divide em dois."
+    ],
+    "points": {
+        "tr": "Trip",
+        "seq": "Número de sequência",
+        "porta": "LAN A",
+        "portb": "LAN B"
+    },
+    "values": {
+        "up": "funcionando",
+        "down": "sem link"
+    },
+    "anatomy": {
+        "rct": "O trailer de controle de redundância, bit a bit"
+    }
+}

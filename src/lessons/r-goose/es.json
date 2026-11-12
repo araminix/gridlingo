@@ -1,0 +1,82 @@
+{
+    "intro": "GOOSE se queda dentro de una subestación: no tiene dirección IP, así que los routers lo descartan. R-GOOSE mete el mismo mensaje en UDP sobre IP, para que pueda cruzar una red de área extensa hasta otra subestación. Como sale del recinto, cada mensaje va firmado con una clave que solo tienen los relés del grupo. R-SV hace lo mismo con los valores muestreados.",
+    "steps": {
+        "keys": { "title": "Obtener las claves", "text": "Los dos relés demuestran quiénes son ante el centro de distribución de claves (KDC) con sus certificados. El KDC da a cada uno la misma clave de grupo, con un ID y una vigencia. Sin esa clave, nadie puede crear un mensaje que los relés acepten." },
+        "heartbeat": { "title": "Heartbeat", "text": "El relé A publica su señal de teledisparo en el grupo multicast IP 239.192.0.1, una vez por segundo mientras no pasa nada. Los routers la llevan por la WAN hasta la subestación B. Cada mensaje va firmado con la clave de grupo." },
+        "fault": { "title": "Falla en la línea", "text": "Un cortocircuito en la línea entre las dos subestaciones. El relé A dispara su propio interruptor y, en ese mismo instante, publica el cambio: stNum sube en uno." },
+        "repeat": { "title": "Repetir", "text": "Igual que con GOOSE, el relé A vuelve a enviar el mensaje 2 ms después, y luego a los 4, 8 … ms. Si la WAN pierde un paquete, la copia siguiente lleva el disparo." },
+        "act": { "title": "Comprobar y disparar", "text": "El relé B comprueba la primera copia que llega: un ID de clave que conoce, una firma válida (un HMAC) y un número de SPDU nuevo, para que no sea un mensaje antiguo reenviado. Entonces dispara el interruptor B: la línea queda desconectada por los dos extremos." }
+    },
+    "frames": {
+        "pull-a": "Aquí está mi certificado: dame las claves de mi grupo",
+        "pull-b": "Aquí está mi certificado: dame las claves de mi grupo",
+        "keys-a": "Clave de grupo 7, válida hasta mañana",
+        "keys-b": "Clave de grupo 7, válida hasta mañana",
+        "heartbeat": "Sin teledisparo (heartbeat)",
+        "trip-a": "Energiza la bobina de disparo del interruptor A",
+        "intertrip": "¡Teledisparo! Tr.general = TRUE",
+        "repeat": "Teledisparo, otra vez (copia 1)",
+        "trip-b": "Energiza la bobina de disparo del interruptor B"
+    },
+    "notes": {
+        "pull-a": "GDOI (RFC 6407) sobre UDP 848, como pide IEC 62351-9. Primero el relé y el KDC comprueban el certificado del otro en un intercambio IKE. Después el relé pide las claves de su grupo R-GOOSE.",
+        "pull-b": "El relé B pide el mismo grupo, con su propio certificado.",
+        "keys-a": "La clave actual, su ID de clave y cuánto tiempo es válida. Todos los miembros del grupo reciben la misma clave.",
+        "keys-b": "La misma clave y el mismo ID de clave que el relé A.",
+        "trip-a": "Un cable de cobre hacia la bobina de disparo del interruptor, no un mensaje de red.",
+        "intertrip": "Las mismas cabeceras que el heartbeat, con la identificación IP siguiente. Dentro: stNum 5, sqNum 0, Tr.general TRUE, número de SPDU 20872 y una firma nueva.",
+        "repeat": "sqNum 1 y número de SPDU 20873: cada mensaje recibe un número de SPDU nuevo, incluso una copia.",
+        "trip-b": "El relé B cierra su contacto de disparo. La corriente de falla se corta por los dos lados."
+    },
+    "fields": {
+        "e-dst": { "name": "Destino", "note": "01-00-5E-40-00-01: la dirección Ethernet del grupo IP 239.192.0.1. Más abajo se ve cómo se forma." },
+        "e-src": { "name": "Origen", "note": "La dirección MAC del relé A. En el salto siguiente, el router pone ahí la suya." },
+        "e-type": { "name": "EtherType", "note": "0x0800: sigue un paquete IPv4. GOOSE en una LAN usa 0x88B8 en su lugar." },
+        "ip-ver": { "name": "Versión", "note": "0x45: IPv4, con una cabecera de 5 × 4 = 20 bytes." },
+        "dscp": { "name": "DSCP", "note": "0xB8: DSCP 46, expedited forwarding (reenvío acelerado). Los routers configurados para ello envían este paquete antes que el resto del tráfico." },
+        "ip-len": { "name": "Longitud total", "note": "0x00C4 = 196 bytes: esta cabecera, la cabecera UDP y el mensaje R-GOOSE." },
+        "ip-id": { "name": "Identificación", "note": "0x2F3A, un número para este paquete. Después, 00 00: no es un fragmento." },
+        "ttl": { "name": "TTL", "note": "16: el paquete puede pasar por hasta 16 routers. Cada uno lo reduce en uno." },
+        "proto": { "name": "Protocolo", "note": "0x11 = 17: UDP." },
+        "ip-sum": { "name": "Suma de comprobación", "note": "0x806A, sobre los 20 bytes de la cabecera. Cada router la vuelve a calcular después de reducir el TTL." },
+        "ip-src": { "name": "IP de origen", "note": "10.1.0.11: el relé A." },
+        "ip-dst": { "name": "IP de destino", "note": "239.192.0.1: un grupo multicast. Cada relé suscriptor se une a él, y los routers reenvían el paquete a todos ellos." },
+        "udp-src": { "name": "Puerto de origen", "note": "0xC001 = 49153, un puerto que eligió el relé A. Lo que importa es el puerto de destino." },
+        "udp-dst": { "name": "Puerto de destino", "note": "0x0066 = 102, el puerto de R-GOOSE y R-SV." },
+        "udp-len": { "name": "Longitud UDP", "note": "0x00B0 = 176: esta cabecera de 8 bytes y 168 bytes de R-GOOSE. No se muestran aquí: la suma de comprobación UDP y, después, la cabecera de sesión (número de SPDU, ID de clave, tiempos de la clave), el mensaje GOOSE y la firma." },
+        "a-prefix": { "name": "Prefijo multicast", "note": "01-00-5E inicia la dirección MAC de todo grupo multicast IPv4." },
+        "a-low": { "name": "23 bits bajos", "note": "Los últimos 23 bits de 239.192.0.1. Los demás bits se descartan, así que 32 grupos IP comparten cada dirección MAC y un switch no puede distinguirlos." }
+    },
+    "devices": {
+        "breakera": "Interruptor A",
+        "relaya": "Relé A",
+        "routera": "Router A",
+        "wan": "WAN",
+        "kdc": "KDC",
+        "routerb": "Router B",
+        "relayb": "Relé B",
+        "breakerb": "Interruptor B"
+    },
+    "facts": {
+        "standard": "IEC TR 61850-90-5; desde la edición 2.1, en IEC 61850-8-1 (R-GOOSE) e IEC 61850-9-2 (R-SV)",
+        "between": "Relés de subestaciones distintas, o una subestación y un centro de control",
+        "transport": "UDP 102 sobre IP, multicast o unicast: atraviesa routers",
+        "security": "Firmado con un HMAC, cifrado opcional; claves de grupo desde un KDC (IEC 62351-9, GDOI)",
+        "frames": "R-GOOSE para eventos y disparos, R-SV para valores muestreados y sincrofasores"
+    },
+    "tips": [
+        "Los routers descartan el multicast si no están configurados para él (PIM, o una ruta estática para el grupo). El TTL también debe ser mayor que el número de routers del camino. Si no, los paquetes desaparecen sin ningún error.",
+        "Un suscriptor con la clave o el ID de clave equivocados descarta todos los mensajes, y el publicador nunca se entera. Comprueba el estado de las claves en ambos lados después de cada cambio.",
+        "Si no se puede llegar al KDC, los relés conservan las claves que tienen hasta que caducan. Haz que la vigencia de la clave sea mayor que el corte de KDC más largo que prevés.",
+        "Mide el retardo a través de la WAN, no solo su ancho de banda. Un camino rápido de media pero lento a ratos retrasa el disparo en el peor momento."
+    ],
+    "points": {
+        "tr": "Teledisparo",
+        "stnum": "Número de estado",
+        "spdu": "Contador de mensajes",
+        "key": "Clave de grupo"
+    },
+    "anatomy": {
+        "multicast": "Cómo un grupo multicast IP se convierte en una dirección MAC"
+    }
+}

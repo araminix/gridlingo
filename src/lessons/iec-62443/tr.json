@@ -1,0 +1,85 @@
+{
+    "intro": "Hat üzerindeki bir protokol değil, bir santralin kontrol sistemlerini (OT) güvenli kılmanın kural kitabı. Santrali bölgelere (zone), yani aynı korumaya ihtiyaç duyan cihaz gruplarına ayırır ve bunların yalnızca kuralları açık olan kanallar (conduit) üzerinden konuşmasına izin verir. Her bölge bir hedef güvenlik seviyesi alır; yedi temel gereksinim de bu seviyenin ne anlama geldiğini söyler.",
+    "steps": {
+        "inside": { "title": "Bölgeler ve kanallar", "text": "Güneş santralinin dört bölgesi var: ofis, bir DMZ, kontrol ve saha. Yalnızca kanallar üzerinden konuşurlar; burada kanalları iki güvenlik duvarı korur. SCADA'nın bir inverteri sorgulaması FW-2'den geçer ve tam olarak buna izin veren bir kural vardır." },
+        "historian": { "title": "DMZ'ye", "text": "DMZ'deki historian, santralin değerlerini SCADA'dan toplar. DMZ tampon bölgedir: ofis ile santral asla doğrudan konuşmaz." },
+        "office": { "title": "Ofis DMZ'yi okur", "text": "Ofisteki bir mühendis bugünün üretim raporunu açar. Rapor historian'dan gelir; ofis santrale hiçbir zaman ulaşmaz." },
+        "blocked": { "title": "Engellendi", "text": "Ofisteki bir dizüstü bilgisayar doğrudan bir invertere ulaşmaya çalışır. Buna izin veren bir kural yok, bu yüzden FW-1 bağlantıyı düşürür ve kaydeder." },
+        "vendor": { "title": "Üretici erişimi", "text": "İnverterin üreticisi INV-07'yi güncellemeli. Mühendisi atlama sunucusuna (jump host) iki faktörle giriş yapar ve onaylı bir iş süresince oradan çalışır. Her şey kaydedilir." }
+    },
+    "frames": {
+        "scada-poll": "SCADA, INV-07 inverterini okuyor",
+        "historian-read": "Bana santralin son değerlerini ver",
+        "scada-values": "İşte burada",
+        "office-read": "Bana bugünün üretimini göster",
+        "blocked": "Beni INV-07 inverterine bağla, port 502",
+        "vendor-login": "Üretici girişi: parola ve tek kullanımlık kod",
+        "vendor-session": "INV-07'nin bakım sayfasını aç"
+    },
+    "notes": {
+        "scada-poll": "Kontrol bölgesindeki SCADA'dan saha bölgesindeki invertere Modbus TCP. Bağlantı FW-2'den geçer ve C3 kanalında tam olarak bunun için bir kural vardır: SCADA'dan, inverterlere, TCP 502.",
+        "historian-read": "C2 kanalı historian'ın, yalnızca historian'ın, SCADA'ya OPC UA (TCP 4840) açmasına izin verir. Historian santralin verisinin bir kopyasını DMZ'de tutar.",
+        "scada-values": "Yanıt için ayrı bir kural gerekmez: güvenlik duvarı, yanıtın izin verdiği bir bağlantıya ait olduğunu bilir.",
+        "office-read": "Ofis kullanıcıları santrali değil, her zaman DMZ'deki historian'ı okur. Ofise saldırı olursa saldırgan kontrolleri değil, verinin bir kopyasını bulur.",
+        "blocked": "Hiçbir kural ofisin saha bölgesine ulaşmasına izin vermez, bu yüzden C1'in son kuralı bağlantıyı düşürür. Dizüstü yanıt almaz. Bu kayıt bir alarmı hak eder: dizüstüne virüs bulaşmış olabilir ya da biri deneme yapıyor olabilir.",
+        "vendor-login": "Üretici internetten DMZ'deki atlama sunucusuna ulaşır, başka hiçbir yere değil. Atlama sunucusu bir parola ve mühendisin telefonundan tek kullanımlık bir kod ister: iki faktör, yani çalınmış bir parola yetmez. Oturumu kaydeder.",
+        "vendor-session": "C4 kanalı, atlama sunucusundan inverterlere HTTPS'e yalnızca iş onaylıyken izin verir. Üreticinin kendi dizüstü bilgisayarı santral ağına hiç dokunmaz."
+    },
+    "fields": {
+        "sl1": { "name": "Hatalar", "note": "Hataya ve rastlantıya karşı korur: biri yanlış kabloyu takar ya da yanlış dosyayı açar." },
+        "sl2": { "name": "Basit saldırılar", "note": "Bilerek saldıran ama basit araçları olan birine karşı: yaygın araçlar, genel BT bilgisi, az para." },
+        "sl3": { "name": "Uzman saldırıları", "note": "OT sistemlerini bilen, iyi araçları ve biraz parası olan bir saldırgana karşı." },
+        "sl4": { "name": "Bol kaynaklı saldırılar", "note": "Derin OT bilgisi, çok parası ve çok zamanı olan bir ekibe, örneğin bir devlete karşı." },
+        "fr1": { "name": "FR 1 · Tanımlama ve kimlik doğrulama", "note": "İçeri almadan önce soranın kim olduğunu bil: bir kişi, bir program ya da bir cihaz." },
+        "fr2": { "name": "FR 2 · Kullanım kontrolü", "note": "Kim olduğu bilinince herkes yalnızca rolünün izin verdiğini yapabilir. Bir operatör yeni yazılım yükleyemez." },
+        "fr3": { "name": "FR 3 · Sistem bütünlüğü", "note": "Yazılım, ayarlar ve mesajlar fark edilmeden değiştirilemez." },
+        "fr4": { "name": "FR 4 · Veri gizliliği", "note": "Sırları, saklanırken de hatta da sır olarak tutun: parolalar, anahtarlar, bazı veriler. Burada yalnızca 2: santral değerlerinin çoğu gizli değildir." },
+        "fr5": { "name": "FR 5 · Kısıtlı veri akışı", "note": "Veri yalnızca gitmesi gereken yere akar: bölgeler, kanallar ve kuralları." },
+        "fr6": { "name": "FR 6 · Olaylara zamanında yanıt", "note": "Bir saldırı zamanında görülüp ele alınsın diye kayıtlar ve alarmlar." },
+        "fr7": { "name": "FR 7 · Kaynak kullanılabilirliği", "note": "Santral yük altında ya da saldırı altında çalışmaya devam eder ve yedeklerden geri yüklenebilir." }
+    },
+    "devices": {
+        "laptop": "Ofis dizüstüsü",
+        "vendor": "Üretici mühendisi",
+        "fw1": "FW-1",
+        "historian": "Historian (DMZ)",
+        "jump": "Atlama sunucusu (DMZ)",
+        "fw2": "FW-2",
+        "scada": "SCADA (kontrol)",
+        "fswitch": "Saha ağ anahtarı",
+        "rtu": "RTU (saha)",
+        "inverter": "INV-07 (saha)"
+    },
+    "facts": {
+        "standard": "ISA/IEC 62443 serisi: bölgeler ve kanallar 62443-3-2'de, sistem gereksinimleri 62443-3-3'te",
+        "between": "Varlık sahibi, sistem entegratörü ve ürün tedarikçisi: her birinin kendi bölümleri var",
+        "transport": "Kendine ait yok: kuralları santraldeki her protokolü kapsar",
+        "security": "Her bölge için SL 1 ile SL 4 arasında bir hedef güvenlik seviyesi",
+        "model": "Bölgeler, kanallar ve 7 temel gereksinim"
+    },
+    "tips": [
+        "any'den any'ye bir kural, bir günlüğüne bile olsa, iki bölgeyi tek bölgeye dönüştürür. Kaynağı, hedefi ve portu belirtin.",
+        "Uzaktan erişim DMZ'de sonlansın. Doğrudan kontrol bölgesine giden bir üretici VPN'i tüm kanalları atlar.",
+        "Ortak hesaplar FR 1'i bozar: kimin ne yaptığını kimse bilemez. Üreticiler dahil herkese kendi girişini verin.",
+        "Üç seviye sık sık karıştırılır: SL-T bölgenin hedefi, SL-C bir ürünün ulaşabileceği seviye, SL-A kurulan bölgenin gerçekte ulaştığı seviyedir. Veri sayfasını değil, SL-A'yı kontrol edin."
+    ],
+    "anatomy": {
+        "levels": "Güvenlik seviyeleri: bir bölgenin kime karşı dayanması gerektiği",
+        "vector": "Kontrol bölgesinin hedefi: her temel gereksinim için bir seviye"
+    },
+    "playground": {
+        "file": "Santralin bölgeleri ve kanallarının kuralları. Her adımın arkasındaki kuralı bulun.",
+        "zones": "Bölge, aynı korumaya ihtiyaç duyan cihazların grubudur. SL-T, bölgenin ulaşması gereken güvenlik seviyesidir.",
+        "enterprise": "SL 1: ofis ağı. OT değil BT'dir ve santral ona güvenilmeyen ağ muamelesi yapar.",
+        "dmz": "SL 2: ofis ile santral arasındaki tampon. Bağlantılar burada sonlanır, yenileri buradan başlar.",
+        "control": "SL 3: santrali SCADA yönetir, bu yüzden OT'yi bilen uzman bir saldırgana dayanmalıdır.",
+        "field": "Bu da SL 3: inverterler ve RTU şebekeye etki eder.",
+        "conduits": "Bir kanal, iki bölge arasındaki bağlantıları gruplar. Her kural bir kaynak, bir hedef ve bir servis belirtir; eşleşen ilk kural karar verir.",
+        "office": "Ofis santralin verisini santralden değil, her zaman historian'dan okur.",
+        "vendor": "İnternetten yalnızca atlama sunucusuna ulaşılabilir. Atlama sunucusu iki faktör ister.",
+        "deny": "Geri kalan her şey düşürülür ve kaydedilir. 4. adımdaki dizüstünü bu kural durdurur.",
+        "historian": "Tek kaynak, tek hedef, tek port: historian'dan SCADA'ya OPC UA.",
+        "scada-poll": "SCADA inverterleri Modbus TCP ile okur: 1. adım.",
+        "job": "Üretici oturumları inverterlere yalnızca bir iş onaylıyken ulaşır. Geri kalan zamanda bu kural kapalıdır."
+    }
+}

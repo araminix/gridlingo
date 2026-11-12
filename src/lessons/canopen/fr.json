@@ -1,0 +1,103 @@
+{
+    "intro": "Dans un système de batteries, le système de gestion de batterie (BMS) et le système de conversion de puissance (PCS) partagent souvent un bus CAN. Une trame CAN est courte : un identifiant et jusqu'à 8 octets de données, sans adresse d'émetteur. CANopen donne un sens aux identifiants : quel nœud émet, et de quelle sorte de message il s'agit.",
+    "steps": {
+        "boot": { "title": "Démarrage", "text": "Le BMS (nœud 5) se met sous tension et envoie un unique message de démarrage. Il est maintenant pré-opérationnel : il répond aux requêtes SDO mais n'envoie aucune donnée de process." },
+        "identify": { "title": "Vérifier l'identité", "text": "Le PCS est le maître NMT : il démarre et surveille les autres nœuds. Il lit le numéro de série du BMS avec un SDO : objet 0x1018, sous-index 4." },
+        "start": { "title": "Démarrer", "text": "Le PCS demande au nœud 5 de passer en mode opérationnel. Désormais, le BMS envoie un heartbeat chaque seconde, ainsi que ses données de process." },
+        "data": { "title": "Données de process", "text": "Le TPDO1 transporte la tension du pack, le courant, l'état de charge et la cellule la plus chaude, toutes les 100 ms. Personne ne demande et personne ne répond : le PCS se contente d'écouter. Le fichier EDS du fabricant du BMS indique ce que signifie chaque octet." },
+        "alarm": { "title": "Cellule trop chaude", "text": "Une cellule du module 3 atteint 61 °C. Le BMS envoie aussitôt un message d'urgence. Le PCS réduit le courant à 40 A." },
+        "recover": { "title": "Fin d'alerte", "text": "La cellule refroidit. Le BMS envoie un message d'urgence avec le code d'erreur 0x0000 : l'erreur a disparu." }
+    },
+    "frames": {
+        "bootup": "Le nœud 5 a démarré",
+        "sdo-req": "Quel est ton numéro de série ?",
+        "sdo-resp": "123456",
+        "nmt-start": "Nœud 5 : passe en opérationnel",
+        "heartbeat": "Nœud 5 : opérationnel et vivant",
+        "tpdo": "812.4 V, 152.3 A, 68 %, cellule la plus chaude 31 °C",
+        "emcy": "Urgence : une cellule est trop chaude",
+        "tpdo-low": "809.8 V, 40.0 A, 67 %, cellule la plus chaude 58 °C",
+        "emcy-reset": "L'erreur a disparu"
+    },
+    "fields": {
+        "id-705": { "name": "Identifiant 0x705", "note": "0x700 + nœud 5 : le démarrage et le heartbeat du nœud 5. 11 bits sur le fil, montrés ici sur 2 octets." },
+        "id-605": { "name": "Identifiant 0x605", "note": "0x600 + nœud 5 : une requête SDO vers le nœud 5. 11 bits sur le fil." },
+        "id-585": { "name": "Identifiant 0x585", "note": "0x580 + nœud 5 : une réponse SDO du nœud 5. 11 bits sur le fil." },
+        "id-000": { "name": "Identifiant 0x000", "note": "NMT : l'identifiant le plus bas, il l'emporte donc sur le bus face à toute autre trame. Seul le maître NMT l'envoie." },
+        "id-185": { "name": "Identifiant 0x185", "note": "0x180 + nœud 5 : TPDO1, le premier objet de données de process qu'envoie le nœud 5. 11 bits sur le fil." },
+        "id-085": { "name": "Identifiant 0x085", "note": "0x080 + nœud 5 : le message d'urgence du nœud 5. Son identifiant bas lui permet de l'emporter sur le bus face aux PDO." },
+        "dlc-1": { "name": "DLC 1", "note": "Un octet de données. Le code de longueur tient sur 4 bits sur le fil, montré ici sur 1 octet." },
+        "dlc-2": { "name": "DLC 2", "note": "Deux octets de données." },
+        "dlc-6": { "name": "DLC 6", "note": "Six octets de données, disposés selon le mapping PDO du BMS (objet 0x1A00)." },
+        "dlc-8": { "name": "DLC 8", "note": "Huit octets de données : les messages SDO et d'urgence en ont toujours 8." },
+        "state-boot": { "name": "État 0x00", "note": "Démarrage : le nœud 5 a démarré et il est maintenant pré-opérationnel." },
+        "state-op": { "name": "État 0x05", "note": "Opérationnel. 0x7F signifierait pré-opérationnel, 0x04 arrêté." },
+        "sdo-upload": { "name": "Commande 0x40", "note": "Initiate upload : envoie-moi la valeur d'un objet. « Upload » signifie du nœud vers le client." },
+        "sdo-expedited": { "name": "Commande 0x43", "note": "Réponse d'upload, en mode expedited : la valeur est dans cette trame, et elle fait 4 octets." },
+        "index-1018": { "name": "Index 0x1018", "note": "Octet de poids faible en premier : objet 0x1018, l'objet d'identité." },
+        "sub-4": { "name": "Sous-index 4", "note": "Le numéro de série. 1 est l'identifiant du fabricant, 2 le code produit, 3 la révision." },
+        "reserved": { "name": "Réservé", "note": "Quatre octets à zéro : une requête de lecture ne porte aucune donnée." },
+        "serial": { "name": "Numéro de série", "note": "0x0001E240 = 123456, octet de poids faible en premier." },
+        "nmt-start": { "name": "Commande 0x01", "note": "Start remote node : passer en opérationnel. 0x02 l'arrête, 0x81 le réinitialise." },
+        "nmt-node": { "name": "Nœud 5", "note": "Le nœud qui doit démarrer. 0 démarrerait tous les nœuds du bus." },
+        "volt": { "name": "Tension du pack", "note": "0x1FBC = 8124, par pas de 0.1 V : 812.4 V. Octet de poids faible en premier, comme tous les nombres CANopen." },
+        "amp": { "name": "Courant du pack", "note": "0x05F3 = 1523, par pas de 0.1 A : 152.3 A. Pour ce BMS, positif signifie décharge." },
+        "soc": { "name": "État de charge", "note": "0x44 = 68 %." },
+        "tmax": { "name": "Cellule la plus chaude", "note": "0x1F = 31 °C." },
+        "volt-low": { "name": "Tension du pack", "note": "0x1FA2 = 8098 : 809.8 V." },
+        "amp-low": { "name": "Courant du pack", "note": "0x0190 = 400 : 40.0 A. Le PCS a réduit le courant." },
+        "soc-low": { "name": "État de charge", "note": "0x43 = 67 %." },
+        "tmax-hot": { "name": "Cellule la plus chaude", "note": "0x3A = 58 °C : elle refroidit, mais reste chaude." },
+        "err-4200": { "name": "Code d'erreur 0x4200", "note": "Octet de poids faible en premier : température de l'équipement, dans la classe des erreurs de température (0x4xxx)." },
+        "errreg-09": { "name": "Registre d'erreur 0x09", "note": "La valeur de l'objet 0x1001 : bit 0 (une erreur) et bit 3 (température)." },
+        "emcy-maker": { "name": "Données du fabricant", "note": "Cinq octets définis par le fabricant du BMS. Celui-ci envoie module 3, cellule 12 (0x0C) et 61 °C (0x3D)." },
+        "err-0000": { "name": "Code d'erreur 0x0000", "note": "Error reset : plus aucune erreur n'est active." },
+        "errreg-00": { "name": "Registre d'erreur 0x00", "note": "Aucun bit d'erreur n'est levé." },
+        "emcy-maker-0": { "name": "Données du fabricant", "note": "Tout à zéro." },
+        "a-function": { "name": "Code de fonction", "note": "Les 4 bits de poids fort. 0011 = 3 : TPDO1, 0x180 dans l'identifiant." },
+        "a-node": { "name": "Node ID", "note": "Les 7 bits de poids faible. 0000101 = 5 : le BMS. Un bus peut accueillir les nœuds 1 à 127." }
+    },
+    "devices": {
+        "rack": "Rack de batteries",
+        "bms": "BMS",
+        "pcs": "PCS",
+        "ems": "Contrôleur de site"
+    },
+    "facts": {
+        "standard": "CAN : ISO 11898. CANopen : CiA 301 (EN 50325-4)",
+        "between": "BMS ↔ système de conversion de puissance, à l'intérieur d'un même système de batteries",
+        "transport": "Un bus CAN : deux fils (CAN_H, CAN_L), 120 Ω à chaque extrémité",
+        "frames": "NMT · heartbeat · PDO · SDO · EMCY, chacun sur son propre identifiant",
+        "speed": "Ici 500 kbit/s : une trame de 8 octets de données prend environ 0.25 ms"
+    },
+    "tips": [
+        "Beaucoup de fabricants de batteries utilisent leurs propres messages CAN, avec leurs propres identifiants et mises à l'échelle, et non CANopen. CANopen n'est qu'une façon standard courante. Demandez le fichier EDS ou la liste des messages CAN du fabricant avant de vous connecter.",
+        "Deux nœuds ne doivent jamais émettre le même identifiant. En CANopen, chaque node ID du bus doit être unique.",
+        "Surveillez le heartbeat. Réglez le consumer heartbeat time du PCS (objet 0x1016) un peu au-dessus de la période de heartbeat du BMS (0x1017) : un BMS muet arrête alors le PCS.",
+        "Placez une résistance de 120 Ω à chaque extrémité du bus, et nulle part ailleurs. Sans résistance, ou avec une de trop, les trames se dégradent à mesure que le câble s'allonge."
+    ],
+    "points": {
+        "state": "État NMT",
+        "volt": "Tension du pack",
+        "amp": "Courant du pack",
+        "soc": "État de charge",
+        "tmax": "Cellule la plus chaude"
+    },
+    "values": {
+        "preop": "pré-opérationnel",
+        "operational": "opérationnel"
+    },
+    "anatomy": {
+        "cobid": "Un identifiant : un code de fonction et un node ID"
+    },
+    "timing": {
+        "title": "Ce que le bus transporte en deux secondes",
+        "note": "Le TPDO1 part toutes les 100 ms (son event timer), le heartbeat toutes les 1000 ms. Un message d'urgence part une fois, à l'apparition du défaut, et une fois encore à sa disparition. Le contrôleur CAN ajoute à chaque trame le bit de départ, le CRC, le créneau d'acquittement et les bits de bourrage ; les octets montrés ici sont ceux que voit le logiciel.",
+        "tpdo": "TPDO1 · 0x185",
+        "heartbeat": "Heartbeat · 0x705",
+        "emcy": "EMCY · 0x085",
+        "every-100": "toutes les 100 ms",
+        "every-1000": "toutes les 1000 ms",
+        "on-fault": "une fois, au défaut"
+    }
+}

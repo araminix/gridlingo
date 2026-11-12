@@ -1,0 +1,108 @@
+{
+    "intro": "Koruma rölelerinin bakır kablolar yerine trafo merkezi ağı üzerinden, birkaç milisaniyede birbirine açma komutu vermesinin yolu. Bir röle verisini bir multicast adresine yayınlar; ihtiyacı olan her röle abone olur. Kimse yanıt vermez; bu yüzden yayıncı her değişikliği önce hızlı, sonra giderek yavaşlayarak tekrarlar.",
+    "steps": {
+        "heartbeat": { "title": "Kalp atışı", "text": "Bir sorun yok. Röle, her saniye son durumunu dinleyen herkese tekrarlar." },
+        "fault": { "title": "Arıza", "text": "F1 fiderinde kısa devre. Röle 2.8 kA görür ve kesiciye giden açma kontağını kapatır." },
+        "publish": { "title": "Yayınla", "text": "Aynı anda yeni durumu gönderir. Durum numarası bir artar, sıra numarası yeniden 0'dan başlar." },
+        "repeat": { "title": "Hızlı tekrarla", "text": "Hiçbir abone GOOSE'a yanıt vermez; bu yüzden röle aynı mesajı 2 ms sonra yeniden gönderir, sonra 4, 8, 16 … ta ki yeniden saniyede bire inene kadar." },
+        "act": { "title": "Aboneler harekete geçer", "text": "F2 PROT kesici arıza zamanlayıcısını başlatır. Ağ geçidi açmayı SCADA'ya iletir." },
+        "open": { "title": "Kesici açılır", "text": "Arızadan 48 ms sonra Q1 açıktır ve arıza akımı kesilir." }
+    },
+    "frames": {
+        "heartbeat": "Hâlâ açma yok (kalp atışı)",
+        "trip-wire": "Q1'in açma bobinini enerjilendir",
+        "event": "Açma! Tr.general = TRUE",
+        "repeat": "Açma, yine (kopya 1)",
+        "to-scada": "Q1 açtı, zamanıyla birlikte",
+        "opened": "Q1 açık"
+    },
+    "notes": {
+        "trip-wire": "Bir ağ mesajı değil, bakır bir kablo: röle bir kontağı kapatır ve kesicinin açma bobinine akım akar.",
+        "to-scada": "Bu GOOSE değil, IEC 104'tür: ağ geçidi ikisi arasında çeviri yapar. Bu baytları IEC 104 dersi gösteriyor.",
+        "opened": "Kesicideki bir yardımcı kontak, röleye kesicinin açıldığını bildirir."
+    },
+    "fields": {
+        "dst": { "name": "Hedef", "note": "IEC 61850'nin GOOSE için ayırdığı aralıktan bir multicast adresi (01-0C-CD-01-…). Ağdaki her cihaz bunu duyar; yalnızca aboneler alıkoyar." },
+        "src": { "name": "Kaynak", "note": "Rölenin kendi MAC adresi." },
+        "vlan": { "name": "VLAN etiketi", "note": "0x8100, ardından öncelik 4 ve VLAN 10. Öncelik, ağ anahtarlarının çerçeveyi diğer trafikten önce göndermesini sağlar." },
+        "ethertype": { "name": "EtherType", "note": "0x88B8, GOOSE demektir. Bu çerçevede IP de TCP de yoktur." },
+        "appid": { "name": "APPID", "note": "0x0001: abonelerin filtrelediği bir numara." },
+        "length": { "name": "Uzunluk", "note": "APPID'den sona kadar 115 bayt." },
+        "reserved": { "name": "Ayrılmış", "note": "İki ayrılmış alan, burada sıfır. Çerçeve imzalandığında IEC 62351-6 bunları kullanır." },
+        "pdu": { "name": "GOOSE mesajı", "note": "0x61 mesajı başlatır; ardından 105 bayt gelir (0x69). Ondan sonraki her alan bir etiket, bir uzunluk ve bir değerdir." },
+        "gocbref": { "name": "gocbRef", "note": "Etiket 0x80, 25 bayt: kontrol bloğunun adı, F1PROTLD0/LLN0$GO$gcbTrip." },
+        "tal": { "name": "Yaşam süresi", "note": "2000 ms. Bu süre içinde hiçbir kopya gelmezse aboneler veriyi geçersiz sayar." },
+        "datset": { "name": "datSet", "note": "Mesajın taşıdığı veri seti: F1PROTLD0/LLN0$dsTrip." },
+        "goid": { "name": "goID", "note": "F1PROT_Trip; abonelerin denetleyebileceği bir kimlik." },
+        "t-old": { "name": "t", "note": "Verinin son değiştiği an: bugün 08:00:00, UTC. Kalp atışı son değişikliğin zamanını korur." },
+        "t-event": { "name": "t", "note": "Verinin değiştiği an: 10:41:07.232 UTC. 4 bayt saniye, 3 bayt saniyenin kesirleri, 1 bayt saat kalitesi." },
+        "stnum-12": { "name": "stNum 12", "note": "Durum numarası: son değişiklikten beri aynı." },
+        "stnum-13": { "name": "stNum 13", "note": "Durum numarası bir arttı: veri değişti." },
+        "sqnum-3": { "name": "sqNum 3", "note": "Sıra numarası: aynı durumun dördüncü kopyası." },
+        "sqnum-0": { "name": "sqNum 0", "note": "Yeni durumun ilk kopyası." },
+        "sqnum-1": { "name": "sqNum 1", "note": "Aynı durum, yeniden gönderildi." },
+        "simulation": { "name": "simulation", "note": "False. True, test mesajlarını işaretler; aboneler test modunda değilse bunları yok sayar." },
+        "confrev": { "name": "confRev 1", "note": "Konfigürasyon revizyonu. Abonenin kurulduğu revizyonla aynı olmalıdır." },
+        "ndscom": { "name": "ndsCom", "note": "Devreye alma gerekiyor: false. True olsaydı yayıncının ayarlarının eksik olduğu anlamına gelirdi." },
+        "entries": { "name": "Girdiler", "note": "Veri setinde 2 değer." },
+        "data-idle": { "name": "allData", "note": "Değerler: Tr.general = FALSE (açma yok) ve kalitesi: iyi." },
+        "data-trip": { "name": "allData", "note": "Değerler: Tr.general = TRUE (açma!) ve kalitesi: iyi." },
+        "a-ied": { "name": "IED", "note": "Cihazın SCL dosyasındaki adı." },
+        "a-ld": { "name": "Mantıksal cihaz", "note": "LD0, IED içindeki bir fonksiyon grubu." },
+        "a-ln": { "name": "Mantıksal düğüm", "note": "LLN0, kontrol bloklarının bulunduğu yer." },
+        "a-fc": { "name": "Fonksiyonel kısıt", "note": "GO: bir GOOSE kontrol bloğu." },
+        "a-cb": { "name": "Kontrol bloğu", "note": "gcbTrip, adı." }
+    },
+    "devices": {
+        "q1": "Q1 kesicisi",
+        "f1prot": "F1 PROT",
+        "f2prot": "F2 PROT",
+        "switch": "İstasyon ağ anahtarı",
+        "hmi": "İstasyon HMI'ı",
+        "gateway": "Ağ geçidi",
+        "scada": "SCADA"
+    },
+    "facts": {
+        "standard": "IEC 61850-8-1",
+        "between": "Bir röle → abone olan her röle, kontrolör ve ağ geçidi",
+        "transport": "Ethernet multicast, IP yok",
+        "frames": "Tek bir mesaj, tekrar tekrar: istek yok, yanıt yok",
+        "speed": "Bir açma 3 ms içinde ulaşmalı (IEC 61850-5, tür 1A)"
+    },
+    "tips": [
+        "Bir abone gocbRef'i, APPID'yi, veri setini ve konfigürasyon revizyonunu denetler. Biri kendi ayarından farklıysa çerçeveyi yok sayar ve hiçbir şey söylemez.",
+        "GOOSE'un IP adresi yoktur, bu yüzden yönlendiriciler onu atar. Başka bir trafo merkezine ulaşmak için R-GOOSE gerekir.",
+        "Simulation bayrağıyla ve abone test modundayken test edin. Yoksa bir test açması gerçek bir kesiciyi açar.",
+        "Yol üzerindeki her ağ anahtarı VLAN etiketini ve önceliğini korumalıdır. Etiketi silen bir anahtar, açmayı diğer trafiğin arkasında geciktirebilir."
+    ],
+    "points": {
+        "tr": "Açma",
+        "stnum": "Durum numarası",
+        "sqnum": "Sıra numarası"
+    },
+    "anatomy": {
+        "gocbref": "GOOSE kontrol bloğunun adı ve nasıl taşındığı"
+    },
+    "timing": {
+        "title": "GOOSE neden asla yanıt beklemez",
+        "note": "GOOSE'ta onay yoktur. Yayıncı her değişikliği hızla tekrarlar, sonra yavaşlayarak kalp atışına iner. Bir abone yaşam süresi içinde hiçbir şey duymazsa veriyi geçersiz olarak işaretler. Buradaki tekrar süreleri tipiktir; her üretici kendi sürelerini ayarlar.",
+        "publisher": "F1 PROT",
+        "event": "stNum 12 → 13",
+        "repeats": "sqNum 1, 2, 3 …",
+        "heartbeat": "kalp atışı"
+    },
+    "singleLine": {
+        "title": "34.5 kV baranın tek hat şeması",
+        "bus": "34.5 kV · A barası",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "açık",
+        "fault": "arıza · 2.8 kA",
+        "station": "İstasyon veri yolu · Ethernet",
+        "f1": "F1 · GES",
+        "f2": "F2 · Batarya",
+        "f3": "F3 · İç ihtiyaç"
+    },
+    "playground": {
+        "scl": "Trafo merkezinin SCL dosyası. F1PROT'un GOOSE kontrol bloğunu, veri setini ve gönderdiği MAC adresiyle APPID'yi bulun. Sonra F2PROT'un onu dinleyen girişini bulun."
+    }
+}

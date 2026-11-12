@@ -1,0 +1,89 @@
+{
+    "intro": "Un équipement IEC 61850 n'a pas de numéros de registres. Il a un arbre d'objets nommés, décrit dans son fichier SCL : équipements logiques, nœuds logiques, objets de données et attributs. Un client parcourt cet arbre avec MMS et lit, ou écrit, exactement la valeur dont il a besoin.",
+    "steps": {
+        "connect": { "title": "Connexion", "text": "Le client ouvre TCP vers le port 102, puis une connexion de transport ISO par-dessus (COTP)." },
+        "associate": { "title": "Association", "text": "Un MMS Initiate fixe les tailles et les services. Ce n'est qu'après cette association que le client peut poser des questions." },
+        "browse": { "title": "Parcourir le modèle", "text": "GetNameList renvoie les équipements logiques, puis les variables de l'un d'eux. C'est ainsi qu'un outil découvre un équipement sans son fichier SCL." },
+        "read": { "title": "Lire une valeur", "text": "Le client lit PV1INV/MMXU1$MX$TotW$mag$f et reçoit un flottant : 4820.0. L'unité, kW, est un attribut à part (CF)." },
+        "report": { "title": "Laisser rapporter", "text": "Au lieu de redemander sans cesse, le client active un rapport. L'onduleur envoie désormais ses valeurs quand elles changent." }
+    },
+    "frames": {
+        "tcp": "Ouvrir TCP vers le port 102",
+        "cotp-cr": "Ouvrir une connexion de transport ISO",
+        "cotp-cc": "Connexion de transport acceptée",
+        "initiate-req": "Parlons MMS : voici mes tailles et mes services",
+        "initiate-resp": "D'accord : voici les miens",
+        "names-req": "Quels équipements logiques as-tu ?",
+        "names-resp": "PV1LD0 et PV1INV",
+        "read-req": "Quelle est la puissance active totale ?",
+        "read-resp": "4820.0",
+        "enable": "Active le rapport urcbMeas01",
+        "report": "TotW vaut maintenant 4790.5, Hz 50.00"
+    },
+    "notes": {
+        "tcp": "Du TCP simple. MMS utilise le port 102, le port ISO-sur-TCP de la RFC 1006.",
+        "cotp-cr": "COTP (ISO 8073) fonctionne au-dessus de TCP. Sa demande de connexion indique les sélecteurs de transport des deux côtés.",
+        "cotp-cc": "L'équipement accepte. Désormais, chaque message commence par TPKT et un en-tête de données COTP.",
+        "initiate-req": "Il contient trois couches de plus : session, présentation et ACSE. La partie MMS propose des tailles (le plus grand message) et les services que veut le client.",
+        "initiate-resp": "L'équipement répond avec ses propres tailles et services. L'authentification, quand elle est utilisée, a lieu aussi à cette étape (IEC 62351-4).",
+        "names-req": "GetNameList avec la classe d'objet \"domain\" : en IEC 61850, un domaine est un équipement logique.",
+        "names-resp": "MMS nomme un équipement logique par le nom de l'IED suivi de son instance : PV1 et INV donnent PV1INV.",
+        "enable": "Un Write de TRUE dans RptEna du bloc de contrôle de rapport. Le client règle d'abord les options de déclenchement et le jeu de données.",
+        "report": "Un InformationReport non sollicité : l'équipement l'envoie sans qu'on le lui demande, chaque fois qu'une valeur du jeu de données change."
+    },
+    "fields": {
+        "tpkt-66": { "name": "TPKT", "note": "Version 3, puis la longueur du message entier : 0x0042 = 66 octets." },
+        "tpkt-36": { "name": "TPKT", "note": "Version 3, puis la longueur : 0x0024 = 36 octets." },
+        "cotp-dt": { "name": "COTP", "note": "Une unité de données (0xF0), la dernière de son message (0x80)." },
+        "session": { "name": "Session", "note": "Deux courts en-têtes de session : give tokens, transfert de données." },
+        "presentation": { "name": "Présentation", "note": "Données entièrement encodées, contexte de présentation 3 : la suite est du MMS." },
+        "confirmed-req": { "name": "Requête confirmée", "note": "Tag A0, 44 octets : une requête qui attend une réponse." },
+        "confirmed-resp": { "name": "Réponse confirmée", "note": "Tag A1, 14 octets : la réponse." },
+        "invoke": { "name": "Invoke ID 5", "note": "Un numéro choisi par le client. La réponse porte le même." },
+        "invoke-resp": { "name": "Invoke ID 5", "note": "Le même numéro que la requête : ceci y répond." },
+        "read": { "name": "Read", "note": "Tag A4 : le service Read." },
+        "spec": { "name": "Liste de variables", "note": "Une liste d'une seule variable, donnée par son nom." },
+        "domain-specific": { "name": "Nom propre à un domaine", "note": "Un nom en deux parties : le domaine et l'item." },
+        "domain": { "name": "Domaine", "note": "\"PV1INV\" : l'équipement logique." },
+        "item": { "name": "Item", "note": "\"MMXU1$MX$TotW$mag$f\" : nœud logique, contrainte fonctionnelle, objet de données et attribut, reliés par $." },
+        "results": { "name": "Résultats", "note": "Une liste de résultats, un par variable demandée." },
+        "float-tag": { "name": "Virgule flottante", "note": "Tag 0x87 (un flottant), 5 octets." },
+        "exponent": { "name": "Taille de l'exposant", "note": "8 bits : un flottant IEEE 754 simple précision suit." },
+        "float": { "name": "Valeur", "note": "4820.0, octet de poids fort en premier. IEC 104 envoie les flottants dans l'autre sens." },
+        "a-ld": { "name": "Équipement logique", "note": "PV1INV : nom d'IED PV1 et instance INV." },
+        "a-ln": { "name": "Nœud logique", "note": "MMXU1 : mesures, instance 1." },
+        "a-fc": { "name": "Contrainte fonctionnelle", "note": "MX : valeurs mesurées. ST désigne l'état, CF la configuration, SP les consignes." },
+        "a-do": { "name": "Objet de données", "note": "TotW : puissance active totale, de type MV." },
+        "a-da": { "name": "Attribut de données", "note": "mag.f : l'amplitude, en flottant." }
+    },
+    "devices": {
+        "client": "Client",
+        "pv1": "Onduleur PV1",
+        "pv": "Champ PV"
+    },
+    "facts": {
+        "standard": "IEC 61850-8-1 (MMS est ISO 9506)",
+        "between": "Client (SCADA, passerelle, outil d'ingénierie) → IED",
+        "transport": "TCP 102",
+        "security": "TLS (IEC 62351-4), TCP 3782",
+        "model": "IEC 61850-7 : équipements logiques, nœuds logiques, objets de données"
+    },
+    "tips": [
+        "Lisez d'abord le fichier SCL. Parcourir un gros équipement avec GetNameList peut prendre de nombreuses secondes.",
+        "Les unités et les multiplicateurs se trouvent dans les attributs CF, pas à côté de la valeur. Une valeur de 4820 n'est en kW que parce que l'équipement le dit.",
+        "Les blocs de contrôle de rapport sont peu nombreux. Un outil qui en réserve un sans jamais le libérer peut bloquer le vrai SCADA.",
+        "Les flottants MMS sont envoyés octet de poids fort en premier. Le code qui parle aussi IEC 104 ou Modbus se trompe souvent sur ce point."
+    ],
+    "points": {
+        "totw": "Puissance active totale",
+        "mult": "Unité de TotW",
+        "hz": "Fréquence"
+    },
+    "anatomy": {
+        "reference": "Le nom d'une valeur, et la façon dont MMS l'écrit"
+    },
+    "playground": {
+        "scl": "La description configurée de l'onduleur (.cid). Ouvrez INV, puis MMXU1, puis TotW : la valeur lue est mag.f, et son unité se trouve dans l'attribut units. Ouvrez ensuite votre propre fichier, si vous en avez un.",
+        "encoder": "MMS envoie un flottant octet de poids fort en premier (ABCD). Saisissez une valeur pour voir ses octets."
+    }
+}

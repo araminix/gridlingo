@@ -1,0 +1,121 @@
+{
+    "intro": "IEC 101 überträgt dieselben Nachrichten wie IEC 104, aber über eine serielle Leitung, ein Modem oder Funk, oft mit 9600 bit/s. Im üblichen unsymmetrischen Betrieb fragt SCADA zyklisch ab, und die RTU antwortet nur. Eine Prüfsumme erkennt beschädigte Telegramme, ein Frame-Count-Bit erkennt verlorene, und ein Bit in jeder Antwort sagt SCADA, dass dringende Daten warten.",
+    "steps": {
+        "link": { "title": "Verbindung zurücksetzen", "text": "SCADA und die RTU teilen sich einen Funkkanal mit 9600 bit/s. SCADA setzt die Verbindung zurück, damit beide Seiten die Telegramme wieder von vorn zählen. Im unsymmetrischen Betrieb spricht die RTU nie zuerst: Sie antwortet nur." },
+        "ask": { "title": "Alles abfragen", "text": "SCADA sendet eine Generalabfrage. Die RTU darf sie jetzt nur mit einem kurzen ACK bestätigen. Das ACK hat aber ACD = 1: Bei der RTU warten Daten der Klasse 1." },
+        "values": { "title": "Antwort abholen", "text": "Solange ACD 1 ist, fragt SCADA Daten der Klasse 1 ab. Jede Anfrage bekommt eine ASDU: die Bestätigung, die Schalterstellungen, dann das Ende. Das FCB wechselt bei jeder Anfrage." },
+        "trip": { "title": "Auslösung", "text": "Um 10:41:07.280 löst CB-1 aus. Die RTU muss warten, bis sie gefragt wird. Die nächste Abfrage der Klasse 2 bekommt „keine Daten“, aber mit ACD = 1. SCADA fragt Klasse 1 ab und erhält die Änderung, zusammen mit dem Zeitpunkt, an dem sie passiert ist." }
+    },
+    "frames": {
+        "reset": "Setz deine Verbindung zurück",
+        "reset-ack": "Erledigt",
+        "gi-act": "Generalabfrage: Schick mir alles",
+        "gi-ack": "Verstanden. Ich habe dringende Daten",
+        "poll-1": "Schick mir Daten der Klasse 1",
+        "gi-con": "Abfrage bestätigt",
+        "poll-2": "Bitte die nächsten Daten der Klasse 1",
+        "states": "CB-1 und CB-2 sind geschlossen",
+        "poll-3": "Bitte die nächsten Daten der Klasse 1",
+        "gi-term": "Das war alles",
+        "poll-class2": "Gibt es etwas in Klasse 2?",
+        "no-data": "Nichts in Klasse 2, aber dringende Daten warten",
+        "poll-4": "Schick mir Daten der Klasse 1",
+        "trip": "CB-1 hat um 10:41:07.280 geöffnet"
+    },
+    "fields": {
+        "start-fixed": { "name": "Start", "note": "0x10: ein kurzes Telegramm fester Länge. Es folgen Steuerfeld, Adresse, Prüfsumme und Ende. Daten enthält es nicht." },
+        "link": { "name": "Link-Adresse 1", "note": "Die RTU an der Leitung. Im unsymmetrischen Betrieb trägt das Telegramm in beiden Richtungen die Adresse der RTU. Ihre Länge, hier 1 Byte, ist eine Einstellung." },
+        "cs-fixed": { "name": "Prüfsumme", "note": "Steuer- und Adressbyte addiert, modulo 256." },
+        "end": { "name": "Ende", "note": "0x16 beendet jedes Telegramm." },
+        "head-9": { "name": "Start · Länge 9", "note": "68, zweimal die Länge, dann noch einmal 68. Es folgen 9 Bytes, vom Steuerfeld bis zum Ende der ASDU. Beide Kopien der Länge müssen übereinstimmen." },
+        "head-12": { "name": "Start · Länge 12", "note": "12 Bytes vom Steuerfeld bis zum Ende der ASDU." },
+        "head-16": { "name": "Start · Länge 16", "note": "16 Bytes vom Steuerfeld bis zum Ende der ASDU." },
+        "cs-var": { "name": "Prüfsumme", "note": "Alle Bytes vom Steuerfeld bis zum Ende der ASDU addiert, modulo 256." },
+        "c-reset": { "name": "Steuerfeld · FC 0", "note": "0x40: von SCADA (PRM 1), Rücksetzen der entfernten Verbindung. FCV 0: Dieses Telegramm wird nicht gezählt. Viele Master fragen zuerst den Verbindungsstatus ab (Funktion 9)." },
+        "c-ack": { "name": "Steuerfeld · ACK", "note": "0x00: eine Antwort (PRM 0), Funktion 0: ACK. ACD 0: nichts Dringendes. Manche RTUs senden stattdessen das einzelne Byte E5." },
+        "c-send": { "name": "Steuerfeld · FC 3", "note": "0x73: Nutzdaten, Bestätigung erwartet (SEND/CONFIRM). FCV 1 und FCB 1: Das erste gezählte Telegramm nach einem Rücksetzen hat FCB 1." },
+        "c-ack-acd": { "name": "Steuerfeld · ACK", "note": "0x20: ACK, mit ACD 1: Bei der RTU warten Daten der Klasse 1." },
+        "c-class1-fcb0": { "name": "Steuerfeld · FC 10", "note": "0x5A: Daten der Klasse 1 anfordern. FCB 0: das Gegenteil der letzten Anfrage." },
+        "c-class1-fcb1": { "name": "Steuerfeld · FC 10", "note": "0x7A: Daten der Klasse 1 anfordern. FCB 1: wieder gewechselt, also eine neue Anfrage und keine Wiederholung." },
+        "c-class2-fcb1": { "name": "Steuerfeld · FC 11", "note": "0x7B: Daten der Klasse 2 anfordern, FCB 1. SCADA sendet das alle 2 s, wenn es sonst nichts abzufragen hat." },
+        "c-data-acd": { "name": "Steuerfeld · FC 8", "note": "0x28: Nutzdaten, es folgt eine ASDU. ACD 1: Es warten noch weitere Daten der Klasse 1." },
+        "c-data": { "name": "Steuerfeld · FC 8", "note": "0x08: Nutzdaten. ACD 0: Es sind keine Daten der Klasse 1 mehr übrig." },
+        "c-no-data-acd": { "name": "Steuerfeld · FC 9", "note": "0x29: keine Daten der angefragten Klasse. Aber ACD 1: Daten der Klasse 1 warten." },
+        "type100": { "name": "Typ 100", "note": "C_IC_NA_1: Abfragebefehl." },
+        "vsq1": { "name": "Anzahl", "note": "Ein Informationsobjekt." },
+        "vsq2": { "name": "Anzahl", "note": "Zwei Objekte, jedes mit eigener Adresse." },
+        "cot6": { "name": "Ursache 6", "note": "Aktivierung. Die Ursache ist hier 1 Byte lang: Anders als bei IEC 104 gibt es keine Herkunftsadresse." },
+        "cot7": { "name": "Ursache 7", "note": "Aktivierung bestätigt." },
+        "cot10": { "name": "Ursache 10", "note": "Aktivierung beendet: Die Antwort ist vollständig." },
+        "cot20": { "name": "Ursache 20", "note": "Gesendet als Antwort auf die Stationsabfrage." },
+        "cot3": { "name": "Ursache 3", "note": "Spontan: Der Wert hat sich geändert, niemand hat gefragt." },
+        "ca": { "name": "Gemeinsame Adresse", "note": "Station 1, in 1 Byte." },
+        "ioa0": { "name": "IOA 0", "note": "2 Bytes. Der Befehl gilt für die ganze Station, nicht für einen einzelnen Datenpunkt." },
+        "qoi20": { "name": "QOI 20", "note": "Stationsabfrage: alle Gruppen." },
+        "type3": { "name": "Typ 3", "note": "M_DP_NA_1: eine Doppelmeldung ohne Zeitstempel." },
+        "ioa2001": { "name": "IOA 2001", "note": "Leistungsschalter CB-1: 0x07D1 in 2 Bytes, niederwertiges Byte zuerst." },
+        "ioa2002": { "name": "IOA 2002", "note": "Leistungsschalter CB-2: 0x07D2." },
+        "diq-on": { "name": "Zustand 2", "note": "Ein: Der Leistungsschalter ist geschlossen. 1 ist Aus; 0 und 3 bedeuten Zwischen- oder Störstellung." },
+        "diq-off": { "name": "Zustand 1", "note": "Aus: Der Leistungsschalter ist offen." },
+        "type31": { "name": "Typ 31", "note": "M_DP_TB_1: eine Doppelmeldung mit Zeitstempel CP56Time2a." },
+        "cp56": { "name": "CP56Time2a", "note": "7.280 s, 41 min, 10 h, Donnerstag, 12. November (20)26. Die RTU hat die Zeit genommen, als der Schalter sich bewegt hat, nicht als sie das Telegramm gesendet hat." },
+        "a-res": { "name": "RES", "note": "Reserviert, 0. Im symmetrischen Betrieb ist dieses Bit DIR: die Richtung." },
+        "a-prm1": { "name": "PRM 1", "note": "Primär: Dieses Telegramm beginnt eine Übertragung. Im unsymmetrischen Betrieb sendet nur SCADA solche Telegramme." },
+        "a-fcb": { "name": "FCB 1", "note": "Frame-Count-Bit. Es wechselt bei jeder neuen Anfrage. Eine Wiederholung behält es bei, und die RTU sendet ihre letzte Antwort noch einmal." },
+        "a-fcv": { "name": "FCV 1", "note": "Das FCB zählt in diesem Telegramm. Rücksetzen und Abfragen des Verbindungsstatus haben FCV 0." },
+        "a-fc3": { "name": "Funktion 3", "note": "Nutzdaten, Bestätigung erwartet." },
+        "a-prm0": { "name": "PRM 0", "note": "Sekundär: eine Antwort." },
+        "a-acd": { "name": "ACD 1", "note": "Access Demand: Daten der Klasse 1 warten, und SCADA sollte sie abfragen." },
+        "a-dfc": { "name": "DFC 0", "note": "Data Flow Control. 1 würde heißen, dass die RTU voll ist: Vor dem nächsten Senden warten." },
+        "a-fc8": { "name": "Funktion 8", "note": "Nutzdaten: Es folgt eine ASDU." }
+    },
+    "devices": {
+        "scada": "SCADA-Master",
+        "radio-cc": "Funk Leitwarte",
+        "radio-rtu": "Funk Umspannwerk",
+        "rtu": "RTU",
+        "cb1": "Leistungsschalter CB-1",
+        "cb2": "Leistungsschalter CB-2"
+    },
+    "facts": {
+        "standard": "IEC 60870-5-101, Edition 2 (2003)",
+        "between": "RTU → SCADA, über serielle Leitungen, Modems und Funk",
+        "transport": "Seriell, Telegramme nach FT 1.2: 8 Datenbits, gerade Parität, 1 Stoppbit",
+        "security": "Keine im Protokoll. IEC 62351-5 ergänzt Authentifizierung.",
+        "frames": "Fest: 10 … 16 · variabel: 68 L L 68 … 16 · Einzelzeichen: E5",
+        "speed": "Meist 1200 bis 19200 bit/s; hier 9600"
+    },
+    "tips": [
+        "Die Längen von Link-Adresse, Ursache, gemeinsamer Adresse und IOA sind Einstellungen. Hier sind es 1, 1, 1 und 2 Bytes. Sind SCADA und RTU unterschiedlich eingestellt, gibt es keine Fehlermeldung, nur falsche Werte.",
+        "FT 1.2 verwendet 8 Datenbits mit gerader Parität (8E1). Eine serielle Schnittstelle, die auf 8N1 steht, funktioniert nicht.",
+        "Das Antwort-Timeout länger als die Umlaufzeit über Funk einstellen. Ist es kürzer, wiederholt SCADA Anfragen, die die RTU schon beantwortet hat, und die langsame Leitung füllt sich mit Wiederholungen.",
+        "IEC 104 überträgt dieselben ASDUs über TCP, mit 2 Bytes Ursache, 2 Bytes gemeinsamer Adresse und 3 Bytes IOA. Es hat kein FCB, keine Klassen und keine zyklische Abfrage: TCP stellt die Telegramme zu, und die RTU sendet, sobald sie Daten hat."
+    ],
+    "points": {
+        "cb1": "Leistungsschalter CB-1",
+        "cb2": "Leistungsschalter CB-2"
+    },
+    "values": {
+        "closed": "geschlossen",
+        "open": "offen"
+    },
+    "anatomy": {
+        "primary": "Das Steuerbyte einer Anfrage (0x73)",
+        "secondary": "Das Steuerbyte einer Antwort (0x28)"
+    },
+    "playground": {
+        "file": "Die Leitungseinstellungen und die Datenpunktliste der RTU. SCADA muss dieselbe Geschwindigkeit, dasselbe Format, dieselben Adressen und Längen verwenden. Sonst liest es nichts oder falsche Werte.",
+        "baud": "9600 bit/s. Jedes Zeichen braucht 11 Bits, ein Telegramm mit 5 Bytes belegt die Leitung also etwa 6 ms.",
+        "format": "8 Datenbits, gerade Parität, 1 Stoppbit: so verlangt es FT 1.2.",
+        "mode": "Unsymmetrisch: SCADA fragt ab, die RTU antwortet. Im symmetrischen Betrieb dürfen beide Seiten senden, aber nur auf einer Leitung zwischen zwei Stationen.",
+        "link-address": "Die Link-Adresse der RTU. Sie steht in jedem Telegramm.",
+        "sizes": "Die Länge jedes Adressfelds in Bytes. Beide Seiten müssen dieselbe verwenden.",
+        "common-address": "Die Adresse der Station. Sie steht in jeder ASDU.",
+        "class2": "Wie oft SCADA Daten der Klasse 2 abfragt, wenn es sonst nichts zu tun hat.",
+        "timeout": "Wie lange SCADA auf eine Antwort wartet. Danach wiederholt es die Anfrage, mit demselben FCB.",
+        "ioa": "Die Informationsobjektadresse des Leistungsschalters.",
+        "class": "Seine Änderungen gehen in Klasse 1: Die RTU setzt ACD, sobald eine wartet.",
+        "spontaneous": "Eine Änderung wird als Typ 31 gesendet, mit Zeitstempel.",
+        "time": "Schriftlich festhalten, von welcher Uhr die Zeitstempel kommen: hier UTC."
+    }
+}

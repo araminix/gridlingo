@@ -42,7 +42,7 @@
         "standard": "IEC 61851-1, edition 3 (2017)",
         "between": "Charger (EVSE) ↔ car, on every Type 1, Type 2 and CCS plug",
         "transport": "One wire, CP, against protective earth: ±12 V and a 1 kHz square wave",
-        "security": "None. It is an analogue signal inside the cable.",
+        "security": "None. It is an analog signal inside the cable.",
         "frames": "States A +12 V · B +9 V · C +6 V · D +3 V · E 0 V · F −12 V",
         "speed": "1 kHz. The car follows a new duty cycle within 5 s."
     },
@@ -60,7 +60,7 @@
     },
     "timing": {
         "title": "The control pilot, 3 ms of each state",
-        "note": "Each line is the CP voltage: −12 V at the bottom, +12 V at the top (level = (V + 12) / 24). The square wave repeats every 1 ms. Its duty cycle is the current: 40 % is 24 A, 10 % is 6 A. Above 85 %, the current is (duty − 64) × 2.5 A, up to 80 A at 96 %. 5 % asks for digital communication. The low level stays at −12 V, because the car's diode blocks it.",
+        "note": "Each line is the CP voltage: −12 V at the bottom, +12 V at the top (level = (V + 12) / 24). The square wave repeats every 1 ms. Its duty cycle is the current: 40 % is 24 A, 10 % is 6 A. Above 85 %, the current is (duty − 64) × 2.5 A, up to 80 A at 96 %. 5 % asks for digital communication. The low level stays at −12 V in every state: the diode in the car lets no current through in that direction.",
         "a": "A · no car",
         "b1": "B1 · car",
         "b2": "B2 · 40 %",

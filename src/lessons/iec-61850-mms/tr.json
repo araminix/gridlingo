@@ -1,0 +1,89 @@
+{
+    "intro": "Bir IEC 61850 cihazında register numarası yoktur. SCL dosyasında tanımlanmış, adlandırılmış nesnelerden oluşan bir ağacı vardır: mantıksal cihazlar, mantıksal düğümler, veri nesneleri ve öznitelikler. İstemci bu ağaçta MMS ile gezinir ve tam olarak ihtiyaç duyduğu değeri okur ya da yazar.",
+    "steps": {
+        "connect": { "title": "Bağlan", "text": "İstemci 102 portuna TCP açar, ardından onun üzerinde bir ISO taşıma bağlantısı (COTP) kurar." },
+        "associate": { "title": "İlişkilen", "text": "Bir MMS Initiate, boyutlar ve servisler üzerinde anlaşır. İstemci ancak bu ilişkilendirmeden (association) sonra soru sorabilir." },
+        "browse": { "title": "Modelde gezin", "text": "GetNameList önce mantıksal cihazları, sonra bunlardan birinin içindeki değişkenleri döndürür. Bir araç, SCL dosyası olmadan bir cihazı böyle keşfeder." },
+        "read": { "title": "Tek bir değer oku", "text": "İstemci PV1INV/MMXU1$MX$TotW$mag$f'yi okur ve bir float alır: 4820.0. Birim (kW) ayrı bir özniteliktedir (CF)." },
+        "report": { "title": "Raporlamasına izin ver", "text": "İstemci tekrar tekrar sormak yerine bir raporu etkinleştirir. İnverter artık değerlerini değiştikçe gönderir." }
+    },
+    "frames": {
+        "tcp": "102 portuna TCP aç",
+        "cotp-cr": "Bir ISO taşıma bağlantısı aç",
+        "cotp-cc": "Taşıma bağlantısı kabul edildi",
+        "initiate-req": "MMS konuşalım: benim boyutlarım ve servislerim",
+        "initiate-resp": "Anlaştık: bunlar da benimkiler",
+        "names-req": "Hangi mantıksal cihazların var?",
+        "names-resp": "PV1LD0 ve PV1INV",
+        "read-req": "Toplam aktif güç ne?",
+        "read-resp": "4820.0",
+        "enable": "urcbMeas01 raporunu etkinleştir",
+        "report": "TotW artık 4790.5, Hz 50.00"
+    },
+    "notes": {
+        "tcp": "Düz TCP. MMS, RFC 1006'nın ISO-on-TCP portu olan 102'yi kullanır.",
+        "cotp-cr": "COTP (ISO 8073), TCP'nin üzerinde çalışır. Bağlantı isteği, iki tarafın taşıma seçicilerini (transport selector) belirtir.",
+        "cotp-cc": "Cihaz kabul eder. Bundan sonra her mesaj TPKT ve bir COTP veri başlığıyla başlar.",
+        "initiate-req": "İçinde üç katman daha vardır: oturum, sunum ve ACSE. MMS kısmı boyutları (en büyük mesaj) ve istemcinin istediği servisleri önerir.",
+        "initiate-resp": "Cihaz kendi boyutları ve servisleriyle yanıt verir. Kimlik doğrulama kullanılıyorsa o da bu adımda yapılır (IEC 62351-4).",
+        "names-req": "\"domain\" nesne sınıfıyla GetNameList: IEC 61850'de bir domain, bir mantıksal cihazdır.",
+        "names-resp": "MMS bir mantıksal cihazı, IED adı ve ardından örnek adıyla adlandırır: PV1 ve INV, PV1INV olur.",
+        "enable": "Rapor kontrol bloğundaki RptEna'ya TRUE yazılması (Write). İstemci önce tetikleme seçeneklerini ve veri setini ayarlar.",
+        "report": "İstenmeden gönderilen bir InformationReport: cihaz, veri setindeki bir değer her değiştiğinde bunu sorulmadan gönderir."
+    },
+    "fields": {
+        "tpkt-66": { "name": "TPKT", "note": "Sürüm 3, ardından tüm mesajın uzunluğu: 0x0042 = 66 bayt." },
+        "tpkt-36": { "name": "TPKT", "note": "Sürüm 3, ardından uzunluk: 0x0024 = 36 bayt." },
+        "cotp-dt": { "name": "COTP", "note": "Bir veri birimi (0xF0), mesajının sonuncusu (0x80)." },
+        "session": { "name": "Oturum", "note": "İki kısa oturum başlığı: give tokens, data transfer." },
+        "presentation": { "name": "Sunum", "note": "Tam kodlanmış veri, sunum bağlamı 3: ardından gelen MMS'tir." },
+        "confirmed-req": { "name": "Onaylı istek", "note": "Etiket A0, 44 bayt: yanıt bekleyen bir istek." },
+        "confirmed-resp": { "name": "Onaylı yanıt", "note": "Etiket A1, 14 bayt: yanıt." },
+        "invoke": { "name": "Invoke ID 5", "note": "İstemcinin seçtiği bir numara. Yanıt da aynısını taşır." },
+        "invoke-resp": { "name": "Invoke ID 5", "note": "İstekteki numaranın aynısı: bu, o isteğin yanıtı." },
+        "read": { "name": "Read", "note": "Etiket A4: Read servisi." },
+        "spec": { "name": "Değişken listesi", "note": "Adıyla verilmiş tek değişkenlik bir liste." },
+        "domain-specific": { "name": "Domain'e özgü ad", "note": "İki parçalı bir ad: domain ve öğe." },
+        "domain": { "name": "Domain", "note": "\"PV1INV\": mantıksal cihaz." },
+        "item": { "name": "Öğe", "note": "\"MMXU1$MX$TotW$mag$f\": mantıksal düğüm, fonksiyonel kısıt, veri nesnesi ve öznitelik, $ ile birleştirilmiş." },
+        "results": { "name": "Sonuçlar", "note": "İstenen her değişken için bir tane olmak üzere sonuçların listesi." },
+        "float-tag": { "name": "Kayan nokta", "note": "Etiket 0x87 (bir float), 5 bayt." },
+        "exponent": { "name": "Üs genişliği", "note": "8 bit: ardından IEEE 754 tek duyarlıklı bir float gelir." },
+        "float": { "name": "Değer", "note": "4820.0, en anlamlı bayt önce. IEC 104 float'ları tersi sırayla gönderir." },
+        "a-ld": { "name": "Mantıksal cihaz", "note": "PV1INV: IED adı PV1 ve örnek INV." },
+        "a-ln": { "name": "Mantıksal düğüm", "note": "MMXU1: ölçümler, örnek 1." },
+        "a-fc": { "name": "Fonksiyonel kısıt", "note": "MX: ölçülen değerler. ST durum, CF konfigürasyon, SP ayar değerleridir." },
+        "a-do": { "name": "Veri nesnesi", "note": "TotW: MV türünde toplam aktif güç." },
+        "a-da": { "name": "Veri özniteliği", "note": "mag.f: büyüklük, float olarak." }
+    },
+    "devices": {
+        "client": "İstemci",
+        "pv1": "PV1 inverteri",
+        "pv": "PV dizisi"
+    },
+    "facts": {
+        "standard": "IEC 61850-8-1 (MMS, ISO 9506'dır)",
+        "between": "İstemci (SCADA, ağ geçidi, mühendislik aracı) → IED",
+        "transport": "TCP 102",
+        "security": "TLS (IEC 62351-4), TCP 3782",
+        "model": "IEC 61850-7: mantıksal cihazlar, mantıksal düğümler, veri nesneleri"
+    },
+    "tips": [
+        "Önce SCL dosyasını okuyun. Büyük bir cihazda GetNameList ile gezinmek saniyeler sürebilir.",
+        "Birimler ve çarpanlar değerin yanında değil, CF özniteliklerinde durur. 4820 değerinin kW olması yalnızca cihaz öyle dediği içindir.",
+        "Rapor kontrol blokları azdır. Bir tanesini ayırıp hiç bırakmayan bir araç, asıl SCADA'yı dışarıda bırakabilir.",
+        "MMS float'ları en anlamlı bayt önce gönderilir. IEC 104 ya da Modbus da konuşan kodlar bunu sık sık yanlış yapar."
+    ],
+    "points": {
+        "totw": "Toplam aktif güç",
+        "mult": "TotW'nin birimi",
+        "hz": "Frekans"
+    },
+    "anatomy": {
+        "reference": "Tek bir değerin adı ve MMS'in onu nasıl yazdığı"
+    },
+    "playground": {
+        "scl": "İnverterin konfigüre edilmiş tanımı (.cid). INV'yi, sonra MMXU1'i, sonra TotW'yi açın: okuduğunuz değer mag.f, birimi de units içinde. Sonra varsa kendi dosyanızı açın.",
+        "encoder": "MMS bir float'ı en anlamlı bayt önce gönderir (ABCD). Baytlarını görmek için bir değer yazın."
+    }
+}

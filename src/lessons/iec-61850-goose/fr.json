@@ -1,0 +1,108 @@
+{
+    "intro": "La façon dont les relais de protection se donnent l'ordre de déclencher, en quelques millisecondes, par le réseau du poste plutôt que par des fils de cuivre. Un relais publie ses données vers une adresse multicast ; chaque relais qui en a besoin s'y abonne. Personne ne répond : l'émetteur répète donc chaque changement, vite puis de plus en plus lentement.",
+    "steps": {
+        "heartbeat": { "title": "Battement de cœur", "text": "Tout va bien. Chaque seconde, le relais répète son dernier état à qui veut l'entendre." },
+        "fault": { "title": "Défaut", "text": "Un court-circuit sur le départ F1. Le relais voit 2.8 kA et ferme son contact de déclenchement vers le disjoncteur." },
+        "publish": { "title": "Publication", "text": "Au même instant, il envoie le nouvel état. Le numéro d'état augmente de un et le numéro de séquence repart à 0." },
+        "repeat": { "title": "Répéter vite", "text": "Aucun abonné ne répond à GOOSE : le relais renvoie donc le même message 2 ms plus tard, puis 4, 8, 16 … jusqu'à revenir à une fois par seconde." },
+        "act": { "title": "Les abonnés agissent", "text": "F2 PROT lance sa temporisation de défaillance disjoncteur. La passerelle transmet le déclenchement au SCADA." },
+        "open": { "title": "Ouverture", "text": "48 ms après le défaut, Q1 est ouvert et le courant de défaut s'arrête." }
+    },
+    "frames": {
+        "heartbeat": "Toujours pas de déclenchement (heartbeat)",
+        "trip-wire": "Alimente la bobine de déclenchement de Q1",
+        "event": "Déclenchement ! Tr.general = TRUE",
+        "repeat": "Déclenchement, encore (copie 1)",
+        "to-scada": "Q1 a déclenché, avec l'heure",
+        "opened": "Q1 est ouvert"
+    },
+    "notes": {
+        "trip-wire": "Un fil de cuivre, pas un message réseau : le relais ferme un contact et le courant passe dans la bobine de déclenchement du disjoncteur.",
+        "to-scada": "Ceci est de l'IEC 104, pas du GOOSE : la passerelle traduit de l'un à l'autre. La leçon IEC 104 montre ces octets.",
+        "opened": "Un contact auxiliaire du disjoncteur indique au relais qu'il s'est ouvert."
+    },
+    "fields": {
+        "dst": { "name": "Destination", "note": "Une adresse multicast de la plage qu'IEC 61850 réserve à GOOSE (01-0C-CD-01-…). Tous les équipements du réseau l'entendent ; seuls les abonnés la gardent." },
+        "src": { "name": "Source", "note": "L'adresse MAC du relais lui-même." },
+        "vlan": { "name": "Étiquette VLAN", "note": "0x8100, puis la priorité 4 et le VLAN 10. La priorité permet aux switchs de faire passer la trame avant le reste du trafic." },
+        "ethertype": { "name": "EtherType", "note": "0x88B8 signifie GOOSE. Il n'y a ni IP ni TCP dans cette trame." },
+        "appid": { "name": "APPID", "note": "0x0001 : un numéro sur lequel les abonnés filtrent." },
+        "length": { "name": "Longueur", "note": "115 octets, de l'APPID jusqu'à la fin." },
+        "reserved": { "name": "Réservé", "note": "Deux champs réservés, ici à zéro. IEC 62351-6 les utilise quand la trame est signée." },
+        "pdu": { "name": "Message GOOSE", "note": "0x61 ouvre le message ; 105 octets suivent (0x69). Chaque champ qui suit est un tag, une longueur et une valeur." },
+        "gocbref": { "name": "gocbRef", "note": "Tag 0x80, 25 octets : le nom du bloc de contrôle, F1PROTLD0/LLN0$GO$gcbTrip." },
+        "tal": { "name": "Durée de vie autorisée", "note": "2000 ms. Si aucune copie n'arrive dans ce délai, les abonnés considèrent les données comme non valides." },
+        "datset": { "name": "datSet", "note": "Le jeu de données que porte le message : F1PROTLD0/LLN0$dsTrip." },
+        "goid": { "name": "goID", "note": "F1PROT_Trip, un identifiant que les abonnés peuvent vérifier." },
+        "t-old": { "name": "t", "note": "Le dernier changement des données : 08:00:00 aujourd'hui, UTC. Un heartbeat garde l'heure du dernier changement." },
+        "t-event": { "name": "t", "note": "Le changement des données : 10:41:07.232 UTC. 4 octets de secondes, 3 de fractions de seconde, 1 de qualité d'horloge." },
+        "stnum-12": { "name": "stNum 12", "note": "Le numéro d'état : inchangé depuis le dernier changement." },
+        "stnum-13": { "name": "stNum 13", "note": "Le numéro d'état a augmenté de un : les données ont changé." },
+        "sqnum-3": { "name": "sqNum 3", "note": "Le numéro de séquence : la quatrième copie du même état." },
+        "sqnum-0": { "name": "sqNum 0", "note": "La première copie du nouvel état." },
+        "sqnum-1": { "name": "sqNum 1", "note": "Le même état, renvoyé." },
+        "simulation": { "name": "simulation", "note": "Faux. Vrai marque les messages de test, que les abonnés ignorent sauf s'ils sont en mode test." },
+        "confrev": { "name": "confRev 1", "note": "La révision de configuration. Elle doit correspondre à celle avec laquelle l'abonné a été configuré." },
+        "ndscom": { "name": "ndsCom", "note": "Needs commissioning : faux. Vrai signifierait que la configuration de l'émetteur est incomplète." },
+        "entries": { "name": "Entrées", "note": "2 valeurs dans le jeu de données." },
+        "data-idle": { "name": "allData", "note": "Les valeurs : Tr.general = FALSE (pas de déclenchement), et sa qualité : bonne." },
+        "data-trip": { "name": "allData", "note": "Les valeurs : Tr.general = TRUE (déclenchement !), et sa qualité : bonne." },
+        "a-ied": { "name": "IED", "note": "Le nom de l'équipement dans le fichier SCL." },
+        "a-ld": { "name": "Équipement logique", "note": "LD0, un groupe de fonctions à l'intérieur de l'IED." },
+        "a-ln": { "name": "Nœud logique", "note": "LLN0, où se trouvent les blocs de contrôle." },
+        "a-fc": { "name": "Contrainte fonctionnelle", "note": "GO : un bloc de contrôle GOOSE." },
+        "a-cb": { "name": "Bloc de contrôle", "note": "gcbTrip, son nom." }
+    },
+    "devices": {
+        "q1": "Disjoncteur Q1",
+        "f1prot": "F1 PROT",
+        "f2prot": "F2 PROT",
+        "switch": "Switch du poste",
+        "hmi": "IHM du poste",
+        "gateway": "Passerelle",
+        "scada": "SCADA"
+    },
+    "facts": {
+        "standard": "IEC 61850-8-1",
+        "between": "Un relais → tous les relais, contrôleurs et passerelles abonnés",
+        "transport": "Multicast Ethernet, sans IP",
+        "frames": "Un seul message, répété : ni requêtes, ni réponses",
+        "speed": "Un déclenchement doit arriver en moins de 3 ms (IEC 61850-5, type 1A)"
+    },
+    "tips": [
+        "Un abonné vérifie le gocbRef, l'APPID, le jeu de données et la révision de configuration. Si l'un d'eux diffère de sa configuration, il ignore la trame sans rien dire.",
+        "GOOSE n'a pas d'adresse IP : les routeurs le rejettent. Pour atteindre un autre poste, il faut R-GOOSE.",
+        "Testez avec l'indicateur simulation et l'abonné en mode test. Sinon, un déclenchement de test ouvre un vrai disjoncteur.",
+        "Chaque switch sur le trajet doit conserver l'étiquette VLAN et sa priorité. Un switch qui la retire peut retarder un déclenchement derrière le reste du trafic."
+    ],
+    "points": {
+        "tr": "Déclenchement",
+        "stnum": "Numéro d'état",
+        "sqnum": "Numéro de séquence"
+    },
+    "anatomy": {
+        "gocbref": "Le nom du bloc de contrôle GOOSE, et la façon dont il voyage"
+    },
+    "timing": {
+        "title": "Pourquoi GOOSE n'attend jamais de réponse",
+        "note": "GOOSE n'a pas d'acquittement. L'émetteur répète chaque changement rapidement, puis ralentit jusqu'au battement de cœur. Si un abonné n'entend rien pendant la durée de vie autorisée, il marque les données comme non valides. Les temps de répétition montrés ici sont typiques ; chaque constructeur fixe les siens.",
+        "publisher": "F1 PROT",
+        "event": "stNum 12 → 13",
+        "repeats": "sqNum 1, 2, 3 …",
+        "heartbeat": "heartbeat"
+    },
+    "singleLine": {
+        "title": "Schéma unifilaire du jeu de barres 34.5 kV",
+        "bus": "34.5 kV · barre A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "ouvert",
+        "fault": "défaut · 2.8 kA",
+        "station": "Bus de station · Ethernet",
+        "f1": "F1 · Centrale PV",
+        "f2": "F2 · Batterie",
+        "f3": "F3 · Auxiliaires du poste"
+    },
+    "playground": {
+        "scl": "Le fichier SCL du poste. Trouvez le bloc de contrôle GOOSE de F1PROT, son jeu de données, ainsi que l'adresse MAC et l'APPID vers lesquels il émet. Trouvez ensuite l'entrée de F2PROT qui l'écoute."
+    }
+}

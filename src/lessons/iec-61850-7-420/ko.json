@@ -1,0 +1,103 @@
+{
+    "intro": "IEC 61850-7-420은 IEC 61850 데이터 모델을 분산 에너지에 가져와요: 배터리, 인버터, 발전기, 그리고 이를 제어하는 기능들이에요. 발전소 제어기는 변전소 계전기와 똑같은 MMS 서비스로 이들을 읽고 제어해요. 새로운 건 이름뿐이에요.",
+    "steps": {
+        "associate": { "title": "어소시에이션", "text": "발전소 제어기가 배터리 인버터의 TCP 포트 102를 열고, 여느 IEC 61850 연결처럼 MMS 어소시에이션을 맺어요." },
+        "read": { "title": "충전 상태와 출력 읽기", "text": "Read 한 번으로 값 두 개를 요청해요: DSTO1의 충전 상태와 MMXU1의 유효 전력. 응답에는 둘 다 같은 순서로 들어 있어요." },
+        "subscribe": { "title": "리포트 요청", "text": "제어기가 같은 두 값에 대한 리포트를 활성화해요. 이제부터 인버터는 값이 바뀔 때 알아서 보내요." },
+        "limit": { "title": "출력 제한", "text": "계통 운영자가 최대 2000 kW까지만 허용해요. 제어기가 유효 전력을 제한하는 기능인 DWMX1의 설정값 WMaxSpt를 조작해요. 인버터가 수락하고 출력을 낮추기 시작해요." },
+        "report": { "title": "출력 안정", "text": "TotW가 떨어지는 동안 인버터가 리포트해요. 마지막 리포트는 2000.0 kW: 제한이 지켜져요." }
+    },
+    "frames": {
+        "tcp": "포트 102로 TCP, 이어서 전송 연결 열기",
+        "initiate-req": "MMS로 이야기해요: 제 크기와 서비스예요",
+        "initiate-resp": "좋아요: 제 건 이래요",
+        "read-req": "충전 상태와 유효 전력이 얼마예요?",
+        "read-resp": "68.5 %, 3000.0 kW",
+        "enable": "리포트 urcbDER01 활성화",
+        "oper-req": "유효 전력을 2000 kW로 제한하세요",
+        "oper-resp": "완료",
+        "report": "TotW가 이제 2000.0 kW예요"
+    },
+    "notes": {
+        "tcp": "포트 102로 가는 순수 TCP, 그 위에 ISO 전송 연결(COTP). 이 단계들은 IEC 61850 MMS 레슨에서 볼 수 있어요.",
+        "initiate-req": "세션, 프레젠테이션, ACSE 계층 안에 담긴 MMS Initiate예요. 제어기가 가장 큰 메시지 크기와 원하는 서비스를 제안해요. 인증을 쓴다면 여기서 이뤄져요(IEC 62351-4).",
+        "initiate-resp": "인버터가 자기 크기와 서비스로 답해요. 이제부터 모든 요청은 변수를 논리 장치와 항목으로 지정해요.",
+        "enable": "리포트 제어 블록 LLN0$RP$urcbDER01의 RptEna에 TRUE를 쓰는 Write예요. 데이터 세트 dsDER에는 DSTO1.UseSocPct와 MMXU1.TotW가 들어 있어요.",
+        "report": "비요청 InformationReport예요: dsDER의 값이 바뀔 때마다 인버터가 묻지 않아도 보내요."
+    },
+    "fields": {
+        "tpkt-110": { "name": "TPKT", "note": "버전 3, 이어서 메시지 전체 길이: 0x006E = 110바이트." },
+        "tpkt-43": { "name": "TPKT", "note": "버전 3, 이어서 길이: 0x002B = 43바이트." },
+        "tpkt-111": { "name": "TPKT", "note": "버전 3, 이어서 길이: 0x006F = 111바이트." },
+        "tpkt-29": { "name": "TPKT", "note": "버전 3, 이어서 길이: 0x001D = 29바이트." },
+        "cotp-dt": { "name": "COTP", "note": "데이터 단위(0xF0), 메시지의 마지막(0x80)." },
+        "session": { "name": "세션", "note": "짧은 세션 헤더 두 개: give tokens, data transfer." },
+        "presentation": { "name": "프레젠테이션", "note": "완전 인코딩 데이터, 프레젠테이션 컨텍스트 3: 이어지는 내용은 MMS예요." },
+        "confirmed-req": { "name": "확인형 요청", "note": "태그 A0: 응답을 기대하는 요청. 다음 바이트가 안에 든 바이트 수를 세요." },
+        "confirmed-resp": { "name": "확인형 응답", "note": "태그 A1: 요청에 대한 응답." },
+        "invoke-7": { "name": "Invoke ID 7", "note": "제어기가 고르는 번호. 응답에도 같은 번호가 담겨요." },
+        "invoke-7-resp": { "name": "Invoke ID 7", "note": "요청과 같은 번호: 그 요청에 대한 응답이에요." },
+        "invoke-8": { "name": "Invoke ID 8", "note": "새 요청, 새 번호." },
+        "invoke-8-resp": { "name": "Invoke ID 8", "note": "설정값 요청에 대한 응답이에요." },
+        "read": { "name": "Read", "note": "태그 A4: Read 서비스." },
+        "spec": { "name": "변수 목록", "note": "이름으로 지정한 변수 목록. 여기서는 두 개예요." },
+        "var": { "name": "변수", "note": "목록의 항목 하나. 이름이 이어져요." },
+        "domain-specific": { "name": "도메인 지정 이름", "note": "도메인과 항목, 두 부분으로 된 이름." },
+        "domain": { "name": "도메인", "note": "\"BESS1DER\": IED BESS1의 논리 장치 DER." },
+        "item-soc": { "name": "항목", "note": "\"DSTO1$MX$UseSocPct$mag$f\": 저장 장치의 충전 상태, 사용 가능 에너지 대비 퍼센트." },
+        "item-totw": { "name": "항목", "note": "\"MMXU1$MX$TotW$mag$f\": 인버터 AC 측의 총 유효 전력." },
+        "results": { "name": "결과", "note": "변수마다 결과 하나, 요청한 순서대로." },
+        "float-tag": { "name": "부동소수점", "note": "태그 0x87(부동소수점), 5바이트. 08: IEEE 754 단정밀도 부동소수점이 이어져요." },
+        "soc": { "name": "UseSocPct", "note": "68.5(%), 최상위 바이트 먼저." },
+        "totw": { "name": "TotW", "note": "3000.0. 단위 kW는 속성 units(CF)에 있어요." },
+        "write": { "name": "Write", "note": "태그 A5: Write 서비스. IEC 61850은 명령을 Oper에 대한 Write로 보내요." },
+        "write-spec": { "name": "변수", "note": "이름으로 지정한 변수 하나짜리 목록." },
+        "item-oper": { "name": "항목", "note": "\"DWMX1$CO$WMaxSpt$Oper\": 설정값 WMaxSpt의 Oper 구조체. CO는 제어라는 뜻이에요." },
+        "data-list": { "name": "데이터", "note": "쓸 값들, 변수마다 하나." },
+        "oper-struct": { "name": "Oper", "note": "데이터 모델이 정한 순서대로 여섯 부분으로 된 구조체(태그 A2)." },
+        "ctlval": { "name": "ctlVal", "note": "새 값: 부동소수점 하나짜리 구조체, 0x44FA0000 = 2000.0(kW)." },
+        "origin": { "name": "origin", "note": "보낸 쪽: orCat 5(automatic-station: 발전소 안의 제어기)와 orIdent \"PPC\"." },
+        "ctlnum": { "name": "ctlNum", "note": "1: 클라이언트가 명령을 세어서 하나하나 구별할 수 있어요." },
+        "oper-t": { "name": "T", "note": "제어기가 보낸 시각: 10:41:12.250 UTC. 초 4바이트, 소수부 3바이트, 시계 품질 1바이트." },
+        "test": { "name": "Test", "note": "FALSE: 시험이 아닌 실제 명령." },
+        "check": { "name": "Check", "note": "두 비트: 동기 검사와 인터록 검사. 둘 다 꺼져 있어요: 설정값에는 둘 다 필요 없어요." },
+        "write-resp": { "name": "Write 응답", "note": "태그 A5: Write에 대한 응답, 변수마다 결과 하나." },
+        "success": { "name": "성공", "note": "태그 0x81, 비어 있음: 쓰기가 성공했어요. 직접 제어라서 새 제한이 바로 적용돼요." },
+        "a-ld": { "name": "논리 장치", "note": "BESS1DER: IED 이름 BESS1과 인스턴스 DER." },
+        "a-ln": { "name": "논리 노드", "note": "DWMX1: 유효 전력을 제한하는 기능, 인스턴스 1." },
+        "a-fc": { "name": "기능 제약", "note": "CO: 제어. 여기에 쓰는 Write는 설정이 아니라 명령이에요." },
+        "a-do": { "name": "데이터 객체", "note": "WMaxSpt: 최대 유효 전력 설정값, 유형 APC(제어 가능한 아날로그 값)." },
+        "a-da": { "name": "데이터 속성", "note": "Oper: 클라이언트가 명령을 내리려고 쓰는 구조체." }
+    },
+    "devices": {
+        "meter": "계통 계량기",
+        "ppc": "발전소 제어기",
+        "bess": "BESS1 인버터",
+        "battery": "배터리"
+    },
+    "facts": {
+        "standard": "IEC 61850-7-420 제2판(2021), IEC 61850-7-4와 IEC 61850-8-1의 MMS 매핑 기반",
+        "between": "발전소 제어기, SCADA 또는 애그리게이터 → 인버터, 배터리, 발전기",
+        "transport": "TCP 102 위의 MMS",
+        "security": "TLS(IEC 62351-4), TCP 3782",
+        "model": "DER 논리 노드: DSTO, DBAT, DINV, DGEN, 그리고 DWMX 같은 기능"
+    },
+    "tips": [
+        "제1판(2009)과 제2판(2021)은 이름이 달라요. 제1판에는 ZINV, ZBAT, DRCT가, 제2판에는 DINV, DBAT, DSTO와 DWMX 같은 기능이 있어요. 매핑하기 전에 기기의 SCL 파일이 어느 판을 쓰는지 확인하세요.",
+        "조작하기 전에 ctlModel(CF)을 읽으세요. direct-with-normal-security라면 Write 응답으로 끝나요. enhanced security라면 기기가 동작을 마쳤을 때 CommandTermination이 뒤따라요.",
+        "제2판의 기능은 RvrtTms에 정한 시간이 지나면 기본값으로 돌아갈 수 있어요. 제한을 한 번만 보내고 다시 보내지 않는 제어기는 그 제한이 사라지는 걸 보게 될 수도 있어요.",
+        "전력의 부호를 합의하세요. 방전을 양수로 세는 기기도, 음수로 세는 기기도 있어요. 먼저 작은 설정값으로 시험해 보세요."
+    ],
+    "points": {
+        "soc": "충전 상태",
+        "totw": "유효 전력",
+        "wmax": "출력 제한"
+    },
+    "anatomy": {
+        "control": "설정값의 이름, 그리고 MMS가 그 이름을 쓰는 방식"
+    },
+    "playground": {
+        "scl": "배터리 인버터의 설정된 기술 파일(.cid)이에요. DER을 열고, 여기서 읽는 두 값은 DSTO1과 MMXU1에서, WMaxSpt는 DWMX1에서 찾아보세요: Oper 구조체와 ctlModel이 있어요. 가지고 있다면 여러분의 파일도 열어 보세요.",
+        "encoder": "MMS는 부동소수점을 최상위 바이트부터 보내요(ABCD). 제한 값 2000.0은 44 FA 00 00으로 전송돼요."
+    }
+}

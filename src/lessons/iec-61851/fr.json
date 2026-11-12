@@ -1,0 +1,71 @@
+{
+    "intro": "Le fil pilote (CP) est un fil présent dans chaque câble de recharge. La borne y applique une tension, et la voiture la fait baisser avec des résistances. D'après le niveau, les deux côtés savent si une voiture est branchée et si elle veut de l'énergie. Un signal carré à 1 kHz sur le même fil indique à la voiture le courant qu'elle peut prendre.",
+    "steps": {
+        "plug": { "title": "Brancher", "text": "Avant le branchement, la borne maintient le CP à +12 V : état A. La résistance de la voiture le fait descendre à +9 V : état B. La borne lit aussi le calibre du câble sur la broche PP." },
+        "offer": { "title": "Offrir du courant", "text": "La borne lance un signal carré à 1 kHz sur le CP. La part du temps où il est haut, le rapport cyclique, donne le courant que la voiture peut prendre. La maison autorise 24 A : la borne de 32 A offre donc 24 A, soit 40 %." },
+        "charge": { "title": "Recharger", "text": "La voiture branche une seconde résistance : le CP tombe à +6 V, état C. Ce n'est qu'alors que la borne ferme son contacteur. La voiture prend jusqu'à 24 A sur chaque phase." },
+        "reduce": { "title": "Moins de courant", "text": "La maison a besoin de sa puissance ailleurs. Son gestionnaire d'énergie prévient la borne, qui abaisse le rapport cyclique à 10 % : 6 A. La voiture a 5 s pour suivre." },
+        "stop": { "title": "Arrêt", "text": "La batterie est pleine. La voiture ouvre son interrupteur : le CP revient à +9 V, état B. La borne ouvre le contacteur." },
+        "unplug": { "title": "Débrancher", "text": "La prise est retirée. Le CP revient à +12 V, état A, et la borne arrête le signal carré." }
+    },
+    "frames": {
+        "b1": "Une voiture est branchée",
+        "pp": "Ce câble supporte jusqu'à 32 A",
+        "pwm": "Tu peux prendre 24 A",
+        "c": "Prête : je veux de l'énergie",
+        "contactor": "Le courant passe",
+        "limit": "Limite la voiture à 6 A",
+        "pwm-10": "Maintenant 6 A seulement",
+        "b2": "J'ai fini",
+        "open": "Le courant est coupé",
+        "a": "La voiture est partie"
+    },
+    "notes": {
+        "b1": "La borne alimente le CP en +12 V à travers une résistance de 1 kΩ. La voiture branche 2.74 kΩ entre le CP et la terre de protection (PE), derrière une diode, et la tension tombe à +9 V. B1 désigne l'état B avec une tension continue ; B2 est le même état avec le signal carré.",
+        "pp": "Le proximity pilot (PP) n'est pas un signal. C'est une résistance dans la prise du câble, entre PP et PE, et sa valeur donne le calibre du câble : 1.5 kΩ pour 13 A, 680 Ω pour 20 A, 220 Ω pour 32 A, 100 Ω pour 63 A.",
+        "pwm": "Une période dure 1 ms. Le CP est à +9 V pendant 40 % de la période (0.4 ms) et à −12 V le reste du temps. Entre 10 % et 85 %, le courant vaut rapport cyclique × 0.6 A : 40 × 0.6 = 24 A.",
+        "c": "La voiture ferme son interrupteur S2 et ajoute 1.3 kΩ en parallèle des 2.74 kΩ. Le niveau haut du signal carré tombe à +6 V. Avec 270 Ω à la place, il tomberait à +3 V : l'état D, qui demande une ventilation.",
+        "contactor": "Pas un signal sur le CP. Le contacteur de la borne relie L1, L2, L3 et N à la voiture, et le chargeur embarqué de la voiture convertit le courant alternatif en continu pour la batterie.",
+        "limit": "Pas de l'IEC 61851 : un gestionnaire d'énergie parle Modbus, OCPP ou ferme un contact. La voiture ne voit jamais ce message, seulement le nouveau rapport cyclique.",
+        "pwm-10": "10 × 0.6 = 6 A, le plus petit courant qu'un rapport cyclique puisse offrir. La voiture doit réduire son courant en moins de 5 s.",
+        "b2": "La voiture ouvre S2 et le niveau haut revient à +9 V. Une voiture bien conçue réduit d'abord son courant, pour que le contacteur ne s'ouvre pas en charge.",
+        "open": "En état B, la borne ne doit pas fournir d'énergie : elle ouvre donc le contacteur. Le signal carré continue : la voiture pourrait redemander de l'énergie.",
+        "a": "Plus rien ne fait baisser le CP : +12 V, état A. La borne arrête le signal carré (A1) et attend la voiture suivante."
+    },
+    "fields": {},
+    "devices": {
+        "car": "Voiture",
+        "charger": "Borne",
+        "ems": "Maison · gestionnaire d'énergie"
+    },
+    "facts": {
+        "standard": "IEC 61851-1, édition 3 (2017)",
+        "between": "Borne (EVSE) ↔ voiture, sur toutes les prises Type 1, Type 2 et CCS",
+        "transport": "Un fil, le CP, par rapport à la terre de protection : ±12 V et un signal carré à 1 kHz",
+        "security": "Aucune. C'est un signal analogique à l'intérieur du câble.",
+        "frames": "États A +12 V · B +9 V · C +6 V · D +3 V · E 0 V · F −12 V",
+        "speed": "1 kHz. La voiture suit un nouveau rapport cyclique en moins de 5 s."
+    },
+    "tips": [
+        "Vérifiez aussi le niveau bas. Un signal carré qui n'atteint pas −12 V signifie que la diode de la voiture manque ou est en court-circuit, et la borne ne doit pas s'enclencher.",
+        "5 % n'est pas un courant. Cela signifie « dialoguez d'abord en numérique » (ISO 15118) : la limite vient alors des messages, pas du rapport cyclique.",
+        "Le câble limite aussi le courant. Avec un câble de 20 A (680 Ω), une borne de 32 A offre au plus 20 A : un rapport cyclique de 33.3 %.",
+        "L'état D (+3 V) demande une ventilation. Une borne sans ventilateur pour le local ne doit pas recharger en état D. E (0 V) signifie un court-circuit ou une absence d'alimentation ; F (−12 V) signifie que la borne n'est pas disponible."
+    ],
+    "points": {
+        "state": "État du CP",
+        "cable": "Calibre du câble",
+        "offer": "Courant offert",
+        "drawn": "Courant consommé"
+    },
+    "timing": {
+        "title": "Le fil pilote, 3 ms de chaque état",
+        "note": "Chaque ligne montre la tension du CP : −12 V en bas, +12 V en haut (niveau = (V + 12) / 24). Le signal carré se répète toutes les 1 ms. Son rapport cyclique donne le courant : 40 % pour 24 A, 10 % pour 6 A. Au-dessus de 85 %, le courant vaut (rapport − 64) × 2.5 A, jusqu'à 80 A à 96 %. 5 % demande la communication numérique. Le niveau bas reste à −12 V, car la diode de la voiture le bloque.",
+        "a": "A · pas de voiture",
+        "b1": "B1 · voiture",
+        "b2": "B2 · 40 %",
+        "c2": "C2 · 40 %",
+        "c2-low": "C2 · 10 %",
+        "digital": "B2 · 5 %"
+    }
+}

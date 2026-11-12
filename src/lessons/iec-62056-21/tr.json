@@ -1,0 +1,97 @@
+{
+    "intro": "Avrupa'daki elektrik sayaçlarının çoğunun ön yüzündeki optik portun düz metin protokolü. Teknisyen porta bir prob yerleştirir. Dizüstü bilgisayar ve sayaç, önce 300 baud'da, sonra daha hızlı, kısa ASCII mesajlar alışverişi yapar. Sayaç 1.8.0(012345.678*kWh) gibi satırlarla yanıt verir: bir adres, bir değer ve bir birim.",
+    "steps": {
+        "signon": { "title": "Oturum aç", "text": "Teknisyen optik probu sayacın ön yüzüne yerleştirir. Dizüstü 300 baud'da, 7 veri biti ve çift eşlikle /?! gönderir. Sayaç üreticisi, en yüksek hızı ve modeliyle yanıt verir." },
+        "select": { "title": "Hız ve mod seç", "text": "Dizüstü normal protokolü, 9600 baud'u ve veri okumayı (readout) seçer. Bu mesajın son baytından sonra iki taraf da 9600 baud'a geçer." },
+        "readout": { "title": "Veri okuma", "text": "Sayaç okuma listesini, bir BCC denetimiyle kapanan tek bir mesajda gönderir. Parola gerekmez: liste yalnızca elektrik şirketinin göstermeyi seçtiği değerleri içerir." },
+        "program": { "title": "Programlama modu", "text": "Verilen enerji listede yok. Dizüstü 300 baud'da yeniden oturum açar ve programlama modunu ister. Sayaç parola ister." },
+        "password": { "title": "Parola", "text": "Dizüstü parolayı açık metin olarak gönderir (P1). Sayaç tek bir ACK ile kabul eder." },
+        "read": { "title": "Oku ve çık", "text": "R1, bir değeri adresiyle okur. Sayaç adres, değer ve birimle yanıt verir. Sonra B0 oturumu bitirir ve sayaç 300 baud'a döner." }
+    },
+    "frames": {
+        "signon": "Sen kimsin?",
+        "ident": "Üretici EXA, model EM340, 9600 baud'a kadar",
+        "ack-readout": "9600 baud, veri okuma lütfen",
+        "data": "1.8.0 = 12 345.678 kWh, sonra tarife 1 ve tarife 2",
+        "signon-2": "Sen kimsin? (yine)",
+        "ident-2": "Üretici EXA, model EM340, 9600 baud'a kadar",
+        "ack-program": "9600 baud, programlama modu lütfen",
+        "p0": "Parola, lütfen",
+        "p1": "Parola 18273645",
+        "ack-password": "Doğru",
+        "r1": "2.8.0'ı oku",
+        "answer": "2.8.0 = 123.456 kWh",
+        "b0": "Hoşça kal"
+    },
+    "fields": {
+        "slash": { "name": "Başlangıç", "note": "/ (0x2F), oturum açmayı ve kimlik bilgisini başlatır." },
+        "request": { "name": "İstek", "note": "? (0x3F): konuşma isteği." },
+        "end-request": { "name": "Bitiş", "note": "! (0x21) isteği bitirir. Birkaç sayacın paylaştığı bir hatta sayacın adresi ? ile ! arasında durur." },
+        "crlf": { "name": "CR LF", "note": "0D 0A: satır sonu." },
+        "maker": { "name": "Üretici", "note": "EXA: üreticinin üç harfli kodu (burada uydurma)." },
+        "baud-5": { "name": "En yüksek hız", "note": "5: C modunda bu sayaç 9600 baud'a geçebilir. 0, 300 baud; 6 ise 19200 olurdu." },
+        "model": { "name": "Model", "note": "EM340: üreticinin seçtiği, en fazla 16 karakterlik model." },
+        "ack": { "name": "ACK", "note": "ACK (0x06), onay ve seçenek seçimini başlatır." },
+        "protocol": { "name": "Protokol", "note": "0: normal protokol. 2, HDLC ve DLMS'e (E modu) geçerdi." },
+        "speed": { "name": "Hız", "note": "5: sayacın sunduğu hız olan 9600 baud'a geç." },
+        "mode-readout": { "name": "Mod", "note": "0: veri okuma. Bu mesajın hemen ardından iki taraf da 9600 baud'a geçer." },
+        "mode-program": { "name": "Mod", "note": "1: programlama modu. Sayaç parola isteyecek." },
+        "stx": { "name": "STX", "note": "STX (0x02): veri başlıyor. BCC sonraki bayttan itibaren sayar." },
+        "a-180": { "name": "Adres", "note": "1.8.0: çekilen aktif enerji, tüm tarifeler. OBIS kodunun C.D.E kısmı." },
+        "v-180": { "name": "Değer", "note": "(012345.678*kWh): parantez içinde değer ve birimi." },
+        "a-181": { "name": "Adres", "note": "1.8.1: aynı enerji, tarife 1'de." },
+        "v-181": { "name": "Değer", "note": "(008765.432*kWh)." },
+        "a-182": { "name": "Adres", "note": "1.8.2: aynı enerji, tarife 2'de." },
+        "v-182": { "name": "Değer", "note": "(003580.246*kWh). Tarife 1 ile tarife 2'nin toplamı, toplamı verir." },
+        "end-data": { "name": "Veri sonu", "note": "! CR LF: başka satır yok." },
+        "etx": { "name": "ETX", "note": "ETX (0x03): mesaj biter. BCC'nin saydığı son bayttır." },
+        "bcc-data": { "name": "BCC", "note": "0x76: STX'ten sonraki, ETX dahil tüm baytlar XOR ile birleştirilmiş. Tutmazsa yeniden okuyun." },
+        "soh": { "name": "SOH", "note": "SOH (0x01): bir komut mesajı başlıyor. BCC, STX dahil sonraki bayttan itibaren sayar." },
+        "p0": { "name": "P0", "note": "Bir operand ile parola isteği." },
+        "stx-command": { "name": "STX", "note": "STX (0x02): veri seti başlıyor." },
+        "operand": { "name": "Operand", "note": "(87654321): sayacın seçtiği bir sayı. Karıştırılmış bir parola (P2) isteyen bir sayaç bunu tohum (seed) olarak kullanır. Bu sayaç parolayı açık metin olarak alır." },
+        "bcc-p0": { "name": "BCC", "note": "0x68: SOH'tan sonraki, ETX dahil tüm baytların XOR'u." },
+        "p1": { "name": "P1", "note": "İşte parola, açık metin olarak." },
+        "password": { "name": "Parola", "note": "(18273645). Optik portu izleyen herkes okuyabilir." },
+        "bcc-p1": { "name": "BCC", "note": "0x69." },
+        "ack-password": { "name": "ACK", "note": "ACK (0x06): parola doğru. Okuma ve yazma açık." },
+        "r1": { "name": "R1", "note": "Bir değeri ASCII metin olarak oku." },
+        "ask-280": { "name": "Adres", "note": "2.8.0(): boş parantezle okunacak adres." },
+        "bcc-r1": { "name": "BCC", "note": "0x59." },
+        "a-280": { "name": "Adres", "note": "2.8.0: verilen aktif enerji, tüm tarifeler: binanın güneş panellerinin şebekeye verdiği." },
+        "v-280": { "name": "Değer", "note": "(000123.456*kWh)." },
+        "bcc-answer": { "name": "BCC", "note": "0x5F: STX'ten sonraki bayttan ETX dahil sona kadar." },
+        "b0": { "name": "B0", "note": "Break: oturum hemen biter." },
+        "bcc-b0": { "name": "BCC", "note": "0x71, q harfi. Bir break her zaman aynı 5 bayttır: 01 42 30 03 71." },
+        "l-c": { "name": "C · büyüklük", "note": "1: aktif güç, çekiş." },
+        "l-d": { "name": "D · işleme", "note": "8: zaman içindeki toplam, yani enerji." },
+        "l-e": { "name": "E · tarife", "note": "0: tüm tarifeler. 1.8.1, tarife 1'dir." },
+        "l-value": { "name": "Değer", "note": "012345.678: sayacın tuttuğu haneler, ondalık noktasıyla birlikte." },
+        "l-unit": { "name": "Birim", "note": "Bir yıldızdan (*) sonra kWh." }
+    },
+    "devices": {
+        "laptop": "Teknisyen dizüstüsü",
+        "meter": "Elektrik sayacı",
+        "house": "Bina"
+    },
+    "facts": {
+        "standard": "IEC 62056-21 (eski adıyla IEC 61107)",
+        "between": "El terminali ya da dizüstü → sayaç, bir optik prob üzerinden",
+        "transport": "Manyetik problu kızılötesi port; ayrıca 20 mA akım döngüsü ya da RS-232",
+        "security": "Veri okumada yok. Programlama modu: açık metin gönderilen bir parola",
+        "speed": "300 baud, 7E1 ile başlar; sonra 19200 baud'a kadar"
+    },
+    "tips": [
+        "Seri portu 7 veri biti ve çift eşliğe (7E1) ayarlayın. 8N1'de sayaç eşlik hataları görür ve sessiz kalır, yanıtları da anlamsız karakterler gibi görünür.",
+        "Yeni hıza ancak ACK mesajının son baytı çıktıktan sonra geçin. USB adaptörleri veriyi tamponlar: çok erken geçmek, mesajın sonunu yanlış hızda gönderir.",
+        "BCC, STX ya da SOH'un kendisiyle değil, onlardan sonra başlar ve ETX'i içerir. Uçlardan birini yanlış almak, kendi yapımı okuyucularda sık görülen bir hatadır."
+    ],
+    "points": {
+        "speed": "Hız",
+        "import": "Çekilen enerji",
+        "export": "Verilen enerji"
+    },
+    "anatomy": {
+        "line": "Okuma listesinden bir satır"
+    }
+}

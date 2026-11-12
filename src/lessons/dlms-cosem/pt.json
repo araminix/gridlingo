@@ -1,0 +1,122 @@
+{
+    "intro": "A língua da maioria dos medidores inteligentes na Europa, na Ásia e na África. Um medidor guarda objetos: cada um tem uma classe, um nome chamado código OBIS e atributos numerados. Um cliente primeiro abre uma associação, com senha ou com chaves, e depois lê e escreve atributos com GET, SET e ACTION.",
+    "steps": {
+        "connect": { "title": "Conectar", "text": "À meia-noite, o head-end abre uma conexão TCP com a porta 4059 do medidor. O modem do medidor tem um endereço privado na rede móvel própria da concessionária (um APN privado)." },
+        "associate": { "title": "Associar", "text": "Nada pode ser lido antes de uma associação. O AARQ define as regras (nomes lógicos, sem cifragem) e leva a senha. O AARE aceita e lista os serviços que o medidor permite." },
+        "value": { "title": "Ler o valor", "text": "O GET lê um atributo de um objeto, identificado pela classe e pelo código OBIS. A resposta é um número puro: 1234567. A unidade não vem junto." },
+        "scale": { "title": "Ler escala e unidade", "text": "O atributo 3 diz o que o número significa: vezes 10, em Wh. Agora o head-end tem a leitura: 12 345.67 kWh." },
+        "release": { "title": "Liberar", "text": "O head-end libera a associação e fecha o TCP. O próximo medidor está esperando." }
+    },
+    "frames": {
+        "tcp": "Abrir TCP com a porta 4059",
+        "aarq": "Me deixe entrar: cliente leitor, senha 12345678",
+        "aare": "Aceito. Você pode usar GET, SET e ACTION",
+        "get-value": "Qual é o valor de 1-0:1.8.0*255?",
+        "value": "1234567",
+        "get-scaler": "E a escala e a unidade dele?",
+        "scaler": "Vezes 10, em Wh",
+        "rlrq": "Pronto: libere a associação",
+        "rlre": "Liberada"
+    },
+    "notes": {
+        "tcp": "TCP puro. A porta 4059 é registrada para o DLMS/COSEM. Numa linha serial ou na porta óptica, as mesmas mensagens trafegam em quadros HDLC em vez deste wrapper."
+    },
+    "fields": {
+        "version": { "name": "Versão", "note": "0x0001: a versão do wrapper. Ele inicia toda mensagem DLMS sobre TCP ou UDP." },
+        "src-client": { "name": "wPort de origem", "note": "0x0011: o endereço do cliente. Este medidor foi configurado para deixar o cliente 0x11 ler, depois de uma senha. O cliente público, 0x10, não precisa de senha, mas pode ler pouca coisa." },
+        "dst-meter": { "name": "wPort de destino", "note": "0x0001: o dispositivo lógico de gerenciamento. Todo medidor tem um." },
+        "src-meter": { "name": "wPort de origem", "note": "0x0001: o dispositivo lógico que responde." },
+        "dst-client": { "name": "wPort de destino", "note": "0x0011: de volta ao cliente que perguntou." },
+        "len-56": { "name": "Comprimento", "note": "Seguem 0x0038 = 56 bytes." },
+        "len-43": { "name": "Comprimento", "note": "Seguem 0x002B = 43 bytes." },
+        "len-13": { "name": "Comprimento", "note": "Seguem 0x000D = 13 bytes." },
+        "len-9": { "name": "Comprimento", "note": "Seguem 9 bytes." },
+        "len-10": { "name": "Comprimento", "note": "Seguem 0x000A = 10 bytes." },
+        "len-5": { "name": "Comprimento", "note": "Seguem 5 bytes." },
+        "aarq": { "name": "AARQ", "note": "Tag 0x60: um pedido para abrir uma associação. Seguem 0x36 = 54 bytes. Esta parte é BER: uma tag, um comprimento, um valor." },
+        "context": { "name": "Contexto de aplicação", "note": "O identificador de objeto 2.16.756.5.8.1.1: referência por nome lógico, sem cifragem. Com cifragem, terminaria em .3." },
+        "acse-req": { "name": "Requisitos ACSE", "note": "Um bit ativo: autenticação. Segue uma senha ou um desafio." },
+        "mech-lls": { "name": "Mecanismo", "note": "2.16.756.5.8.2.1: segurança de baixo nível (LLS), uma senha. A segurança de alto nível (HLS, por exemplo …2.5) envia em vez disso um desafio aleatório em cada sentido: cada lado prova que conhece uma chave secreta, que nunca atravessa a linha." },
+        "password": { "name": "Senha", "note": "Tag 0x80, 8 caracteres: \"12345678\". Ela trafega às claras." },
+        "user-info": { "name": "Informação do usuário", "note": "Tag 0xBE, depois uma octet string de 0x0E = 14 bytes com a parte xDLMS. Dentro dela, a codificação é A-XDR, não BER." },
+        "initiate-req": { "name": "InitiateRequest", "note": "0x01, depois três opções omitidas (00 00 00): sem chave dedicada, o modo de resposta padrão, sem qualidade de serviço." },
+        "dlms-version": { "name": "Versão do DLMS", "note": "Versão 6." },
+        "conformance-req": { "name": "Conformance", "note": "24 bits, um para cada serviço que o cliente quer usar: GET, SET, ACTION, acesso seletivo, transferência em blocos e mais." },
+        "pdu-client": { "name": "Tamanho máximo da PDU", "note": "0xFFFF: o cliente aceita respostas de até 65535 bytes." },
+        "aare": { "name": "AARE", "note": "Tag 0x61: a resposta ao AARQ. Seguem 0x29 = 41 bytes." },
+        "result": { "name": "Resultado", "note": "0: aceito. Uma recusa é 1 ou 2." },
+        "diagnostic": { "name": "Diagnóstico", "note": "0: nada a informar. Uma senha errada dá resultado 1 e diagnóstico 13, falha de autenticação." },
+        "initiate-resp": { "name": "InitiateResponse", "note": "0x08, depois sem qualidade de serviço (0x00)." },
+        "conformance-resp": { "name": "Conformance", "note": "Os serviços que o medidor permite: GET, SET, ACTION, acesso seletivo e transferência em blocos com GET, entre outros. Só estes podem ser usados agora." },
+        "pdu-meter": { "name": "Tamanho máximo da PDU", "note": "0x01F4: o medidor aceita mensagens de até 500 bytes." },
+        "vaa": { "name": "Nome da VAA", "note": "0x0007: o nome fixo de uma associação com referência por nome lógico." },
+        "get-req": { "name": "GET-Request", "note": "0xC0: GET-Request. 0x01: normal, um atributo." },
+        "invoke-1": { "name": "Invoke ID e prioridade", "note": "0xC1: invoke ID 1, um serviço confirmado, prioridade alta. A resposta traz o mesmo byte." },
+        "invoke-2": { "name": "Invoke ID e prioridade", "note": "0xC2: invoke ID 2." },
+        "class-3": { "name": "Classe 3", "note": "Register: um valor com uma escala e uma unidade." },
+        "obis": { "name": "Código OBIS", "note": "1-0:1.8.0*255: energia ativa importada, todos os postos tarifários. Desmontado abaixo." },
+        "attr-2": { "name": "Atributo 2", "note": "O valor. O atributo 1 de todo objeto é o próprio código OBIS dele." },
+        "attr-3": { "name": "Atributo 3", "note": "A escala e a unidade." },
+        "no-selection": { "name": "Acesso seletivo", "note": "0x00: nenhum, mandar o atributo inteiro. Uma memória de massa o usa para pedir um intervalo de tempo." },
+        "get-resp": { "name": "GET-Response", "note": "0xC4: GET-Response. 0x01: normal." },
+        "invoke-1-resp": { "name": "Invoke ID", "note": "0xC1, o mesmo da requisição: isto responde a ela." },
+        "invoke-2-resp": { "name": "Invoke ID", "note": "0xC2: a resposta ao segundo GET." },
+        "data": { "name": "Resultado", "note": "0x00: seguem dados. 0x01 seria seguido de um código de erro." },
+        "uint32": { "name": "Tipo", "note": "0x06: double-long-unsigned, um número de 32 bits sem sinal." },
+        "raw": { "name": "Valor", "note": "0x0012D687 = 1234567, byte mais significativo primeiro. Sem escala e unidade, ainda não significa nada." },
+        "structure": { "name": "Estrutura", "note": "0x02: uma estrutura de 2 elementos." },
+        "scaler": { "name": "Escala", "note": "0x0F: um inteiro de 8 bits. 1: multiplique o valor por 10 elevado a 1." },
+        "unit": { "name": "Unidade", "note": "0x16: um enum. 30 (0x1E) é Wh. Então 1234567 × 10 Wh = 12 345.67 kWh." },
+        "rlrq": { "name": "RLRQ", "note": "Tag 0x62: liberar a associação. Seguem 3 bytes." },
+        "rlre": { "name": "RLRE", "note": "Tag 0x63: a associação foi liberada." },
+        "reason": { "name": "Motivo", "note": "0: normal." },
+        "o-a": { "name": "A · meio", "note": "1: eletricidade. 6 é calor, 7 gás, 8 água fria. 0 serve para objetos sem meio, como o relógio." },
+        "o-b": { "name": "B · canal", "note": "0: nenhum canal em particular. Um medidor com várias entradas as numera 1, 2 …" },
+        "o-c": { "name": "C · grandeza", "note": "1: potência ativa, importação (+P). 2 é exportação, 32 a tensão de L1." },
+        "o-d": { "name": "D · processamento", "note": "8: o total ao longo do tempo, portanto energia. 7 é o valor neste instante." },
+        "o-e": { "name": "E · posto tarifário", "note": "0: todos os postos tarifários juntos. 1 e 2 são o posto 1 e o posto 2." },
+        "o-f": { "name": "F · período de faturamento", "note": "255: não usado, o valor atual. Outros valores apontam para períodos de faturamento guardados." }
+    },
+    "devices": {
+        "headend": "Sistema head-end",
+        "apn": "Rede móvel",
+        "meter": "Medidor inteligente",
+        "meter2": "Próximo medidor"
+    },
+    "facts": {
+        "standard": "IEC 62056-5-3 (camada de aplicação), -6-1 (OBIS), -6-2 (classes), -9-7 (TCP e UDP)",
+        "between": "Sistema head-end (cliente) → medidor (servidor)",
+        "transport": "TCP ou UDP 4059 com um wrapper; HDLC em linhas seriais e na porta óptica",
+        "security": "LLS: uma senha às claras. HLS: um desafio em cada sentido, e AES-GCM-128 para as mensagens",
+        "model": "Objetos: uma classe, um código OBIS, atributos e métodos numerados"
+    },
+    "tips": [
+        "Um valor sem a sua escala e unidade não é uma leitura. Leia o atributo 3 uma vez para cada registro e guarde-o: o mesmo 1234567 pode ser Wh, dezenas de Wh ou kWh.",
+        "O endereço do cliente escolhe a associação, e a associação define os direitos. A senha certa com o endereço de cliente errado continua sendo recusada.",
+        "O LLS envia a senha às claras. Em qualquer rede que você não controle totalmente, use HLS e cifragem.",
+        "Uma resposta maior que o tamanho de mensagem combinado vem em blocos. O cliente precisa pedir cada bloco seguinte (GET-Request-Next), senão recebe só a primeira parte."
+    ],
+    "points": {
+        "association": "Associação",
+        "raw": "Valor",
+        "scaler": "Escala e unidade",
+        "energy": "Leitura"
+    },
+    "values": {
+        "none": "nenhuma",
+        "lls": "aberta, LLS"
+    },
+    "anatomy": {
+        "obis": "O código OBIS do registro de energia"
+    },
+    "playground": {
+        "file": "O plano do head-end para a leitura da meia-noite deste medidor: onde ele está, como entrar e quais objetos ler.",
+        "client": "Cliente 17 = 0x11, o wPort em toda requisição.",
+        "low": "Low = LLS: a senha da linha seguinte vai no AARQ, às claras.",
+        "clock": "Leia o relógio primeiro. Se ele estiver errado, as estampas de tempo da memória de massa também estarão.",
+        "register": "O registro desta lição: classe 3, atributo 2.",
+        "keep": "Escala e unidade só mudam quando o medidor é configurado de novo. Leia uma vez e guarde.",
+        "profile": "Uma memória de massa (classe 7) com acesso seletivo: o medidor envia só as linhas entre os dois horários.",
+        "encoder": "O DLMS envia os números com o byte mais significativo primeiro (ABCD). Digite um valor para ver os bytes que o medidor envia."
+    }
+}

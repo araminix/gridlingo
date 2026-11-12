@@ -6,7 +6,7 @@
         "birth": { "title": "Birth", "text": "NBIRTH lists every metric of the edge node, DBIRTH every metric of the inverter behind it: name, alias, data type and value. Now SCADA knows the whole model." },
         "data": { "title": "Report by exception", "text": "Only the inverter's power changed. DDATA carries only that metric, by its alias, with the next sequence number." },
         "rebirth": { "title": "Rebirth", "text": "SCADA gets seq 4 after seq 2: message 3 is lost. SCADA can no longer trust its copy, so it asks for a rebirth. The edge node sends NBIRTH and DBIRTH again." },
-        "death": { "title": "Death", "text": "The edge node's link fails after 300 s. 45 s later (1.5 × its keep alive of 30 s) the broker publishes its will, NDEATH. SCADA marks GW1 offline and its values STALE." }
+        "death": { "title": "Death", "text": "The edge node's link fails at 300 s, just after its last packet. 45 s later (1.5 × its keep alive of 30 s, counted from the last packet the broker heard) the broker publishes its will, NDEATH. SCADA marks GW1 offline and its values STALE." }
     },
     "frames": {
         "host-connect": "I am SCADA1. If I vanish, publish that I am offline",

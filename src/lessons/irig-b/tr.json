@@ -1,0 +1,88 @@
+{
+    "intro": "Trafo merkezi rölelerinin onlarca yıldır kullandığı zaman kodu. Bir GPS saati, bir koaksiyel kablo ya da bükümlü çift üzerinden saniyede bir çerçeve gönderir: her biri 10 ms'lik 100 bit. Her darbenin genişliği bir 0, bir 1 ya da bir işaretçidir (marker); çerçevenin ilk kenarı da saniyenin tam başlangıcıdır.",
+    "steps": {
+        "lock": { "title": "GPS kilidi", "text": "İstasyon saati, anteni aracılığıyla uyduları duyar ve UTC'ye kilitlenir. Artık her IRIG-B çerçevesini tam saniyenin başında başlatır." },
+        "frame": { "title": "Bir çerçeve", "text": "10:41:07.000'da bir çerçeve başlar: art arda iki işaretçi, sonra BCD olarak saniye, dakika, saat, yılın günü ve yıl, kontrol bitleri ve ikili sayı olarak günün saniyeleri. Hattaki her röle onu duyar. IRIG-B'de adres de yanıt da yoktur." },
+        "set": { "title": "Saati ayarla", "text": "Bir çerçevedeki zaman, ilk kenarının zamanıdır; ama röle bunu ancak çerçeveyi okuduktan sonra bilir. Bu yüzden röle bir sonraki çerçeveyi bekler, tam bir saniye sonra geldiğini denetler ve saatini ayarlar." },
+        "event": { "title": "Bir açma", "text": "F1 fiderinde arıza. F1 rölesi Q1 kesicisini açar ve olayı kendi saatiyle kaydeder: 10:52:31.283. Bu hattaki tüm rölelerin kayıtları aynı zaman ölçeğini paylaşır, bu yüzden sıraları açıktır." },
+        "holdover": { "title": "Holdover", "text": "11:40'ta anten kablosu kesilir. Saat kendi osilatörüyle çalışır ve göndermeye devam eder. 14:12'de hatasının 10 µs'ye kadar çıkabileceğini tahmin eder ve bunu zaman kalitesi bitlerinde söyler: 5." }
+    },
+    "frames": {
+        "gps": "Uydu zamanı: UTC",
+        "f07": "Saat 10:41:07, 2026'nın 316. günü",
+        "f08": "Saat 10:41:08",
+        "trip": "Q1'i aç (10:52:31.283 olarak kaydedildi)",
+        "lost": "Uydu yok",
+        "f-hold": "Saat 14:12:31; zamanım 10 µs kaymış olabilir"
+    },
+    "notes": {
+        "gps": "IRIG-B değil, GPS radyo sinyalleri. Görüş alanında dört ya da daha fazla uydu varken saat UTC'yi bir mikrosaniyeden çok daha iyi bilir.",
+        "trip": "IRIG-B değil, kesicinin açma bobinine giden bakır bir kablo. Olay kaydı daha sonra rölenin veri protokolüyle, örneğin IEC 60870-5-103 ile okunur.",
+        "lost": "Burada IRIG-B yok: anten kablosu kesik ve saat artık hiçbir uyduyu duymuyor."
+    },
+    "fields": {
+        "sec-07": { "name": "Saniye", "note": "BCD olarak 07: birler basamağı 7, bit 1–4'te, düşük bit önce; ardından onlar basamağı 0, bit 6–8'de. Saat gibi okunsun diye burada hex olarak gösteriliyor." },
+        "sec-08": { "name": "Saniye", "note": "08: önceki çerçevedekinden bir fazla." },
+        "sec-31": { "name": "Saniye", "note": "BCD olarak 31." },
+        "min-41": { "name": "Dakika", "note": "BCD olarak 41: birler bit 10–13'te, onlar bit 15–17'de." },
+        "min-12": { "name": "Dakika", "note": "BCD olarak 12." },
+        "hour-10": { "name": "Saat", "note": "BCD olarak 10: birler bit 20–23'te, onlar bit 25–26'da. Fark bitlerinin söylediği gibi UTC." },
+        "hour-14": { "name": "Saat", "note": "BCD olarak 14." },
+        "day-316": { "name": "Yılın günü", "note": "316 = 12 Kasım 2026, 03 16 olarak gösteriliyor. Birler bit 30–33'te, onlar 35–38'de, yüzler 40–41'de." },
+        "year-26": { "name": "Yıl", "note": "BCD olarak (20)26, bit 50–58'de. Yıl içermeyen kodlar bunu röleye bırakır." },
+        "cf-flags": { "name": "Artık saniye · yaz saati", "note": "Bit 60–63 (IEEE C37.118.1): bekleyen artık saniye yok, bekleyen yaz saati değişikliği yok, yaz saati uygulanmıyor." },
+        "cf-offset": { "name": "Zaman farkı", "note": "Bit 64–68 ve 70: UTC'den 0 saat fark. Bu çerçeve UTC taşıyor." },
+        "tq-0": { "name": "Zaman kalitesi 0", "note": "Bit 71–74: GPS'e kilitli, tam doğruluk." },
+        "tq-5": { "name": "Zaman kalitesi 5", "note": "Saatin hatası 10 µs'ye kadar çıkabilir. 4, 1 µs; 6, 100 µs anlamına gelirdi; 15 ise zamanın güvenilir olmadığı demektir." },
+        "parity-0": { "name": "Eşlik", "note": "Bit 75: çift eşlik. Bit 1–74'te çift sayıda bir var, bu yüzden bu bit 0." },
+        "parity-1": { "name": "Eşlik", "note": "Bit 75: bit 1–74'te 17 tane bir var, bu yüzden bu bit 1 ve toplam yeniden çift olur." },
+        "sbs-38467": { "name": "Düz ikili saniye", "note": "0x9643 = 38467 = 10 × 3600 + 41 × 60 + 7: günün saniyeleri. Bit 80–88 ve 90–97'de 17 bit, düşük bit önce." },
+        "sbs-38468": { "name": "Düz ikili saniye", "note": "0x9644 = 38468: bir saniye sonra." },
+        "sbs-51151": { "name": "Düz ikili saniye", "note": "0xC7CF = 51151 = 14 × 3600 + 12 × 60 + 31." },
+        "a-format": { "name": "Format", "note": "B: saniyede 100 bit, saniyede bir çerçeve." },
+        "a-modulation": { "name": "Modülasyon", "note": "1: genlik modülasyonlu bir sinüs. 0, DC seviye kaydırma (darbe genişliği), 2 ise Manchester'dır." },
+        "a-carrier": { "name": "Taşıyıcı", "note": "2: 1 kHz'lik bir taşıyıcı. 0, DC seviye kaydırmada olduğu gibi taşıyıcı yok demektir." },
+        "a-content": { "name": "İçerik", "note": "4: BCD olarak yılın zamanı, yıl, kontrol bitleri ve düz ikili saniye. 0, yıl olmadan aynısıdır; 7'de kontrol bitleri yoktur." }
+    },
+    "devices": {
+        "antenna": "GPS anteni",
+        "clock": "İstasyon saati",
+        "r1": "F1 rölesi",
+        "r2": "F2 rölesi",
+        "r3": "F3 rölesi",
+        "q1": "Q1 kesicisi"
+    },
+    "facts": {
+        "standard": "IRIG Standard 200 (zaman kodları); kontrol bitlerinin anlamı için IEEE C37.118.1",
+        "between": "GPS saati → aynı binadaki röleler, sayaçlar ve kaydediciler",
+        "transport": "Koaksiyel kablo ya da bükümlü çift: DC seviye kaydırma (B00x) ya da 1 kHz'lik bir sinüs (B12x)",
+        "frames": "Saniyede bir çerçeve: her biri 10 ms'lik 100 bit",
+        "speed": "DC seviye kaydırma röleleri yaklaşık bir mikrosaniye içinde tutar; modülasyonlu sinüs daha az hassastır"
+    },
+    "tips": [
+        "Saatin UTC mi yerel saat mi gönderdiğinde anlaşın. Yerel saatte fark bitleri farkın ne kadar olduğunu söyler; ama IEEE 1344 ve IEEE C37.118 bunun işaretini ters okur.",
+        "B00x (DC seviye) için ayarlanmış bir giriş, B12x (1 kHz sinüs) çıkışını okuyamaz; tersi de geçerli. İki uçta da kodu kontrol edin.",
+        "Bir DC çıkışı sınırlı sayıda girişi sürebilir. Hattaki her rölenin yükünü toplayın ve her çiftin polaritesini kontrol edin.",
+        "Saatler aynı sinyale farklı adlar verir: birinin IEEE 1344 açıkken B000 dediğine bir başkası B004 der. Adları değil, bitleri karşılaştırın."
+    ],
+    "points": {
+        "time": "Günün saati",
+        "quality": "Zaman kalitesi",
+        "record": "Açma kaydı"
+    },
+    "timing": {
+        "title": "Bir çerçevenin ilk 110 ms'si",
+        "note": "10:41:07 çerçevesi art arda iki işaretçiyle başlar: P0 önceki çerçeveyi bitirir, Pr bu çerçeveyi başlatır ve Pr'nin yükselen kenarı tam olarak 10:41:07.000'dır. Sonra saniyeler, önce birler: 1, 1, 1, 0 = 7. B00x darbeleri DC seviyeleri olarak gönderir: 0 için 2 ms, 1 için 5 ms, işaretçi için 8 ms. B12x aynı darbeleri 1 kHz'lik bir sinüse koyar: darbe süresince güçlü, sonrasında zayıf (yaklaşık 10:3). Sinüs burada basamaklar olarak çizildi.",
+        "bits": "Bitler",
+        "b00x": "B00x · DC seviye",
+        "b12x": "B12x · 1 kHz",
+        "p0": "P0",
+        "on-time": "Pr · 10:41:07.000",
+        "one": "1",
+        "zero": "0",
+        "p1": "P1"
+    },
+    "anatomy": {
+        "code": "Bir IRIG kod adı, parça parça"
+    }
+}

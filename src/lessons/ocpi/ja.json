@@ -1,0 +1,115 @@
+{
+    "intro": "ローミングがあれば、ドライバーは1枚のカードで多くの会社の充電器を使えます。OCPIは、充電器を運営する充電事業者（CPO）と、ドライバーにカードやアプリを提供するeモビリティ事業者（eMSP）をつなぎます。双方がREST APIを公開し、相手がそれを呼び出します。対象は充電スポット、カード、セッション、そして充電ごとの請求です。",
+    "steps": {
+        "discover": { "title": "情報の取得", "text": "2社は、ドライバーがローミングする前に一度だけ接続します。eMSPは、CPOがどのOCPIバージョンに対応し、APIの各部分がどこにあるかを読み取ります。" },
+        "register": { "title": "トークン交換", "text": "eMSPは一時的なトークンAで登録します。最終的に双方が、相手を呼び出すための自分用のトークンを持ちます。eMSPはトークンCで、CPOはトークンBで呼び出します。" },
+        "location": { "title": "充電器の公開", "text": "CPOは、充電ポイント（EVSE）を1つ持つ充電スポットの情報を送ります。これでeMSPのアプリがドライバーに表示できます。" },
+        "authorize": { "title": "カードの確認", "text": "eMSPのカードを持つドライバーが、充電器にカードをかざします。CPOはこのカードを知らないので、eMSPに問い合わせます。" },
+        "session": { "title": "セッション", "text": "充電が始まります。CPOはセッションを報告し、充電中は更新を送ります。" },
+        "cdr": { "title": "請求", "text": "充電の後、CPOはCDR（充電明細記録）を送ります。この充電についてeMSPが支払う額です。" }
+    },
+    "frames": {
+        "versions": "どのOCPIバージョンに、どこで対応していますか？",
+        "endpoints": "2.2.1です。エンドポイントはこちら",
+        "post-credentials": "こちらのトークンBとアドレスです",
+        "check": "どのバージョンに対応していますか？（トークンBで）",
+        "credentials": "登録しました。今後はトークンCで呼び出してください",
+        "put-location": "充電スポットLOC-0042、EVSE NL*ABC*E12345*1",
+        "location-ok": "保存しました",
+        "authorize": "LOC-0042でカード04A2B3C4D5E6F7：充電してよいですか？",
+        "allowed": "はい：ALLOWED",
+        "put-session": "セッションSES-0187を開始、0 kWh",
+        "patch-session": "SES-0187：ここまで6.25 kWh",
+        "post-cdr": "請求：12.5 kWh、6.05 EUR",
+        "cdr-ok": "保存しました。アドレスはこちら"
+    },
+    "notes": {
+        "versions": "eMSPは、メールかポータルでCPOから2つのものを受け取っています。バージョン一覧のURLとトークンAです。ヘッダAuthorization: Tokenに続けてBase64のトークンAを付け、GETを送ります。次に、バージョン2.2.1のURLへGETを送ります。",
+        "endpoints": "OCPIの応答はすべて同じ封筒を持ちます：data、status_code、status_message、timestamp。ここでdataはまずバージョンを、次に2.2.1のエンドポイントを並べます。モジュールごとにURLが1つあり、それぞれSENDERかRECEIVERが付いています。CPOはlocations、sessions、CDRの送り手で、tokensの受け手です。",
+        "post-credentials": "まだトークンAのまま、eMSPは自分の認証情報をPOSTします。CPOが使う新しいトークンB、自分のバージョン一覧のURL、そしてロール：EMSP、country_code DE、party_id XYZです。",
+        "check": "応答する前に、CPOも同じ方法でeMSPを確認します。トークンBを使って、バージョン一覧、続いて2.2.1のエンドポイントをGETします。",
+        "credentials": "CPOは自分の認証情報で応答します。トークンC、バージョン一覧のURL、そしてロール：CPO、country_code NL、party_id ABCです。トークンAは使えなくなります。以後、eMSPはトークンCで、CPOはトークンBで呼び出します。",
+        "put-location": "CPOは充電スポットを、eMSPのlocationsエンドポイントにPUTします。URLには所有者とidが入っています。URLの分解は「部分ごとに見る」に、本文は「試してみる」にあります。",
+        "location-ok": "status_code 1000は成功です。HTTPステータスだけでなく、こちらも読んでください。2xxxはクライアントエラー、3xxxはサーバエラーです。",
+        "authorize": "リアルタイム認証です。カードはeMSPのものなので、CPOはeMSPのtokensエンドポイントにPOSTします。URLにカードのuidと?type=RFID、本文に充電スポットとEVSEを入れます。",
+        "allowed": "data.allowedはALLOWEDで、カードのtokenオブジェクト全体が付いています。ほかの答えはBLOCKED、EXPIRED、NO_CREDIT、NOT_ALLOWEDです。CPOはOCPPで充電器に開始を指示します。",
+        "put-session": "CPOはeMSP側にセッションを作成します：start_date_time、kwh 0、cdr_tokenとしてのカード、auth_method AUTH_REQUEST、充電スポット・EVSE・コネクタ、currency EUR、status ACTIVE。",
+        "patch-session": "変わったものだけが送られます：kwh 6.25とlast_updated。これでeMSPのアプリは、ここまでの電力量をドライバーに表示できます。",
+        "post-cdr": "CDRは2社のあいだの請求書です。いつ、どこで、どのカードで、どれだけの電力量と時間で、いくらだったか。中身は「試してみる」で見られます。",
+        "cdr-ok": "eMSPはCDRを保存し、そのCDRを指す自分側のURLをLocationヘッダで返します。これでドライバーに請求できます。"
+    },
+    "fields": {
+        "a-country": { "name": "国", "note": "NL：事業者の国を表すISO 3166の2文字コード。" },
+        "a-operator": { "name": "事業者", "note": "ABC：事業者のIDで、その国の中で一意です。OCPIではCPOのparty_idです。" },
+        "a-type": { "name": "種別", "note": "E：このIDはEVSEを表します。" },
+        "a-evse": { "name": "EVSE", "note": "12345*1：この充電ポイントに事業者が付けた番号。" },
+        "u-endpoint": { "name": "エンドポイント", "note": "eMSPのlocationsエンドポイント。eMSPのエンドポイント一覧から取ったもので、CPOが組み立ててはいけません。" },
+        "u-country": { "name": "country_code", "note": "このオブジェクトを所有する当事者（CPO）の国。" },
+        "u-party": { "name": "party_id", "note": "CPOのparty ID。country_codeと合わせて、すべてのOCPIオブジェクトで会社を特定します。" },
+        "u-location": { "name": "location_id", "note": "この充電スポットにCPOが付けたid。/1を加えると、その中のuid 1のEVSEを指します。" }
+    },
+    "devices": {
+        "car": "車両",
+        "charger": "充電器",
+        "cpo": "CPOプラットフォーム",
+        "emsp": "eMSPプラットフォーム"
+    },
+    "facts": {
+        "standard": "OCPI 2.2.1（EVRoaming Foundation）",
+        "between": "CPO（充電器を運営）↔ eMSP（ドライバーにカードとアプリを提供）。直接、またはローミングハブ経由",
+        "transport": "HTTPS、REST、JSON",
+        "security": "TLS。すべての要求にAuthorization: Tokenと、続けてBase64のトークンが付きます。",
+        "frames": "モジュール：credentials、locations、tokens、sessions、cdrs、tariffs、commands"
+    },
+    "tips": [
+        "相手がエンドポイント一覧に載せたURLを使ってください。パターンから組み立ててはいけません。プラットフォームごとに異なります。",
+        "トークンAは登録にしか使えません。登録後に401エラーが出るよくある原因は、トークンBとCの取り違えです。",
+        "HTTP 200だけでは不十分です。本文のstatus_codeを読んでください。1000は成功、2xxxはクライアントエラー、3xxxはサーバエラーです。",
+        "CDRは確定したものです。誤ったCDRは修正されず、CPOが取り消し用のクレジットCDRを送り、続いて新しいCDRを送ります。"
+    ],
+    "points": {
+        "to-cpo": "CPOを呼び出すトークン",
+        "to-emsp": "eMSPを呼び出すトークン",
+        "kwh": "電力量、kWh",
+        "cost": "税込価格"
+    },
+    "values": {
+        "token-a": "トークンA",
+        "token-b": "トークンB",
+        "token-c": "トークンC"
+    },
+    "anatomy": {
+        "evse-id": "EVSE ID：ドライバーが充電器で目にする表記",
+        "url": "eMSP側にある、ある充電スポットのアドレス"
+    },
+    "playground": {
+        "file": "このレッスンでCPOが送るオブジェクトの1つをJSONで示しています。下線の付いた行を選んでください。",
+        "owner": "この充電スポットを所有するCPO：国NL、当事者ABC。すべてのオブジェクトとそのURLに入っています。",
+        "location-id": "充電スポットにCPOが付けたid。country_code、party_idと合わせて一意になります。",
+        "publish": "true：eMSPはドライバーに表示してよい。falseにすると、非公開の充電器を公開マップに載せずにおけます。",
+        "country": "ここは3文字（ISO 3166-1 alpha-3）。country_codeの2文字とは違います。",
+        "coordinates": "緯度と経度は数値ではなく文字列で、小数点以下5〜7桁です。",
+        "evse-uid": "uid：CPO内部のEVSEのid。URLやセッションで使います。",
+        "evse-id": "evse_id：充電器に印字された、ドライバー向けのID。分解は「部分ごとに見る」にあります。",
+        "status": "AVAILABLE。変わると、CPOは新しいステータスをPATCHで送ります。",
+        "standard": "IEC_62196_T2：Type 2のソケット。format SOCKETは、ドライバーがケーブルを持参することを意味します。",
+        "max-voltage": "230 V：三相交流では、1相と中性線のあいだの電圧です。",
+        "max-power": "22080 W = 3 × 230 V × 32 A。",
+        "tariff": "ここで適用される料金。CPOはtariffsモジュールで公開します。",
+        "time-zone": "現地のタイムゾーン。OCPIの時刻はUTCで、これはアプリに現地時刻を知らせるためのものです。",
+        "last-updated": "このオブジェクトが最後に変わった時刻。更新を取りこぼした側は、前回の同期以降に変わったものをすべて要求します。",
+        "cdr-id": "このCDRにCPOが付けたid。",
+        "session-id": "このCDRで締めくくるセッション：eMSPが増えていくのを見ていたものです。",
+        "cdr-token": "充電に使われたカード。ドイツ（DE）のeMSP XYZのものです。",
+        "contract": "contract_id：ドライバーとeMSPの契約。eMSPはこの契約に請求します。",
+        "auth-method": "AUTH_REQUEST：CPOがeMSPにリアルタイムで問い合わせました。WHITELISTなら、事前に送られたカードの一覧を使ったことになります。",
+        "cdr-location": "どこで充電したかのコピー。充電スポットの情報が後で変わっても、CDRを正しく読めるようにするためです。",
+        "currency": "このCDRの金額はすべてEURです。",
+        "periods": "充電を、それぞれ1つの料金が適用される期間に分けたもの。ここでは期間は1つだけです。",
+        "dimensions": "この期間で12.5 kWh。次の行は時間で1.25 hです。",
+        "excl-vat": "5.00 EUR：12.5 kWh × 0.40 EUR、税抜き。",
+        "incl-vat": "6.05 EUR：オランダの付加価値税21 %込み。",
+        "total-energy": "常にkWhです。",
+        "total-time": "時間単位：14:05から15:20までで1.25 hです。"
+    }
+}

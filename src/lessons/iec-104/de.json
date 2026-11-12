@@ -1,0 +1,105 @@
+{
+    "intro": "So meldet eine RTU in einem Umspannwerk oder Kraftwerk über ein normales IP-Netz an die Leitwarte. Jeder Wert hat eine Adresse (die IOA), einen Typ und einen Grund, warum er gesendet wurde. Die RTU antwortet, wenn sie gefragt wird, und meldet sich von selbst, sobald sich etwas ändert.",
+    "steps": {
+        "connect": { "title": "Verbinden", "text": "SCADA baut eine TCP-Verbindung zur RTU auf Port 2404 auf. Sonst passiert noch nichts." },
+        "start": { "title": "Daten starten", "text": "Solange SCADA kein STARTDT sendet, fließen keine Daten. Die RTU antwortet mit STARTDT con." },
+        "ask": { "title": "Alles abfragen", "text": "Eine Generalabfrage fordert von der RTU den aktuellen Wert jedes Datenpunkts an, den sie hat." },
+        "values": { "title": "Werte kommen an", "text": "Die RTU sendet ihre Messwerte und Schalterstellungen und meldet dann, dass sie fertig ist. Jetzt kennt SCADA den Zustand der Anlage." },
+        "ack": { "title": "Quittieren", "text": "SCADA bestätigt die empfangenen Telegramme. Ohne diese Quittung hört die RTU nach 12 unbestätigten Telegrammen auf zu senden." },
+        "trip": { "title": "Auslösung", "text": "Niemand hat gefragt: Die RTU sendet die Änderung sofort, zusammen mit dem Zeitpunkt, an dem sie passiert ist." }
+    },
+    "frames": {
+        "tcp": "TCP-Verbindung zu Port 2404 aufbauen",
+        "startdt-act": "Bitte mit dem Senden von Daten beginnen",
+        "startdt-con": "OK, die Datenübertragung läuft",
+        "gi-act": "Generalabfrage: Schick mir alles",
+        "gi-con": "Bestätigt, die Werte kommen",
+        "measured": "P = 4.82 MW, Q = 0.61 Mvar",
+        "breaker": "CB-1 ist geschlossen",
+        "gi-term": "Das war alles",
+        "s-frame": "Deine Telegramme 0 bis 3 sind angekommen",
+        "trip": "CB-1 hat um 10:41:07.280 geöffnet"
+    },
+    "notes": {
+        "tcp": "Reines TCP, noch keine Bytes von IEC 104. Die RTU nimmt die Verbindung an und wartet."
+    },
+    "fields": {
+        "start": { "name": "Start", "note": "Jedes Telegramm nach IEC 104 beginnt mit 0x68." },
+        "len4": { "name": "Länge", "note": "Es folgen 4 Bytes: nur das Steuerfeld." },
+        "len14": { "name": "Länge", "note": "Es folgen 14 Bytes." },
+        "len26": { "name": "Länge", "note": "Es folgen 26 Bytes." },
+        "len21": { "name": "Länge", "note": "Es folgen 21 Bytes." },
+        "startdt-act": { "name": "Steuerfeld · U-Format", "note": "0x07 ist STARTDT act: Datenübertragung starten." },
+        "startdt-con": { "name": "Steuerfeld · U-Format", "note": "0x0B ist STARTDT con: Die RTU ist einverstanden." },
+        "i-0-0": { "name": "Steuerfeld · I-Format", "note": "Sendenummer 0, Empfangsnummer 0." },
+        "i-0-1": { "name": "Steuerfeld · I-Format", "note": "Sendenummer 0, Empfangsnummer 1: „Ich habe dein Telegramm 0.“ Die Nummern sind um ein Bit nach links verschoben, deshalb wird 1 als 02 gesendet." },
+        "i-1-1": { "name": "Steuerfeld · I-Format", "note": "Sendenummer 1, Empfangsnummer 1." },
+        "i-2-1": { "name": "Steuerfeld · I-Format", "note": "Sendenummer 2, Empfangsnummer 1." },
+        "i-3-1": { "name": "Steuerfeld · I-Format", "note": "Sendenummer 3, Empfangsnummer 1." },
+        "i-4-1": { "name": "Steuerfeld · I-Format", "note": "Sendenummer 4, Empfangsnummer 1." },
+        "s-4": { "name": "Steuerfeld · S-Format", "note": "0x01 kennzeichnet ein S-Format. Empfangsnummer 4 (gesendet als 08): „Ich habe deine Telegramme 0 bis 3.“" },
+        "type100": { "name": "Typ 100", "note": "C_IC_NA_1: Abfragebefehl." },
+        "type13": { "name": "Typ 13", "note": "M_ME_NC_1: ein Messwert als 32-Bit-Gleitkommazahl." },
+        "type3": { "name": "Typ 3", "note": "M_DP_NA_1: eine Doppelmeldung, verwendet für Leistungs- und Trennschalter." },
+        "type31": { "name": "Typ 31", "note": "M_DP_TB_1: eine Doppelmeldung mit Zeitstempel." },
+        "vsq1": { "name": "Anzahl", "note": "Ein Informationsobjekt." },
+        "vsq2": { "name": "Anzahl", "note": "Zwei Objekte, jedes mit eigener Adresse." },
+        "cot6": { "name": "Ursache 6", "note": "Aktivierung. Das zweite Byte ist die Herkunftsadresse, hier 0." },
+        "cot7": { "name": "Ursache 7", "note": "Aktivierung bestätigt." },
+        "cot10": { "name": "Ursache 10", "note": "Aktivierung beendet: Die Antwort ist vollständig." },
+        "cot20": { "name": "Ursache 20", "note": "Gesendet als Antwort auf die Stationsabfrage." },
+        "cot3": { "name": "Ursache 3", "note": "Spontan: Der Wert hat sich geändert, niemand hat gefragt." },
+        "ca": { "name": "Gemeinsame Adresse", "note": "Station 1. Zwei Bytes, niederwertiges Byte zuerst." },
+        "ioa0": { "name": "IOA 0", "note": "Der Befehl gilt für die ganze Station, nicht für einen einzelnen Datenpunkt." },
+        "ioa1001": { "name": "IOA 1001", "note": "Die Adresse der Wirkleistung: 0x0003E9, niederwertiges Byte zuerst." },
+        "ioa1002": { "name": "IOA 1002", "note": "Die Adresse der Blindleistung." },
+        "ioa2001": { "name": "IOA 2001", "note": "Die Adresse des Leistungsschalters CB-1: 0x0007D1." },
+        "qoi20": { "name": "QOI 20", "note": "Stationsabfrage: alle Gruppen." },
+        "value-p": { "name": "Wert", "note": "Eine 32-Bit-Gleitkommazahl, niederwertiges Byte zuerst: 4.82 (MW)." },
+        "value-q": { "name": "Wert", "note": "0.61 (Mvar)." },
+        "qds": { "name": "Qualität", "note": "Gut: Es ist kein Flag gesetzt." },
+        "diq-on": { "name": "Zustand 2", "note": "Ein: Der Leistungsschalter ist geschlossen. 1 ist Aus; 0 und 3 bedeuten Zwischen- oder Störstellung." },
+        "diq-off": { "name": "Zustand 1", "note": "Aus: Der Leistungsschalter ist offen." },
+        "cp56": { "name": "CP56Time2a", "note": "7.280 s, 41 min, 10 h, Donnerstag, 12. November (20)26. Eine Zeitzone ist nicht enthalten." }
+    },
+    "devices": {
+        "scada": "SCADA-Master",
+        "rtu": "RTU",
+        "inverter": "PV-Wechselrichter",
+        "pv": "PV-Module",
+        "battery": "Batterie",
+        "breaker": "Leistungsschalter CB-1"
+    },
+    "facts": {
+        "standard": "IEC 60870-5-104, Edition 2 (2006)",
+        "between": "RTU oder Gateway → SCADA",
+        "transport": "TCP 2404",
+        "security": "TLS (IEC 62351-3), TCP 19998",
+        "frames": "I: Daten · S: Quittung · U: Steuerung"
+    },
+    "tips": [
+        "Beide Seiten müssen dieselben Adresslängen verwenden: gemeinsame Adresse 2 Bytes, IOA 3 Bytes. Passt das nicht, kommen falsche Werte an, aber keine Fehlermeldung.",
+        "Zeitstempel enthalten keine Zeitzone, nur ein Sommerzeit-Bit. Vor der Inbetriebnahme festlegen, ob UTC oder Ortszeit gilt.",
+        "Spätestens nach 8 Telegrammen (w) quittieren. Nach 12 unbestätigten Telegrammen (k) hört die RTU auf zu senden."
+    ],
+    "points": {
+        "p": "Wirkleistung",
+        "q": "Blindleistung",
+        "cb": "Leistungsschalter CB-1"
+    },
+    "values": {
+        "closed": "geschlossen",
+        "open": "offen"
+    },
+    "playground": {
+        "encoder": "Gib einen Wert ein und sieh dir die vier Bytes an, in denen eine Gleitkommazahl bei IEC 104 übertragen wird. IEC 104 sendet sie mit dem niederwertigen Byte zuerst (DCBA).",
+        "file": "Die Datenpunktliste der RTU: was jede Adresse bedeutet. SCADA braucht dieselbe Liste, sonst kann es die Werte nicht lesen.",
+        "common-address": "Die Adresse der Station. Sie steht in jedem Telegramm.",
+        "ioa": "Die Informationsobjektadresse: eine pro Signal.",
+        "type": "Wie der Wert übertragen wird: als Gleitkommazahl, ohne Zeitstempel.",
+        "scale": "Ein Wert, der als Gleitkommazahl gesendet wird, braucht keine Skalierung. Normierte und skalierte Typen schon.",
+        "double": "Eine Doppelmeldung: 2 Bits für Ein, Aus, Zwischen- und Störstellung.",
+        "spontaneous": "Ändert sich der Wert, wird er sofort mit Zeitstempel gesendet.",
+        "time": "Schriftlich festhalten, von welcher Uhr die Zeitstempel kommen."
+    }
+}

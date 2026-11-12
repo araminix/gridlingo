@@ -1,0 +1,88 @@
+{
+    "intro": "Le code horaire que les relais de poste reçoivent depuis des décennies. Une horloge GPS envoie une trame par seconde sur un câble coaxial ou une paire torsadée : 100 bits de 10 ms chacun. La largeur de chaque impulsion code un 0, un 1 ou un repère, et le premier front de la trame marque le début exact de la seconde.",
+    "steps": {
+        "lock": { "title": "Calage GPS", "text": "L'horloge du poste capte les satellites par son antenne et se cale sur UTC. Dès lors, elle commence chaque trame IRIG-B pile sur la seconde." },
+        "frame": { "title": "Une trame", "text": "À 10:41:07.000, une trame commence : deux repères à la suite, puis les secondes, les minutes, les heures, le jour de l'année et l'année en BCD, les bits de contrôle, et les secondes du jour en binaire. Tous les relais de la ligne l'entendent. IRIG-B n'a ni adresses ni réponses." },
+        "set": { "title": "Mettre à l'heure", "text": "L'heure d'une trame est celle de son premier front, mais un relais ne la connaît qu'une fois la trame lue. Le relais attend donc la trame suivante, vérifie qu'elle arrive exactement une seconde plus tard, et règle son horloge." },
+        "event": { "title": "Un déclenchement", "text": "Un défaut sur le départ F1. Le relais F1 fait déclencher le disjoncteur Q1 et enregistre l'événement avec sa propre horloge : 10:52:31.283. Les enregistrements de tous les relais de cette ligne partagent la même échelle de temps : leur ordre est sans ambiguïté." },
+        "holdover": { "title": "Holdover", "text": "À 11:40, le câble d'antenne est coupé. L'horloge tourne sur son propre oscillateur et continue d'émettre. À 14:12, elle estime son erreur à 10 µs au plus et l'indique dans les bits de qualité de l'heure : 5." }
+    },
+    "frames": {
+        "gps": "Heure satellite : UTC",
+        "f07": "Il est 10:41:07, jour 316 de 2026",
+        "f08": "Il est 10:41:08",
+        "trip": "Déclenche Q1 (enregistré à 10:52:31.283)",
+        "lost": "Plus de satellites",
+        "f-hold": "Il est 14:12:31 ; mon heure peut être fausse de 10 µs"
+    },
+    "notes": {
+        "gps": "Des signaux radio GPS, pas de l'IRIG-B. Avec quatre satellites ou plus en vue, l'horloge connaît UTC à bien moins d'une microseconde près.",
+        "trip": "Un fil de cuivre vers la bobine de déclenchement du disjoncteur, pas de l'IRIG-B. L'enregistrement de l'événement est lu plus tard par le protocole de données du relais, par exemple IEC 60870-5-103.",
+        "lost": "Pas d'IRIG-B ici : le câble d'antenne est coupé, et l'horloge ne capte plus aucun satellite."
+    },
+    "fields": {
+        "sec-07": { "name": "Secondes", "note": "07 en BCD : le chiffre des unités, 7, dans les bits 1–4, bit de poids faible en premier, puis le chiffre des dizaines, 0, dans les bits 6–8. Affiché ici en hexadécimal, pour se lire comme l'heure." },
+        "sec-08": { "name": "Secondes", "note": "08 : un de plus que dans la trame précédente." },
+        "sec-31": { "name": "Secondes", "note": "31 en BCD." },
+        "min-41": { "name": "Minutes", "note": "41 en BCD : unités dans les bits 10–13, dizaines dans les bits 15–17." },
+        "min-12": { "name": "Minutes", "note": "12 en BCD." },
+        "hour-10": { "name": "Heures", "note": "10 en BCD : unités dans les bits 20–23, dizaines dans les bits 25–26. En UTC, comme l'indiquent les bits de décalage." },
+        "hour-14": { "name": "Heures", "note": "14 en BCD." },
+        "day-316": { "name": "Jour de l'année", "note": "316 = 12 novembre 2026, affiché 03 16. Unités dans les bits 30–33, dizaines dans 35–38, centaines dans 40–41." },
+        "year-26": { "name": "Année", "note": "(20)26 en BCD, dans les bits 50–58. Les codes sans année la laissent au relais." },
+        "cf-flags": { "name": "Seconde intercalaire · heure d'été", "note": "Bits 60–63 (IEEE C37.118.1) : aucune seconde intercalaire à venir, aucun changement d'heure à venir, pas d'heure d'été." },
+        "cf-offset": { "name": "Décalage horaire", "note": "Bits 64–68 et 70 : 0 heure d'écart avec UTC. Cette trame porte l'heure UTC." },
+        "tq-0": { "name": "Qualité de l'heure 0", "note": "Bits 71–74 : calée sur le GPS, précision maximale." },
+        "tq-5": { "name": "Qualité de l'heure 5", "note": "L'erreur de l'horloge peut atteindre 10 µs. 4 signifierait 1 µs, 6 signifierait 100 µs ; 15 signifie que l'heure n'est pas fiable." },
+        "parity-0": { "name": "Parité", "note": "Bit 75 : parité paire. Les bits 1–74 contiennent un nombre pair de uns : ce bit vaut donc 0." },
+        "parity-1": { "name": "Parité", "note": "Bit 75 : les bits 1–74 contiennent 17 uns : ce bit vaut donc 1, et le compte redevient pair." },
+        "sbs-38467": { "name": "Secondes en binaire pur", "note": "0x9643 = 38467 = 10 × 3600 + 41 × 60 + 7 : les secondes du jour. 17 bits dans les bits 80–88 et 90–97, bit de poids faible en premier." },
+        "sbs-38468": { "name": "Secondes en binaire pur", "note": "0x9644 = 38468 : une seconde plus tard." },
+        "sbs-51151": { "name": "Secondes en binaire pur", "note": "0xC7CF = 51151 = 14 × 3600 + 12 × 60 + 31." },
+        "a-format": { "name": "Format", "note": "B : 100 bits par seconde, une trame par seconde." },
+        "a-modulation": { "name": "Modulation", "note": "1 : une sinusoïde modulée en amplitude. 0 est un signal en niveaux continus (largeur d'impulsion), 2 est du Manchester." },
+        "a-carrier": { "name": "Porteuse", "note": "2 : une porteuse à 1 kHz. 0 signifie pas de porteuse, comme avec les niveaux continus." },
+        "a-content": { "name": "Contenu", "note": "4 : heure de l'année en BCD, année, bits de contrôle et secondes en binaire pur. 0 est identique sans l'année ; 7 n'a pas de bits de contrôle." }
+    },
+    "devices": {
+        "antenna": "Antenne GPS",
+        "clock": "Horloge du poste",
+        "r1": "Relais F1",
+        "r2": "Relais F2",
+        "r3": "Relais F3",
+        "q1": "Disjoncteur Q1"
+    },
+    "facts": {
+        "standard": "IRIG Standard 200 (codes horaires) ; IEEE C37.118.1 pour la signification des bits de contrôle",
+        "between": "Horloge GPS → relais, compteurs et enregistreurs du même bâtiment",
+        "transport": "Coaxial ou paire torsadée : niveaux continus (B00x) ou sinusoïde à 1 kHz (B12x)",
+        "frames": "Une trame par seconde : 100 bits de 10 ms",
+        "speed": "En niveaux continus, les relais restent à une microseconde près environ ; la sinusoïde modulée est moins précise"
+    },
+    "tips": [
+        "Décidez si l'horloge envoie l'heure UTC ou l'heure locale. En heure locale, les bits de décalage indiquent l'écart, mais IEEE 1344 et IEEE C37.118 en lisent le signe à l'opposé.",
+        "Une entrée réglée pour B00x (niveaux continus) ne peut pas lire une sortie B12x (sinusoïde à 1 kHz), et inversement. Vérifiez le code aux deux extrémités.",
+        "Une sortie en niveaux continus ne peut alimenter qu'un nombre limité d'entrées. Additionnez la charge de chaque relais de la ligne, et vérifiez la polarité de chaque paire.",
+        "Les horloges nomment le même signal de façons différentes : ce que l'une appelle B000 avec IEEE 1344 activé, une autre l'appelle B004. Comparez les bits, pas les noms."
+    ],
+    "points": {
+        "time": "Heure du jour",
+        "quality": "Qualité de l'heure",
+        "record": "Enregistrement du déclenchement"
+    },
+    "timing": {
+        "title": "Les 110 premières ms d'une trame",
+        "note": "La trame de 10:41:07 commence par deux repères à la suite : P0 termine la trame précédente, Pr ouvre celle-ci, et le front montant de Pr tombe exactement à 10:41:07.000. Viennent ensuite les secondes, unités d'abord : 1, 1, 1, 0 = 7. B00x envoie les impulsions en niveaux continus : 2 ms pour un 0, 5 ms pour un 1, 8 ms pour un repère. B12x place les mêmes impulsions sur une sinusoïde à 1 kHz, forte pendant l'impulsion et faible ensuite (environ 10:3). La sinusoïde est dessinée ici en marches.",
+        "bits": "Bits",
+        "b00x": "B00x · niveaux continus",
+        "b12x": "B12x · 1 kHz",
+        "p0": "P0",
+        "on-time": "Pr · 10:41:07.000",
+        "one": "1",
+        "zero": "0",
+        "p1": "P1"
+    },
+    "anatomy": {
+        "code": "Un nom de code IRIG, décomposé"
+    }
+}

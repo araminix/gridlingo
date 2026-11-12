@@ -33,7 +33,7 @@ describe("the byte inspector", () => {
         expect(within(bytes).getAllByRole("listitem")).toHaveLength(9);
         expect(within(bytes).getByText("64")).toBeTruthy();
         expect(screen.getByText(/C_IC_NA_1: interrogation command/)).toBeTruthy();
-        const legend = screen.getByRole("list", { name: "What the colours mean" });
+        const legend = screen.getByRole("list", { name: "What the colors mean" });
         expect(within(legend).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["Framing", "Control", "Type", "Count", "Reason", "Address", "Value"]);
     });
 

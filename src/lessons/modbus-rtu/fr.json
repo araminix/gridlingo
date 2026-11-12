@@ -1,0 +1,90 @@
+{
+    "intro": "Modbus sur un câble série. Un maître et jusqu'à 247 esclaves partagent une ligne RS-485 à deux fils. Seul le maître engage la conversation : il appelle un esclave par son adresse, et seul cet esclave répond. Un CRC à la fin de chaque trame détecte les octets abîmés.",
+    "steps": {
+        "poll": { "title": "Interroger l'esclave 1", "text": "L'enregistreur de données est le maître. Il demande deux input registers à l'esclave 1, l'onduleur. Tous les équipements de la ligne entendent la trame, mais seul l'esclave 1 répond." },
+        "meter": { "title": "Interroger l'esclave 2", "text": "Ensuite, le compteur à l'adresse 2. Sa puissance est un flottant 32 bits sur deux registres, mot de poids fort en premier." },
+        "silent": { "title": "Pas de réponse", "text": "L'esclave 3 ne répond pas. L'enregistreur attend 1 seconde, redemande une fois, puis le marque hors ligne et passe à la suite. Il ne peut pas savoir pourquoi : une coupure d'alimentation, un fil cassé ou un mauvais réglage se ressemblent." },
+        "broadcast": { "title": "Diffusion", "text": "L'enregistreur envoie une limite de puissance à l'adresse 0, une diffusion. Chaque esclave l'applique et aucun ne répond : l'enregistreur ne sait donc pas qui l'a reçue. Le compteur n'a pas de registre 40201 et ne fait rien." },
+        "confirm": { "title": "Relire", "text": "L'enregistreur laisse 200 ms aux esclaves pour agir, puis relit la limite sur l'esclave 1 : 60 %. L'esclave 3 est toujours hors ligne : sa limite est inconnue." }
+    },
+    "frames": {
+        "inv1-req": "Esclave 1 : envoie-moi les input registers 0 et 1",
+        "inv1-resp": "3250 W et 230.4 V",
+        "meter-req": "Esclave 2 : envoie-moi les input registers 12 et 13",
+        "meter-resp": "2871.5 W au point de raccordement",
+        "inv2-req": "Esclave 3 : envoie-moi les input registers 0 et 1",
+        "inv2-retry": "Esclave 3, encore : tu es là ?",
+        "broadcast": "À tous : limitez votre puissance à 60 %",
+        "confirm-req": "Esclave 1 : quelle est ta limite de puissance ?",
+        "confirm-resp": "60 %"
+    },
+    "fields": {
+        "slave-0": { "name": "Adresse 0", "note": "Une diffusion : chaque esclave prend la trame, et aucun n'a le droit de répondre." },
+        "slave-1": { "name": "Adresse 1", "note": "L'esclave 1, l'onduleur. Lui seul répond à cette trame." },
+        "slave-2": { "name": "Adresse 2", "note": "L'esclave 2, le compteur." },
+        "slave-3": { "name": "Adresse 3", "note": "L'esclave 3, l'onduleur 2." },
+        "fc03": { "name": "Fonction 03", "note": "0x03 : lire des holding registers, où se trouvent les réglages." },
+        "fc04": { "name": "Fonction 04", "note": "0x04 : lire des input registers, les valeurs que mesure un équipement. On ne peut pas y écrire." },
+        "fc06": { "name": "Fonction 06", "note": "0x06 : écrire un registre." },
+        "addr-0": { "name": "Adresse 0", "note": "0x0000 : le registre 30001 du manuel. Le fil compte à partir de 0." },
+        "addr-12": { "name": "Adresse 12", "note": "0x000C = 12 : le registre 30013, la puissance au point de raccordement." },
+        "addr-200": { "name": "Adresse 200", "note": "0x00C8 = 200 : le registre 40201, la limite de puissance des onduleurs." },
+        "qty-1": { "name": "Nombre", "note": "1 registre." },
+        "qty-2": { "name": "Nombre", "note": "2 registres de 16 bits : 4 octets." },
+        "count-2": { "name": "Nombre d'octets", "note": "2 octets de données suivent." },
+        "count-4": { "name": "Nombre d'octets", "note": "4 octets de données suivent." },
+        "power": { "name": "Registre 30001", "note": "0x0CB2 = 3250 : puissance AC, en W." },
+        "voltage": { "name": "Registre 30002", "note": "0x0900 = 2304 : tension du réseau par pas de 0.1 V, soit 230.4 V." },
+        "meter-power": { "name": "Registres 30013–30014", "note": "0x45337800 : un flottant 32 bits, mot de poids fort en premier (ABCD). Il vaut 2871.5 (W)." },
+        "limit-60": { "name": "Valeur", "note": "0x003C = 60 : 60 % de la puissance nominale." },
+        "crc": { "name": "CRC", "note": "CRC-16 sur tous les octets qui précèdent, envoyé octet de poids faible en premier. Un esclave jette une trame dont le CRC est faux, et reste muet." }
+    },
+    "devices": {
+        "logger": "Enregistreur",
+        "inv1": "Onduleur 1",
+        "meter": "Compteur d'énergie",
+        "inv2": "Onduleur 2"
+    },
+    "facts": {
+        "standard": "Modbus over Serial Line V1.02 (Modbus Organization, 2006)",
+        "between": "Un maître (enregistreur, contrôleur) → jusqu'à 247 esclaves",
+        "transport": "RS-485 : deux fils de données et une masse, jusqu'à environ 1200 m",
+        "frames": "Adresse, code de fonction, données, CRC-16. Pas d'octet de début : ce sont les silences qui séparent les trames.",
+        "speed": "À 9600 bauds, une requête de 8 octets prend 9.2 ms"
+    },
+    "tips": [
+        "Tous les équipements de la ligne doivent utiliser la même vitesse, la même parité et les mêmes bits de stop. Un seul mauvais réglage ressemble à s'y méprendre à un esclave mort.",
+        "Placez une résistance de 120 Ω à chaque extrémité de la ligne, pas sur chaque équipement. Des résistances manquantes ou en trop provoquent des erreurs CRC intermittentes.",
+        "Deux équipements à la même adresse répondent en même temps et se brouillent mutuellement. Réglez chaque adresse avant de brancher l'équipement.",
+        "Si rien ne répond du tout, inversez les deux fils de données. Les fabricants ne sont pas d'accord sur lequel est A et lequel est B."
+    ],
+    "points": {
+        "power": "Puissance AC",
+        "voltage": "Tension réseau",
+        "limit": "Limite de puissance"
+    },
+    "values": {
+        "unconfirmed": "60 %, non confirmé"
+    },
+    "timing": {
+        "title": "Trames et silences sur la ligne, à 9600 bauds",
+        "note": "Modbus RTU n'a ni octet de début ni octet de fin. Une trame est terminée quand la ligne reste silencieuse pendant 3.5 caractères : 4.0 ms à 9600 bauds, avec 11 bits par caractère. Au-delà de 19200 bauds, le silence est fixé à 1.75 ms. À l'intérieur d'une trame, une pause de plus de 1.5 caractère casse la trame.",
+        "logger": "L'enregistreur envoie",
+        "inv1": "L'onduleur 1 répond",
+        "idle": "Ligne silencieuse",
+        "t35": "3.5 caractères de silence : fin de trame"
+    },
+    "playground": {
+        "file": "Le paramétrage de cette ligne dans l'enregistreur. Chaque esclave de la ligne doit utiliser la même vitesse et la même parité.",
+        "baud": "9600 bits par seconde. Tous les équipements de la ligne doivent utiliser la même vitesse.",
+        "parity": "8E1 : 8 bits de données, parité paire, 1 bit de stop. Le bit de parité détecte les erreurs sur un seul bit. 8E1 est la valeur par défaut de Modbus ; beaucoup d'équipements sont livrés réglés en 8N1.",
+        "timeout": "Le temps pendant lequel l'enregistreur attend une réponse avant d'abandonner : 1 seconde.",
+        "retries": "Redemander une fois avant de marquer un esclave hors ligne.",
+        "after-broadcast": "Personne ne répond à une diffusion : l'enregistreur attend donc ce temps avant la trame suivante.",
+        "address": "L'adresse de l'esclave, de 1 à 247. Deux équipements ne doivent jamais partager la même.",
+        "read": "Fonction 04 à partir de l'adresse 0 : l'adresse sur le fil, pas 30001.",
+        "values": "Le registre 30001 contient des watts. Le 30002 contient des dixièmes de volt : 2304 vaut 230.4 V.",
+        "limit": "La limite de puissance, un holding register. La diffusion l'écrit sur les deux onduleurs.",
+        "float": "La puissance du compteur : un flottant 32 bits sur deux registres, mot de poids fort en premier."
+    }
+}

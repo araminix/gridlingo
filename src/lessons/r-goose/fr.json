@@ -1,0 +1,82 @@
+{
+    "intro": "GOOSE reste à l'intérieur d'un poste : il n'a pas d'adresse IP, donc les routeurs le rejettent. R-GOOSE place le même message dans de l'UDP sur IP : il peut ainsi traverser un réseau étendu jusqu'à un autre poste. Comme il sort de l'enceinte, chaque message est signé avec une clé que seuls les relais du groupe détiennent. R-SV fait de même pour les sampled values.",
+    "steps": {
+        "keys": { "title": "Obtenir les clés", "text": "Les deux relais prouvent leur identité au centre de distribution de clés (KDC) avec leurs certificats. Le KDC donne à chacun la même clé de groupe, avec un identifiant et une durée de validité. Sans cette clé, personne ne peut fabriquer un message que les relais acceptent." },
+        "heartbeat": { "title": "Battement de cœur", "text": "Le relais A publie son signal de télédéclenchement vers le groupe multicast IP 239.192.0.1, une fois par seconde tant qu'il ne se passe rien. Les routeurs le transportent à travers le WAN jusqu'au poste B. Chaque message est signé avec la clé de groupe." },
+        "fault": { "title": "Défaut sur la ligne", "text": "Un court-circuit sur la ligne entre les deux postes. Le relais A fait déclencher son propre disjoncteur et, au même instant, publie le changement : stNum augmente de un." },
+        "repeat": { "title": "Répéter", "text": "Comme avec GOOSE, le relais A renvoie le message 2 ms plus tard, puis après 4, 8 … ms. Si le WAN perd un paquet, la copie suivante porte le déclenchement." },
+        "act": { "title": "Vérifier et déclencher", "text": "Le relais B vérifie la première copie qui arrive : un identifiant de clé qu'il connaît, une signature valide (un HMAC) et un nouveau numéro de SPDU, pour s'assurer que ce n'est pas un ancien message rejoué. Puis il fait déclencher le disjoncteur B : la ligne est coupée aux deux extrémités." }
+    },
+    "frames": {
+        "pull-a": "Voici mon certificat : donne-moi les clés de mon groupe",
+        "pull-b": "Voici mon certificat : donne-moi les clés de mon groupe",
+        "keys-a": "Clé de groupe 7, valable jusqu'à demain",
+        "keys-b": "Clé de groupe 7, valable jusqu'à demain",
+        "heartbeat": "Pas de télédéclenchement (heartbeat)",
+        "trip-a": "Alimente la bobine de déclenchement du disjoncteur A",
+        "intertrip": "Télédéclenchement ! Tr.general = TRUE",
+        "repeat": "Télédéclenchement, encore (copie 1)",
+        "trip-b": "Alimente la bobine de déclenchement du disjoncteur B"
+    },
+    "notes": {
+        "pull-a": "GDOI (RFC 6407) sur UDP 848, comme le demande IEC 62351-9. D'abord, le relais et le KDC vérifient mutuellement leurs certificats lors d'un échange IKE. Ensuite, le relais demande les clés de son groupe R-GOOSE.",
+        "pull-b": "Le relais B demande le même groupe, avec son propre certificat.",
+        "keys-a": "La clé en cours, son identifiant et sa durée de validité. Chaque membre du groupe reçoit la même clé.",
+        "keys-b": "La même clé et le même identifiant que pour le relais A.",
+        "trip-a": "Un fil de cuivre vers la bobine de déclenchement du disjoncteur, pas un message réseau.",
+        "intertrip": "Les mêmes en-têtes que le heartbeat, avec l'identification IP suivante. À l'intérieur : stNum 5, sqNum 0, Tr.general TRUE, numéro de SPDU 20872 et une nouvelle signature.",
+        "repeat": "sqNum 1 et numéro de SPDU 20873 : chaque message reçoit un nouveau numéro de SPDU, même une copie.",
+        "trip-b": "Le relais B ferme son contact de déclenchement. Le courant de défaut est coupé des deux côtés."
+    },
+    "fields": {
+        "e-dst": { "name": "Destination", "note": "01-00-5E-40-00-01 : l'adresse Ethernet du groupe IP 239.192.0.1. Sa construction est montrée plus bas." },
+        "e-src": { "name": "Source", "note": "L'adresse MAC du relais A. Au saut suivant, le routeur y met la sienne." },
+        "e-type": { "name": "EtherType", "note": "0x0800 : un paquet IPv4 suit. Sur un LAN, GOOSE utilise 0x88B8 à la place." },
+        "ip-ver": { "name": "Version", "note": "0x45 : IPv4, avec un en-tête de 5 × 4 = 20 octets." },
+        "dscp": { "name": "DSCP", "note": "0xB8 : DSCP 46, expedited forwarding. Les routeurs configurés pour cela font passer ce paquet avant le reste du trafic." },
+        "ip-len": { "name": "Longueur totale", "note": "0x00C4 = 196 octets : cet en-tête, l'en-tête UDP et le message R-GOOSE." },
+        "ip-id": { "name": "Identification", "note": "0x2F3A, un numéro pour ce paquet. Puis 00 00 : ce n'est pas un fragment." },
+        "ttl": { "name": "TTL", "note": "16 : le paquet peut traverser jusqu'à 16 routeurs. Chacun le diminue de un." },
+        "proto": { "name": "Protocole", "note": "0x11 = 17 : UDP." },
+        "ip-sum": { "name": "Somme de contrôle", "note": "0x806A, sur les 20 octets de l'en-tête. Chaque routeur la recalcule après avoir diminué le TTL." },
+        "ip-src": { "name": "IP source", "note": "10.1.0.11 : le relais A." },
+        "ip-dst": { "name": "IP destination", "note": "239.192.0.1 : un groupe multicast. Chaque relais abonné le rejoint, et les routeurs font suivre le paquet à chacun d'eux." },
+        "udp-src": { "name": "Port source", "note": "0xC001 = 49153, un port choisi par le relais A. C'est le port de destination qui compte." },
+        "udp-dst": { "name": "Port destination", "note": "0x0066 = 102, le port de R-GOOSE et de R-SV." },
+        "udp-len": { "name": "Longueur UDP", "note": "0x00B0 = 176 : cet en-tête de 8 octets et 168 octets de R-GOOSE. Non montrés ici : la somme de contrôle UDP, puis l'en-tête de session (numéro de SPDU, identifiant de clé, dates de la clé), le message GOOSE et la signature." },
+        "a-prefix": { "name": "Préfixe multicast", "note": "01-00-5E ouvre l'adresse MAC de chaque groupe multicast IPv4." },
+        "a-low": { "name": "23 bits de poids faible", "note": "Les 23 derniers bits de 239.192.0.1. Les autres bits sont abandonnés : 32 groupes IP partagent donc chaque adresse MAC, et un switch ne peut pas les distinguer." }
+    },
+    "devices": {
+        "breakera": "Disjoncteur A",
+        "relaya": "Relais A",
+        "routera": "Routeur A",
+        "wan": "WAN",
+        "kdc": "KDC",
+        "routerb": "Routeur B",
+        "relayb": "Relais B",
+        "breakerb": "Disjoncteur B"
+    },
+    "facts": {
+        "standard": "IEC TR 61850-90-5 ; depuis l'édition 2.1, dans IEC 61850-8-1 (R-GOOSE) et IEC 61850-9-2 (R-SV)",
+        "between": "Relais de postes différents, ou un poste et un centre de conduite",
+        "transport": "UDP 102 sur IP, multicast ou unicast : il traverse les routeurs",
+        "security": "Signé par un HMAC, chiffrement facultatif ; clés de groupe fournies par un KDC (IEC 62351-9, GDOI)",
+        "frames": "R-GOOSE pour les événements et les déclenchements, R-SV pour les sampled values et les synchrophaseurs"
+    },
+    "tips": [
+        "Les routeurs rejettent le multicast s'ils ne sont pas configurés pour (PIM, ou une route statique pour le groupe). Le TTL doit aussi dépasser le nombre de routeurs sur le trajet. Sinon, les paquets disparaissent sans la moindre erreur.",
+        "Un abonné qui a la mauvaise clé ou le mauvais identifiant de clé rejette tous les messages, et l'émetteur n'en sait jamais rien. Vérifiez l'état des clés des deux côtés après chaque changement.",
+        "Si le KDC est injoignable, les relais gardent leurs clés jusqu'à leur expiration. Prévoyez une durée de validité plus longue que la plus longue panne du KDC que vous envisagez.",
+        "Mesurez le délai à travers le WAN, pas seulement son débit. Un chemin rapide en moyenne mais lent par moments retarde le déclenchement au pire moment."
+    ],
+    "points": {
+        "tr": "Télédéclenchement",
+        "stnum": "Numéro d'état",
+        "spdu": "Compteur de messages",
+        "key": "Clé de groupe"
+    },
+    "anatomy": {
+        "multicast": "Comment un groupe multicast IP devient une adresse MAC"
+    }
+}

@@ -1,0 +1,115 @@
+{
+    "intro": "Dolaşım (roaming), bir sürücünün tek bir kartla birçok şirketin şarj cihazlarında şarj etmesini sağlar. OCPI, şarj cihazlarını işleten şarj noktası işletmecisini (CPO), sürücülere kartlarını ve uygulamalarını veren e-mobilite hizmet sağlayıcısına (eMSP) bağlar. Her taraf bir REST API sunar, diğeri de onu çağırır: konumlar, kartlar, oturumlar ve her şarjın faturası için.",
+    "steps": {
+        "discover": { "title": "Keşfet", "text": "İki şirket, herhangi bir sürücü dolaşıma çıkmadan önce bir kez bağlanır. eMSP, CPO'nun hangi OCPI sürümlerini sunduğunu ve API'sinin her parçasının nerede olduğunu okur." },
+        "register": { "title": "Token değiş tokuşu", "text": "eMSP geçici bir token (A) ile kaydolur. Sonunda her tarafın diğerini çağırmak için kendi token'ı olur: eMSP, CPO'yu token C ile; CPO da eMSP'yi token B ile çağırır." },
+        "location": { "title": "Bir şarj cihazı yayınla", "text": "CPO, eMSP'nin uygulaması sürücülere gösterebilsin diye konumunu tek bir EVSE (şarj noktası) ile gönderir." },
+        "authorize": { "title": "Kartı denetle", "text": "eMSP'den kartı olan bir sürücü kartını şarj cihazına okutur. CPO bu kartı tanımaz, bu yüzden eMSP'ye sorar." },
+        "session": { "title": "Oturum", "text": "Şarj başlar. CPO oturumu bildirir, sonra araç şarj olurken güncellemeler gönderir." },
+        "cdr": { "title": "Fatura", "text": "Şarjdan sonra CPO, CDR'yi (charge detail record, şarj detay kaydı) gönderir: eMSP'nin bu şarj için borcu." }
+    },
+    "frames": {
+        "versions": "Hangi OCPI sürümlerini, nerede konuşuyorsun?",
+        "endpoints": "2.2.1, endpoint'lerim de bunlar",
+        "post-credentials": "İşte token B'm ve adresim",
+        "check": "Hangi sürümleri konuşuyorsun? (token B ile)",
+        "credentials": "Kaydoldun. Bundan sonra beni token C ile çağır",
+        "put-location": "LOC-0042 konumu, NL*ABC*E12345*1 EVSE'siyle",
+        "location-ok": "Kaydedildi",
+        "authorize": "LOC-0042'de 04A2B3C4D5E6F7 kartı: şarj edebilir mi?",
+        "allowed": "Evet: ALLOWED",
+        "put-session": "SES-0187 oturumu başladı, 0 kWh",
+        "patch-session": "SES-0187: şimdiye kadar 6.25 kWh",
+        "post-cdr": "Fatura: 12.5 kWh, 6.05 EUR",
+        "cdr-ok": "Bu adreste kaydedildi"
+    },
+    "notes": {
+        "versions": "eMSP, CPO'dan e-posta ya da bir portal aracılığıyla iki şey aldı: sürüm listesinin URL'si ve token A. Authorization: Token başlığı ve ardından Base64 olarak token A ile GET gönderir. Sonra 2.2.1 sürümünün URL'sine GET gönderir.",
+        "endpoints": "Her OCPI yanıtının zarfı aynıdır: data, status_code, status_message ve timestamp. Burada data önce sürümleri, sonra 2.2.1'in endpoint'lerini listeler: her modül için bir URL, her biri SENDER ya da RECEIVER olarak işaretli. CPO; konumların, oturumların ve CDR'lerin göndericisi, token'ların alıcısıdır.",
+        "post-credentials": "eMSP hâlâ token A ile kendi kimlik bilgilerini gönderir: CPO'nun kullanacağı yeni bir token B, kendi sürüm listesinin URL'si ve rolü: EMSP, country_code DE, party_id XYZ.",
+        "check": "CPO yanıt vermeden önce eMSP'yi aynı şekilde denetler: token B ile önce sürümlerini, sonra 2.2.1 endpoint'lerini GET ile alır.",
+        "credentials": "CPO kendi kimlik bilgileriyle yanıt verir: token C, sürüm URL'si ve rolü: CPO, country_code NL, party_id ABC. Token A artık çalışmaz. Bundan sonra eMSP token C ile, CPO da token B ile çağırır.",
+        "put-location": "CPO konumu eMSP'nin locations endpoint'ine PUT ile koyar. URL, sahibini ve kimliğini belirtir; parça parça görünüm onu açıyor, gövdeyi de deneme alanı gösteriyor.",
+        "location-ok": "status_code 1000 başarı demektir. Yalnızca HTTP durumunu değil, bunu da okuyun: 2xxx bir istemci hatası, 3xxx bir sunucu hatasıdır.",
+        "authorize": "Gerçek zamanlı yetkilendirme. Kart eMSP'ye ait, bu yüzden CPO eMSP'nin tokens endpoint'ine POST gönderir: URL'de kartın uid'si ve ?type=RFID, gövdede de konum ve EVSE.",
+        "allowed": "data.allowed ALLOWED, kartın tüm token nesnesiyle birlikte. Diğer yanıtlar BLOCKED, EXPIRED, NO_CREDIT ve NOT_ALLOWED'dır. CPO, OCPP üzerinden şarj cihazına başlamasını söyler.",
+        "put-session": "CPO oturumu eMSP tarafında oluşturur: start_date_time, kwh 0, cdr_token olarak kart, auth_method AUTH_REQUEST, konum, EVSE ve konnektör, currency EUR, status ACTIVE.",
+        "patch-session": "Yalnızca değişen gider: kwh 6.25 ve last_updated. eMSP'nin uygulaması artık sürücüye o ana kadarki enerjiyi gösterebilir.",
+        "post-cdr": "CDR, iki şirket arasındaki faturadır: ne zaman, nerede, hangi kart, ne kadar enerji ve süre, fiyat. Deneme alanı onu gösteriyor.",
+        "cdr-ok": "eMSP, CDR'yi kaydeder ve Location başlığında ona ait kendi URL'sini döndürür. Artık sürücüyü faturalayabilir."
+    },
+    "fields": {
+        "a-country": { "name": "Ülke", "note": "NL: işletmecinin ülkesinin iki harfli ISO 3166 kodu." },
+        "a-operator": { "name": "İşletmeci", "note": "ABC: işletmecinin ülkesinde benzersiz olan kimliği. OCPI'de bu, CPO'nun party_id'sidir." },
+        "a-type": { "name": "Tür", "note": "E: bu kimlik bir EVSE'yi adlandırır." },
+        "a-evse": { "name": "EVSE", "note": "12345*1: işletmecinin bu şarj noktasına verdiği kendi numarası." },
+        "u-endpoint": { "name": "Endpoint", "note": "eMSP'nin endpoint listesinden alınan locations endpoint'i. CPO asla kendisi oluşturmaz." },
+        "u-country": { "name": "country_code", "note": "Nesnenin sahibi olan tarafın, yani CPO'nun ülkesi." },
+        "u-party": { "name": "party_id", "note": "CPO'nun taraf kimliği. country_code ile birlikte her OCPI nesnesinde bir şirketi adlandırır." },
+        "u-location": { "name": "location_id", "note": "CPO'nun bu konum için kimliği. Sonuna /1 eklemek, içindeki uid'si 1 olan EVSE'yi adresler." }
+    },
+    "devices": {
+        "car": "Araç",
+        "charger": "Şarj cihazı",
+        "cpo": "CPO platformu",
+        "emsp": "eMSP platformu"
+    },
+    "facts": {
+        "standard": "OCPI 2.2.1 (EVRoaming Foundation)",
+        "between": "CPO (şarj cihazlarını işletir) ↔ eMSP (sürücülere kart ve uygulama verir); doğrudan ya da bir dolaşım hub'ı üzerinden",
+        "transport": "HTTPS, REST, JSON",
+        "security": "TLS. Her istek Authorization: Token ve ardından Base64 olarak token'ı taşır.",
+        "frames": "Modüller: credentials, locations, tokens, sessions, cdrs, tariffs, commands"
+    },
+    "tips": [
+        "Karşı tarafın endpoint'lerinde listelediği URL'leri kullanın. Onları asla bir kalıptan üretmeyin: her platformun kendine özgü URL'leri vardır.",
+        "Token A yalnızca kayıt için çalışır. Kayıttan sonraki 401 hatalarının yaygın nedeni token B ile C'yi karıştırmaktır.",
+        "HTTP 200 yeterli değildir: gövdedeki status_code'u okuyun. 1000 başarı, 2xxx istemci hatası, 3xxx sunucu hatasıdır.",
+        "Bir CDR kesindir. Yanlış bir CDR değiştirilmez: CPO bir iade (credit) CDR'si, ardından yeni bir CDR gönderir."
+    ],
+    "points": {
+        "to-cpo": "CPO'ya yapılan çağrılar için token",
+        "to-emsp": "eMSP'ye yapılan çağrılar için token",
+        "kwh": "Enerji, kWh",
+        "cost": "KDV dahil fiyat"
+    },
+    "values": {
+        "token-a": "token A",
+        "token-b": "token B",
+        "token-c": "token C"
+    },
+    "anatomy": {
+        "evse-id": "Sürücülerin şarj cihazında gördüğü hâliyle bir EVSE kimliği",
+        "url": "eMSP tarafında tek bir konumun adresi"
+    },
+    "playground": {
+        "file": "CPO'nun bu derste gönderdiği bir nesne, JSON olarak. Altı çizili bir satır seçin.",
+        "owner": "Bu konumun sahibi olan CPO: ülke NL, taraf ABC. Her nesnede ve nesnenin URL'sinde bulunurlar.",
+        "location-id": "CPO'nun konuma verdiği kendi kimliği. country_code ve party_id ile birlikte benzersizdir.",
+        "publish": "true: eMSP bunu sürücülere gösterebilir. false, özel bir şarj cihazını herkese açık haritaların dışında tutar.",
+        "country": "Burada üç harf (ISO 3166-1 alpha-3); country_code'daki iki harften farklı.",
+        "coordinates": "Enlem ve boylam sayı değil, 5 ile 7 ondalıklı metin (string).",
+        "evse-uid": "uid: CPO'nun EVSE için iç kimliği; URL'lerde ve oturumlarda kullanılır.",
+        "evse-id": "evse_id: şarj cihazının üzerinde sürücüler için basılı kimlik. Parça parça görünüm onu açıyor.",
+        "status": "AVAILABLE. Değiştiğinde CPO yeni durumla bir PATCH gönderir.",
+        "standard": "IEC_62196_T2: bir Type 2 priz. format SOCKET, kabloyu sürücünün getirdiği anlamına gelir.",
+        "max-voltage": "230 V: 3 fazlı AC için bir faz ile nötr arasındaki gerilim.",
+        "max-power": "22080 W = 3 × 230 V × 32 A.",
+        "tariff": "Burada geçerli olan tarife. CPO onu tariffs modülünde yayınlar.",
+        "time-zone": "Yerel saat dilimi. OCPI'de zamanlar UTC'dir; bu, uygulamaya yerel saatin ne gösterdiğini söyler.",
+        "last-updated": "Bu nesnenin en son değiştiği an. Güncellemeleri kaçıran bir taraf, son senkronizasyonundan beri değişen her şeyi ister.",
+        "cdr-id": "CPO'nun bu CDR için kimliği.",
+        "session-id": "Bu CDR'nin kapattığı oturum: eMSP'nin büyüdüğünü gördüğü oturum.",
+        "cdr-token": "Şarj eden kart. Almanya'daki (DE) eMSP XYZ'ye ait.",
+        "contract": "contract_id: sürücünün eMSP ile sözleşmesi. eMSP bu sözleşmeyi faturalar.",
+        "auth-method": "AUTH_REQUEST: CPO gerçek zamanlı olarak eMSP'ye sordu. WHITELIST, önceden gönderilmiş bir kart listesi anlamına gelirdi.",
+        "cdr-location": "Şarjın nerede olduğunun bir kopyası; böylece konum değişse bile CDR doğru okunur.",
+        "currency": "Bu CDR'deki her tutar EUR cinsindendir.",
+        "periods": "Her birine tek bir tarife uygulanan dönemlere bölünmüş şarj. Bunda tek bir dönem var.",
+        "dimensions": "Bu dönemde 12.5 kWh. Sonraki satır: 1.25 sa süre.",
+        "excl-vat": "5.00 EUR: KDV'den önce 12.5 kWh × 0.40 EUR.",
+        "incl-vat": "6.05 EUR: Hollanda'nın %21 KDV'siyle.",
+        "total-energy": "Her zaman kWh cinsinden.",
+        "total-time": "Saat cinsinden: 14:05'ten 15:20'ye 1.25 sa eder."
+    }
+}

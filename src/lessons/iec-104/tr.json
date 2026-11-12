@@ -1,0 +1,105 @@
+{
+    "intro": "Bir trafo merkezindeki ya da santraldeki RTU'nun, sıradan bir IP ağı üzerinden kontrol odasına rapor vermesinin yolu. Her değerin bir adresi (IOA), bir türü ve gönderilme nedeni vardır. RTU sorulunca yanıt verir; bir şey değişince de kendiliğinden haber verir.",
+    "steps": {
+        "connect": { "title": "Bağlan", "text": "SCADA, RTU'ya 2404 portundan bir TCP bağlantısı açar. Henüz başka bir şey olmaz." },
+        "start": { "title": "Veriyi başlat", "text": "SCADA STARTDT göndermeden hiç veri akmaz. RTU, STARTDT con ile yanıt verir." },
+        "ask": { "title": "Her şeyi sor", "text": "Genel sorgulama, RTU'dan sahip olduğu her noktanın güncel değerini ister." },
+        "values": { "title": "Değerler geliyor", "text": "RTU ölçümlerini ve kesici durumlarını gönderir, sonra bittiğini söyler. Artık SCADA sahanın durumunu biliyor." },
+        "ack": { "title": "Onayla", "text": "SCADA aldığı çerçeveleri onaylar. Onay gelmezse RTU, onaylanmamış 12 çerçeveden sonra göndermeyi durdurur." },
+        "trip": { "title": "Kesici açıyor", "text": "Kimse sormadı: RTU değişikliği, olduğu zamanla birlikte hemen gönderir." }
+    },
+    "frames": {
+        "tcp": "2404 portuna bir TCP bağlantısı aç",
+        "startdt-act": "Lütfen veri göndermeye başla",
+        "startdt-con": "Tamam, veri aktarımı açık",
+        "gi-act": "Genel sorgulama: bana her şeyi gönder",
+        "gi-con": "Onaylandı, değerler geliyor",
+        "measured": "P = 4.82 MW, Q = 0.61 Mvar",
+        "breaker": "CB-1 kapalı",
+        "gi-term": "Hepsi bu kadardı",
+        "s-frame": "0 ile 3 arasındaki çerçevelerini aldım",
+        "trip": "CB-1 10:41:07.280'de açıldı"
+    },
+    "notes": {
+        "tcp": "Düz TCP, henüz IEC 104 baytı yok. RTU bağlantıyı kabul eder ve bekler."
+    },
+    "fields": {
+        "start": { "name": "Başlangıç", "note": "Her IEC 104 çerçevesi 0x68 ile başlar." },
+        "len4": { "name": "Uzunluk", "note": "Ardından 4 bayt gelir: yalnızca kontrol alanı." },
+        "len14": { "name": "Uzunluk", "note": "Ardından 14 bayt gelir." },
+        "len26": { "name": "Uzunluk", "note": "Ardından 26 bayt gelir." },
+        "len21": { "name": "Uzunluk", "note": "Ardından 21 bayt gelir." },
+        "startdt-act": { "name": "Kontrol · U-çerçevesi", "note": "0x07, STARTDT act demektir: veri aktarımını başlat." },
+        "startdt-con": { "name": "Kontrol · U-çerçevesi", "note": "0x0B, STARTDT con demektir: RTU kabul ediyor." },
+        "i-0-0": { "name": "Kontrol · I-çerçevesi", "note": "Gönderme numarası 0, alma numarası 0." },
+        "i-0-1": { "name": "Kontrol · I-çerçevesi", "note": "Gönderme numarası 0, alma numarası 1: \"0 numaralı çerçeveni aldım\". Numaralar bir bit sola kaydırılır; bu yüzden 1, 02 olarak gönderilir." },
+        "i-1-1": { "name": "Kontrol · I-çerçevesi", "note": "Gönderme numarası 1, alma numarası 1." },
+        "i-2-1": { "name": "Kontrol · I-çerçevesi", "note": "Gönderme numarası 2, alma numarası 1." },
+        "i-3-1": { "name": "Kontrol · I-çerçevesi", "note": "Gönderme numarası 3, alma numarası 1." },
+        "i-4-1": { "name": "Kontrol · I-çerçevesi", "note": "Gönderme numarası 4, alma numarası 1." },
+        "s-4": { "name": "Kontrol · S-çerçevesi", "note": "0x01 bunun bir S-çerçevesi olduğunu gösterir. Alma numarası 4 (08 olarak gönderilir): \"0 ile 3 arasındaki çerçevelerin bende\"." },
+        "type100": { "name": "Tür 100", "note": "C_IC_NA_1: sorgulama komutu." },
+        "type13": { "name": "Tür 13", "note": "M_ME_NC_1: 32 bit kayan noktalı sayı olarak bir ölçüm değeri." },
+        "type3": { "name": "Tür 3", "note": "M_DP_NA_1: kesiciler ve ayırıcılar için kullanılan çift nokta." },
+        "type31": { "name": "Tür 31", "note": "M_DP_TB_1: zaman etiketli çift nokta." },
+        "vsq1": { "name": "Sayı", "note": "Tek bir bilgi nesnesi." },
+        "vsq2": { "name": "Sayı", "note": "Her birinin kendi adresi olan iki nesne." },
+        "cot6": { "name": "Neden 6", "note": "Aktivasyon. İkinci bayt kaynak (originator) adresidir; burada 0." },
+        "cot7": { "name": "Neden 7", "note": "Aktivasyon onaylandı." },
+        "cot10": { "name": "Neden 10", "note": "Aktivasyon bitti: yanıt tamamlandı." },
+        "cot20": { "name": "Neden 20", "note": "İstasyon sorgulaması nedeniyle gönderildi." },
+        "cot3": { "name": "Neden 3", "note": "Kendiliğinden: değer değişti, kimse sormadı." },
+        "ca": { "name": "Ortak adres", "note": "İstasyon 1. İki bayt, düşük bayt önce." },
+        "ioa0": { "name": "IOA 0", "note": "Komut tek bir nokta için değil, tüm istasyon için." },
+        "ioa1001": { "name": "IOA 1001", "note": "Aktif gücün adresi: 0x0003E9, düşük bayt önce." },
+        "ioa1002": { "name": "IOA 1002", "note": "Reaktif gücün adresi." },
+        "ioa2001": { "name": "IOA 2001", "note": "CB-1 kesicisinin adresi: 0x0007D1." },
+        "qoi20": { "name": "QOI 20", "note": "İstasyon sorgulaması: tüm gruplar." },
+        "value-p": { "name": "Değer", "note": "32 bit kayan noktalı sayı, düşük bayt önce: 4.82 (MW)." },
+        "value-q": { "name": "Değer", "note": "0.61 (Mvar)." },
+        "qds": { "name": "Kalite", "note": "İyi: hiçbir bayrak işaretli değil." },
+        "diq-on": { "name": "Durum 2", "note": "Devrede (on): kesici kapalı. 1 devre dışı (off) demektir; 0 ve 3 ara konum ya da arıza anlamına gelir." },
+        "diq-off": { "name": "Durum 1", "note": "Devre dışı (off): kesici açık." },
+        "cp56": { "name": "CP56Time2a", "note": "7.280 s, 41 dk, 10 sa, Perşembe 12 Kasım, (20)26. İçinde saat dilimi yok." }
+    },
+    "devices": {
+        "scada": "SCADA ana istasyonu",
+        "rtu": "RTU",
+        "inverter": "PV inverteri",
+        "pv": "PV dizisi",
+        "battery": "Batarya",
+        "breaker": "CB-1 kesicisi"
+    },
+    "facts": {
+        "standard": "IEC 60870-5-104, 2. baskı (2006)",
+        "between": "RTU veya ağ geçidi → SCADA",
+        "transport": "TCP 2404",
+        "security": "TLS (IEC 62351-3), TCP 19998",
+        "frames": "I: veri · S: onay · U: kontrol"
+    },
+    "tips": [
+        "İki taraf adres boyutlarında anlaşmalı: ortak adres 2 bayt, IOA 3 bayt. Uyuşmazlık hata vermez, anlamsız değerler okutur.",
+        "Zaman etiketlerinde saat dilimi yoktur, yalnızca bir yaz saati biti vardır. Devreye almadan önce UTC mi yerel saat mi kullanılacağında anlaşın.",
+        "En geç 8 çerçevede bir onay verin (w). Onaylanmamış 12 çerçeveden (k) sonra RTU göndermeyi durdurur."
+    ],
+    "points": {
+        "p": "Aktif güç",
+        "q": "Reaktif güç",
+        "cb": "CB-1 kesicisi"
+    },
+    "values": {
+        "closed": "kapalı",
+        "open": "açık"
+    },
+    "playground": {
+        "encoder": "Bir değer yazın ve IEC 104'te bir float'ın hangi dört baytla taşındığını görün. IEC 104 bu baytları düşük bayt önce gönderir (DCBA).",
+        "file": "RTU'nun nokta listesi: her adresin anlamı. SCADA'da da aynı liste olmalı, yoksa değerleri okuyamaz.",
+        "common-address": "İstasyonun adresi. Her çerçevede bulunur.",
+        "ioa": "Bilgi nesnesi adresi: her sinyal için bir tane.",
+        "type": "Değerin nasıl taşındığı: zaman etiketi olmayan bir float.",
+        "scale": "Float olarak gönderilen bir değer ölçekleme gerektirmez. Normalize ve ölçekli türler gerektirir.",
+        "double": "Çift nokta: devrede, devre dışı, ara konum ve arıza için 2 bit.",
+        "spontaneous": "Değiştiğinde, zaman etiketiyle hemen gönderilir.",
+        "time": "Zaman etiketlerinin hangi saati kullandığını not edin."
+    }
+}

@@ -1,0 +1,83 @@
+{
+    "intro": "Şebekede güç yetmediğinde bir elektrik şirketinin binalardan daha az güç kullanmalarını istemesinin yolu. Elektrik şirketinin sunucusu VTN'dir (virtual top node); müşteri tarafı VEN'dir (virtual end node). Bu ders, sahadaki ürünlerin çoğunun konuştuğu sürüm olan OpenADR 2.0b'yi kullanıyor: HTTPS üzerinden XML ve sorgulamayı VEN yapıyor; böylece binada açık port gerekmiyor. VTN neyin ne zaman yapılacağını söyler; nasıl yapılacağına bina karar verir.",
+    "steps": {
+        "poll": { "title": "Yenilik sor", "text": "12:00 UTC'de VEN, her dakika yaptığı gibi sorgular. Bu kez VTN bir olayla (event) yanıt verir: seviye 1, 17:00'dan 18:00 UTC'ye." },
+        "optin": { "title": "Katıl", "text": "Olay bir yanıt istiyor. VEN katılacağını (opt in) bildirir, VTN de onaylar." },
+        "shed": { "title": "Yük at", "text": "Kendi saatine göre 17:00'da VEN, binanın kontrolörüne harekete geçmesini söyler: soğutma ayar değerleri 2 °C artar ve koridor ışıkları kısılır. Yük 420 kW'tan 340 kW'a düşer." },
+        "report": { "title": "Raporla", "text": "VEN, kaydolurken anlaşıldığı gibi ölçtüğü yükü gönderir. Elektrik şirketi düşüşü görür." },
+        "end": { "title": "Normale dön", "text": "18:00'da olay biter. VEN komutlarını geri alır ve bina programına döner." }
+    },
+    "frames": {
+        "tls": "Sertifikamla bir TLS bağlantısı aç",
+        "poll": "Benim için yeni bir şey var mı?",
+        "distribute": "Puant olayı: seviye 1, 17:00'dan 18:00'a",
+        "created": "Katılacağız",
+        "response": "Not edildi",
+        "shed": "Şimdi seviye 1: soğutma ayar değerlerini yükselt, ışıkları kıs",
+        "update-report": "Yükümüz şimdi 340 kW",
+        "updated-report": "Rapor alındı",
+        "restore": "Olay bitti: normale dön"
+    },
+    "notes": {
+        "tls": "Bağlantıyı her zaman VEN açar. İki taraf da OpenADR için verilmiş bir sertifika gösterir. TLS 1.2, OpenADR'nin istediği iki takımdan biriyle: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 ya da TLS_RSA_WITH_AES_128_CBC_SHA256.",
+        "poll": "/OpenADR2/Simple/2.0b/OadrPoll'a, küçük bir oadrPoll mesajı taşıyan bir HTTP POST: yalnızca VEN'in venID'si. Sorgulama sıklığını VTN, VEN kaydolurken belirledi.",
+        "distribute": "Sorgunun yanıtı. Yalnızca yenileri değil, bu VEN için bekleyen ve etkin tüm olayları listeler. Bunu deneme alanı satır satır gösteriyor.",
+        "created": "EiEvent'e bir POST: olayı adlandıran (eventID PEAK-20260715, modificationNumber 0), responseCode 200 ve optType optIn içeren bir oadrCreatedEvent. optOut, elektrik şirketine bu binaya güvenmemesini söylerdi.",
+        "response": "responseCode 200 içeren bir oadrResponse. VTN, yeni bir şeyi olmadığında bir sorguyu da aynı mesajla yanıtlar.",
+        "shed": "OpenADR değil: VEN'den binanın kontrolörüne bir BACnet yazması. OpenADR yalnızca seviye 1 der. Seviye 1'in ne anlama geldiği elektrik şirketi tarafından değil, binada belirlenir.",
+        "update-report": "EiReport'a bir POST: TELEMETRY_USAGE raporu içeren, binanın her 15 dakikadaki gerçek gücünü taşıyan bir oadrUpdateReport. VTN bunu, VEN gönderebileceği raporları kaydettikten sonra oadrCreateReport ile istedi.",
+        "updated-report": "responseCode 200 içeren bir oadrUpdatedReport.",
+        "restore": "Bu da OpenADR değil. VEN kendi BACnet önceliğine NULL yazar ve böylece komutlarını bırakır. Yük yeniden 415 kW'a çıkar."
+    },
+    "fields": {
+        "a-host": { "name": "VTN", "note": "Elektrik şirketinin sunucusu. Bir VTN, geri kalanın önüne kendine ait bir yol koyabilir." },
+        "a-transport": { "name": "Taşıma", "note": "Simple HTTP. OpenADR 2.0b, VTN'in mesajı ittiği (push) XMPP üzerinde de çalışabilir." },
+        "a-profile": { "name": "Profil", "note": "2.0b: olaylar, raporlar ve opt programları. 2.0a, basit cihazlar için yalnızca olaylardan oluşan daha küçük bir profildir." },
+        "a-service": { "name": "Servis", "note": "OadrPoll. Her mesaj kendi servisine gider: olaylar EiEvent'e, raporlar EiReport'a, kayıt EiRegisterParty'ye, opt programları EiOpt'a." }
+    },
+    "devices": {
+        "vtn": "Elektrik şirketi VTN'i",
+        "ven": "Bina VEN'i",
+        "bms": "BMS kontrolörü",
+        "building": "Ofis binası"
+    },
+    "facts": {
+        "standard": "OpenADR 2.0b (IEC 62746-10-1)",
+        "between": "Elektrik şirketi ya da toplayıcı (VTN) → binalar ve toplayıcılar (VEN)",
+        "transport": "HTTPS üzerinden XML; sorgulamayı VEN yapar (ya da XMPP)",
+        "security": "TLS 1.2, her tarafta bir sertifika; XML imzaları isteğe bağlı",
+        "frames": "Servisler: EiEvent, EiReport, EiRegisterParty, EiOpt, OadrPoll"
+    },
+    "tips": [
+        "Bir olaydaki her değişiklik modificationNumber'ı artırır. Her yeni numarayı yanıtlayın; yoksa VTN, VEN'in değişikliği hiç almadığını düşünür.",
+        "VEN olayı kendi saatine göre yürütür. Onu NTP'ye bağlı tutun: 10 dakika geri kalan bir saat, yükü 10 dakika geç atar.",
+        "Elektrik şirketi her katılımı (opt-in) plana katar. Bina yük atamayacaksa olay başladıktan sonra değil, erkenden katılmayacağını (opt out) bildirin."
+    ],
+    "points": {
+        "status": "Olay durumu",
+        "opt": "Yanıt",
+        "load": "Bina yükü"
+    },
+    "anatomy": {
+        "endpoint": "Bir VEN'in sorguladığı adres"
+    },
+    "playground": {
+        "file": "1. adımdaki oadrDistributeEvent, VEN'in aldığı hâliyle. Ne anlama geldiğini görmek için işaretli bir satır seçin.",
+        "payload": "Her OpenADR 2.0b mesajı bir oadrPayload'dur. Namespace'ler parçalarının nereden geldiğini gösterir: OpenADR'nin kendisi, Energy Interoperation (ei), EMIX ve iCalendar (xcal).",
+        "signed": "Bir XML imzasının kapsayacağı kısım. İmzalama isteğe bağlıdır: bağlantıyı zaten TLS korur.",
+        "distribute": "Mesaj: VTN'den gelen oadrDistributeEvent.",
+        "vtn": "VTN'in adı.",
+        "event-id": "Olayın adı. VEN'in yanıtı onu belirtmelidir.",
+        "modification": "0: ilk sürüm. Olaydaki her değişiklik bunu artırır ve VEN yeniden yanıt vermelidir.",
+        "market": "Olayın ait olduğu program. Bina bu programa kaydoldu.",
+        "status": "far: olaya daha saatler var. Sonraki yanıtlar onu önce active, sonra completed olarak gösterir.",
+        "test": "false: gerçek bir olay. Bir test olayı tüm zinciri denetler; VEN'in buna göre davranması gerekmez.",
+        "start": "Olay 17:00 UTC'de başlar.",
+        "length": "PT1H: bir saat sürer (bir ISO 8601 süresi).",
+        "level": "Bu aralığın değeri: 1.0. SIMPLE sinyali için 0 normal, 1 orta, 2 yüksek, 3 özel demektir.",
+        "simple": "SIMPLE: her OpenADR VEN'inin anlaması gereken tek sinyal.",
+        "current": "Şu anki değer: 0.0, çünkü olay henüz başlamadı.",
+        "target": "Olay yalnızca bu VEN için.",
+        "response": "always: VEN, katıldığını ya da katılmadığını bildiren bir oadrCreatedEvent ile yanıt vermelidir."
+    }
+}

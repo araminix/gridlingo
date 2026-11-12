@@ -1,0 +1,104 @@
+{
+    "intro": "IEC 61400-25 是面向风电场的 IEC 61850。它增加了一批逻辑节点：风机本体、风轮、发电机、变流器、气象，以及整个风电场的控制。IEC 61400-25-4 把模型映射到具体协议；采用 MMS 映射时，风机的通信方式和任何 IEC 61850 服务器一样。",
+    "steps": {
+        "associate": { "title": "建立关联", "text": "风电场控制器连接风机 WT01 的 TCP 102 端口，建立 MMS 关联。采用 MMS 映射时，风机就是一台普通的 IEC 61850 服务器。" },
+        "read": { "title": "读取风机", "text": "一次 Read 请求三个值：WTUR1 中的有功功率、WROT1 中的风轮转速和 WMET1 中的风速。WTUR 里还有风机的运行状态 TurSt。" },
+        "subscribe": { "title": "订阅报告", "text": "控制器使能报告 urcbWTG01。现在风机在值变化时发送它的数据集，并且无论如何每 10 s 发送一次。" },
+        "limit": { "title": "全场限值", "text": "电网调度的 SCADA 操作 WAPC1，即风电场有功功率控制：全场最多 5.4 MW。" },
+        "follow": { "title": "风机跟随", "text": "风电场控制器给三台风机各分一份：1800 kW。WT01 调整桨距角、降功率，并报告它的新功率。" }
+    },
+    "frames": {
+        "initiate-req": "我们用 MMS 通信吧：这是我的参数和服务",
+        "initiate-resp": "同意：这是我的",
+        "read-req": "你的功率、风轮转速和风速是多少？",
+        "read-resp": "2350.0 kW，12.75 rpm，9.5 m/s",
+        "enable-req": "使能报告 urcbWTG01",
+        "enable-resp": "完成",
+        "oper": "风电场最多可以送出 5.4 MW",
+        "share": "每台风机：最多 1800 kW",
+        "report": "W 现在是 1800.0 kW"
+    },
+    "notes": {
+        "initiate-req": "先 TCP 连接 102 端口并建立 COTP 连接，与 IEC 61850 MMS 课程相同。然后 MMS Initiate 提出报文大小和服务。",
+        "initiate-resp": "风机回复自己的报文大小和服务。现在可以浏览它的模型，或从它的 SCL 文件读取。",
+        "oper": "对 WAPC（风电场有功功率逻辑节点）的一次控制：给出全场出力的新参考值。风电场控制器回复一个 Write 响应。",
+        "share": "限值怎样分到每台风机，由风电场控制器决定。在场内，很多风电场用风机厂家自己的协议来做这件事。",
+        "report": "来自 urcbWTG01 的一份非请求 InformationReport，含 W、RotSpd 和 HorWdSpd。它的原因码说明触发原因：数据变化。"
+    },
+    "fields": {
+        "tpkt-143": { "name": "TPKT", "note": "版本 3，然后是整条报文的长度：0x008F = 143 字节。" },
+        "tpkt-50": { "name": "TPKT", "note": "版本 3，然后是长度：0x0032 = 50 字节。" },
+        "tpkt-75": { "name": "TPKT", "note": "版本 3，然后是长度：0x004B = 75 字节。" },
+        "tpkt-29": { "name": "TPKT", "note": "版本 3，然后是长度：0x001D = 29 字节。" },
+        "cotp-dt": { "name": "COTP", "note": "一个数据单元（0xF0），是其报文的最后一个（0x80）。" },
+        "session": { "name": "会话层", "note": "两个简短的会话头：给出令牌、数据传送。" },
+        "presentation": { "name": "表示层", "note": "完全编码的数据，表示上下文 3：后面是 MMS。" },
+        "presentation-long": { "name": "表示层", "note": "完全编码的数据，上下文 3：后面是 MMS。81 81 是长格式长度：0x81 表示后面跟一个长度字节，而这个字节 0x81 就是 129。" },
+        "confirmed-req": { "name": "确认请求", "note": "标签 A0：一个需要应答的请求。下一个字节是其中的字节数。" },
+        "confirmed-resp": { "name": "确认响应", "note": "标签 A1：对请求的应答。" },
+        "invoke-3": { "name": "调用 ID 3", "note": "控制器选的一个编号。应答带同一个编号。" },
+        "invoke-3-resp": { "name": "调用 ID 3", "note": "与请求编号相同：这是对它的应答。" },
+        "invoke-4": { "name": "调用 ID 4", "note": "新的请求，新的编号。" },
+        "invoke-4-resp": { "name": "调用 ID 4", "note": "这是对写入 RptEna 的应答。" },
+        "read": { "name": "Read", "note": "标签 A4：Read 服务。" },
+        "spec": { "name": "变量列表", "note": "变量列表，每个变量按名字给出。这里有三个。" },
+        "var": { "name": "变量", "note": "列表中的一项。后面是它的名字。" },
+        "domain-specific": { "name": "域内名称", "note": "由两部分组成的名字：域和条目。" },
+        "domain": { "name": "域", "note": "\"WT01WTG\"：IED WT01 的逻辑设备 WTG。" },
+        "item-w": { "name": "条目", "note": "\"WTUR1$MX$W$mag$f\"：风机输出的有功功率。" },
+        "item-rotspd": { "name": "条目", "note": "\"WROT1$MX$RotSpd$mag$f\"：风轮转速。" },
+        "item-wdspd": { "name": "条目", "note": "\"WMET1$MX$HorWdSpd$mag$f\"：水平风速，来自机舱上的风速仪。" },
+        "results": { "name": "结果", "note": "三个结果，顺序与请求相同。" },
+        "float-tag": { "name": "浮点数", "note": "标签 0x87（浮点数），5 字节。08：后面是一个 IEEE 754 单精度浮点数。" },
+        "w": { "name": "W", "note": "2350.0。单位 kW 在属性 units（CF）里。" },
+        "rotspd": { "name": "RotSpd", "note": "12.75（rpm），高字节在前。" },
+        "wdspd": { "name": "HorWdSpd", "note": "9.5（m/s）。" },
+        "write": { "name": "Write", "note": "标签 A5：Write 服务。" },
+        "write-spec": { "name": "变量", "note": "只含一个变量的列表，按名字给出。" },
+        "item-rptena": { "name": "条目", "note": "\"LLN0$RP$urcbWTG01$RptEna\"：urcbWTG01 的使能标志，它是报告控制块 urcbWTG 的第一个实例。RP 表示非缓存报告。" },
+        "data-list": { "name": "数据", "note": "要写入的值，每个变量一个。" },
+        "true": { "name": "TRUE", "note": "标签 0x83，布尔值，1 字节：TRUE。报告从现在开始。" },
+        "write-resp": { "name": "Write 响应", "note": "标签 A5：对 Write 的应答，每个变量一个结果。" },
+        "success": { "name": "成功", "note": "标签 0x81，为空：写入成功。" },
+        "a-ld": { "name": "逻辑设备", "note": "WT01WTG：IED 名称 WT01 加实例 WTG。" },
+        "a-ln": { "name": "逻辑节点", "note": "WMET1：这台风机的气象传感器。测风塔有它自己的 WMET。" },
+        "a-fc": { "name": "功能约束", "note": "MX：测量值。" },
+        "a-hor": { "name": "水平", "note": "Hor。数据对象名称由这样的短词拼成，中间不留空格。" },
+        "a-wd": { "name": "风", "note": "Wd。其他短词：Tmp 表示温度，Dir 表示方向。" },
+        "a-spd": { "name": "速度", "note": "Spd。合起来：HorWdSpd，水平风速。" },
+        "a-da": { "name": "数据属性", "note": "mag.f：幅值，浮点数。" }
+    },
+    "devices": {
+        "scada": "调度中心",
+        "met": "测风塔",
+        "ppc": "风电场控制器",
+        "wt01": "WT01",
+        "wt02": "WT02",
+        "wt03": "WT03"
+    },
+    "facts": {
+        "standard": "IEC 61400-25-2 第 2 版（2015）：模型。IEC 61400-25-4：映射",
+        "between": "风电场控制器、SCADA 或业主 → 风机、测风塔、风电场",
+        "transport": "MMS over TCP 102，与 IEC 61850-8-1 相同。IEC 61400-25-41 中为 OPC UA",
+        "security": "采用 MMS 时：TLS（IEC 62351-4），TCP 3782",
+        "model": "风电逻辑节点：WTUR、WROT、WGEN、WCNV、WMET、WAPC……"
+    },
+    "tips": [
+        "第 2 版（2015）把机舱上的风速和气象传感器从 WNAC 挪到了 WMET，还改了几个缩写。按第 1 版编写的客户端会找错地方。",
+        "数值不带单位。W 可能是 W，也可能是 kW：连接后读一次 units（CF），并记下来。",
+        "各风机厂家对模型的填充方式不同：可选数据对象、实例编号、数据集。每种机型都要读它自己的 SCL 文件；不要把一份映射套用到所有风机上。",
+        "许多风电场对调度用 IEC 61400-25，对风机却用厂家自己的协议。先问清楚你拿到的是哪个接口。"
+    ],
+    "points": {
+        "w": "有功功率",
+        "rotspd": "风轮转速",
+        "wdspd": "风速"
+    },
+    "anatomy": {
+        "dataname": "由短词拼成的数据对象名称"
+    },
+    "playground": {
+        "scl": "风机的配置描述文件（.cid）。打开 WTG：风机的每个部件都是一个逻辑节点。WTUR1、WROT1 和 WMET1 中有这里读取的三个值。如果你有自己的文件，也可以打开看看。",
+        "encoder": "MMS 发送浮点数时高字节在前（ABCD）。2350.0 以 45 12 E0 00 传送。"
+    }
+}

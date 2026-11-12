@@ -1,0 +1,108 @@
+{
+    "intro": "La façon dont un gestionnaire de réseau dit aux onduleurs intelligents, aux batteries et aux bornes quoi faire, par Internet. L'équipement est le client : il récupère des ressources XML sur le serveur du gestionnaire de réseau en HTTPS, suit les liens qu'elles contiennent, et renvoie ses réponses et ses mesures par POST. Un certificat de chaque côté prouve qui parle.",
+    "steps": {
+        "tls": { "title": "Montrer les certificats", "text": "L'onduleur ouvre une connexion TLS 1.2 vers le serveur du gestionnaire de réseau. Les deux côtés présentent un certificat, et une seule suite cryptographique est autorisée. Chaque côté sait maintenant qui est l'autre." },
+        "discover": { "title": "Se trouver", "text": "L'onduleur connaît une seule adresse : /dcap. De là, il suit les liens jusqu'à la liste des équipements, et trouve celui dont le lFDI correspond à son propre certificat." },
+        "control": { "title": "Lire la consigne", "text": "Par son programme, l'onduleur lit un DERControl : limiter la production à 50 % pendant deux heures, à partir de 11:00 UTC." },
+        "received": { "title": "Accuser réception", "text": "La consigne demande des réponses. L'onduleur en envoie une : statut 1, reçue." },
+        "start": { "title": "Limiter la production", "text": "À 11:00, selon sa propre horloge, l'onduleur réduit sa production de 9.6 kW à 5.0 kW (50 % de ses 10 kW) et envoie le statut 2, commencée." },
+        "report": { "title": "Rendre compte", "text": "L'onduleur envoie sa puissance mesurée dans son miroir sur le serveur. Le gestionnaire de réseau voit que la limite est respectée." }
+    },
+    "frames": {
+        "client-hello": "Bonjour. Je parle TLS 1.2, avec cette seule suite cryptographique",
+        "server-hello": "D'accord. Voici mon certificat. Montre-moi le tien",
+        "client-finished": "Voici mon certificat, et la preuve que je détiens sa clé",
+        "server-finished": "Ton certificat est valide. Désormais, tout est chiffré",
+        "get-dcap": "Que propose ce serveur ?",
+        "dcap": "Mes listes : équipements, miroirs, heure, etc.",
+        "get-edev": "Quels équipements connais-tu ?",
+        "edev": "L'EndDevice /edev/3 porte ton lFDI",
+        "get-derc": "Quelles consignes y a-t-il pour moi ?",
+        "derc": "Limiter la production à 50 %, de 11:00 à 13:00",
+        "post-received": "Consigne reçue",
+        "created": "Enregistré",
+        "post-started": "Limitation commencée",
+        "post-reading": "Ma puissance active est maintenant de 5000 W"
+    },
+    "notes": {
+        "server-hello": "Quatre messages d'un coup. ServerHello choisit 0xC0AE. Certificate porte la chaîne de certificats du serveur. ServerKeyExchange porte sa moitié de l'accord de clés ECDHE. CertificateRequest demande le certificat du client : sans lui, TLS ne vérifierait que le serveur.",
+        "client-finished": "L'onduleur envoie son certificat d'équipement et sa moitié de l'accord de clés. Puis il signe toute la négociation avec sa clé privée (CertificateVerify) : seul le vrai titulaire du certificat peut le faire. Le certificat a été installé en usine, sous la PKI IEEE 2030.5, et il n'expire jamais.",
+        "server-finished": "Le serveur vérifie la chaîne de certificats de l'onduleur jusqu'à la racine en laquelle il a confiance, puis envoie son propre Finished. Dès lors, chaque enregistrement est chiffré. HTTP circule à l'intérieur, et personne sur le trajet ne peut le lire ni le modifier.",
+        "get-dcap": "Dans TLS : GET /dcap HTTP/1.1, avec Accept: application/sep+xml. /dcap est la seule adresse donnée à un client. Il trouve toutes les autres par des liens.",
+        "dcap": "Une ressource DeviceCapability : des liens comme EndDeviceListLink href=\"/edev\", MirrorUsagePointListLink href=\"/mup\" et TimeLink href=\"/tm\". pollRate=\"900\" : interroger ces ressources toutes les 900 s.",
+        "get-edev": "La liste des équipements. Le serveur peut ne lister que les équipements que ce certificat a le droit de voir.",
+        "edev": "Chaque EndDevice contient un lFDI et un sFDI. /edev/3 contient BB1309569EF761C13E620EA80AA3E84D2B6B553D, celui de l'onduleur. L'installateur a communiqué son SFDI au gestionnaire de réseau lors de l'installation de l'onduleur.",
+        "get-derc": "Avant cela, deux autres GET du même genre : de /edev/3 vers ses FunctionSetAssignments, puis vers la liste des programmes DER. Le programme /derp/1 mène à ses consignes.",
+        "derc": "Un DERControl, montré ligne par ligne dans le bac à sable : opModMaxLimW 5000 (50.00 %) pendant 7200 s, à partir de 1781694000 (11:00 UTC).",
+        "post-received": "Une DERControlResponse, envoyée à l'adresse replyTo de la consigne. Elle contient le lFDI de l'onduleur, le mRID de la consigne comme sujet, et le statut 1 : reçue.",
+        "created": "HTTP 201 Created. L'en-tête Location donne l'adresse de la réponse enregistrée.",
+        "post-started": "La même réponse avec le statut 2 : commencée. À 13:00, l'onduleur enverra le statut 3, terminée, et reviendra à sa consigne par défaut.",
+        "post-reading": "Un MirrorMeterReading. Le serveur tient un miroir du compteur de l'onduleur (un MirrorUsagePoint), et l'onduleur le remplit. Son ReadingType donne l'unité : uom 38 signifie watts."
+    },
+    "fields": {
+        "record-type": { "name": "Type d'enregistrement", "note": "22 (0x16) : un message de négociation." },
+        "record-version": { "name": "Version", "note": "0x0303 : TLS 1.2. IEEE 2030.5 exige TLS 1.2." },
+        "record-length": { "name": "Longueur d'enregistrement", "note": "69 octets suivent dans cet enregistrement." },
+        "client-hello": { "name": "ClientHello", "note": "Type de négociation 1." },
+        "hello-length": { "name": "Longueur", "note": "65 octets de ClientHello suivent." },
+        "client-version": { "name": "Version du client", "note": "La plus haute version que parle l'onduleur : TLS 1.2." },
+        "random": { "name": "Aléa", "note": "32 octets aléatoires. Les deux côtés les mélangent dans les clés de session." },
+        "session-id": { "name": "Session ID", "note": "Longueur 0 : pas de session précédente à reprendre." },
+        "suites-length": { "name": "Suites cryptographiques", "note": "2 octets de suites cryptographiques suivent : une seule." },
+        "suite": { "name": "0xC0AE", "note": "TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8, la suite qu'exige IEEE 2030.5. ECDHE établit les clés, ECDSA signe les certificats, et AES-128 en mode CCM chiffre les données, avec un tag de 8 octets." },
+        "compression": { "name": "Compression", "note": "Une seule méthode : 0, pas de compression." },
+        "extensions-length": { "name": "Extensions", "note": "22 octets d'extensions suivent." },
+        "groups": { "name": "supported_groups", "note": "Extension 0x000A : seulement secp256r1 (0x0017), la courbe P-256." },
+        "point-formats": { "name": "ec_point_formats", "note": "Extension 0x000B : les points de courbe sont envoyés non compressés (0)." },
+        "signatures": { "name": "signature_algorithms", "note": "Extension 0x000D : seulement 0x0403, ECDSA avec SHA-256." },
+        "a-first36": { "name": "36 premiers bits", "note": "Les 9 premiers chiffres hexadécimaux. Ils forment le SFDI." },
+        "a-rest": { "name": "Reste du LFDI", "note": "Avec les 9 premiers chiffres, les 20 premiers octets (40 chiffres hexadécimaux) de l'empreinte : le LFDI." },
+        "a-dropped": { "name": "Inutilisé", "note": "Les 12 derniers octets de l'empreinte SHA-256 sont abandonnés." },
+        "s-number": { "name": "36 bits en décimal", "note": "0xBB1309569 écrit en décimal." },
+        "s-check": { "name": "Chiffre de contrôle", "note": "Il rend la somme de tous les chiffres multiple de 10 : 5+0+2+1+7+3+9+1+4+6+5 = 43, et 43 + 7 = 50. Une faute de frappe fausse la somme." }
+    },
+    "devices": {
+        "pv": "Champ PV",
+        "inverter": "Onduleur PV",
+        "router": "Routeur du site",
+        "server": "Serveur du gestionnaire"
+    },
+    "facts": {
+        "standard": "IEEE 2030.5-2018 (Smart Energy Profile 2.0)",
+        "between": "Serveur du gestionnaire de réseau ou de l'agrégateur → onduleurs, batteries, bornes de recharge",
+        "transport": "HTTP sur TLS, XML (application/sep+xml)",
+        "security": "TLS 1.2 avec 0xC0AE, un certificat de chaque côté",
+        "model": "Des ressources reliées par des URL : DeviceCapability → EndDevice → DERProgram → DERControl"
+    },
+    "tips": [
+        "Le LFDI vient du certificat. Un nouveau certificat donne un nouveau LFDI et un nouveau SFDI, et l'équipement doit être enregistré de nouveau.",
+        "Les consignes utilisent le temps Unix en UTC. Un onduleur dont l'horloge est fausse limite au mauvais moment : gardez-le synchronisé sur la ressource Time du serveur (/tm).",
+        "Partez de /dcap et suivez les liens à chaque fois. Toutes les autres adresses appartiennent au serveur et peuvent changer.",
+        "La plupart des onduleurs sont derrière un routeur qui bloque les connexions entrantes : ils interrogent donc le serveur. Interrogez au rythme de pollRate, pas plus vite : des milliers d'équipements partagent un même serveur."
+    ],
+    "points": {
+        "limit": "Limite de production",
+        "status": "Statut de la réponse",
+        "power": "Puissance active"
+    },
+    "values": {
+        "planned": "50 % à partir de 11:00",
+        "received": "1 : reçue",
+        "started": "2 : commencée"
+    },
+    "anatomy": {
+        "lfdi": "Le LFDI : les 20 premiers octets de l'empreinte SHA-256 du certificat",
+        "sfdi": "Le SFDI : une forme courte qu'une personne peut saisir"
+    },
+    "playground": {
+        "file": "Le DERControl que lit l'onduleur à l'étape 3. Choisissez une ligne marquée pour voir ce qu'elle signifie.",
+        "href": "L'adresse propre de la consigne. L'espace de noms urn:ieee:std:2030.5:ns marque tout document IEEE 2030.5.",
+        "reply": "Où envoyer les réponses (replyTo), et lesquelles : responseRequired 03 demande reçue, puis commencée et terminée.",
+        "mrid": "Un identifiant de 128 bits, unique au monde ; les réponses le citent. Ses 8 derniers chiffres hexadécimaux sont le numéro d'entreprise IANA de l'émetteur : 32473 (0x7ED9) est celui réservé aux exemples.",
+        "created": "Les heures sont des secondes Unix en UTC : 1781686800 correspond au 2026-06-17 09:00.",
+        "status": "0 : planifiée. 1 signifierait active, 2 annulée.",
+        "duration": "7200 s : deux heures.",
+        "start": "1781694000 : 11:00 UTC. L'onduleur l'attend selon sa propre horloge.",
+        "limit": "Production maximale, en centièmes de pour cent de la puissance maximale réglée de l'onduleur (setMaxW) : 5000 = 50.00 %."
+    }
+}

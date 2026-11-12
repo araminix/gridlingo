@@ -1,0 +1,91 @@
+{
+    "intro": "LoRaWAN permette a sensori a batteria di inviare pochi byte a molti chilometri di distanza. Un sensore trasmette nell'aria, e ogni gateway nel raggio passa ciò che sente a un unico network server. Il network server tiene una copia e la verifica; solo l'application server può leggere il payload. Un sensore ascolta la rete solo per un attimo dopo aver trasmesso.",
+    "steps": {
+        "join": { "title": "Join", "text": "Il sensore invia una JoinRequest, e la sentono entrambi i gateway. 5 s dopo la rete risponde con una JoinAccept: un indirizzo breve e i numeri che servono a entrambe le parti per derivare le stesse chiavi di sessione. Le chiavi non viaggiano mai." },
+        "uplink": { "title": "Uplink", "text": "Pochi secondi dopo il sensore invia la sua prima lettura. Non sa chi ascolta: la ricevono entrambi i gateway." },
+        "dedupe": { "title": "Due copie", "text": "Ogni gateway inoltra via IP ciò che ha sentito. Il network server aspetta un attimo eventuali copie, ne tiene una, la verifica e annota quale gateway ha sentito meglio." },
+        "decode": { "title": "Decodifica", "text": "L'application server decifra il payload e trasforma i suoi quattro byte in valori: 46.3 °C e 3.6 V." },
+        "downlink": { "title": "Finestra di ricezione", "text": "Il sensore ascolta solo 1 s e 2 s dopo aver trasmesso. Un'impostazione messa in coda al momento del join parte nella prima finestra, attraverso il gateway 1, che lo ha sentito meglio. Poi il sensore dorme fino alla lettura successiva." }
+    },
+    "frames": {
+        "join-request": "Sono il DevEUI 02-1A-44-00-00-00-07-B3, posso entrare?",
+        "join-accept": "Benvenuto: il tuo indirizzo è 01C2A3B4",
+        "uplink": "46.3 °C, batteria 3.6 V (cifrato)",
+        "forward-1": "Ho sentito questo, forte e chiaro",
+        "forward-2": "L'ho sentito anch'io, debolmente",
+        "to-as": "Un uplink per te, sulla porta 1",
+        "downlink": "D'ora in poi invia una lettura ogni 600 s"
+    },
+    "notes": {
+        "forward-1": "Il gateway non decodifica nulla. Avvolge i byte radio in JSON (base64), aggiunge ciò che ha misurato, RSSI -97 dBm e SNR 7.5 dB, e l'ora, e lo invia al network server: qui con il packet forwarder di Semtech, su UDP 1700.",
+        "forward-2": "Gli stessi byte dal gateway 2, più lontano: RSSI -118 dBm, SNR -6.0 dB.",
+        "to-as": "Il network server ha tenuto una copia, ha verificato il MIC con la NwkSKey e ha controllato che FCnt sia salito. Inoltra il payload, ancora cifrato, con FPort 1 e FCnt 0. L'application server lo decifra con la AppSKey in 01 CF 0E 10, e il suo codec lo trasforma in {\"temperature_c\":46.3,\"battery_v\":3.6}."
+    },
+    "fields": {
+        "mhdr-join-request": { "name": "MHDR", "note": "Tipo di messaggio 000: JoinRequest. Versione principale 00: LoRaWAN R1." },
+        "join-eui": { "name": "JoinEUI", "note": "02-00-00-00-00-00-00-01, l'ID del join server. LoRaWAN invia EUI e indirizzi con il byte meno significativo per primo." },
+        "dev-eui": { "name": "DevEUI", "note": "02-1A-44-00-00-00-07-B3, l'ID a 64 bit del sensore, prima il byte meno significativo." },
+        "devnonce": { "name": "DevNonce", "note": "7, prima il byte meno significativo. Il sensore conta le sue richieste di join; il join server rifiuta un numero che ha già visto." },
+        "mic-join": { "name": "MIC", "note": "Un AES-CMAC sul messaggio con la AppKey: dimostra che il sensore conosce la chiave. Un valore di esempio, calcolato con la AppKey inventata 2B7E151628AED2A6ABF7158809CF4F3C." },
+        "mhdr-join-accept": { "name": "MHDR", "note": "Tipo di messaggio 001: JoinAccept. L'unica parte non cifrata." },
+        "join-accept": { "name": "Cifrato", "note": "Cifrato con la AppKey. Decifrato: 0C 00 00 (JoinNonce 12), 00 00 00 (NetID 0, una rete privata), B4 A3 C2 01 (DevAddr 0x01C2A3B4), 00 (RX1 alla data rate dell'uplink, RX2 a DR0 = SF12), 01 (RX1 si apre 1 s dopo un uplink), poi il MIC. Valori di esempio, dalla AppKey inventata." },
+        "mhdr-up": { "name": "MHDR", "note": "Tipo di messaggio 010: un uplink non confermato, senza conferma richiesta." },
+        "devaddr": { "name": "DevAddr", "note": "0x01C2A3B4, prima il byte meno significativo: l'indirizzo breve della JoinAccept." },
+        "fctrl-up": { "name": "FCtrl", "note": "0x80: ADR attivo (bit 7), quindi la rete può cambiare data rate e potenza del sensore. FOptsLen 0: non seguono comandi MAC." },
+        "fcnt-up": { "name": "FCnt", "note": "0: il primo uplink dopo il join. Cresce a ogni uplink, e la rete rifiuta un numero vecchio." },
+        "fport-1": { "name": "FPort", "note": "1: dati applicativi. La porta 0 porterebbe solo comandi MAC." },
+        "frm-up": { "name": "FRMPayload", "note": "Cifrato con la AppSKey: solo l'application server può leggerlo. Decifrato: 01 CF 0E 10. Un valore di esempio, dalla AppKey inventata." },
+        "mic-up": { "name": "MIC", "note": "Calcolato con la NwkSKey: il network server verifica che il frame sia autentico e non modificato. Un valore di esempio, dalla AppKey inventata." },
+        "mhdr-down": { "name": "MHDR", "note": "Tipo di messaggio 011: un downlink non confermato." },
+        "fctrl-down": { "name": "FCtrl", "note": "0x80: ADR attivo, nessuna conferma, nient'altro in attesa, nessun comando MAC." },
+        "fcnt-down": { "name": "FCnt", "note": "0: il primo downlink dopo il join. I downlink hanno un contatore proprio." },
+        "fport-2": { "name": "FPort", "note": "2: impostazioni, su questo sensore." },
+        "frm-down": { "name": "FRMPayload", "note": "Cifrato con la AppSKey. Il sensore lo decifra in 01 02 58: comando 1, imposta l'intervallo, 0x0258 = 600 s. Un valore di esempio, dalla AppKey inventata." },
+        "mic-down": { "name": "MIC", "note": "Calcolato con la NwkSKey, così il sensore sa che il downlink è autentico. Un valore di esempio, dalla AppKey inventata." }
+    },
+    "devices": {
+        "transformer": "Trasformatore T1",
+        "sensor": "Sensore di temperatura",
+        "gw1": "Gateway 1",
+        "gw2": "Gateway 2",
+        "ns": "Network server",
+        "as": "Application server"
+    },
+    "facts": {
+        "standard": "LoRaWAN 1.0.4 (LoRa Alliance TS001), con i parametri regionali EU863-870 (RP002)",
+        "between": "Sensori e contatori → gateway → network server → application server",
+        "transport": "Radio LoRa, qui 868.1 MHz a SF7 e 125 kHz. I gateway inoltrano via IP.",
+        "security": "AES-128: la rete verifica ogni frame con la NwkSKey, l'applicazione decifra con la AppSKey",
+        "speed": "Circa 5.5 kbit/s a SF7, circa 250 bit/s a SF12"
+    },
+    "tips": [
+        "Un sensore che dopo un reset dimentica il suo contatore DevNonce non riesce più a fare il join: il join server rifiuta i numeri già visti (\"DevNonce too small\"). Tieni il contatore in memoria non volatile.",
+        "Con ABP (chiavi impostate a mano, senza join), un sensore il cui contatore dei frame riparte da 0 viene ignorato: la rete scambia i suoi frame per replay. Preferisci il join (OTAA), che riparte con contatori nuovi e chiavi nuove.",
+        "A SF12 lo stesso uplink di 17 byte occupa 1.3 s in aria, e il duty cycle dell'1 % tiene poi il sensore in silenzio per oltre 2 minuti. Posiziona i gateway in modo che i sensori possano usare uno spreading factor basso.",
+        "Un sensore di classe A sente la rete solo subito dopo aver trasmesso. Un comando per un sensore che trasmette una volta all'ora può aspettare un'ora."
+    ],
+    "points": {
+        "temperature": "Temperatura",
+        "battery": "Batteria",
+        "interval": "Intervallo di invio"
+    },
+    "timing": {
+        "title": "Quando ascolta un sensore di classe A",
+        "note": "Dopo ogni uplink il sensore apre due brevi finestre di ricezione: RX1 1 s dopo la fine dell'uplink, sullo stesso canale e alla stessa data rate, e RX2 2 s dopo, su 869.525 MHz a SF12. Se RX1 porta un downlink per lui, salta RX2. Una JoinAccept usa invece 5 s e 6 s. L'uplink da 51 ms conta anche nel duty cycle dell'1 % della banda 868.0–868.6 MHz: il sensore deve poi restare fuori da quella banda per circa 5.1 s.",
+        "sends": "Il sensore trasmette",
+        "listens": "Il sensore ascolta",
+        "uplink": "uplink · 51 ms",
+        "again": "può trasmettere di nuovo",
+        "rx1": "RX1 · downlink",
+        "rx2": "RX2 · saltata"
+    },
+    "playground": {
+        "file": "Il codec del payload del sensore: un piccolo file JavaScript che il server esegue per trasformare i byte in valori, e i valori in byte. Scegli una riga evidenziata.",
+        "decode": "Chiamata con i byte decifrati e l'FPort di ogni uplink.",
+        "port": "Controlla prima la porta e la lunghezza: un payload che non ti aspetti non deve diventare un valore.",
+        "order": "Due byte, prima il più significativo. L'intestazione LoRaWAN ha il byte meno significativo per primo, ma il formato del payload lo sceglie il costruttore del sensore.",
+        "signed": "Un numero con segno in decimi di grado: 0x01CF = 463, quindi 46.3 °C. Sotto zero, il bit più alto è a 1.",
+        "battery": "Millivolt: 0x0E10 = 3600, quindi 3.6 V.",
+        "encode": "Il percorso inverso: l'impostazione {\"interval_s\":600} diventa 01 02 58, inviata su FPort 2."
+    }
+}

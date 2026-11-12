@@ -1,0 +1,98 @@
+{
+    "intro": "Sparkplug B ist ein Regelwerk auf MQTT für SCADA. Feste Topic-Namen sagen, wer was sendet. Eine Birth-Nachricht listet jede Metrik einmal auf, mit Namen, Alias und Datentyp; danach reisen nur noch Änderungen, über den Alias. Eine Death-Nachricht sagt SCADA sofort, wenn ein Gateway weg ist.",
+    "steps": {
+        "host": { "title": "SCADA online", "text": "SCADA, der Primary Host, verbindet sich mit Last Will zum Broker, abonniert jedes Sparkplug-Topic und veröffentlicht dann seinen STATE: online, als Retained Message." },
+        "connect": { "title": "Edge Node verbindet", "text": "Der Edge Node GW1 verbindet sich mit seinem eigenen Last Will, NDEATH, mit der Nummer bdSeq 0. Er liest den gespeicherten STATE von SCADA: SCADA ist online, also darf er beginnen." },
+        "birth": { "title": "Birth", "text": "NBIRTH listet jede Metrik des Edge Node auf, DBIRTH jede Metrik des Wechselrichters dahinter: Name, Alias, Datentyp und Wert. Jetzt kennt SCADA das ganze Modell." },
+        "data": { "title": "Report by Exception", "text": "Nur die Leistung des Wechselrichters hat sich geändert. DDATA trägt nur diese Metrik, über ihren Alias, mit der nächsten Sequenznummer." },
+        "rebirth": { "title": "Rebirth", "text": "SCADA erhält seq 4 nach seq 2: Nachricht 3 ist verloren. SCADA kann seiner Kopie nicht mehr trauen, also fordert es eine Rebirth an. Der Edge Node sendet NBIRTH und DBIRTH noch einmal." },
+        "death": { "title": "Death", "text": "Nach 300 s fällt die Verbindung des Edge Node aus. 45 s später (1.5 × sein Keep Alive von 30 s) veröffentlicht der Broker seinen Last Will, NDEATH. SCADA markiert GW1 als offline und seine Werte als STALE." }
+    },
+    "frames": {
+        "host-connect": "Ich bin SCADA1. Falls ich verschwinde, veröffentliche, dass ich offline bin",
+        "state": "SCADA1 ist online",
+        "edge-connect": "Ich bin GW1. Falls ich verschwinde, veröffentliche meinen Tod, bdSeq 0",
+        "state-seen": "SCADA1 ist online (vom Broker gespeichert)",
+        "nbirth": "GW1 lebt: Hier sind alle seine Metriken",
+        "dbirth": "INV1 lebt: Hier sind alle seine Metriken",
+        "ddata": "INV1: Alias 2 = 4820.5",
+        "ddata-gap": "INV1: seq 4 (wo ist 3?)",
+        "ncmd": "GW1, schick alles noch einmal",
+        "nbirth-again": "GW1: alle seine Metriken, noch einmal",
+        "dbirth-again": "INV1: alle seine Metriken, noch einmal",
+        "ndeath": "GW1 ist tot (bdSeq 0)"
+    },
+    "notes": {
+        "host-connect": "Ein MQTT-CONNECT mit Clean Session. Sein Last Will geht an spBv1.0/STATE/SCADA1: {\"online\":false,\"timestamp\":1794480000000}, QoS 1, als Retained Message. Danach abonniert SCADA spBv1.0/#, jede Sparkplug-Nachricht.",
+        "edge-connect": "Ein MQTT-CONNECT mit Clean Session und einem Keep Alive von 30 s. Sein Last Will ist NDEATH auf spBv1.0/SolarPark/NDEATH/GW1, QoS 1, nicht behalten, mit einer Metrik: bdSeq = 0. Danach abonniert der Edge Node seine eigenen NCMD- und DCMD-Topics und spBv1.0/STATE/SCADA1.",
+        "state-seen": "Der Broker sendet den gespeicherten STATE, sobald der Edge Node abonniert. Wäre SCADA offline, würde der Edge Node warten und nichts veröffentlichen.",
+        "nbirth": "Auf spBv1.0/SolarPark/NBIRTH/GW1, QoS 0, seq 0. Sie enthält jede Metrik des Edge Node selbst, jede mit Namen, Alias, Datentyp und Wert. Zwei müssen immer dabei sein: bdSeq = 0, dieselbe Nummer wie im Last Will, und Node Control/Rebirth = false.",
+        "dbirth": "Auf spBv1.0/SolarPark/DBIRTH/GW1/INV1, seq 1: jede Metrik des Wechselrichters, die der Edge Node über Modbus liest. AC/Power bekommt Alias 2 und den Typ Float. Unter „Ausprobieren“ ist diese Nachricht dekodiert zu sehen.",
+        "ddata-gap": "Dieses DDATA hat seq 4, aber SCADA hat 3 erwartet. Es wartet einen Moment (den Reorder Timeout), falls 3 verspätet ankommt. Das passiert nicht.",
+        "ncmd": "Auf spBv1.0/SolarPark/NCMD/GW1, mit einer Metrik: Node Control/Rebirth = true. SCADA sendet das immer dann, wenn es an seinem Wissen zweifelt.",
+        "nbirth-again": "Dieselbe MQTT-Sitzung, also dieselbe bdSeq 0. Der Edge Node sendet keine Daten, bis seine Births draußen sind.",
+        "dbirth-again": "Noch einmal jede Metrik von INV1, die Leistung jetzt bei 4835.0 kW. Die Kopie von SCADA ist wieder vollständig.",
+        "ndeath": "Der Last Will aus dem CONNECT des Edge Node. Seine bdSeq 0 passt zur letzten NBIRTH, gehört also zur aktuellen Sitzung. SCADA markiert GW1 und INV1 als offline und jede ihrer Metriken als STALE: Die letzten Werte bleiben auf dem Bildschirm, als alt gekennzeichnet."
+    },
+    "fields": {
+        "publish-q1-retain": { "name": "MQTT PUBLISH", "note": "0x33: QoS 1 und Retain. Der Broker behält es für jeden Edge Node, der später abonniert." },
+        "rl-65": { "name": "Restlänge", "note": "Es folgen 65 Bytes." },
+        "state-topic": { "name": "Topic", "note": "spBv1.0/STATE/SCADA1: das STATE-Topic des Hosts mit der ID SCADA1." },
+        "packet-id": { "name": "Paket-ID 1", "note": "Für das PUBACK des Brokers, wie bei jeder Nachricht mit QoS 1." },
+        "state-online": { "name": "online", "note": "{\"online\":true, SCADA ist online. STATE ist die einzige Sparkplug-Nachricht in JSON; alle anderen sind Protobuf." },
+        "state-time": { "name": "timestamp", "note": "1794480000000 ms seit 1970 = 10:40:00.000 UTC. Derselbe Wert wie im Last Will seines CONNECT: Daran unterscheiden Edge Nodes diese Sitzung von einer älteren." },
+        "publish-q0": { "name": "MQTT PUBLISH", "note": "0x30: QoS 0, nicht behalten. Ein Host, der sich später verbindet, erfährt die Werte aus einer Birth, nicht aus alten Daten." },
+        "rl-59": { "name": "Restlänge", "note": "Es folgen 59 Bytes: Topic und Payload." },
+        "ddata-topic": { "name": "Topic", "note": "spBv1.0/SolarPark/DDATA/GW1/INV1, 32 Bytes (0x0020). Ab hier sind die Bytes eine Protobuf-Payload." },
+        "payload-time": { "name": "timestamp", "note": "Tag 0x08: Feld 1, ein Varint. Wann die Nachricht gesendet wurde: 1794480067280 ms seit 1970 = 10:41:07.280 UTC. Ein Varint trägt 7 Bits pro Byte, niedrigste zuerst; ein oberstes Bit 1 bedeutet, dass weitere folgen." },
+        "metric": { "name": "metrics", "note": "Tag 0x12: Feld 2, eine Metrik. Es folgen 0x0E = 14 Bytes." },
+        "alias": { "name": "alias", "note": "Tag 0x10: Feld 2 der Metrik, der Alias 2. Die Birth hat gesagt, dass 2 AC/Power ist, also wird der Name nicht gesendet." },
+        "metric-time": { "name": "timestamp", "note": "Tag 0x18: Feld 3 der Metrik, wann der Wert gelesen wurde: 1794480067250, 30 ms bevor die Nachricht gesendet wurde." },
+        "float": { "name": "float_value", "note": "Tag 0x65: Feld 12, 4 Bytes, niederwertiges Byte zuerst: 4820.5 (kW). Ein Datentyp wird nicht gesendet: Die Birth hat ihn genannt." },
+        "seq": { "name": "seq", "note": "Wieder Tag 0x18, jetzt außerhalb der Metrik: Feld 3 der Payload, seq 2. Innerhalb einer Metrik ist Feld 3 der Zeitstempel." },
+        "a-namespace": { "name": "Namespace", "note": "spBv1.0: Sparkplug B, Version 1.0 des Topic-Aufbaus." },
+        "a-group": { "name": "group_id", "note": "Eine Gruppe von Edge Nodes, hier eine Anlage." },
+        "a-type": { "name": "message_type", "note": "Was die Nachricht ist. NBIRTH, NDATA, NCMD und NDEATH betreffen den Edge Node; DBIRTH, DDATA, DCMD und DDEATH ein Gerät." },
+        "a-node": { "name": "edge_node_id", "note": "Das Gateway. Es muss in seiner Gruppe eindeutig sein." },
+        "a-device": { "name": "device_id", "note": "Ein Gerät hinter dem Edge Node. Ein Topic über den Edge Node selbst endet bei GW1." }
+    },
+    "devices": {
+        "inv1": "Wechselrichter INV1",
+        "gw": "Edge Node GW1",
+        "broker": "MQTT-Broker",
+        "scada": "SCADA (SCADA1)"
+    },
+    "facts": {
+        "standard": "Eclipse Sparkplug 3.0 (2022), auch ISO/IEC 20237:2023",
+        "between": "Edge Nodes → MQTT-Broker → Host-Anwendungen (SCADA, Historian)",
+        "transport": "MQTT 3.1.1 oder 5.0, auf TCP 1883 oder TLS 8883",
+        "security": "Nur die von MQTT: TLS und Broker-Logins. Sparkplug ergänzt keine.",
+        "frames": "NBIRTH, DBIRTH, NDATA, DDATA, NCMD, DCMD, NDEATH, DDEATH, STATE",
+        "model": "Metriken mit Namen, Alias, Datentyp und Wert, in Protocol Buffers"
+    },
+    "tips": [
+        "Jeder Edge Node braucht eine edge_node_id, die in seiner Gruppe eindeutig ist, und eine eigene MQTT-Client-ID. Zwei Gateways mit denselben IDs werfen sich gegenseitig hinaus, und SCADA sieht den ganzen Tag Births und Deaths.",
+        "Ein Alias gilt nur bis zur nächsten Birth. Ein Tool, das nach einer Rebirth alte Aliase behält, legt Werte unter der falschen Metrik ab.",
+        "Eine Metrik, die nicht in der Birth steht, gibt es für SCADA nicht. Nach dem Hinzufügen einer Metrik eine neue Birth veröffentlichen.",
+        "Die Primary Host ID an jedem Edge Node einstellen. Dann wartet er vor seiner Birth auf den STATE von SCADA. Ohne sie gehen Births hinaus, während SCADA weg ist, und SCADA muss Rebirths anfordern."
+    ],
+    "points": {
+        "node": "Zustand Edge Node",
+        "power": "Leistung Wechselrichter"
+    },
+    "values": {
+        "online": "online",
+        "offline": "offline"
+    },
+    "anatomy": {
+        "topic": "Ein Sparkplug-Topic: wer was über welches Gerät sendet"
+    },
+    "playground": {
+        "file": "Die DBIRTH von INV1, zum Lesen aus Protobuf in JSON dekodiert. Auf der Leitung ist sie binär, wie das DDATA oben.",
+        "payload-time": "Wann die Nachricht gesendet wurde, in Millisekunden seit 1970, UTC.",
+        "metric": "Eine Metrik: ihr Name, ihr Alias, wann sie gelesen wurde, ihr Datentyp und ihr Wert. Sparkplug hat kein Feld für die Einheit: In der Anlage ist vereinbart, dass AC/Power in kW angegeben ist.",
+        "double": "Die Gesamtenergie in MWh, als Double. Eine Metrik behält ihren Datentyp bis zur nächsten Birth.",
+        "string": "Text geht auch. DDATA würde nur Alias 5 und den neuen Text senden.",
+        "seq": "seq 1: Die NBIRTH hatte 0. Jede Nachricht des Edge Node zählt weiter, bis 255, dann wieder ab 0."
+    }
+}

@@ -1,0 +1,99 @@
+{
+    "intro": "Le bus des compteurs de chaleur, d'eau et de gaz en Europe (EN 13757). Un maître alimente deux fils et interroge chaque compteur à tour de rôle. Le compteur répond par un en-tête et des enregistrements de données ; chaque enregistrement dit ce qu'il mesure et dans quelle unité. Le M-Bus sans fil envoie les mêmes enregistrements par radio, sans qu'on les lui demande.",
+    "steps": {
+        "reset": { "title": "Réinitialiser la liaison", "text": "Le concentrateur envoie SND_NKE à l'adresse primaire 5. Le compteur répond par un seul octet, E5. Le bus fonctionne à 2400 bauds, 8 bits de données, parité paire." },
+        "ask": { "title": "Demander les données", "text": "REQ_UD2 demande ses données au compteur de chaleur. Le bit de comptage de trame (FCB) vaut 1, comme il se doit pour la première requête après une réinitialisation." },
+        "answer": { "title": "Enregistrements de données", "text": "Une trame longue : un en-tête fixe, puis des enregistrements de données. Chaque enregistrement commence par un DIF (comment la valeur est codée) et un VIF (ce qu'elle est, dans quelle unité). Le dernier octet avant la somme de contrôle, 0x1F, annonce : la suite au prochain télégramme." },
+        "next": { "title": "Télégramme suivant", "text": "Le concentrateur inverse le FCB et redemande. Le compteur envoie son second télégramme : les valeurs mémorisées à la dernière date d'échéance, le jour où le distributeur facture." },
+        "radio": { "title": "M-Bus sans fil", "text": "Le compteur d'eau n'a aucun fil vers le bus. Toutes les 16 secondes, il envoie ses valeurs par radio, chiffrées en AES-128. Le concentrateur a besoin de la clé de ce compteur pour les lire." }
+    },
+    "frames": {
+        "snd-nke": "Compteur 5, réinitialise ta liaison",
+        "e5": "OK",
+        "req-1": "Compteur 5, envoie-moi tes données",
+        "rsp-1": "12 345 kWh, 456.78 m³, 70.2 °C et 45.3 °C, la suite arrive",
+        "req-2": "Le télégramme suivant, s'il te plaît",
+        "rsp-2": "Au 2025-12-31 : 9 876 kWh et 381.23 m³",
+        "wmbus": "Compteur d'eau 87654321 : mes valeurs (chiffrées)"
+    },
+    "notes": {
+        "wmbus": "Personne n'a rien demandé : un compteur T1 ne fait qu'émettre. En clair viennent la longueur, le C-field 0x44 (SND_NR : envoi sans réponse), le fabricant EXA, l'ID 87654321, une version et le type 0x07 (eau). Puis le CI 0x7A avec un numéro d'accès, un octet d'état et un mot de configuration qui indique le mode 5 : AES-128 en mode CBC. Le reste est chiffré. L'IV est construit à partir du fabricant, de l'adresse et du numéro d'accès ; la clé est propre à ce seul compteur. Une fois déchiffrées, les données commencent par 2F 2F, puis des enregistrements DIF et VIF comme ceux du filaire. Chaque bloc de la trame a son propre CRC. Dans l'air, chaque groupe de 4 bits voyage sous forme de 6 chips (le code 3 parmi 6)."
+    },
+    "fields": {
+        "short": { "name": "Début", "note": "0x10 ouvre une trame courte : 5 octets en tout." },
+        "c-nke": { "name": "C-field 0x40", "note": "SND_NKE : réinitialiser la liaison. Le compteur remet à zéro son bit de comptage de trame." },
+        "a-5": { "name": "Adresse 5", "note": "L'adresse primaire du compteur. 1 à 250 sont réservées aux compteurs, et un compteur neuf répond à 0. 253 signifie : utiliser plutôt l'adresse secondaire (l'ID). 254 et 255 atteignent tous les compteurs." },
+        "cs-nke": { "name": "Somme de contrôle", "note": "0x45 = 0x40 + 0x05 : la somme de C et A, modulo 256." },
+        "stop": { "name": "Fin", "note": "0x16 termine toute trame M-Bus." },
+        "e5": { "name": "ACK", "note": "Un seul octet, 0xE5 : l'acquittement du compteur." },
+        "c-req-1": { "name": "C-field 0x7B", "note": "REQ_UD2 : envoie-moi tes données utilisateur. Le bit de comptage de trame (0x20) vaut 1 : la première requête après une réinitialisation porte FCB 1." },
+        "cs-req-1": { "name": "Somme de contrôle", "note": "0x80 = 0x7B + 0x05." },
+        "long-42": { "name": "Début", "note": "Une trame longue : 0x68, deux fois la longueur, de nouveau 0x68. 0x2A = 42 octets de C au dernier octet de données." },
+        "c-rsp": { "name": "C-field 0x08", "note": "RSP_UD : les données utilisateur du compteur." },
+        "a-5-rsp": { "name": "Adresse 5", "note": "La réponse nomme son émetteur." },
+        "ci": { "name": "CI-field 0x72", "note": "Données variables avec l'en-tête long qui suit, nombres octet de poids faible en premier." },
+        "id": { "name": "Numéro d'identification", "note": "12345678 en BCD, octet de poids faible en premier. Il est imprimé sur le compteur, et c'est son adresse secondaire." },
+        "maker": { "name": "Fabricant", "note": "0x1701 = EXA, un code inventé : trois lettres compactées sur 15 bits (décomposées plus bas)." },
+        "version": { "name": "Version", "note": "1 : la version de ce type de compteur." },
+        "medium": { "name": "Fluide", "note": "0x04 : chaleur, avec le capteur de débit sur le retour. 0x07 est l'eau, 0x03 le gaz." },
+        "access-42": { "name": "Numéro d'accès", "note": "0x2A = 42. Il augmente de un à chaque réponse." },
+        "access-43": { "name": "Numéro d'accès", "note": "0x2B = 43 : un de plus que la réponse précédente." },
+        "status": { "name": "État", "note": "0x00 : aucune erreur, pile en bon état." },
+        "signature": { "name": "Signature", "note": "0x0000 : non chiffré." },
+        "energy": { "name": "Énergie", "note": "DIF 0x0C : 8 chiffres BCD. VIF 0x06 : énergie en kWh. 00012345 = 12 345 kWh." },
+        "volume": { "name": "Volume", "note": "DIF 0x0C. VIF 0x14 : volume par pas de 0.01 m³. 00045678 = 456.78 m³." },
+        "flow": { "name": "Température départ", "note": "DIF 0x0A : 4 chiffres BCD. VIF 0x5A : température de départ par pas de 0.1 °C. 0702 = 70.2 °C." },
+        "return": { "name": "Température retour", "note": "VIF 0x5E : température de retour par pas de 0.1 °C. 0453 = 45.3 °C." },
+        "now": { "name": "Date et heure", "note": "DIF 0x04 : 32 bits. VIF 0x6D : date et heure (type F), compactées en bits : 2026-11-12 08:15." },
+        "more": { "name": "Suite", "note": "DIF 0x1F : d'autres enregistrements suivent dans le prochain télégramme." },
+        "cs-rsp-1": { "name": "Somme de contrôle", "note": "0xA1 : la somme de tous les octets, de C au dernier octet de données, modulo 256." },
+        "c-req-2": { "name": "C-field 0x5B", "note": "REQ_UD2 avec FCB 0. Le bit a changé : le compteur envoie donc son télégramme suivant. Avec le même bit, il renverrait le précédent." },
+        "cs-req-2": { "name": "Somme de contrôle", "note": "0x60 = 0x5B + 0x05." },
+        "long-31": { "name": "Début", "note": "0x1F = 31 octets de C au dernier octet de données." },
+        "due-date": { "name": "Date d'échéance", "note": "DIF 0x42 : mémoire 1, 16 bits. VIF 0x6C : une date (type G) : 2025-12-31." },
+        "due-energy": { "name": "Énergie à l'échéance", "note": "DIF 0x4C : mémoire 1, 8 chiffres BCD. VIF 0x06 : kWh. 00009876 = 9 876 kWh." },
+        "due-volume": { "name": "Volume à l'échéance", "note": "DIF 0x4C, VIF 0x14. 00038123 = 381.23 m³." },
+        "cs-rsp-2": { "name": "Somme de contrôle", "note": "0x6B : la somme de C au dernier octet de données." },
+        "m-1": { "name": "Première lettre", "note": "E = 5 (A vaut 1, Z vaut 26), multiplié par 1024." },
+        "m-2": { "name": "Deuxième lettre", "note": "X = 24, multiplié par 32." },
+        "m-3": { "name": "Troisième lettre", "note": "A = 1." },
+        "d-extension": { "name": "Extension", "note": "0 : aucun octet DIFE ne suit. Les DIFE ajoutent des bits pour les numéros de mémoire plus élevés, les tarifs et les sous-unités." },
+        "d-storage": { "name": "Numéro de mémoire", "note": "1. 0 est la valeur actuelle ; les numéros plus élevés sont des valeurs mémorisées. Dans ce compteur, 1 est la dernière date d'échéance." },
+        "d-function": { "name": "Fonction", "note": "00 : une valeur instantanée. 01 est un maximum, 10 un minimum, 11 une valeur pendant une erreur." },
+        "d-data": { "name": "Champ de données", "note": "1100 : 8 chiffres BCD, sur 4 octets. 0100 serait un entier de 32 bits." }
+    },
+    "devices": {
+        "heat": "Compteur de chaleur",
+        "collector": "Concentrateur",
+        "water": "Compteur d'eau"
+    },
+    "facts": {
+        "standard": "EN 13757-2 (filaire), -3 (données), -4 (sans fil), -7 (sécurité)",
+        "between": "Concentrateur (maître) → compteurs de chaleur, d'eau, de gaz et d'électricité",
+        "transport": "Deux fils, alimentés par le maître, 2400 bauds 8E1 ; radio à 868 MHz (T1 : 868.95 MHz)",
+        "security": "Filaire : aucune. Sans fil : AES-128 avec une clé par compteur (mode 5 ou 7)",
+        "frames": "E5 : acquittement · 10 … 16 : trame courte · 68 L L 68 … 16 : trame longue"
+    },
+    "tips": [
+        "Chaque compteur du bus a besoin de sa propre adresse primaire. Les compteurs neufs répondent à 0, et deux d'entre eux à 0 se brouillent mutuellement. Réglez d'abord l'adresse, ou adressez les compteurs par leur numéro d'identification (adressage secondaire).",
+        "N'inversez le FCB que pour obtenir le télégramme suivant. Un concentrateur qui ne l'inverse jamais relit sans cesse le télégramme 1, et ne voit jamais les valeurs mémorisées.",
+        "Prenez l'unité dans le VIF de chaque enregistrement. 0x13 correspond aux litres, 0x14 aux dizaines de litres : recopier la mise à l'échelle d'un autre type de compteur donne des factures fausses d'un facteur dix.",
+        "Demandez au fournisseur la clé AES de chaque compteur sans fil avec la livraison. Sans elle, le concentrateur voit l'ID et le type, mais aucune valeur."
+    ],
+    "points": {
+        "energy": "Énergie thermique",
+        "volume": "Volume",
+        "flow": "Température départ",
+        "due": "Énergie au 2025-12-31"
+    },
+    "timing": {
+        "title": "Comment les bits circulent sur les deux fils",
+        "note": "SND_NKE venant du maître, puis E5 venant du compteur. Le maître signale par la tension : environ 36 V pour un 1, 12 V de moins pour un 0. Le compteur signale par le courant : 1.5 mA pour un 1, 11 à 20 mA de plus pour un 0. Les deux mêmes fils transportent ainsi l'alimentation et les données dans les deux sens. Chaque caractère fait 11 bits : un bit de départ, 8 bits de données (poids faible d'abord), la parité paire et un bit de stop. À 2400 bauds, un bit dure 0.42 ms.",
+        "master": "Maître : tension",
+        "meter": "Compteur : courant"
+    },
+    "anatomy": {
+        "maker": "Le code du fabricant, compacté sur deux octets",
+        "dif": "DIF 0x4C, bit par bit"
+    }
+}

@@ -1,0 +1,85 @@
+{
+    "intro": "Kein Protokoll auf der Leitung, sondern das Regelwerk, mit dem die Steuerungssysteme einer Anlage (OT) abgesichert werden. Es teilt eine Anlage in Zonen, also Gruppen von Geräten mit demselben Schutzbedarf, und lässt sie nur über Conduits mit klaren Regeln miteinander sprechen. Jede Zone bekommt ein Ziel-Security-Level, und sieben grundlegende Anforderungen sagen, was dieses Level bedeutet.",
+    "steps": {
+        "inside": { "title": "Zonen und Conduits", "text": "Der Solarpark hat vier Zonen: Büro, eine DMZ, Steuerung und Feld. Sie sprechen nur über Conduits miteinander, hier von zwei Firewalls bewacht. Fragt SCADA einen Wechselrichter ab, geht das durch FW-2, und eine Regel erlaubt genau das." },
+        "historian": { "title": "In die DMZ", "text": "Der Historian in der DMZ sammelt die Werte der Anlage von SCADA. Die DMZ ist der Puffer: Büro und Anlage sprechen nie direkt miteinander." },
+        "office": { "title": "Das Büro liest die DMZ", "text": "Eine Ingenieurin im Büro öffnet den Produktionsbericht von heute. Er kommt vom Historian; das Büro erreicht die Anlage nie." },
+        "blocked": { "title": "Blockiert", "text": "Ein Laptop im Büro versucht, einen Wechselrichter direkt zu erreichen. Keine Regel erlaubt das, also verwirft FW-1 die Verbindung und protokolliert sie." },
+        "vendor": { "title": "Herstellerzugang", "text": "Der Hersteller des Wechselrichters muss INV-07 aktualisieren. Sein Techniker meldet sich mit zwei Faktoren am Jump Host an und arbeitet von dort aus, während eines genehmigten Auftrags. Alles wird protokolliert." }
+    },
+    "frames": {
+        "scada-poll": "SCADA liest Wechselrichter INV-07",
+        "historian-read": "Gib mir die neuesten Werte der Anlage",
+        "scada-values": "Hier sind sie",
+        "office-read": "Zeig mir die Produktion von heute",
+        "blocked": "Verbinde mich mit Wechselrichter INV-07, Port 502",
+        "vendor-login": "Herstellerlogin: Passwort und Einmalcode",
+        "vendor-session": "Wartungsseite von INV-07 öffnen"
+    },
+    "notes": {
+        "scada-poll": "Modbus TCP von SCADA in der Steuerungszone zum Wechselrichter in der Feldzone. Die Verbindung geht durch FW-2, und Conduit C3 hat genau dafür eine Regel: von SCADA, zu den Wechselrichtern, TCP 502.",
+        "historian-read": "Conduit C2 erlaubt dem Historian, und nur ihm, OPC UA (TCP 4840) zu SCADA zu öffnen. Der Historian hält in der DMZ eine Kopie der Anlagendaten.",
+        "scada-values": "Die Antwort braucht keine eigene Regel: Die Firewall weiß, dass sie zu einer Verbindung gehört, die sie erlaubt hat.",
+        "office-read": "Nutzer im Büro lesen den Historian in der DMZ, nie die Anlage. Wird das Büro angegriffen, findet der Angreifer eine Kopie der Daten, nicht die Steuerung.",
+        "blocked": "Keine Regel lässt das Büro die Feldzone erreichen, also verwirft die letzte Regel von C1 die Verbindung. Der Laptop bekommt keine Antwort. Der Protokolleintrag ist einen Alarm wert: Der Laptop könnte infiziert sein, oder jemand probiert etwas.",
+        "vendor-login": "Aus dem Internet erreicht der Hersteller den Jump Host in der DMZ und sonst nichts. Der Jump Host verlangt ein Passwort und einen Einmalcode vom Handy des Technikers: zwei Faktoren, damit ein gestohlenes Passwort nicht reicht. Er zeichnet die Sitzung auf.",
+        "vendor-session": "Vom Jump Host aus erlaubt Conduit C4 HTTPS zu den Wechselrichtern, nur solange der Auftrag genehmigt ist. Der eigene Laptop des Herstellers berührt das Anlagennetz nie."
+    },
+    "fields": {
+        "sl1": { "name": "Versehen", "note": "Schützt vor Fehlern und Zufall: Jemand steckt das falsche Kabel ein oder öffnet die falsche Datei." },
+        "sl2": { "name": "Einfache Angriffe", "note": "Gegen jemanden mit Absicht, aber einfachen Mitteln: gängige Tools, allgemeine IT-Kenntnisse, wenig Geld." },
+        "sl3": { "name": "Gezielte Angriffe", "note": "Gegen einen Angreifer, der OT-Systeme kennt, mit guten Tools und etwas Geld." },
+        "sl4": { "name": "Angriffe mit großen Mitteln", "note": "Gegen ein Team mit tiefem OT-Wissen, viel Geld und viel Zeit, etwa einen Staat." },
+        "fr1": { "name": "FR 1 · Identifikation und Authentifizierung", "note": "Wissen, wer fragt, ob Person, Programm oder Gerät, bevor man Zutritt gewährt." },
+        "fr2": { "name": "FR 2 · Nutzungskontrolle", "note": "Einmal bekannt, darf jeder nur, was seine Rolle erlaubt. Ein Bediener darf keine neue Firmware laden." },
+        "fr3": { "name": "FR 3 · Systemintegrität", "note": "Software, Einstellungen und Nachrichten lassen sich nicht unbemerkt ändern." },
+        "fr4": { "name": "FR 4 · Vertraulichkeit der Daten", "note": "Geheimes geheim halten, gespeichert oder auf der Leitung: Passwörter, Schlüssel, manche Daten. Hier nur 2: Die meisten Anlagenwerte sind nicht geheim." },
+        "fr5": { "name": "FR 5 · Eingeschränkter Datenfluss", "note": "Daten fließen nur dorthin, wo sie hinmüssen: die Zonen, die Conduits und ihre Regeln." },
+        "fr6": { "name": "FR 6 · Rechtzeitige Reaktion auf Ereignisse", "note": "Protokolle und Alarme, damit ein Angriff rechtzeitig gesehen und behandelt wird." },
+        "fr7": { "name": "FR 7 · Verfügbarkeit der Ressourcen", "note": "Die Anlage läuft unter Last oder Angriff weiter und lässt sich aus Backups wiederherstellen." }
+    },
+    "devices": {
+        "laptop": "Büro-Laptop",
+        "vendor": "Techniker des Herstellers",
+        "fw1": "FW-1",
+        "historian": "Historian (DMZ)",
+        "jump": "Jump Host (DMZ)",
+        "fw2": "FW-2",
+        "scada": "SCADA (Steuerung)",
+        "fswitch": "Feld-Switch",
+        "rtu": "RTU (Feld)",
+        "inverter": "INV-07 (Feld)"
+    },
+    "facts": {
+        "standard": "Normenreihe ISA/IEC 62443: Zonen und Conduits in 62443-3-2, Systemanforderungen in 62443-3-3",
+        "between": "Betreiber, Systemintegrator und Produkthersteller: Jeder hat seinen eigenen Teil",
+        "transport": "Kein eigener: Seine Regeln gelten für jedes Protokoll der Anlage",
+        "security": "Ein Ziel-Security-Level, SL 1 bis SL 4, für jede Zone",
+        "model": "Zonen, Conduits und 7 grundlegende Anforderungen"
+    },
+    "tips": [
+        "Eine Regel von any nach any, selbst für einen Tag, macht aus zwei Zonen eine. Quelle, Ziel und Port benennen.",
+        "Fernzugriffe in der DMZ enden lassen. Ein Hersteller-VPN direkt in die Steuerungszone umgeht jeden Conduit.",
+        "Gemeinsam genutzte Konten verletzen FR 1: Niemand kann sagen, wer was getan hat. Jeder Person ein eigenes Login geben, auch den Herstellern.",
+        "Drei Level werden oft verwechselt: SL-T ist das Ziel der Zone, SL-C das, was ein Produkt erreichen kann, SL-A das, was die gebaute Zone tatsächlich erreicht. SL-A prüfen, nicht das Datenblatt."
+    ],
+    "anatomy": {
+        "levels": "Security Levels: wem eine Zone standhalten muss",
+        "vector": "Das Ziel der Steuerungszone: ein Level für jede grundlegende Anforderung"
+    },
+    "playground": {
+        "file": "Die Zonen der Anlage und die Regeln ihrer Conduits. Finde die Regel hinter jedem Schritt.",
+        "zones": "Eine Zone ist eine Gruppe von Geräten mit demselben Schutzbedarf. SL-T ist das Security Level, das die Zone erreichen muss.",
+        "enterprise": "SL 1: das Büronetz. Es ist IT, nicht OT, und die Anlage behandelt es als nicht vertrauenswürdig.",
+        "dmz": "SL 2: der Puffer zwischen Büro und Anlage. Hier enden Verbindungen, und hier beginnen neue.",
+        "control": "SL 3: SCADA führt die Anlage, also muss es einem gezielten Angreifer mit OT-Wissen standhalten.",
+        "field": "Ebenfalls SL 3: Die Wechselrichter und die RTU wirken auf das Netz.",
+        "conduits": "Ein Conduit fasst die Verbindungen zwischen zwei Zonen zusammen. Jede Regel nennt Quelle, Ziel und Dienst; die erste passende Regel entscheidet.",
+        "office": "Das Büro liest die Anlagendaten vom Historian, nie von der Anlage.",
+        "vendor": "Aus dem Internet ist nur der Jump Host erreichbar. Der Jump Host verlangt zwei Faktoren.",
+        "deny": "Alles andere wird verworfen und protokolliert. Diese Regel stoppt den Laptop in Schritt 4.",
+        "historian": "Eine Quelle, ein Ziel, ein Port: OPC UA vom Historian zu SCADA.",
+        "scada-poll": "SCADA liest die Wechselrichter mit Modbus TCP: Schritt 1.",
+        "job": "Sitzungen des Herstellers erreichen die Wechselrichter nur, solange ein Auftrag genehmigt ist. Den Rest der Zeit ist diese Regel aus."
+    }
+}

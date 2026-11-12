@@ -1,0 +1,98 @@
+{
+    "intro": "Sparkplug B는 SCADA를 위해 MQTT 위에 얹은 규칙 모음이에요. 정해진 토픽 이름이 누가 무엇을 보내는지 알려 줘요. birth 메시지가 모든 메트릭을 이름, 별칭(alias), 데이터 유형과 함께 한 번 나열하고, 그 뒤로는 바뀐 것만 별칭으로 보내요. death 메시지는 게이트웨이가 사라지면 SCADA에 바로 알려 줘요.",
+    "steps": {
+        "host": { "title": "SCADA 온라인", "text": "주 호스트인 SCADA가 유언(will)을 남기고 브로커에 연결한 뒤, 모든 Sparkplug 토픽을 구독하고 자기 STATE를 발행해요: online, retained." },
+        "connect": { "title": "엣지 노드 연결", "text": "엣지 노드 GW1이 bdSeq 0 번호가 붙은 자기 유언 NDEATH를 남기고 연결해요. 보관된 SCADA의 STATE를 읽어요: SCADA가 온라인이니 시작해도 돼요." },
+        "birth": { "title": "Birth", "text": "NBIRTH는 엣지 노드의 모든 메트릭을, DBIRTH는 그 뒤에 있는 인버터의 모든 메트릭을 나열해요: 이름, 별칭, 데이터 유형, 값. 이제 SCADA가 모델 전체를 알아요." },
+        "data": { "title": "예외 보고", "text": "인버터의 출력만 바뀌었어요. DDATA는 그 메트릭 하나만 별칭으로, 다음 시퀀스 번호와 함께 실어 날라요." },
+        "rebirth": { "title": "Rebirth", "text": "SCADA가 seq 2 다음에 seq 4를 받아요: 메시지 3이 사라졌어요. SCADA는 자기 사본을 더 이상 믿을 수 없으니 rebirth를 요청해요. 엣지 노드가 NBIRTH와 DBIRTH를 다시 보내요." },
+        "death": { "title": "Death", "text": "300초 시점, 마지막 패킷 직후에 엣지 노드의 링크가 끊겨요. 45초 뒤(킵얼라이브 30초의 1.5배, 브로커가 마지막으로 들은 패킷부터 세요) 브로커가 유언 NDEATH를 발행해요. SCADA는 GW1을 오프라인으로, 그 값들을 STALE로 표시해요." }
+    },
+    "frames": {
+        "host-connect": "SCADA1이에요. 제가 사라지면 오프라인이라고 발행해 주세요",
+        "state": "SCADA1은 온라인이에요",
+        "edge-connect": "GW1이에요. 제가 사라지면 제 death를 발행해 주세요, bdSeq 0",
+        "state-seen": "SCADA1은 온라인이에요(브로커가 보관)",
+        "nbirth": "GW1 살아 있어요: 모든 메트릭이에요",
+        "dbirth": "INV1 살아 있어요: 모든 메트릭이에요",
+        "ddata": "INV1: 별칭 2 = 4820.5",
+        "ddata-gap": "INV1: seq 4(3은 어디 갔죠?)",
+        "ncmd": "GW1, 전부 다시 보내 주세요",
+        "nbirth-again": "GW1: 모든 메트릭, 다시",
+        "dbirth-again": "INV1: 모든 메트릭, 다시",
+        "ndeath": "GW1이 죽었어요(bdSeq 0)"
+    },
+    "notes": {
+        "host-connect": "clean session인 MQTT CONNECT예요. 유언은 spBv1.0/STATE/SCADA1로 가요: {\"online\":false,\"timestamp\":1794480000000}, QoS 1, retained. 그다음 SCADA가 모든 Sparkplug 메시지인 spBv1.0/#를 구독해요.",
+        "edge-connect": "clean session에 킵얼라이브 30초인 MQTT CONNECT예요. 유언은 spBv1.0/SolarPark/NDEATH/GW1의 NDEATH, QoS 1, retain 아님, 메트릭 하나: bdSeq = 0. 그다음 엣지 노드가 자기 NCMD와 DCMD 토픽, 그리고 spBv1.0/STATE/SCADA1을 구독해요.",
+        "state-seen": "엣지 노드가 구독하자마자 브로커가 보관된 STATE를 보내요. SCADA가 오프라인이었다면 엣지 노드는 기다리며 아무것도 발행하지 않았을 거예요.",
+        "nbirth": "spBv1.0/SolarPark/NBIRTH/GW1에, QoS 0, seq 0. 엣지 노드 자체의 모든 메트릭이 이름, 별칭, 데이터 유형, 값과 함께 담겨요. 두 가지는 반드시 있어야 해요: 유언과 같은 번호인 bdSeq = 0, 그리고 Node Control/Rebirth = false.",
+        "dbirth": "spBv1.0/SolarPark/DBIRTH/GW1/INV1에, seq 1: 엣지 노드가 Modbus로 읽는 인버터의 모든 메트릭. AC/Power는 별칭 2와 유형 Float를 받아요. 디코딩한 메시지는 '직접 해 보기'에서 볼 수 있어요.",
+        "ddata-gap": "이 DDATA는 seq 4인데 SCADA는 3을 기대했어요. 3이 늦게 올 수도 있으니 잠깐(재정렬 타임아웃) 기다려요. 오지 않아요.",
+        "ncmd": "spBv1.0/SolarPark/NCMD/GW1에 메트릭 하나: Node Control/Rebirth = true. SCADA는 자기가 아는 것이 의심스러울 때마다 이걸 보내요.",
+        "nbirth-again": "같은 MQTT 세션이니 bdSeq도 같은 0이에요. 엣지 노드는 birth를 다 보낼 때까지 데이터 전송을 멈춰요.",
+        "dbirth-again": "INV1의 모든 메트릭이 다시 와요. 출력은 이제 4835.0 kW예요. SCADA의 사본이 다시 완전해져요.",
+        "ndeath": "엣지 노드의 CONNECT에 담겼던 유언이에요. bdSeq 0이 마지막 NBIRTH와 일치하니 현재 세션의 것이에요. SCADA는 GW1과 INV1을 오프라인으로, 그 메트릭 전부를 STALE로 표시해요: 마지막 값은 화면에 남지만 오래된 값으로 표시돼요."
+    },
+    "fields": {
+        "publish-q1-retain": { "name": "MQTT PUBLISH", "note": "0x33: QoS 1, retained. 브로커가 나중에 구독하는 모든 엣지 노드를 위해 보관해요." },
+        "rl-65": { "name": "남은 길이", "note": "65바이트가 이어져요." },
+        "state-topic": { "name": "토픽", "note": "spBv1.0/STATE/SCADA1: ID가 SCADA1인 호스트의 STATE 토픽." },
+        "packet-id": { "name": "패킷 id 1", "note": "여느 QoS 1 메시지처럼 브로커의 PUBACK을 위한 번호." },
+        "state-online": { "name": "online", "note": "{\"online\":true, SCADA가 온라인이에요. STATE는 JSON으로 된 유일한 Sparkplug 메시지이고, 나머지는 모두 protobuf예요." },
+        "state-time": { "name": "timestamp", "note": "1970년부터 1794480000000 ms = 10:40:00.000 UTC. CONNECT 유언에 담긴 값과 같아요: 엣지 노드는 이 값으로 이번 세션과 옛 세션을 구별해요." },
+        "publish-q0": { "name": "MQTT PUBLISH", "note": "0x30: QoS 0, retain 아님. 나중에 연결하는 호스트는 옛 데이터가 아니라 birth에서 값을 알아내요." },
+        "rl-59": { "name": "남은 길이", "note": "59바이트가 이어져요: 토픽과 페이로드." },
+        "ddata-topic": { "name": "토픽", "note": "spBv1.0/SolarPark/DDATA/GW1/INV1, 32바이트(0x0020). 여기서부터 바이트는 protobuf Payload예요." },
+        "payload-time": { "name": "timestamp", "note": "태그 0x08: 필드 1, varint. 메시지를 보낸 시각: 1970년부터 1794480067280 ms = 10:41:07.280 UTC. varint는 바이트마다 7비트를 담고, 낮은 쪽이 먼저예요. 최상위 비트가 1이면 더 이어져요." },
+        "metric": { "name": "metrics", "note": "태그 0x12: 필드 2, 메트릭 하나. 0x0E = 14바이트가 이어져요." },
+        "alias": { "name": "alias", "note": "태그 0x10: 메트릭의 필드 2, 별칭 2. birth에서 2가 AC/Power라고 했으니 이름은 보내지 않아요." },
+        "metric-time": { "name": "timestamp", "note": "태그 0x18: 메트릭의 필드 3, 값을 읽은 시각: 1794480067250, 메시지를 보내기 30 ms 전." },
+        "float": { "name": "float_value", "note": "태그 0x65: 필드 12, 4바이트, 하위 바이트 먼저: 4820.5(kW). 데이터 유형은 보내지 않아요: birth에서 알려 줬어요." },
+        "seq": { "name": "seq", "note": "다시 태그 0x18, 이번에는 메트릭 밖이에요: 페이로드의 필드 3, seq 2. 메트릭 안에서 필드 3은 타임스탬프예요." },
+        "a-namespace": { "name": "네임스페이스", "note": "spBv1.0: Sparkplug B, 토픽 구조 버전 1.0." },
+        "a-group": { "name": "group_id", "note": "엣지 노드의 묶음, 여기서는 발전소 하나." },
+        "a-type": { "name": "message_type", "note": "메시지의 종류. NBIRTH, NDATA, NCMD, NDEATH는 엣지 노드에 관한 것이고, DBIRTH, DDATA, DCMD, DDEATH는 기기에 관한 것이에요." },
+        "a-node": { "name": "edge_node_id", "note": "게이트웨이. 그룹 안에서 고유해야 해요." },
+        "a-device": { "name": "device_id", "note": "엣지 노드 뒤의 기기. 엣지 노드 자체에 관한 토픽은 GW1에서 끝나요." }
+    },
+    "devices": {
+        "inv1": "인버터 INV1",
+        "gw": "엣지 노드 GW1",
+        "broker": "MQTT 브로커",
+        "scada": "SCADA(SCADA1)"
+    },
+    "facts": {
+        "standard": "Eclipse Sparkplug 3.0(2022), ISO/IEC 20237:2023",
+        "between": "엣지 노드 → MQTT 브로커 → 호스트 응용 프로그램(SCADA, 히스토리안)",
+        "transport": "TCP 1883 또는 TLS 8883 위의 MQTT 3.1.1 또는 5.0",
+        "security": "MQTT의 보안뿐: TLS와 브로커 로그인. Sparkplug이 더하는 건 없어요.",
+        "frames": "NBIRTH, DBIRTH, NDATA, DDATA, NCMD, DCMD, NDEATH, DDEATH, STATE",
+        "model": "이름, 별칭, 데이터 유형, 값을 가진 메트릭, Protocol Buffers로 인코딩"
+    },
+    "tips": [
+        "엣지 노드마다 그룹 안에서 고유한 edge_node_id와 자기만의 MQTT 클라이언트 ID가 필요해요. ID가 같은 게이트웨이 두 대는 서로를 쫓아내고, SCADA에는 하루 종일 birth와 death가 보여요.",
+        "별칭은 다음 birth까지만 유효해요. rebirth 뒤에도 옛 별칭을 쓰는 도구는 값을 엉뚱한 메트릭에 기록해요.",
+        "birth에 없는 메트릭은 SCADA에게 존재하지 않아요. 메트릭을 추가했다면 새 birth를 발행하세요.",
+        "모든 엣지 노드에 주 호스트 ID를 설정하세요. 그러면 birth 전에 SCADA의 STATE를 기다려요. 설정이 없으면 SCADA가 없는 동안 birth가 나가고, SCADA가 rebirth를 요청해야 해요."
+    ],
+    "points": {
+        "node": "엣지 노드 상태",
+        "power": "인버터 출력"
+    },
+    "values": {
+        "online": "온라인",
+        "offline": "오프라인"
+    },
+    "anatomy": {
+        "topic": "Sparkplug 토픽: 누가, 어느 기기에 대해, 무엇을 보내는지"
+    },
+    "playground": {
+        "file": "INV1의 DBIRTH를 읽기 쉽도록 protobuf에서 JSON으로 디코딩했어요. 회선에서는 위의 DDATA처럼 바이너리예요.",
+        "payload-time": "메시지를 보낸 시각, 1970년부터의 밀리초, UTC.",
+        "metric": "메트릭 하나: 이름, 별칭, 읽은 시각, 데이터 유형, 값. Sparkplug에는 단위 필드가 없어요: AC/Power가 kW라는 건 발전소에서 합의해요.",
+        "double": "총 에너지(MWh), Double. 메트릭은 다음 birth까지 데이터 유형을 유지해요.",
+        "string": "텍스트도 돼요. DDATA라면 별칭 5와 새 텍스트만 보내요.",
+        "seq": "seq 1: NBIRTH가 0이었어요. 엣지 노드의 모든 메시지가 255까지 이어서 세고, 그다음 다시 0부터 시작해요."
+    }
+}

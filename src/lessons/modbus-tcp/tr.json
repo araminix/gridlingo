@@ -1,0 +1,90 @@
+{
+    "intro": "Ethernet üzerinden bir cihazı okumanın ve ona yazmanın en basit yolu. Cihaz verisini numaralı, 16 bitlik register'larda tutar. İstemci bazı register'ları numarasıyla ister ve içeriklerini geri alır. Protokolde bir register'ın ne anlama geldiğine dair hiçbir şey yoktur: o bilgi cihazın kılavuzundadır.",
+    "steps": {
+        "connect": { "title": "Bağlan", "text": "Santral kontrolörü, invertere 502 portundan bir TCP bağlantısı açar. Modbus TCP'de oturum açma ya da başlatma komutu yoktur: bağlantı yeterlidir." },
+        "read": { "title": "Gücü oku", "text": "Kılavuz aktif gücü 40101 numaralı register'da gösteriyor. Hat üzerinde bu adres 100'dür, çünkü hat 0'dan sayar. Yanıt 4 bayttır: iki register'da tek bir 32 bit float, 4820.5 kW." },
+        "limit": { "title": "Bir sınır koy", "text": "Şebeke işletmecisi daha az güç istiyor. Kontrolör, güç sınırı olan 200 adresine 3000 yazar. İnverter isteğin birebir kopyasıyla yanıt verir: bu kopya \"tamam\" demektir." },
+        "check": { "title": "İşe yaradı mı bak", "text": "Modbus bir değişikliği asla kendiliğinden bildirmez: istemcinin yeniden sorması gerekir. Altı saniye sonra güç 2998.7 kW." },
+        "mistake": { "title": "Yanlış bir adres", "text": "Yeni bir betik, kılavuzdaki numarayı (40101) adres olarak gönderir. İnverterde orada bir register yoktur, bu yüzden veri yerine bir istisna (exception) ile yanıt verir." }
+    },
+    "frames": {
+        "tcp": "502 portuna bir TCP bağlantısı aç",
+        "read-req": "Bana 100 ve 101 numaralı register'ları gönder",
+        "read-resp": "Aktif güç: 4820.5 kW",
+        "write-req": "Güç sınırını 3000 kW yap",
+        "write-resp": "Tamam: sınır 3000 kW",
+        "check-req": "Bana 100 ve 101 numaralı register'ları yine gönder",
+        "check-resp": "Aktif güç: 2998.7 kW",
+        "wrong-req": "Bana 40101 ve 40102 numaralı register'ları gönder",
+        "exception": "Hata 02: böyle bir register yok"
+    },
+    "notes": {
+        "tcp": "Düz TCP, henüz Modbus baytı yok. Birçok cihaz aynı anda yalnızca birkaç bağlantı kabul eder; bu yüzden istemci bağlantısını açık tutar ve yeniden kullanır."
+    },
+    "fields": {
+        "tid-1": { "name": "Transaction ID 1", "note": "İstemcinin seçtiği bir numara. Yanıt da aynısını taşır; böylece istemci ikisini eşleştirebilir." },
+        "tid-2": { "name": "Transaction ID 2", "note": "Sonraki istek, sonraki numara." },
+        "tid-3": { "name": "Transaction ID 3", "note": "3 numaralı isteğin yanıtı 3'ü taşır." },
+        "tid-4": { "name": "Transaction ID 4", "note": "Bir hata yanıtı bile isteğin numarasını taşır." },
+        "proto": { "name": "Protocol ID", "note": "0x0000: Modbus. Her zaman sıfırdır." },
+        "len-6": { "name": "Uzunluk", "note": "Ardından 6 bayt gelir: unit ID ve 5 baytlık istek." },
+        "len-7": { "name": "Uzunluk", "note": "Ardından 7 bayt gelir." },
+        "len-3": { "name": "Uzunluk", "note": "Ardından 3 bayt gelir." },
+        "unit": { "name": "Unit ID 1", "note": "Bir ağ geçidinin arkasındaki cihazı seçer. Bu inverter 1'e yanıt verir." },
+        "fc03": { "name": "Fonksiyon 03", "note": "0x03: holding register'ları oku." },
+        "fc06": { "name": "Fonksiyon 06", "note": "0x06: tek bir register yaz." },
+        "fc06-echo": { "name": "Fonksiyon 06", "note": "Bir yazmanın yanıtı isteği bayt bayt tekrarlar." },
+        "fc83": { "name": "Fonksiyon 83", "note": "0x83 = 0x03 + 0x80. En yüksek bitin kurulu olması şu demektir: bu bir hata." },
+        "addr-100": { "name": "Adres 100", "note": "0x0064 = 100: kılavuzdaki 40101 numaralı register." },
+        "addr-200": { "name": "Adres 200", "note": "0x00C8 = 200: 40201 numaralı register, aktif güç sınırı." },
+        "addr-40101": { "name": "Adres 40101", "note": "0x9CA5 = 40101: kılavuzdaki numara, olduğu gibi gönderilmiş. Yanlış: inverterde orada hiçbir şey yok." },
+        "qty-2": { "name": "Sayı", "note": "2 register: tek bir 32 bitlik değer." },
+        "count-4": { "name": "Bayt sayısı", "note": "Ardından 4 veri baytı gelir: 2 register." },
+        "reg-100": { "name": "Register 100", "note": "0xA400: float'ın düşük yarısı. Bu inverter önce düşük word'ü gönderir (CDAB)." },
+        "reg-101": { "name": "Register 101", "note": "0x4596: yüksek yarı. Önce yüksek sonra düşük, yani 0x4596A400, 4820.5 (kW) eder." },
+        "reg-100-later": { "name": "Register 100", "note": "0x6B33: düşük yarı." },
+        "reg-101-later": { "name": "Register 101", "note": "0x453B: yüksek yarı. 0x453B6B33, 2998.7 (kW) eder." },
+        "limit-3000": { "name": "Değer", "note": "0x0BB8 = 3000 (kW)." },
+        "code-02": { "name": "İstisna 02", "note": "Geçersiz veri adresi: register yok. 01 bilinmeyen bir fonksiyon, 03 hatalı bir değer anlamına gelirdi." },
+        "a-table": { "name": "Tablo", "note": "4: fonksiyon 03 ile okunan bir holding register. 3 bir input register'dır (fonksiyon 04), 1 bir discrete input, 0 bir coil." },
+        "a-number": { "name": "Numara", "note": "0101: 101. register. Kılavuzlar 1'den, hat 0'dan sayar." }
+    },
+    "devices": {
+        "controller": "Santral kontrolörü",
+        "inverter": "INV-1 inverteri",
+        "pv": "PV dizisi",
+        "meter": "Şebeke sayacı"
+    },
+    "facts": {
+        "standard": "Modbus Application Protocol V1.1b3 ve Modbus Messaging on TCP/IP V1.0b (Modbus Organization)",
+        "between": "İstemci (santral kontrolörü, SCADA, veri kaydedici) → sunucu (inverter, sayaç, batarya)",
+        "transport": "TCP 502",
+        "security": "Yok. 502 portuna ulaşan herkes okuyup yazabilir. Modbus/TCP Security, 802 portunda TLS ekler.",
+        "frames": "7 baytlık bir MBAP başlığı, ardından bir fonksiyon kodu ve verisi",
+        "since": "1979'dan beri seri hatlarda (Modicon), 1999'dan beri TCP üzerinde"
+    },
+    "tips": [
+        "Kılavuzun register'ları 0'dan mı 1'den mi saydığını öğrenin. Bir register kayma, bir değerin yarısını ve sonrakinin yarısını okur; bu da neredeyse doğru görünebilir.",
+        "32 bitlik değerlerin word sırasını bildiğiniz bir değerle, örneğin inverterin ekranındaki güçle karşılaştırın. Birçok cihaz önce düşük word'ü gönderir (CDAB).",
+        "Birçok cihaz yalnızca birkaç TCP bağlantısı kabul eder. Bağlı unutulan bir test aracı santral kontrolörünü dışarıda bırakabilir.",
+        "Modbus'ta parola yoktur. 502 portunu santral ağının içinde tutun ve asla internetten erişilebilir olmasına izin vermeyin."
+    ],
+    "points": {
+        "p": "Aktif güç",
+        "limit": "Aktif güç sınırı"
+    },
+    "anatomy": {
+        "register": "Kılavuzdaki bir register numarası ve hatta giden adres"
+    },
+    "playground": {
+        "encoder": "Bu inverter 32 bitlik bir float'ı önce düşük word ile gönderir (CDAB). Baytlarını ve aynı baytların başka bir sırayla okununca ne anlama geldiğini görmek için bir değer yazın.",
+        "file": "İnverterin kılavuzundaki register haritası. Kontrolör de aynı adreslerle, türlerle ve word sırasıyla ayarlanmalıdır.",
+        "unit": "İnverterin yanıt verdiği unit ID.",
+        "offset": "Bir register numarasının adrese nasıl çevrileceği. Bunu her kılavuzda arayın: bazıları 0'dan sayar.",
+        "float": "İki register, bir float, önce düşük word. Kontrolör CDAB'ye ayarlanmalıdır.",
+        "scaled": "Ölçekli bir tam sayı: 5001, 50.01 Hz demektir.",
+        "uint32": "Bu da iki register, bu da önce düşük word.",
+        "limit": "Yazılabilir: kontrolörün 3. adımda ayarladığı sınır.",
+        "fallback": "Kontrolör bu süre boyunca yazmayı keserse inverter yedek (fallback) ayarına döner. Böylece kopan bir bağlantı santrali eski bir sınırda takılı bırakmaz."
+    }
+}

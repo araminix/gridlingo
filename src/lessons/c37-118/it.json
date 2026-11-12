@@ -1,0 +1,116 @@
+{
+    "intro": "Un'unità di misura fasoriale (PMU) misura tensione e corrente come fasori: l'ampiezza della sinusoide e il suo angolo rispetto a un'onda perfetta a 50 Hz che riparte a ogni secondo UTC. Il suo orologio viene dal GPS, quindi ogni valore ha un'etichetta temporale esatta. Un concentratore (PDC) raccoglie i flussi di molte PMU e li allinea nel tempo, per vedere tutta la rete nello stesso istante.",
+    "steps": {
+        "connect": { "title": "Connessione", "text": "Il PDC del centro di controllo apre una connessione TCP verso la PMU sulla porta 4712. La PMU non invia nulla finché non le viene chiesto." },
+        "config": { "title": "Chiedi la configurazione", "text": "I frame dati portano solo numeri: niente nomi, niente unità. Per questo il PDC chiede prima il frame di configurazione 2 (CFG-2): quali valori arrivano, in quale formato, con quale frequenza." },
+        "start": { "title": "Avvia il flusso", "text": "Il comando 2 attiva i frame dati. La PMU li invia finché il PDC non manda il comando 1 o chiude la connessione." },
+        "stream": { "title": "50 frame al secondo", "text": "Ogni 20 ms un frame dati: etichetta temporale, stato, due fasori e la frequenza. In 20 ms entrambi gli angoli si sono spostati di +0.144°, perché la rete va a 50.020 Hz, un po' più veloce del riferimento a 50 Hz." },
+        "event": { "title": "Scatta un generatore", "text": "Da qualche parte nella rete scatta un grosso generatore. La frequenza scende: 49.946 Hz, a −0.12 Hz al secondo. Tutte le PMU marcano il tempo sullo stesso secondo GPS, quindi il PDC può confrontare i loro valori campione per campione." }
+    },
+    "frames": {
+        "tcp": "Apri una connessione TCP verso la porta 4712",
+        "cmd-cfg": "Mandami la tua configurazione (CFG-2)",
+        "cfg2": "Una PMU, 2 fasori in float, 50 frame al secondo",
+        "cmd-on": "Inizia a inviare dati",
+        "data-0": "V1 89.120 kV a −12.400°, 50.020 Hz",
+        "data-20": "20 ms dopo: V1 a −12.256°",
+        "data-event": "Frequenza 49.946 Hz, in calo di 0.12 Hz/s"
+    },
+    "notes": {
+        "tcp": "Semplice TCP. Comandi e dati possono condividere questa unica connessione, come qui. Una PMU può anche inviare i dati su UDP, di solito alla porta 4713, che permette anche il multicast verso più PDC."
+    },
+    "fields": {
+        "sync-cmd": { "name": "SYNC", "note": "0xAA apre ogni frame. 0x41: frame di tipo 4 (un comando), versione 1." },
+        "sync-cfg2": { "name": "SYNC", "note": "0x31: frame di tipo 3 (frame di configurazione 2), versione 1." },
+        "sync-data": { "name": "SYNC", "note": "0x01: frame di tipo 0 (un frame dati), versione 1." },
+        "size-18": { "name": "FRAMESIZE", "note": "18 byte: l'intero frame, controllo compreso." },
+        "size-94": { "name": "FRAMESIZE", "note": "94 byte." },
+        "size-42": { "name": "FRAMESIZE", "note": "42 byte." },
+        "idcode": { "name": "IDCODE", "note": "Flusso dati 7. Un comando porta il flusso a cui è destinato; ogni altro frame porta il proprio." },
+        "soc-06": { "name": "SOC", "note": "Secondi dal 1970-01-01 UTC: 0x6AF597C2 = 12 novembre 2026, 10:41:06." },
+        "soc-07": { "name": "SOC", "note": "0x6AF597C3 = 10:41:07 UTC." },
+        "soc-12": { "name": "SOC", "note": "0x6AF597C8 = 10:41:12 UTC." },
+        "tq-0": { "name": "Qualità del tempo", "note": "0: l'orologio è agganciato a UTC e non è previsto un secondo intercalare. Se il GPS si guasta, questo codice dice di quanto può sbagliare l'orologio." },
+        "frac-954": { "name": "FRACSEC", "note": "0x0E8E90 = 954 000 µs: 10:41:06.954." },
+        "frac-961": { "name": "FRACSEC", "note": "0x0EA9E8 = 961 000 µs: 10:41:06.961." },
+        "frac-970": { "name": "FRACSEC", "note": "0x0ECD10 = 970 000 µs: 10:41:06.970." },
+        "frac-0": { "name": "FRACSEC", "note": "0: esattamente allo scoccare del secondo. È il momento in cui i valori sono stati misurati, non quello in cui il frame è partito." },
+        "frac-20": { "name": "FRACSEC", "note": "0x004E20 = 20 000 µs: 20 ms dopo il secondo, un frame dopo." },
+        "frac-460": { "name": "FRACSEC", "note": "0x0704E0 = 460 000 µs: 10:41:12.460." },
+        "cmd-5": { "name": "CMD 5", "note": "Invia il frame di configurazione 2. Altri comandi: 1 ferma i dati, 2 li avvia, 3 chiede l'header frame, 4 il CFG-1." },
+        "cmd-2": { "name": "CMD 2", "note": "Attiva i frame dati." },
+        "chk": { "name": "CHK", "note": "CRC-CCITT di tutti i byte precedenti: polinomio 0x1021, valore iniziale 0xFFFF. Un frame con il controllo sbagliato viene scartato." },
+        "timebase": { "name": "TIME_BASE", "note": "1 000 000 (0x0F4240): FRACSEC conta i milionesimi di secondo." },
+        "numpmu": { "name": "NUM_PMU", "note": "1 PMU in questo flusso. Un PDC che inoltra molte PMU le elenca tutte qui, e i suoi frame dati portano un blocco per ciascuna." },
+        "stn": { "name": "STN", "note": "Il nome della stazione: ALPHA PMU1." },
+        "pad": { "name": "Riempimento", "note": "Spazi: ogni nome in CFG-2 è lungo esattamente 16 caratteri." },
+        "pmuid": { "name": "IDCODE", "note": "L'ID dei dati di questa PMU: 7." },
+        "format": { "name": "FORMAT", "note": "0x000B: fasori in float in forma polare (modulo e angolo), anche FREQ e DFREQ in float." },
+        "counts": { "name": "PHNMR · ANNMR · DGNMR", "note": "2 fasori, 0 valori analogici, 0 parole di stato digitali. Insieme a FORMAT, questo fissa la dimensione di ogni frame dati." },
+        "chnam-v": { "name": "CHNAM", "note": "Il nome del fasore 1: V1 POS SEQ, la tensione alla sequenza diretta." },
+        "chnam-i": { "name": "CHNAM", "note": "Fasore 2: I1 POS SEQ, la corrente alla sequenza diretta." },
+        "phunit-v": { "name": "PHUNIT", "note": "Primo byte 0: il fasore 1 è una tensione. Gli altri 3 byte scalano gli interi a 16 bit (300 000 × 10⁻⁵ V per bit); con i float vengono ignorati." },
+        "phunit-i": { "name": "PHUNIT", "note": "Primo byte 1: il fasore 2 è una corrente. 3 000 × 10⁻⁵ A per bit, anche questo inutilizzato con i float." },
+        "fnom": { "name": "FNOM", "note": "Bit 0 a 1: una rete a 50 Hz. A 0 significherebbe 60 Hz." },
+        "cfgcnt": { "name": "CFGCNT", "note": "3: la configurazione della PMU è stata modificata 3 volte. Il PDC lo confronta per sapere se la sua copia è aggiornata." },
+        "rate": { "name": "DATA_RATE", "note": "50 frame al secondo: uno ogni 20 ms." },
+        "stat": { "name": "STAT", "note": "0x0000: dati buoni, PMU sincronizzata con UTC, ordinati per etichetta temporale, nessun trigger, nessuna modifica di configurazione in arrivo." },
+        "v1-mag-0": { "name": "Modulo V1", "note": "89 120 V, un float. Fase-neutro: circa 154 kV tra le fasi." },
+        "v1-ang-0": { "name": "Angolo V1", "note": "−0.21642 rad = −12.400°, rispetto all'onda di riferimento a 50 Hz." },
+        "i1-mag-0": { "name": "Modulo I1", "note": "412.0 A." },
+        "i1-ang-0": { "name": "Angolo I1", "note": "−0.54454 rad = −31.200°." },
+        "freq": { "name": "FREQ", "note": "50.020 Hz, come float." },
+        "dfreq-0": { "name": "DFREQ", "note": "La derivata della frequenza: 0.000 Hz/s." },
+        "v1-mag-20": { "name": "Modulo V1", "note": "89 118 V." },
+        "v1-ang-20": { "name": "Angolo V1", "note": "−12.256°: si è spostato di +0.144° in 20 ms." },
+        "i1-mag-20": { "name": "Modulo I1", "note": "412.3 A." },
+        "i1-ang-20": { "name": "Angolo I1", "note": "−31.056°: anche questo +0.144°." },
+        "v1-mag-ev": { "name": "Modulo V1", "note": "88 870 V." },
+        "v1-ang-ev": { "name": "Angolo V1", "note": "−15.620°." },
+        "i1-mag-ev": { "name": "Modulo I1", "note": "455.0 A: la linea ora trasporta più potenza." },
+        "i1-ang-ev": { "name": "Angolo I1", "note": "−27.900°." },
+        "freq-ev": { "name": "FREQ", "note": "49.946 Hz: sotto i 50 Hz, perché la rete ha perso un generatore." },
+        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s: la frequenza sta scendendo." }
+    },
+    "devices": {
+        "gps": "Orologio GPS",
+        "bay": "Stallo linea 154 kV",
+        "pmu": "PMU 1",
+        "pdc": "PDC",
+        "pmu2": "PMU 2",
+        "wams": "Monitoraggio di area estesa"
+    },
+    "facts": {
+        "standard": "IEEE C37.118.2-2011 (i frame); la misura in sé: IEC/IEEE 60255-118-1",
+        "between": "PMU → PDC, PDC → PDC e applicazioni",
+        "transport": "TCP 4712 per i comandi, e spesso i dati; UDP 4713 per i dati",
+        "security": "Nessuna: solo un CRC. Usa una rete separata o una VPN. IEC 61850-90-5 è l'alternativa protetta.",
+        "speed": "Da 10 a 50 frame al secondo su una rete a 50 Hz. Tempo entro circa 1 µs da UTC: 1 µs vale 0.018° a 50 Hz."
+    },
+    "tips": [
+        "I frame dati non portano nomi né unità. Se la configurazione della PMU cambia e il PDC tiene il vecchio CFG-2, legge valori sbagliati senza alcun errore. Il bit 10 di STAT avvisa prima di una modifica: rileggi il CFG-2.",
+        "Controlla la qualità del tempo prima di fidarti di un angolo. Quando il GPS si perde, il bit 13 di STAT va a 1 e gli angoli derivano: 1 ms di errore dell'orologio vale 18° a 50 Hz.",
+        "L'IDCODE deve coincidere da entrambe le parti. Un PDC configurato per il flusso 7 ignora i frame che portano un altro numero.",
+        "Gli angoli sono confrontabili solo alla stessa etichetta temporale. Un PDC aspetta per un tempo fissato i frame in ritardo: troppo poco e perde dati, troppo e ogni schermata resta indietro."
+    ],
+    "points": {
+        "rate": "Frame al secondo",
+        "v1": "Tensione V1",
+        "i1": "Corrente I1",
+        "freq": "Frequenza"
+    },
+    "timing": {
+        "title": "Ogni frame è legato al secondo UTC",
+        "note": "La PMU misura in istanti fissi: 0, 20, 40 ms … dopo ogni secondo UTC, così come lo segna il suo orologio GPS. Il frame parte un po' dopo, qui 30 ms. L'etichetta temporale è l'istante della misura, quindi un PDC può allineare PMU i cui frame arrivano in momenti diversi.",
+        "utc": "UTC (GPS)",
+        "measured": "Misurato",
+        "sent": "Inviato al PDC",
+        "pps": "1 PPS: un nuovo secondo",
+        "frac-0": "FRACSEC 0",
+        "frac-20": "FRACSEC 20000",
+        "latency": "+30 ms"
+    },
+    "playground": {
+        "encoder": "C37.118 invia i float con il byte più significativo per primo (ABCD). 89120 è il modulo di V1 del primo frame dati: 47 AE 10 00."
+    }
+}

@@ -13,7 +13,7 @@
         "trip-wire": "Energize the trip coil of Q1",
         "event": "Trip! Tr.general = TRUE",
         "repeat": "Trip, again (copy 1)",
-        "to-scada": "CB-1 tripped, with its time",
+        "to-scada": "Q1 tripped, with its time",
         "opened": "Q1 is open"
     },
     "notes": {

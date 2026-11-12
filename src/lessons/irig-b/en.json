@@ -72,7 +72,7 @@
     },
     "timing": {
         "title": "The first 110 ms of a frame",
-        "note": "The frame for 10:41:07 begins with two markers in a row: P0 ends the last frame, Pr starts this one, and the rising edge of Pr is exactly 10:41:07.000. Then the seconds, units first: 1, 1, 1, 0 = 7. B00x sends the pulses as DC levels: 2 ms for a 0, 5 ms for a 1, 8 ms for a marker. B12x puts the same pulses on a 1 kHz sine, loud during the pulse and quiet after it (about 10:3). The sine is drawn here as steps.",
+        "note": "The frame for 10:41:07 begins with two markers in a row: P0 ends the last frame, Pr starts this one, and the rising edge of Pr is exactly 10:41:07.000. Then the seconds, units first: 1, 1, 1, 0 = 7. B00x sends the pulses as DC levels: 2 ms for a 0, 5 ms for a 1, 8 ms for a marker. B12x puts the same pulses on a 1 kHz sine, loud during the pulse and quiet after it (about 10 to 3). The sine is drawn here as steps.",
         "bits": "Bits",
         "b00x": "B00x · DC level",
         "b12x": "B12x · 1 kHz",

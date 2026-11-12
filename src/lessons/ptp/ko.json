@@ -1,0 +1,129 @@
+{
+    "intro": "변전소가 샘플값과 같은 이더넷을 써서 모든 머징 유닛과 계전기를 1마이크로초 이내로 한 시계에 맞추는 방법이에요. GPS 그랜드마스터가 1초마다 시각을 보내요. 스위치마다 메시지를 붙잡고 있던 시간을 재서 메시지에 더해 주니, 모든 클럭이 경로상의 지연을 하나하나 보정할 수 있어요.",
+    "steps": {
+        "announce": { "title": "최적 마스터", "text": "GPS 클럭이 1초에 한 번 자신을 그랜드마스터로 알려요: GPS에 동기됨(클럭 클래스 6), 우선순위 128. 모든 클럭은 들리는 Announce 메시지를 비교해서 가장 좋은 것을 따라요." },
+        "pdelay": { "title": "케이블 측정", "text": "포트마다 자기 케이블의 지연을 1초에 한 번 재요. MU가 t1에 Pdelay_Req를 보내면, 스위치가 t2에 받고 t3에 답하고, MU가 t4에 답을 받아요. 지연 = ((t4 − t1) − (t3 − t2)) / 2 = 1486 ns. 두 시계가 일치할 필요는 없어요: 각자 차이만 재니까요." },
+        "sync": { "title": "Sync", "text": "그랜드마스터가 Sync를 보내고 정확히 언제 나갔는지 기록해요. 2단계(two-step) 모드에서는 그 시각이 Follow_Up으로 뒤따라와요. 스위치는 Sync를 넘겨주면서 들어온 시각과 나간 시각을 기록해요." },
+        "correct": { "title": "지연 더하기", "text": "스위치가 Sync를 붙잡고 있던 시간(7.436 µs)과 그랜드마스터 쪽 케이블 지연(0.412 µs)을 Follow_Up의 보정 필드에 더해요. 오프셋 = 도착 시각 − 출발 시각 − 보정 − MU 자신의 케이블 지연 = +2.461318 ms." },
+        "lock": { "title": "동기 고정", "text": "MU가 시계를 2.461318 ms 뒤로 돌린 뒤, Sync가 올 때마다 속도를 미세 조정해요. 몇 초 뒤면 오프셋이 1 µs 아래로 유지돼요." },
+        "sv": { "title": "발맞춘 샘플", "text": "MU가 샘플값에 동기된 시각을 찍고 smpSynch로 그렇다고 알려요. 이제 계전기는 이 샘플을 다른 머징 유닛의 샘플과 함께 쓸 수 있어요." }
+    },
+    "frames": {
+        "announce": "제가 그랜드마스터예요: 클래스 6, GPS에 동기됨",
+        "pdelay-req": "우리 케이블은 얼마나 길어요? (t1을 기록했어요)",
+        "pdelay-resp": "요청이 t2에 도착했어요",
+        "pdelay-fup": "제 응답은 t3에 나갔어요",
+        "sync": "이게 도착한 시각을 기록하세요",
+        "fup-gm": "그 Sync는 10:41:07.000 000 120 UTC에 나갔어요",
+        "fup-tc": "같은 내용, 오는 길에 걸린 7848 ns를 더해서",
+        "lock": "1초마다 다시 Sync와 Follow_Up",
+        "sv": "이제 동기됨으로 표시된 샘플"
+    },
+    "notes": {
+        "lock": "앞과 같은 짝에 시퀀스 번호만 올라갔어요. 스위치가 Sync를 붙잡는 시간은 매번 달라서 보정 필드도 달라요. 이제 MU의 오프셋은 +38 ns예요.",
+        "sv": "PTP가 아니라 샘플값 스트림이에요: 바이트는 IEC 61850 Sampled Values 레슨에 있어요. smpSynch = 2는 샘플이 전역 시계, 여기서는 PTP를 거친 GPS를 따른다는 뜻이에요."
+    },
+    "fields": {
+        "dst-all": { "name": "목적지", "note": "01-1B-19-00-00-00: 이더넷 위 PTP의 멀티캐스트 주소. 투명 클럭은 이를 모든 포트로 넘겨줘요." },
+        "dst-peer": { "name": "목적지", "note": "01-80-C2-00-00-0E: 링크 로컬 멀티캐스트 주소. 어떤 스위치도 전달하지 않으니 Pdelay는 케이블 하나 안에 머물러요." },
+        "src-gm": { "name": "출발지", "note": "그랜드마스터의 MAC 주소. 스위치는 프레임을 넘겨줄 때 이를 그대로 둬요." },
+        "src-sw": { "name": "출발지", "note": "스위치 포트 3의 MAC 주소." },
+        "src-mu": { "name": "출발지", "note": "머징 유닛의 MAC 주소." },
+        "ethertype": { "name": "EtherType", "note": "0x88F7은 PTP라는 뜻이에요. IP도 UDP도 없어요." },
+        "type-announce": { "name": "Announce", "note": "하위 4비트: 메시지 유형 0xB, Announce. 상위 4비트: transportSpecific 0." },
+        "type-sync": { "name": "Sync", "note": "메시지 유형 0x0: Sync." },
+        "type-fup": { "name": "Follow_Up", "note": "메시지 유형 0x8: Follow_Up." },
+        "type-preq": { "name": "Pdelay_Req", "note": "메시지 유형 0x2: 피어 지연 요청." },
+        "type-presp": { "name": "Pdelay_Resp", "note": "메시지 유형 0x3: 피어 지연 응답." },
+        "type-pfup": { "name": "Pdelay_Resp_Follow_Up", "note": "메시지 유형 0xA: 응답의 후속 메시지." },
+        "version": { "name": "versionPTP", "note": "2: PTP 버전 2(IEEE 1588-2008)." },
+        "len64": { "name": "messageLength", "note": "헤더부터 메시지 끝까지 64바이트." },
+        "len54": { "name": "messageLength", "note": "54바이트. Pdelay 메시지 세 개 모두 이 길이예요." },
+        "len44": { "name": "messageLength", "note": "44바이트: 헤더와 타임스탬프 하나." },
+        "domain": { "name": "domainNumber", "note": "0, IEC 61850-9-3의 기본값. 클럭은 다른 도메인의 메시지를 무시해요." },
+        "reserved1": { "name": "예약", "note": "0." },
+        "reserved4": { "name": "예약", "note": "0." },
+        "flags-announce": { "name": "flagField", "note": "0x003C: UTC 오프셋 유효, PTP 시간 척도 사용, 시각과 주파수를 (GPS까지) 추적 가능." },
+        "flags-two-step": { "name": "flagField", "note": "0x0200: twoStepFlag. 정확한 송신 시각은 두 번째 메시지로 뒤따라와요." },
+        "flags-0": { "name": "flagField", "note": "켜진 플래그 없음." },
+        "corr-0": { "name": "correctionField", "note": "0: 아직 더할 게 없어요." },
+        "corr-tc": { "name": "correctionField", "note": "0x1EA80000, 나노초 × 2^16 단위: 7848 ns = 스위치 안에서 7436 ns + 그랜드마스터 쪽 케이블 412 ns." },
+        "port-gm": { "name": "sourcePortIdentity", "note": "MAC 주소로 만든 그랜드마스터의 clockIdentity, 그리고 포트 1." },
+        "port-sw": { "name": "sourcePortIdentity", "note": "스위치의 clockIdentity와 포트 3." },
+        "port-mu": { "name": "sourcePortIdentity", "note": "MU의 clockIdentity와 포트 1." },
+        "seq-announce": { "name": "sequenceId", "note": "0x02A7 = 679. 메시지 유형마다 따로 세요." },
+        "seq-sync": { "name": "sequenceId", "note": "0x2C1B = 11291." },
+        "seq-fup": { "name": "sequenceId", "note": "0x2C1B: 짝이 되는 Sync와 같은 번호." },
+        "seq-pdelay": { "name": "sequenceId", "note": "0x0151 = 337. 두 응답 모두 요청의 번호를 달고 와요." },
+        "control-other": { "name": "controlField", "note": "0x05: 그 밖의 메시지. PTP 버전 1 기기를 위해 남겨 둔 필드예요." },
+        "control-sync": { "name": "controlField", "note": "0x00: Sync." },
+        "control-fup": { "name": "controlField", "note": "0x02: Follow_Up." },
+        "interval-1s": { "name": "logMessageInterval", "note": "0: 2^0 = 1초마다 하나." },
+        "interval-none": { "name": "logMessageInterval", "note": "0x7F: 이 메시지에는 주기가 없어요." },
+        "origin-announce": { "name": "originTimestamp", "note": "0: Announce는 비워 둬도 돼요." },
+        "utc-offset": { "name": "currentUtcOffset", "note": "0x0025 = 37초. PTP는 TAI 시각을 세요: UTC = TAI − 37 s." },
+        "priority1": { "name": "priority1", "note": "128, 가장 먼저 비교해요. 낮은 값이 이겨요." },
+        "class6": { "name": "clockClass", "note": "6: 1차 기준, 여기서는 GPS에 동기됨." },
+        "accuracy": { "name": "clockAccuracy", "note": "0x21: 100 ns 이내." },
+        "variance": { "name": "offsetScaledLogVariance", "note": "0x4E5D: 클럭이 얼마나 안정적인지. 낮을수록 안정적이에요." },
+        "priority2": { "name": "priority2", "note": "128, 클럭 품질 다음에 비교해요." },
+        "gm-id": { "name": "grandmasterIdentity", "note": "이 클럭이 아는 가장 좋은 클럭: 자기 자신." },
+        "steps-removed": { "name": "stepsRemoved", "note": "0: 그랜드마스터에서 바로 왔어요. 투명 클럭은 이 값을 늘리지 않아요." },
+        "source-gps": { "name": "timeSource", "note": "0x20: GPS." },
+        "origin-preq": { "name": "originTimestamp", "note": "0. MU는 요청이 나간 시각 t1을 혼자만 알고 있어요." },
+        "reserved10": { "name": "예약", "note": "빈 10바이트: 요청을 응답과 같은 길이로 맞춰요." },
+        "t2": { "name": "requestReceiptTimestamp", "note": "t2: 스위치 시계로 요청이 도착한 시각. 0x6AF597E7초와 0x2BC1CA3A = 734120506 ns: 10:41:06.734 120 506 UTC." },
+        "t3": { "name": "responseOriginTimestamp", "note": "t3: Pdelay_Resp가 스위치를 떠난 시각, t2보다 48216 ns 뒤." },
+        "requesting": { "name": "requestingPortIdentity", "note": "MU의 포트: 이 응답은 MU를 위한 거예요." },
+        "origin-sync": { "name": "originTimestamp", "note": "0. 2단계 모드에서는 정확한 시각이 Follow_Up으로 와요." },
+        "t-origin": { "name": "preciseOriginTimestamp", "note": "Sync가 나간 시각: 초 6바이트(0x6AF597E8 = 1794480104)와 나노초 4바이트(0x78 = 120). TAI 기준이라 10:41:07.000 000 120 UTC보다 37초 앞서요." },
+        "padding": { "name": "패딩", "note": "2바이트: 이더넷 프레임은 최소 60바이트여야 해요." },
+        "a-oui": { "name": "MAC 앞쪽 절반", "note": "02-00-00: MAC 주소의 처음 3바이트." },
+        "a-fffe": { "name": "FF FE", "note": "가운데에 끼워 넣어요: 6바이트 MAC이 8바이트 clockIdentity가 돼요." },
+        "a-nic": { "name": "MAC 뒤쪽 절반", "note": "00-01-01: MAC 주소의 마지막 3바이트." },
+        "a-port": { "name": "portNumber", "note": "1: 이 클럭의 첫 번째 포트." }
+    },
+    "devices": {
+        "antenna": "GPS 안테나",
+        "gm": "GPS 클럭",
+        "switch": "스위치(TC)",
+        "mu": "머징 유닛 MU1",
+        "relay": "피더 계전기"
+    },
+    "facts": {
+        "standard": "IEC/IEEE 61850-9-3(2016)과 IEEE C37.238-2017, IEEE 1588-2008(PTP 버전 2)의 프로파일",
+        "between": "그랜드마스터 → 투명 클럭 스위치 → 머징 유닛, 계전기, PMU",
+        "transport": "이더넷 멀티캐스트, EtherType 0x88F7, IP 없음",
+        "security": "자체 보안 없음: 어떤 기기든 자신을 더 좋은 클럭이라고 알릴 수 있어요",
+        "speed": "Sync, Announce, Pdelay는 1초에 한 번. 모든 클럭에서 1 µs 미만"
+    },
+    "tips": [
+        "그랜드마스터와 클럭 사이의 모든 스위치는 PTP 투명 클럭(또는 경계 클럭)이어야 해요. 일반 스위치는 트래픽에 따라 달라지는 지연을 더하고, 아무도 그걸 보정하지 않아요.",
+        "PTP는 UTC보다 37초 앞선 TAI 시각을 세요. currentUtcOffset을 무시하는 기기는 모든 이벤트를 37초 어긋나게 찍어요.",
+        "모든 기기의 도메인 번호를 확인하세요. IEC 61850-9-3은 기본값 0, IEEE C37.238-2017은 254를 쓰고, 클럭은 다른 도메인의 메시지를 무시해요.",
+        "PTP는 케이블이 양방향으로 똑같이 빠르다고 가정해요. 한 링크에 길이가 다른 광섬유 두 가닥을 쓰면 그 차이의 절반이 고스란히 오프셋이 돼요."
+    ],
+    "points": {
+        "class": "클럭 클래스",
+        "utc": "UTC 오프셋",
+        "delay": "자기 케이블의 지연",
+        "offset": "클럭 오프셋"
+    },
+    "values": {
+        "reference": "기준"
+    },
+    "timing": {
+        "title": "Sync 하나가 가는 길",
+        "note": "Sync가 그랜드마스터를 떠난 순간부터 잰 시간이에요. 스위치까지 케이블에 0.412 µs, 스위치 안에서 7.436 µs, MU까지 케이블에 1.486 µs가 걸려요. Follow_Up이 출발 시각과 보정값 7.848 µs를 가져오고, MU는 자기 케이블을 알아요. 도착 − 출발에서 이걸 빼고 남는 게 MU 시계의 오차예요.",
+        "gm": "GPS 클럭",
+        "switch": "스위치(TC)",
+        "mu": "MU1",
+        "leave": "Sync 출발: 출발 시각",
+        "in": "들어옴",
+        "out": "나감, 7.436 µs 뒤",
+        "arrive": "Sync 도착: 도착 시각"
+    },
+    "anatomy": {
+        "port": "MAC 주소로 만든 포트 식별자"
+    }
+}

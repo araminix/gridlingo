@@ -1,0 +1,114 @@
+{
+    "intro": "Secure Authentication permette a un'outstation DNP3 di verificare che un comando arrivi davvero dal suo master e non sia stato modificato lungo il percorso. Prima di eseguire una richiesta critica, l'outstation invia una challenge; solo un dispositivo che possiede la chiave di sessione segreta può rispondere. Nulla viene cifrato: SA dimostra chi ha inviato un messaggio, non lo nasconde.",
+    "steps": {
+        "keys": { "title": "Chiavi di sessione", "text": "Prima di qualsiasi comando, lo SCADA consegna alla RTU due nuove chiavi di sessione, una per ciascun verso. Le invia avvolte (cifrate) con la update key, un segreto che entrambe le parti hanno ricevuto in anticipo. Lo ripete regolarmente, così nessuna chiave di sessione vive a lungo." },
+        "operate": { "title": "Comando critico", "text": "L'operatore apre CB-1 perché una squadra possa lavorare sulla linea. Lo SCADA invia un direct operate. La RTU lo considera critico e per ora non agisce. Qui è mostrato solo il livello applicativo: i livelli link e di trasporto sono gli stessi della lezione su DNP3." },
+        "challenge": { "title": "Challenge", "text": "La RTU risponde con una challenge: un nuovo numero di challenge (CSQ 5) e 16 byte casuali. Solo chi possiede la chiave di sessione può rispondere. I byte casuali mostrati qui sono inventati." },
+        "reply": { "title": "Risposta", "text": "Lo SCADA calcola un HMAC con la chiave di sessione, sulla challenge e sul suo comando, e invia i primi 16 byte. La chiave in sé non viaggia mai. Il MAC mostrato qui è inventato: uno reale dipende dalla chiave." },
+        "execute": { "title": "Esecuzione", "text": "La RTU calcola lo stesso HMAC con la sua copia della chiave. I due coincidono, quindi dà l'impulso all'uscita di scatto e conferma. CB-1 si apre." },
+        "replay": { "title": "Attacco replay", "text": "Un attaccante sulla rete della sottostazione ha registrato il comando di chiusura di ieri e la relativa risposta. Li invia di nuovo entrambi. La RTU lancia la challenge CSQ 6 con nuovi byte casuali, ma la risposta registrata risponde a CSQ 2, con una vecchia chiave. La RTU la rifiuta: CB-1 resta aperto e la squadra resta al sicuro." }
+    },
+    "frames": {
+        "key-status-request": "Qual è lo stato delle tue chiavi di sessione?",
+        "key-status": "Non ho ancora chiavi di sessione",
+        "key-change": "Ecco due nuove chiavi di sessione, avvolte",
+        "key-ok": "Chiavi impostate. Ecco la mia prova",
+        "operate": "Fai scattare CB-1 adesso",
+        "challenge": "Dimostralo: rispondi alla challenge 5",
+        "reply": "Il mio HMAC per la challenge 5",
+        "pulse": "L'uscita di scatto si chiude per 1 s",
+        "response": "Fatto: l'impulso di scatto è partito",
+        "replay-operate": "Chiudi CB-1 adesso (una copia registrata)",
+        "challenge-6": "Dimostralo: rispondi alla challenge 6",
+        "replay-reply": "Un HMAC per la challenge 2 (registrato)"
+    },
+    "notes": {
+        "key-status-request": "Lo SCADA chiede lo stato delle chiavi di sessione dell'utente 1: g120v4, in un AUTH_REQUEST (funzione 0x20). I byte dello scambio di chiavi non sono mostrati qui.",
+        "key-status": "La RTU non ha ancora chiavi di sessione valide: stato NOT_INIT. La sua risposta, g120v5, porta anche un key change number e nuovi dati casuali.",
+        "key-change": "Lo SCADA genera due chiavi di sessione casuali: una per ciò che invia, una per ciò che invia la RTU. Le avvolge entrambe con la update key dell'utente 1 (AES key wrap) e le invia in g120v6.",
+        "key-ok": "La RTU estrae le chiavi con la sua copia della update key. Risponde con stato OK e un MAC calcolato con le nuove chiavi, che dimostra di possederle.",
+        "pulse": "Non è DNP3: la RTU chiude la sua uscita di scatto per 1000 ms, l'on time del comando, e CB-1 si apre."
+    },
+    "fields": {
+        "ac-3": { "name": "Controllo applicativo", "note": "0xC3: FIR e FIN, una richiesta in un solo frammento, sequenza 3." },
+        "fc-direct-operate": { "name": "Funzione 5", "note": "DIRECT_OPERATE: agisci subito, senza un select prima." },
+        "g12v1": { "name": "g12v1", "note": "Gruppo 12, variante 1: un control relay output block (CROB), un comando per un'uscita." },
+        "q17": { "name": "Qualificatore 0x17", "note": "Un conteggio di 1 byte, poi un indice di 1 byte prima di ogni oggetto." },
+        "count-1": { "name": "Conteggio 1", "note": "Un comando." },
+        "index-0": { "name": "Indice 0", "note": "Uscita 0: le bobine di apertura e chiusura di CB-1." },
+        "trip": { "name": "Codice di controllo", "note": "0x81: TRIP, come impulso (PULSE_ON)." },
+        "close": { "name": "Codice di controllo", "note": "0x41: CLOSE, come impulso. Rimetterebbe la linea in tensione, con la squadra al lavoro." },
+        "pulses": { "name": "Conteggio", "note": "Un impulso." },
+        "on-time": { "name": "On time", "note": "1000 ms, prima il byte meno significativo: per quanto tempo l'uscita resta chiusa." },
+        "off-time": { "name": "Off time", "note": "0 ms: non c'è un secondo impulso." },
+        "status-request": { "name": "Stato", "note": "0 in una richiesta." },
+        "status-success": { "name": "Stato 0", "note": "SUCCESS: la RTU ha accettato il comando e avviato l'impulso." },
+        "ac-3-challenge": { "name": "Controllo applicativo", "note": "0xC3: sequenza 3, la stessa del comando a cui lancia la challenge." },
+        "fc-auth-response": { "name": "Funzione 0x83", "note": "AUTH_RESPONSE: un messaggio di Secure Authentication dall'outstation." },
+        "iin": { "name": "IIN", "note": "Internal indications: nessun flag attivo." },
+        "g120v1": { "name": "g120v1", "note": "Gruppo 120, variante 1: authentication challenge." },
+        "size-24": { "name": "Qualificatore 0x5B", "note": "Un oggetto (01) la cui dimensione segue in 2 byte: 0x0018 = 24 byte." },
+        "csq-5": { "name": "CSQ 5", "note": "Numero di sequenza della challenge. Cresce a ogni challenge, quindi una vecchia risposta non va mai bene per una nuova." },
+        "user-1": { "name": "Utente 1", "note": "L'utente le cui chiavi devono rispondere. Ogni utente ha la propria update key." },
+        "mal-4": { "name": "Algoritmo MAC 4", "note": "HMAC-SHA-256, troncato a 16 byte." },
+        "rfc-1": { "name": "Motivo 1", "note": "CRITICAL: la richiesta era critica, quindi va dimostrata." },
+        "data-5": { "name": "Dati della challenge", "note": "16 byte casuali, nuovi per ogni challenge, mostrati in due parti. Qui sono inventati." },
+        "data-end": { "name": "Dati della challenge", "note": "Gli ultimi 8 dei 16 byte casuali." },
+        "ac-3-reply": { "name": "Controllo applicativo", "note": "0xC3: ancora sequenza 3. Il comando, la challenge, la risposta e l'esito vanno insieme." },
+        "fc-auth-request": { "name": "Funzione 0x20", "note": "AUTH_REQUEST: un messaggio di Secure Authentication dal master." },
+        "g120v2": { "name": "g120v2", "note": "Gruppo 120, variante 2: authentication reply." },
+        "size-22": { "name": "Qualificatore 0x5B", "note": "Un oggetto di 0x0016 = 22 byte." },
+        "csq-5-reply": { "name": "CSQ 5", "note": "La challenge a cui risponde questa risposta." },
+        "mac-5": { "name": "MAC", "note": "L'HMAC sulla challenge e sul comando, con la chiave di sessione, troncato a 16 byte e mostrato in due parti. Qui è inventato: il valore reale dipende dalla chiave segreta." },
+        "mac-end": { "name": "MAC", "note": "Gli ultimi 8 dei suoi 16 byte." },
+        "ac-3-response": { "name": "Controllo applicativo", "note": "0xC3: sequenza 3, la risposta al comando." },
+        "fc-response": { "name": "Funzione 0x81", "note": "RESPONSE: la risposta normale, inviata solo dopo che la reply è stata verificata." },
+        "ac-10": { "name": "Controllo applicativo", "note": "0xCA: sequenza 10. Ogni byte qui è una copia del messaggio di ieri." },
+        "ac-10-challenge": { "name": "Controllo applicativo", "note": "0xCA: sequenza 10, la stessa del comando." },
+        "csq-6": { "name": "CSQ 6", "note": "Un nuovo numero di challenge. Nessuno ha ancora risposto alla challenge 6." },
+        "data-6": { "name": "Dati della challenge", "note": "Nuovi byte casuali, mostrati in due parti. Qui sono inventati." },
+        "ac-10-reply": { "name": "Controllo applicativo", "note": "0xCA: copiato, come il resto." },
+        "csq-2": { "name": "CSQ 2", "note": "Il numero di challenge di ieri. La RTU aspetta una risposta alla 6." },
+        "mac-2": { "name": "MAC", "note": "Giusto per la challenge e la chiave di ieri, sbagliato per quelle di oggi. La RTU rifiuta il comando. Qui è inventato." }
+    },
+    "devices": {
+        "scada": "Master SCADA",
+        "switch": "Switch di sottostazione",
+        "attacker": "Attaccante",
+        "rtu": "RTU",
+        "breaker": "Interruttore CB-1"
+    },
+    "facts": {
+        "standard": "IEEE 1815-2012: Secure Authentication versione 5 (SAv5)",
+        "between": "Master SCADA ↔ outstation, dentro DNP3",
+        "transport": "Il livello applicativo DNP3: su TCP 20000, UDP o seriale",
+        "security": "HMAC-SHA-256 con chiavi di sessione. Nessuna cifratura.",
+        "frames": "g120: challenge v1, reply v2, stato chiavi v4 e v5, cambio chiavi v6"
+    },
+    "tips": [
+        "SA dimostra chi ha inviato un messaggio. Non lo nasconde: chiunque sia sulla linea può ancora leggere comandi e valori. Aggiungi TLS (IEC 62351-3) quando conta.",
+        "La modalità aggressive risparmia un giro di andata e ritorno: il master mette il suo MAC direttamente nella richiesta (g120v3 e g120v9), basandosi sull'ultima challenge ricevuta. Entrambe le parti devono consentirlo.",
+        "La maggior parte dei problemi in messa in servizio è una update key o un numero utente sbagliati. Il cambio chiavi allora fallisce e la RTU rifiuta ogni richiesta critica.",
+        "SA non ha bisogno di un orologio: a impedire che i vecchi messaggi funzionino di nuovo sono i numeri di challenge e i dati casuali, non le etichette temporali."
+    ],
+    "points": {
+        "cb": "Interruttore CB-1",
+        "csq": "Numero di challenge"
+    },
+    "values": {
+        "closed": "chiuso",
+        "open": "aperto"
+    },
+    "playground": {
+        "file": "Le impostazioni di Secure Authentication della RTU. Lo SCADA deve usare lo stesso numero utente, lo stesso algoritmo MAC e lo stesso key wrap, e possedere la stessa update key.",
+        "version": "SAv5, da IEEE 1815-2012. Entrambe le parti devono parlare la stessa versione.",
+        "user": "Utente 1. Ogni utente ha la propria update key, così la RTU sa chi ha inviato un comando.",
+        "update-key": "La update key è il segreto a lungo termine. Resta nella memoria protetta del dispositivo e non viaggia mai in chiaro.",
+        "key-wrap": "Come vengono avvolte le chiavi di sessione in g120v6: AES-256 key wrap.",
+        "mac": "Il MAC in ogni risposta: HMAC-SHA-256, troncato a 16 byte.",
+        "interval": "Il master cambia le chiavi di sessione ogni 15 minuti.",
+        "timeout": "Quanto aspetta la RTU la risposta a una challenge. Dopo, scarta il comando.",
+        "aggressive": "La modalità aggressive è disattivata: ogni richiesta critica riceve una challenge.",
+        "critical": "Le funzioni a cui la RTU lancia una challenge. Le letture non sono nell'elenco, quindi il polling non costa nulla in più."
+    }
+}

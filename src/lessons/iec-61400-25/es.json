@@ -1,0 +1,104 @@
+{
+    "intro": "IEC 61400-25 es IEC 61850 para parques eólicos. Añade nodos lógicos para el aerogenerador, su rotor, su generador y su convertidor, la meteorología y el control de todo el parque. IEC 61400-25-4 mapea el modelo sobre protocolos; con el mapeo MMS, un aerogenerador habla como cualquier servidor IEC 61850.",
+    "steps": {
+        "associate": { "title": "Asociar", "text": "El controlador de parque abre el puerto TCP 102 del aerogenerador WT01 y establece una asociación MMS. Con el mapeo MMS, un aerogenerador es un servidor IEC 61850 como cualquier otro." },
+        "read": { "title": "Leer el aerogenerador", "text": "Un solo Read pide tres valores: la potencia activa en WTUR1, la velocidad del rotor en WROT1 y la velocidad del viento en WMET1. WTUR también contiene el estado de operación del aerogenerador, TurSt." },
+        "subscribe": { "title": "Pedir informes", "text": "El controlador activa el informe urcbWTG01. Ahora el aerogenerador envía su conjunto de datos cuando cambia un valor, y cada 10 s en cualquier caso." },
+        "limit": { "title": "Un límite para el parque", "text": "El SCADA del operador de red opera WAPC1, el control de potencia activa del parque: como máximo 5.4 MW para toda la planta." },
+        "follow": { "title": "Los aerogeneradores obedecen", "text": "El controlador de parque da a cada uno de los tres aerogeneradores su parte: 1800 kW. WT01 ajusta el paso de sus palas, baja en rampa e informa de su nueva potencia." }
+    },
+    "frames": {
+        "initiate-req": "Hablemos MMS: mis tamaños y servicios",
+        "initiate-resp": "De acuerdo: estos son los míos",
+        "read-req": "¿Tu potencia, la velocidad del rotor y la del viento?",
+        "read-resp": "2350.0 kW, 12.75 rpm, 9.5 m/s",
+        "enable-req": "Activa el informe urcbWTG01",
+        "enable-resp": "Hecho",
+        "oper": "El parque puede exportar como máximo 5.4 MW",
+        "share": "Cada aerogenerador: como máximo 1800 kW",
+        "report": "W vale ahora 1800.0 kW"
+    },
+    "notes": {
+        "initiate-req": "Primero TCP al puerto 102 y una conexión COTP, como en la lección de IEC 61850 MMS. Después, el Initiate de MMS ofrece tamaños y servicios.",
+        "initiate-resp": "El aerogenerador responde con sus propios tamaños y servicios. Ahora se puede explorar su modelo, o leerlo de su archivo SCL.",
+        "oper": "Un control sobre WAPC, el nodo lógico de la potencia activa del parque: un nuevo valor de referencia para la producción de la planta. El controlador de parque responde con una respuesta a Write.",
+        "share": "Cómo llega el límite a cada aerogenerador lo decide el controlador de parque. Dentro del parque, muchos usan para esto el protocolo propio del fabricante del aerogenerador.",
+        "report": "Un InformationReport no solicitado de urcbWTG01 con W, RotSpd y HorWdSpd. Su código de motivo dice qué lo provocó: un cambio de datos."
+    },
+    "fields": {
+        "tpkt-143": { "name": "TPKT", "note": "Versión 3 y después la longitud de todo el mensaje: 0x008F = 143 bytes." },
+        "tpkt-50": { "name": "TPKT", "note": "Versión 3 y después la longitud: 0x0032 = 50 bytes." },
+        "tpkt-75": { "name": "TPKT", "note": "Versión 3 y después la longitud: 0x004B = 75 bytes." },
+        "tpkt-29": { "name": "TPKT", "note": "Versión 3 y después la longitud: 0x001D = 29 bytes." },
+        "cotp-dt": { "name": "COTP", "note": "Una unidad de datos (0xF0), la última de su mensaje (0x80)." },
+        "session": { "name": "Sesión", "note": "Dos cabeceras de sesión cortas: cesión de testigos y transferencia de datos." },
+        "presentation": { "name": "Presentación", "note": "Datos totalmente codificados, contexto de presentación 3: lo que sigue es MMS." },
+        "presentation-long": { "name": "Presentación", "note": "Datos totalmente codificados, contexto 3: sigue MMS. 81 81 es una longitud larga: 0x81 indica que sigue un byte de longitud, y ese byte, 0x81, vale 129." },
+        "confirmed-req": { "name": "Petición confirmada", "note": "Etiqueta A0: una petición que espera respuesta. El byte siguiente cuenta los bytes que contiene." },
+        "confirmed-resp": { "name": "Respuesta confirmada", "note": "Etiqueta A1: la respuesta a una petición." },
+        "invoke-3": { "name": "Invoke ID 3", "note": "Un número que elige el controlador. La respuesta lleva el mismo." },
+        "invoke-3-resp": { "name": "Invoke ID 3", "note": "El mismo número que la petición: esta es su respuesta." },
+        "invoke-4": { "name": "Invoke ID 4", "note": "Una petición nueva, un número nuevo." },
+        "invoke-4-resp": { "name": "Invoke ID 4", "note": "Esta es la respuesta a la escritura en RptEna." },
+        "read": { "name": "Read", "note": "Etiqueta A4: el servicio Read." },
+        "spec": { "name": "Lista de variables", "note": "Una lista de variables, cada una dada por su nombre. Aquí hay tres." },
+        "var": { "name": "Variable", "note": "Una entrada de la lista. A continuación va su nombre." },
+        "domain-specific": { "name": "Nombre de dominio", "note": "Un nombre en dos partes: el dominio y el ítem." },
+        "domain": { "name": "Dominio", "note": "\"WT01WTG\": el dispositivo lógico WTG del IED WT01." },
+        "item-w": { "name": "Ítem", "note": "\"WTUR1$MX$W$mag$f\": la potencia activa que entrega el aerogenerador." },
+        "item-rotspd": { "name": "Ítem", "note": "\"WROT1$MX$RotSpd$mag$f\": la velocidad del rotor." },
+        "item-wdspd": { "name": "Ítem", "note": "\"WMET1$MX$HorWdSpd$mag$f\": la velocidad horizontal del viento, del anemómetro de la góndola." },
+        "results": { "name": "Resultados", "note": "Tres resultados, en el orden en que se pidieron." },
+        "float-tag": { "name": "Coma flotante", "note": "Etiqueta 0x87 (un float), 5 bytes. 08: sigue un float IEEE 754 de precisión simple." },
+        "w": { "name": "W", "note": "2350.0. La unidad, kW, está en el atributo units (CF)." },
+        "rotspd": { "name": "RotSpd", "note": "12.75 (rpm), el byte más significativo primero." },
+        "wdspd": { "name": "HorWdSpd", "note": "9.5 (m/s)." },
+        "write": { "name": "Write", "note": "Etiqueta A5: el servicio Write." },
+        "write-spec": { "name": "Variable", "note": "Una lista de una sola variable, dada por su nombre." },
+        "item-rptena": { "name": "Ítem", "note": "\"LLN0$RP$urcbWTG01$RptEna\": el indicador de activación de urcbWTG01, la primera copia del bloque de control de informes urcbWTG. RP indica un informe sin búfer." },
+        "data-list": { "name": "Datos", "note": "Los valores que se escriben, uno por variable." },
+        "true": { "name": "TRUE", "note": "Etiqueta 0x83, un booleano, 1 byte: TRUE. Los informes empiezan ahora." },
+        "write-resp": { "name": "Respuesta a Write", "note": "Etiqueta A5: la respuesta a un Write, un resultado por variable." },
+        "success": { "name": "Éxito", "note": "Etiqueta 0x81, vacía: la escritura funcionó." },
+        "a-ld": { "name": "Dispositivo lógico", "note": "WT01WTG: nombre de IED WT01 e instancia WTG." },
+        "a-ln": { "name": "Nodo lógico", "note": "WMET1: los sensores meteorológicos de este aerogenerador. Una torre meteorológica tiene su propio WMET." },
+        "a-fc": { "name": "Restricción funcional", "note": "MX: valores medidos." },
+        "a-hor": { "name": "Horizontal", "note": "Hor. Los nombres de los objetos de datos se forman con palabras cortas como esta, unidas sin espacios." },
+        "a-wd": { "name": "Viento", "note": "Wd. Otras palabras cortas: Tmp para temperatura, Dir para dirección." },
+        "a-spd": { "name": "Velocidad", "note": "Spd. Todo junto: HorWdSpd, la velocidad horizontal del viento." },
+        "a-da": { "name": "Atributo de datos", "note": "mag.f: la magnitud, como float." }
+    },
+    "devices": {
+        "scada": "Centro de control",
+        "met": "Torre meteorológica",
+        "ppc": "Controlador de parque",
+        "wt01": "WT01",
+        "wt02": "WT02",
+        "wt03": "WT03"
+    },
+    "facts": {
+        "standard": "IEC 61400-25-2 edición 2 (2015): el modelo. IEC 61400-25-4: los mapeos",
+        "between": "Controlador de parque, SCADA o propietario → aerogenerador, torre meteorológica, parque",
+        "transport": "MMS sobre TCP 102, como en IEC 61850-8-1. OPC UA en IEC 61400-25-41",
+        "security": "Con MMS: TLS (IEC 62351-4), TCP 3782",
+        "model": "Nodos lógicos eólicos: WTUR, WROT, WGEN, WCNV, WMET, WAPC …"
+    },
+    "tips": [
+        "La edición 2 (2015) pasó los sensores de viento y meteorología de la góndola de WNAC a WMET, y cambió varias abreviaturas. Un cliente escrito para la edición 1 busca en el sitio equivocado.",
+        "Un valor no lleva unidad. W puede estar en W o en kW: lee units (CF) una vez después de conectar, y guárdalo.",
+        "Cada fabricante de aerogeneradores rellena el modelo a su manera: objetos de datos opcionales, números de instancia, conjuntos de datos. Lee el archivo SCL de cada tipo de aerogenerador; no copies un mismo mapa a todos.",
+        "Muchos parques hablan IEC 61400-25 hacia el operador, pero el protocolo propio del fabricante hacia los aerogeneradores. Pregunta qué interfaz vas a tener."
+    ],
+    "points": {
+        "w": "Potencia activa",
+        "rotspd": "Velocidad del rotor",
+        "wdspd": "Velocidad del viento"
+    },
+    "anatomy": {
+        "dataname": "Un nombre de objeto de datos, formado con palabras cortas"
+    },
+    "playground": {
+        "scl": "La descripción configurada del aerogenerador (.cid). Abre WTG: cada parte del aerogenerador es un nodo lógico. WTUR1, WROT1 y WMET1 contienen los tres valores que se leen aquí. Después abre tu propio archivo, si tienes uno.",
+        "encoder": "MMS envía un float con el byte más significativo primero (ABCD). 2350.0 viaja como 45 12 E0 00."
+    }
+}

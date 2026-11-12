@@ -1,0 +1,97 @@
+{
+    "intro": "El protocolo en texto plano del puerto óptico que llevan en el frontal la mayoría de los medidores eléctricos europeos. Un técnico coloca una sonda en el puerto. El portátil y el medidor intercambian mensajes ASCII cortos, primero a 300 baudios y luego más rápido. El medidor responde con líneas como 1.8.0(012345.678*kWh): una dirección, un valor y una unidad.",
+    "steps": {
+        "signon": { "title": "Saludo inicial", "text": "El técnico coloca la sonda óptica en el frontal del medidor. El portátil envía /?! a 300 baudios, 7 bits de datos, paridad par. El medidor responde con su fabricante, su velocidad máxima y su modelo." },
+        "select": { "title": "Velocidad y modo", "text": "El portátil elige el protocolo normal, 9600 baudios y una lectura de datos. Tras el último byte de este mensaje, ambos lados pasan a 9600 baudios." },
+        "readout": { "title": "Lectura", "text": "El medidor envía su lista de lectura en un solo mensaje, cerrado con una comprobación BCC. No hace falta contraseña: la lista solo contiene lo que la compañía eléctrica decidió mostrar." },
+        "program": { "title": "Modo programación", "text": "La energía exportada no está en la lista. El portátil vuelve a saludar, a 300 baudios, y pide el modo programación. El medidor pide una contraseña." },
+        "password": { "title": "Contraseña", "text": "El portátil envía la contraseña en claro (P1). El medidor la acepta con un solo ACK." },
+        "read": { "title": "Leer y salir", "text": "R1 lee un valor por su dirección. El medidor responde con la dirección, el valor y la unidad. Después, B0 termina la sesión y el medidor vuelve a 300 baudios." }
+    },
+    "frames": {
+        "signon": "¿Quién eres?",
+        "ident": "Fabricante EXA, modelo EM340, hasta 9600 baudios",
+        "ack-readout": "9600 baudios, lectura de datos, por favor",
+        "data": "1.8.0 = 12 345.678 kWh, y luego la tarifa 1 y la tarifa 2",
+        "signon-2": "¿Quién eres? (otra vez)",
+        "ident-2": "Fabricante EXA, modelo EM340, hasta 9600 baudios",
+        "ack-program": "9600 baudios, modo programación, por favor",
+        "p0": "La contraseña, por favor",
+        "p1": "La contraseña es 18273645",
+        "ack-password": "Correcta",
+        "r1": "Lee 2.8.0",
+        "answer": "2.8.0 = 123.456 kWh",
+        "b0": "Adiós"
+    },
+    "fields": {
+        "slash": { "name": "Inicio", "note": "/ (0x2F) inicia el saludo y la identificación." },
+        "request": { "name": "Petición", "note": "? (0x3F): una petición para hablar." },
+        "end-request": { "name": "Fin", "note": "! (0x21) termina la petición. En una línea compartida por varios medidores, la dirección del medidor va entre ? y !." },
+        "crlf": { "name": "CR LF", "note": "0D 0A: el final de una línea." },
+        "maker": { "name": "Fabricante", "note": "EXA: el código de tres letras del fabricante (inventado aquí)." },
+        "baud-5": { "name": "Velocidad máxima", "note": "5: en modo C, este medidor puede pasar a 9600 baudios. 0 sería 300 baudios, 6 es 19200." },
+        "model": { "name": "Modelo", "note": "EM340: el modelo, hasta 16 caracteres elegidos por el fabricante." },
+        "ack": { "name": "ACK", "note": "ACK (0x06) inicia la confirmación y la selección de opciones." },
+        "protocol": { "name": "Protocolo", "note": "0: el protocolo normal. 2 pasaría a HDLC y DLMS (modo E)." },
+        "speed": { "name": "Velocidad", "note": "5: pasar a 9600 baudios, la velocidad que ofreció el medidor." },
+        "mode-readout": { "name": "Modo", "note": "0: lectura de datos. Justo después de este mensaje, ambos lados pasan a 9600 baudios." },
+        "mode-program": { "name": "Modo", "note": "1: modo programación. El medidor pedirá una contraseña." },
+        "stx": { "name": "STX", "note": "STX (0x02): empiezan los datos. El BCC cuenta desde el byte siguiente." },
+        "a-180": { "name": "Dirección", "note": "1.8.0: energía activa importada, todas las tarifas. La parte C.D.E del código OBIS." },
+        "v-180": { "name": "Valor", "note": "(012345.678*kWh): el valor y su unidad, entre paréntesis." },
+        "a-181": { "name": "Dirección", "note": "1.8.1: la misma energía, en la tarifa 1." },
+        "v-181": { "name": "Valor", "note": "(008765.432*kWh)." },
+        "a-182": { "name": "Dirección", "note": "1.8.2: la misma energía, en la tarifa 2." },
+        "v-182": { "name": "Valor", "note": "(003580.246*kWh). La tarifa 1 y la tarifa 2 suman el total." },
+        "end-data": { "name": "Fin de datos", "note": "! CR LF: no hay más líneas." },
+        "etx": { "name": "ETX", "note": "ETX (0x03): el mensaje termina. Es el último byte que cuenta el BCC." },
+        "bcc-data": { "name": "BCC", "note": "0x76: todos los bytes tras STX, hasta ETX incluido, combinados con XOR. Si no coincide, vuelve a leer." },
+        "soh": { "name": "SOH", "note": "SOH (0x01): empieza un mensaje de comando. El BCC cuenta desde el byte siguiente, STX incluido." },
+        "p0": { "name": "P0", "note": "Una petición de contraseña, con un operando." },
+        "stx-command": { "name": "STX", "note": "STX (0x02): empieza el conjunto de datos." },
+        "operand": { "name": "Operando", "note": "(87654321): un número que elige el medidor. Un medidor que quiere una contraseña cifrada (P2) lo usa como semilla. Este acepta la contraseña en claro." },
+        "bcc-p0": { "name": "BCC", "note": "0x68: XOR de todos los bytes tras SOH, hasta ETX incluido." },
+        "p1": { "name": "P1", "note": "Aquí está la contraseña, en claro." },
+        "password": { "name": "Contraseña", "note": "(18273645). Cualquiera que observe el puerto óptico puede leerla." },
+        "bcc-p1": { "name": "BCC", "note": "0x69." },
+        "ack-password": { "name": "ACK", "note": "ACK (0x06): la contraseña es correcta. La lectura y la escritura quedan abiertas." },
+        "r1": { "name": "R1", "note": "Lee un valor, como texto ASCII." },
+        "ask-280": { "name": "Dirección", "note": "2.8.0(): la dirección que se lee, con los paréntesis vacíos." },
+        "bcc-r1": { "name": "BCC", "note": "0x59." },
+        "a-280": { "name": "Dirección", "note": "2.8.0: energía activa exportada, todas las tarifas: lo que los paneles solares del edificio inyectaron a la red." },
+        "v-280": { "name": "Valor", "note": "(000123.456*kWh)." },
+        "bcc-answer": { "name": "BCC", "note": "0x5F: desde el byte tras STX hasta ETX incluido." },
+        "b0": { "name": "B0", "note": "Break: la sesión termina al instante." },
+        "bcc-b0": { "name": "BCC", "note": "0x71, la letra q. Un break son siempre los mismos 5 bytes: 01 42 30 03 71." },
+        "l-c": { "name": "C · magnitud", "note": "1: potencia activa, importada." },
+        "l-d": { "name": "D · procesamiento", "note": "8: el total en el tiempo, es decir, energía." },
+        "l-e": { "name": "E · tarifa", "note": "0: todas las tarifas. 1.8.1 es la tarifa 1." },
+        "l-value": { "name": "Valor", "note": "012345.678: los dígitos que guarda el medidor, con su punto decimal." },
+        "l-unit": { "name": "Unidad", "note": "kWh, tras un asterisco (*)." }
+    },
+    "devices": {
+        "laptop": "Portátil del técnico",
+        "meter": "Medidor eléctrico",
+        "house": "Edificio"
+    },
+    "facts": {
+        "standard": "IEC 62056-21 (antes IEC 61107)",
+        "between": "Terminal portátil o portátil → medidor, a través de una sonda óptica",
+        "transport": "Puerto infrarrojo con sonda magnética; también lazo de corriente de 20 mA o RS-232",
+        "security": "Ninguna para una lectura. Modo programación: una contraseña, enviada en claro",
+        "speed": "Empieza a 300 baudios, 7E1; después, hasta 19200 baudios"
+    },
+    "tips": [
+        "Configura el puerto serie con 7 bits de datos y paridad par (7E1). En 8N1, el medidor ve errores de paridad y se queda callado, y sus respuestas parecen basura.",
+        "Cambia a la nueva velocidad solo cuando haya salido el último byte del mensaje ACK. Los adaptadores USB guardan datos en búfer: si cambias demasiado pronto, el final del mensaje sale a la velocidad equivocada.",
+        "El BCC empieza después de STX o SOH, no con ellos, e incluye ETX. Equivocarse en cualquiera de los dos extremos es un fallo habitual en los lectores caseros."
+    ],
+    "points": {
+        "speed": "Velocidad",
+        "import": "Energía importada",
+        "export": "Energía exportada"
+    },
+    "anatomy": {
+        "line": "Una línea de la lectura"
+    }
+}

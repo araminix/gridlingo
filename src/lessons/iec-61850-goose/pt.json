@@ -1,0 +1,108 @@
+{
+    "intro": "É assim que os relés de proteção mandam uns aos outros dar trip, em poucos milissegundos, pela rede da subestação em vez de fios de cobre. Um relé publica os seus dados num endereço multicast; todo relé que precisa deles os assina. Ninguém responde, então quem publica repete cada mudança, rápido no início e depois mais devagar.",
+    "steps": {
+        "heartbeat": { "title": "Heartbeat", "text": "Está tudo normal. A cada segundo, o relé repete o seu último estado para quem estiver ouvindo." },
+        "fault": { "title": "Falta", "text": "Um curto-circuito no alimentador F1. O relé mede 2.8 kA e fecha o contato de trip para o disjuntor." },
+        "publish": { "title": "Publicar", "text": "No mesmo instante ele envia o novo estado. O número de estado sobe um e o número de sequência volta a 0." },
+        "repeat": { "title": "Repetir rápido", "text": "Nenhum assinante responde ao GOOSE, então o relé envia a mesma mensagem de novo 2 ms depois, depois 4, 8, 16 … até voltar a uma vez por segundo." },
+        "act": { "title": "Os assinantes agem", "text": "O F2 PROT dispara o temporizador de falha de disjuntor. O gateway repassa o trip ao SCADA." },
+        "open": { "title": "O disjuntor abre", "text": "48 ms depois da falta, o Q1 está aberto e a corrente de falta se interrompe." }
+    },
+    "frames": {
+        "heartbeat": "Continua sem trip (heartbeat)",
+        "trip-wire": "Energizar a bobina de abertura do Q1",
+        "event": "Trip! Tr.general = TRUE",
+        "repeat": "Trip, de novo (cópia 1)",
+        "to-scada": "Q1 desarmou, com o horário",
+        "opened": "Q1 está aberto"
+    },
+    "notes": {
+        "trip-wire": "Um fio de cobre, não uma mensagem de rede: o relé fecha um contato e a corrente flui para a bobina de abertura do disjuntor.",
+        "to-scada": "Isto é IEC 104, não GOOSE: o gateway traduz entre os dois. A lição de IEC 104 mostra estes bytes.",
+        "opened": "Um contato auxiliar do disjuntor informa ao relé que ele abriu."
+    },
+    "fields": {
+        "dst": { "name": "Destino", "note": "Um endereço multicast da faixa que a IEC 61850 reserva para o GOOSE (01-0C-CD-01-…). Todo equipamento da rede o recebe; só os assinantes o aproveitam." },
+        "src": { "name": "Origem", "note": "O endereço MAC do próprio relé." },
+        "vlan": { "name": "Tag de VLAN", "note": "0x8100, depois prioridade 4 e VLAN 10. A prioridade permite que os switches enviem o quadro na frente do resto do tráfego." },
+        "ethertype": { "name": "EtherType", "note": "0x88B8 significa GOOSE. Não há IP nem TCP neste quadro." },
+        "appid": { "name": "APPID", "note": "0x0001: um número pelo qual os assinantes filtram." },
+        "length": { "name": "Comprimento", "note": "115 bytes, do APPID até o fim." },
+        "reserved": { "name": "Reservado", "note": "Dois campos reservados, aqui em zero. A IEC 62351-6 os usa quando o quadro é assinado." },
+        "pdu": { "name": "Mensagem GOOSE", "note": "0x61 inicia a mensagem; seguem 105 bytes (0x69). Cada campo depois dele é uma tag, um comprimento e um valor." },
+        "gocbref": { "name": "gocbRef", "note": "Tag 0x80, 25 bytes: o nome do bloco de controle, F1PROTLD0/LLN0$GO$gcbTrip." },
+        "tal": { "name": "Time allowed to live", "note": "2000 ms. Se nenhuma cópia chegar dentro desse tempo, os assinantes tratam os dados como inválidos." },
+        "datset": { "name": "datSet", "note": "O data set que a mensagem leva: F1PROTLD0/LLN0$dsTrip." },
+        "goid": { "name": "goID", "note": "F1PROT_Trip, um ID que os assinantes podem conferir." },
+        "t-old": { "name": "t", "note": "Quando os dados mudaram pela última vez: hoje às 08:00:00, UTC. Um heartbeat mantém o horário da última mudança." },
+        "t-event": { "name": "t", "note": "Quando os dados mudaram: 10:41:07.232 UTC. 4 bytes de segundos, 3 de frações de segundo, 1 de qualidade do relógio." },
+        "stnum-12": { "name": "stNum 12", "note": "O número de estado: igual desde a última mudança." },
+        "stnum-13": { "name": "stNum 13", "note": "O número de estado subiu um: os dados mudaram." },
+        "sqnum-3": { "name": "sqNum 3", "note": "O número de sequência: a quarta cópia do mesmo estado." },
+        "sqnum-0": { "name": "sqNum 0", "note": "A primeira cópia do novo estado." },
+        "sqnum-1": { "name": "sqNum 1", "note": "O mesmo estado, enviado de novo." },
+        "simulation": { "name": "simulation", "note": "Falso. Verdadeiro marca mensagens de teste, que os assinantes ignoram a menos que estejam em modo de teste." },
+        "confrev": { "name": "confRev 1", "note": "A revisão da configuração. Ela precisa ser igual à que foi configurada no assinante." },
+        "ndscom": { "name": "ndsCom", "note": "Needs commissioning: falso. Verdadeiro indicaria que a configuração de quem publica está incompleta." },
+        "entries": { "name": "Entradas", "note": "2 valores no data set." },
+        "data-idle": { "name": "allData", "note": "Os valores: Tr.general = FALSE (sem trip), e a qualidade dele: boa." },
+        "data-trip": { "name": "allData", "note": "Os valores: Tr.general = TRUE (trip!), e a qualidade dele: boa." },
+        "a-ied": { "name": "IED", "note": "O nome do equipamento no arquivo SCL." },
+        "a-ld": { "name": "Dispositivo lógico", "note": "LD0, um grupo de funções dentro do IED." },
+        "a-ln": { "name": "Nó lógico", "note": "LLN0, onde ficam os blocos de controle." },
+        "a-fc": { "name": "Restrição funcional", "note": "GO: um bloco de controle GOOSE." },
+        "a-cb": { "name": "Bloco de controle", "note": "gcbTrip, o nome dele." }
+    },
+    "devices": {
+        "q1": "Disjuntor Q1",
+        "f1prot": "F1 PROT",
+        "f2prot": "F2 PROT",
+        "switch": "Switch da estação",
+        "hmi": "IHM da estação",
+        "gateway": "Gateway",
+        "scada": "SCADA"
+    },
+    "facts": {
+        "standard": "IEC 61850-8-1",
+        "between": "Um relé → todo relé, controlador e gateway que o assina",
+        "transport": "Multicast Ethernet, sem IP",
+        "frames": "Uma mensagem, repetida: sem requisições, sem respostas",
+        "speed": "Um trip precisa chegar em até 3 ms (IEC 61850-5, tipo 1A)"
+    },
+    "tips": [
+        "Um assinante confere o gocbRef, o APPID, o data set e a revisão da configuração. Se algum for diferente da configuração dele, ele ignora o quadro sem dizer nada.",
+        "O GOOSE não tem endereço IP, então os roteadores o descartam. Para chegar a outra subestação, você precisa do R-GOOSE.",
+        "Teste com a flag de simulação e o assinante em modo de teste. Senão um trip de teste abre um disjuntor de verdade.",
+        "Todo switch no caminho precisa manter a tag de VLAN e a prioridade dela. Um switch que a remove pode atrasar um trip atrás de outro tráfego."
+    ],
+    "points": {
+        "tr": "Trip",
+        "stnum": "Número de estado",
+        "sqnum": "Número de sequência"
+    },
+    "anatomy": {
+        "gocbref": "O nome do bloco de controle GOOSE, e como ele trafega"
+    },
+    "timing": {
+        "title": "Por que o GOOSE nunca espera resposta",
+        "note": "O GOOSE não tem confirmação. Quem publica repete cada mudança rapidamente e depois desacelera até o heartbeat. Se um assinante não ouvir nada dentro do time allowed to live, ele marca os dados como inválidos. Os tempos de repetição aqui são típicos; cada fabricante define os seus.",
+        "publisher": "F1 PROT",
+        "event": "stNum 12 → 13",
+        "repeats": "sqNum 1, 2, 3 …",
+        "heartbeat": "heartbeat"
+    },
+    "singleLine": {
+        "title": "Diagrama unifilar do barramento de 34.5 kV",
+        "bus": "34.5 kV · barra A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "aberto",
+        "fault": "falta · 2.8 kA",
+        "station": "Barramento de estação · Ethernet",
+        "f1": "F1 · Usina FV",
+        "f2": "F2 · Bateria",
+        "f3": "F3 · Serviços auxiliares"
+    },
+    "playground": {
+        "scl": "O arquivo SCL da subestação. Encontre o bloco de controle GOOSE do F1PROT, o data set dele e o endereço MAC e o APPID para os quais ele envia. Depois encontre a entrada do F2PROT que o escuta."
+    }
+}

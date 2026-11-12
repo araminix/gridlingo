@@ -1,0 +1,98 @@
+{
+    "intro": "Sparkplug Bは、MQTTの上に重ねたSCADA向けのルール集です。決まった形のトピック名で、誰が何を送るかがわかります。BIRTHメッセージがすべてのメトリックを、名前、エイリアス、データ型付きで一度だけ列挙し、その後は変化だけがエイリアスで流れます。ゲートウェイがいなくなると、DEATHメッセージがすぐにSCADAへ知らせます。",
+    "steps": {
+        "host": { "title": "SCADAオンライン", "text": "プライマリホストであるSCADAは、遺言（will）付きでブローカに接続し、Sparkplugのすべてのトピックをサブスクライブしてから、STATE（online、retain付き）をパブリッシュします。" },
+        "connect": { "title": "エッジノード接続", "text": "エッジノードGW1が、bdSeq 0の番号を付けた自分の遺言NDEATHを預けて接続します。SCADAの保持済みSTATEを読むと、SCADAはオンラインなので、動作を始めてよいとわかります。" },
+        "birth": { "title": "BIRTH", "text": "NBIRTHはエッジノードのすべてのメトリックを、DBIRTHはその先のインバータのすべてのメトリックを列挙します：名前、エイリアス、データ型、値。これでSCADAはモデル全体を把握します。" },
+        "data": { "title": "変化時報告", "text": "変わったのはインバータの電力だけです。DDATAはそのメトリックだけを、エイリアスと次のシーケンス番号を付けて運びます。" },
+        "rebirth": { "title": "再BIRTH", "text": "SCADAはseq 2の次にseq 4を受け取りました。メッセージ3が失われています。手元のコピーをもう信用できないので、SCADAはRebirthを要求します。エッジノードはNBIRTHとDBIRTHを送り直します。" },
+        "death": { "title": "DEATH", "text": "300 s後、エッジノードの回線が切れます。その45 s後（キープアライブ30 sの1.5倍）、ブローカがその遺言NDEATHをパブリッシュします。SCADAはGW1をオフラインにし、その値をSTALEとします。" }
+    },
+    "frames": {
+        "host-connect": "SCADA1です。私が消えたら、オフラインになったとパブリッシュしてください",
+        "state": "SCADA1はオンラインです",
+        "edge-connect": "GW1です。私が消えたら、私のDEATH（bdSeq 0）をパブリッシュしてください",
+        "state-seen": "SCADA1はオンラインです（ブローカが保持）",
+        "nbirth": "GW1は稼働中：全メトリックはこちら",
+        "dbirth": "INV1は稼働中：全メトリックはこちら",
+        "ddata": "INV1：エイリアス2 = 4820.5",
+        "ddata-gap": "INV1：seq 4（3はどこ？）",
+        "ncmd": "GW1、全部もう一度送ってください",
+        "nbirth-again": "GW1：全メトリックをもう一度",
+        "dbirth-again": "INV1：全メトリックをもう一度",
+        "ndeath": "GW1は停止（bdSeq 0）"
+    },
+    "notes": {
+        "host-connect": "クリーンセッションのMQTT CONNECTです。遺言の宛先はspBv1.0/STATE/SCADA1で、中身は{\"online\":false,\"timestamp\":1794480000000}、QoS 1、retain付き。その後SCADAはspBv1.0/#、つまりSparkplugのすべてのメッセージをサブスクライブします。",
+        "edge-connect": "クリーンセッションで、キープアライブ30 sのMQTT CONNECTです。遺言はspBv1.0/SolarPark/NDEATH/GW1宛てのNDEATHで、QoS 1、retainなし、メトリックは1つ：bdSeq = 0。その後エッジノードは、自分のNCMDとDCMDのトピック、そしてspBv1.0/STATE/SCADA1をサブスクライブします。",
+        "state-seen": "エッジノードがサブスクライブするとすぐに、ブローカは保持していたSTATEを送ります。SCADAがオフラインなら、エッジノードは待機し、何もパブリッシュしません。",
+        "nbirth": "spBv1.0/SolarPark/NBIRTH/GW1宛て、QoS 0、seq 0。エッジノード自身のすべてのメトリックを、名前、エイリアス、データ型、値付きで持ちます。必ず入れるものが2つあります：遺言と同じ番号のbdSeq = 0と、Node Control/Rebirth = falseです。",
+        "dbirth": "spBv1.0/SolarPark/DBIRTH/GW1/INV1宛て、seq 1：エッジノードがModbusで読んでいるインバータのすべてのメトリックです。AC/Powerにはエイリアス2と型Floatが付きます。このメッセージをデコードしたものは「試してみる」で見られます。",
+        "ddata-gap": "このDDATAはseq 4ですが、SCADAは3を待っていました。3が遅れて届く場合に備えて少し待ちます（並べ替えタイムアウト）。しかし3は届きません。",
+        "ncmd": "spBv1.0/SolarPark/NCMD/GW1宛てで、メトリックは1つ：Node Control/Rebirth = true。SCADAは、自分の把握している内容が疑わしいときはいつでもこれを送ります。",
+        "nbirth-again": "同じMQTTセッションなので、bdSeqも同じ0です。エッジノードは、BIRTHを送り終えるまでデータの送信を止めます。",
+        "dbirth-again": "INV1のすべてのメトリックをもう一度。電力はいま4835.0 kWです。SCADAのコピーは再び完全になりました。",
+        "ndeath": "エッジノードがCONNECTで預けた遺言です。bdSeq 0が直近のNBIRTHと一致するので、現在のセッションのものだとわかります。SCADAはGW1とINV1をオフラインにし、それらのメトリックをすべてSTALEとします。最後の値は画面に残りますが、古い値として表示されます。"
+    },
+    "fields": {
+        "publish-q1-retain": { "name": "MQTT PUBLISH", "note": "0x33：QoS 1、retain付き。ブローカは、後からサブスクライブするすべてのエッジノードのためにこれを保持します。" },
+        "rl-65": { "name": "残りの長さ", "note": "65バイトが続きます。" },
+        "state-topic": { "name": "トピック", "note": "spBv1.0/STATE/SCADA1：IDがSCADA1のホストのSTATEトピック。" },
+        "packet-id": { "name": "パケットID 1", "note": "ほかのQoS 1メッセージと同じく、ブローカのPUBACKのための番号です。" },
+        "state-online": { "name": "online", "note": "{\"online\":true：SCADAはオンラインです。STATEはSparkplugで唯一JSONのメッセージで、ほかはすべてprotobufです。" },
+        "state-time": { "name": "timestamp", "note": "1970年からの1794480000000 ms = 10:40:00.000 UTC。CONNECTの遺言と同じ値です。エッジノードはこれを使って、このセッションと以前のセッションを区別します。" },
+        "publish-q0": { "name": "MQTT PUBLISH", "note": "0x30：QoS 0、retainなし。後から接続したホストは、古いデータではなくBIRTHから値を知ります。" },
+        "rl-59": { "name": "残りの長さ", "note": "59バイトが続きます：トピックとペイロード。" },
+        "ddata-topic": { "name": "トピック", "note": "spBv1.0/SolarPark/DDATA/GW1/INV1、32バイト（0x0020）。ここから先のバイトはprotobufのPayloadです。" },
+        "payload-time": { "name": "timestamp", "note": "タグ0x08：フィールド1、varint。メッセージの送信時刻：1970年からの1794480067280 ms = 10:41:07.280 UTC。varintは1バイトに7ビットずつ、下位から入れます。最上位ビットが1なら、さらにバイトが続きます。" },
+        "metric": { "name": "metrics", "note": "タグ0x12：フィールド2、メトリック1つ。0x0E = 14バイトが続きます。" },
+        "alias": { "name": "alias", "note": "タグ0x10：メトリックのフィールド2、エイリアス2。BIRTHで2はAC/Powerだと伝えてあるので、名前は送りません。" },
+        "metric-time": { "name": "timestamp", "note": "タグ0x18：メトリックのフィールド3、値を読んだ時刻：1794480067250。メッセージ送信の30 ms前です。" },
+        "float": { "name": "float_value", "note": "タグ0x65：フィールド12、4バイト、下位バイトが先：4820.5（kW）。データ型は送りません。BIRTHで伝えてあります。" },
+        "seq": { "name": "seq", "note": "またタグ0x18ですが、今度はメトリックの外：ペイロードのフィールド3、seq 2です。メトリックの中では、フィールド3はtimestampです。" },
+        "a-namespace": { "name": "名前空間", "note": "spBv1.0：Sparkplug B、トピック構成のバージョン1.0。" },
+        "a-group": { "name": "group_id", "note": "エッジノードのグループ。ここでは1つの発電所です。" },
+        "a-type": { "name": "message_type", "note": "メッセージの種類。NBIRTH、NDATA、NCMD、NDEATHはエッジノードについて、DBIRTH、DDATA、DCMD、DDEATHはデバイスについてのものです。" },
+        "a-node": { "name": "edge_node_id", "note": "ゲートウェイ。グループ内で一意でなければなりません。" },
+        "a-device": { "name": "device_id", "note": "エッジノードの先にあるデバイス。エッジノード自身についてのトピックはGW1で終わります。" }
+    },
+    "devices": {
+        "inv1": "インバータ INV1",
+        "gw": "エッジノード GW1",
+        "broker": "MQTTブローカ",
+        "scada": "SCADA（SCADA1）"
+    },
+    "facts": {
+        "standard": "Eclipse Sparkplug 3.0（2022）、ISO/IEC 20237:2023でもある",
+        "between": "エッジノード → MQTTブローカ → ホストアプリケーション（SCADA、ヒストリアン）",
+        "transport": "MQTT 3.1.1または5.0、TCP 1883またはTLS 8883",
+        "security": "MQTTのものだけ：TLSとブローカのログイン。Sparkplug自体は何も加えません。",
+        "frames": "NBIRTH、DBIRTH、NDATA、DDATA、NCMD、DCMD、NDEATH、DDEATH、STATE",
+        "model": "名前、エイリアス、データ型、値を持つメトリック。Protocol Buffersで符号化"
+    },
+    "tips": [
+        "各エッジノードには、グループ内で一意のedge_node_idと、専用のMQTTクライアントIDが必要です。IDが同じゲートウェイが2台あると互いを追い出し合い、SCADAには一日じゅうBIRTHとDEATHが届きます。",
+        "エイリアスが有効なのは次のBIRTHまでです。Rebirthの後も古いエイリアスを使い続けるツールは、値を別のメトリックに記録してしまいます。",
+        "BIRTHに入っていないメトリックは、SCADAにとって存在しません。メトリックを追加したら、新しいBIRTHをパブリッシュしてください。",
+        "すべてのエッジノードにプライマリホストIDを設定してください。そうすれば、BIRTHの前にSCADAのSTATEを待ちます。設定がないと、SCADAが不在のあいだにBIRTHが送られてしまい、SCADAはRebirthを要求しなければなりません。"
+    ],
+    "points": {
+        "node": "エッジノードの状態",
+        "power": "インバータの電力"
+    },
+    "values": {
+        "online": "オンライン",
+        "offline": "オフライン"
+    },
+    "anatomy": {
+        "topic": "Sparkplugのトピック：誰が、どの機器について、何を送るか"
+    },
+    "playground": {
+        "file": "INV1のDBIRTHを、読みやすいようにprotobufからJSONにデコードしたもの。回線上では、上のDDATAと同じくバイナリです。",
+        "payload-time": "メッセージの送信時刻。1970年からのミリ秒、UTC。",
+        "metric": "メトリック1つ：名前、エイリアス、読んだ時刻、データ型、値。Sparkplugには単位のフィールドがありません。AC/PowerがkWであることは、発電所内で取り決めます。",
+        "double": "総電力量（MWh）、Double型。メトリックのデータ型は次のBIRTHまで変わりません。",
+        "string": "テキストも使えます。DDATAではエイリアス5と新しいテキストだけを送ります。",
+        "seq": "seq 1：NBIRTHが0でした。エッジノードのメッセージはすべて番号を1つずつ進め、255の次は0に戻ります。"
+    }
+}

@@ -1,0 +1,99 @@
+{
+    "intro": "Der Zählerbus für Wärme-, Wasser- und Gaszähler in Europa (EN 13757). Ein Master versorgt zwei Adern mit Spannung und fragt jeden Zähler der Reihe nach ab. Der Zähler antwortet mit einem Header und Datensätzen; jeder Datensatz sagt, was er misst und in welcher Einheit. Wireless M-Bus sendet dieselben Datensätze per Funk, ohne gefragt zu werden.",
+    "steps": {
+        "reset": { "title": "Verbindung zurücksetzen", "text": "Der Datensammler sendet SND_NKE an die Primäradresse 5. Der Zähler antwortet mit einem Byte, E5. Der Bus läuft mit 2400 Baud, 8 Datenbits, gerader Parität." },
+        "ask": { "title": "Daten anfordern", "text": "REQ_UD2 fordert vom Wärmezähler seine Daten an. Das Frame-Count-Bit (FCB) ist 1, wie es bei der ersten Anfrage nach einem Rücksetzen sein muss." },
+        "answer": { "title": "Datensätze", "text": "Ein langes Telegramm: ein fester Header, dann Datensätze. Jeder Datensatz beginnt mit einem DIF (wie der Wert kodiert ist) und einem VIF (was er ist, in welcher Einheit). Das letzte Byte vor der Prüfsumme, 0x1F, sagt: mehr im nächsten Telegramm." },
+        "next": { "title": "Nächstes Telegramm", "text": "Der Datensammler kippt das FCB und fragt erneut. Der Zähler sendet sein zweites Telegramm: die am letzten Stichtag gespeicherten Werte, dem Tag, zu dem der Versorger abrechnet." },
+        "radio": { "title": "Wireless M-Bus", "text": "Der Wasserzähler hat keine Leitung zum Bus. Alle 16 Sekunden sendet er seine Werte per Funk, verschlüsselt mit AES-128. Der Datensammler braucht den Schlüssel dieses Zählers, um sie zu lesen." }
+    },
+    "frames": {
+        "snd-nke": "Zähler 5, setz deine Verbindung zurück",
+        "e5": "OK",
+        "req-1": "Zähler 5, schick mir deine Daten",
+        "rsp-1": "12 345 kWh, 456.78 m³, 70.2 °C und 45.3 °C, es kommt noch mehr",
+        "req-2": "Bitte das nächste Telegramm",
+        "rsp-2": "Am 2025-12-31: 9 876 kWh und 381.23 m³",
+        "wmbus": "Wasserzähler 87654321: meine Werte (verschlüsselt)"
+    },
+    "notes": {
+        "wmbus": "Niemand hat gefragt: Ein T1-Zähler sendet nur. Im Klartext kommen die Länge, C-Feld 0x44 (SND_NR: senden, keine Antwort), der Hersteller EXA, die ID 87654321, eine Version und der Typ 0x07 (Wasser). Dann CI 0x7A mit einer Zugriffsnummer, einem Statusbyte und einem Konfigurationswort, das Modus 5 angibt: AES-128 im CBC-Modus. Der Rest ist verschlüsselt. Der IV wird aus Hersteller, Adresse und Zugriffsnummer gebildet; der Schlüssel gehört genau diesem einen Zähler. Entschlüsselt beginnen die Daten mit 2F 2F, dann folgen Datensätze mit DIF und VIF wie beim drahtgebundenen Bus. Jeder Block des Telegramms hat einen eigenen CRC. In der Luft reisen je 4 Bits als 6 Chips (der 3-aus-6-Code)."
+    },
+    "fields": {
+        "short": { "name": "Start", "note": "0x10 beginnt ein kurzes Telegramm: insgesamt 5 Bytes." },
+        "c-nke": { "name": "C-Feld 0x40", "note": "SND_NKE: Verbindung zurücksetzen. Der Zähler löscht sein Frame-Count-Bit." },
+        "a-5": { "name": "Adresse 5", "note": "Die Primäradresse des Zählers. 1 bis 250 sind für Zähler, und ein neuer Zähler antwortet auf 0. 253 bedeutet: stattdessen die Sekundäradresse (die ID) verwenden. 254 und 255 erreichen jeden Zähler." },
+        "cs-nke": { "name": "Prüfsumme", "note": "0x45 = 0x40 + 0x05: die Summe aus C und A, modulo 256." },
+        "stop": { "name": "Stopp", "note": "0x16 beendet jedes M-Bus-Telegramm." },
+        "e5": { "name": "ACK", "note": "Ein Byte, 0xE5: die Bestätigung des Zählers." },
+        "c-req-1": { "name": "C-Feld 0x7B", "note": "REQ_UD2: Schick mir deine Nutzdaten. Das Frame-Count-Bit (0x20) ist 1: Die erste Anfrage nach einem Rücksetzen trägt FCB 1." },
+        "cs-req-1": { "name": "Prüfsumme", "note": "0x80 = 0x7B + 0x05." },
+        "long-42": { "name": "Start", "note": "Ein langes Telegramm: 0x68, zweimal die Länge, noch einmal 0x68. 0x2A = 42 Bytes von C bis zum letzten Datenbyte." },
+        "c-rsp": { "name": "C-Feld 0x08", "note": "RSP_UD: die Nutzdaten des Zählers." },
+        "a-5-rsp": { "name": "Adresse 5", "note": "Die Antwort nennt ihren Absender." },
+        "ci": { "name": "CI-Feld 0x72", "note": "Variable Daten mit dem folgenden langen Header, Zahlen mit dem niederwertigen Byte zuerst." },
+        "id": { "name": "ID-Nummer", "note": "12345678 in BCD, niederwertiges Byte zuerst. Sie steht auf dem Zähler und ist seine Sekundäradresse." },
+        "maker": { "name": "Hersteller", "note": "0x1701 = EXA, ein erfundenes Kürzel: drei Buchstaben, in 15 Bits gepackt (unten zerlegt)." },
+        "version": { "name": "Version", "note": "1: die Version dieses Zählertyps." },
+        "medium": { "name": "Medium", "note": "0x04: Wärme, mit dem Durchflusssensor im Rücklauf. 0x07 ist Wasser, 0x03 Gas." },
+        "access-42": { "name": "Zugriffsnummer", "note": "0x2A = 42. Sie steigt mit jeder Antwort um eins." },
+        "access-43": { "name": "Zugriffsnummer", "note": "0x2B = 43: eins mehr als bei der letzten Antwort." },
+        "status": { "name": "Status", "note": "0x00: keine Fehler, Batterie in Ordnung." },
+        "signature": { "name": "Signatur", "note": "0x0000: nicht verschlüsselt." },
+        "energy": { "name": "Energie", "note": "DIF 0x0C: 8 BCD-Ziffern. VIF 0x06: Energie in kWh. 00012345 = 12 345 kWh." },
+        "volume": { "name": "Volumen", "note": "DIF 0x0C. VIF 0x14: Volumen in Schritten von 0.01 m³. 00045678 = 456.78 m³." },
+        "flow": { "name": "Vorlauftemperatur", "note": "DIF 0x0A: 4 BCD-Ziffern. VIF 0x5A: Vorlauftemperatur in Schritten von 0.1 °C. 0702 = 70.2 °C." },
+        "return": { "name": "Rücklauftemperatur", "note": "VIF 0x5E: Rücklauftemperatur in Schritten von 0.1 °C. 0453 = 45.3 °C." },
+        "now": { "name": "Datum und Uhrzeit", "note": "DIF 0x04: 32 Bit. VIF 0x6D: Datum und Uhrzeit (Typ F), in Bits gepackt: 2026-11-12 08:15." },
+        "more": { "name": "Mehr", "note": "DIF 0x1F: Im nächsten Telegramm folgen weitere Datensätze." },
+        "cs-rsp-1": { "name": "Prüfsumme", "note": "0xA1: die Summe aller Bytes von C bis zum letzten Datenbyte, modulo 256." },
+        "c-req-2": { "name": "C-Feld 0x5B", "note": "REQ_UD2 mit FCB 0. Das Bit hat gewechselt, also sendet der Zähler sein nächstes Telegramm. Mit demselben Bit würde er das letzte noch einmal senden." },
+        "cs-req-2": { "name": "Prüfsumme", "note": "0x60 = 0x5B + 0x05." },
+        "long-31": { "name": "Start", "note": "0x1F = 31 Bytes von C bis zum letzten Datenbyte." },
+        "due-date": { "name": "Stichtag", "note": "DIF 0x42: Speicher 1, 16 Bit. VIF 0x6C: ein Datum (Typ G): 2025-12-31." },
+        "due-energy": { "name": "Energie am Stichtag", "note": "DIF 0x4C: Speicher 1, 8 BCD-Ziffern. VIF 0x06: kWh. 00009876 = 9 876 kWh." },
+        "due-volume": { "name": "Volumen am Stichtag", "note": "DIF 0x4C, VIF 0x14. 00038123 = 381.23 m³." },
+        "cs-rsp-2": { "name": "Prüfsumme", "note": "0x6B: die Summe von C bis zum letzten Datenbyte." },
+        "m-1": { "name": "Erster Buchstabe", "note": "E = 5 (A ist 1, Z ist 26), mal 1024." },
+        "m-2": { "name": "Zweiter Buchstabe", "note": "X = 24, mal 32." },
+        "m-3": { "name": "Dritter Buchstabe", "note": "A = 1." },
+        "d-extension": { "name": "Erweiterung", "note": "0: Es folgt kein DIFE-Byte. DIFEs ergänzen Bits für höhere Speichernummern, Tarife und Untereinheiten." },
+        "d-storage": { "name": "Speichernummer", "note": "1. 0 ist der aktuelle Wert; höhere Nummern sind gespeicherte Werte. Bei diesem Zähler ist 1 der letzte Stichtag." },
+        "d-function": { "name": "Funktion", "note": "00: ein Momentanwert. 01 ist ein Maximum, 10 ein Minimum, 11 ein Wert während eines Fehlers." },
+        "d-data": { "name": "Datenfeld", "note": "1100: 8 BCD-Ziffern, in 4 Bytes. 0100 wäre eine 32-Bit-Ganzzahl." }
+    },
+    "devices": {
+        "heat": "Wärmezähler",
+        "collector": "Datensammler",
+        "water": "Wasserzähler"
+    },
+    "facts": {
+        "standard": "EN 13757-2 (drahtgebunden), -3 (Daten), -4 (drahtlos), -7 (Sicherheit)",
+        "between": "Datensammler (Master) → Wärme-, Wasser-, Gas- und Stromzähler",
+        "transport": "Zwei Adern, vom Master versorgt, 2400 Baud 8E1; Funk bei 868 MHz (T1: 868.95 MHz)",
+        "security": "Drahtgebunden: keine. Drahtlos: AES-128 mit einem Schlüssel pro Zähler (Modus 5 oder 7)",
+        "frames": "E5: Bestätigung · 10 … 16: kurzes Telegramm · 68 L L 68 … 16: langes Telegramm"
+    },
+    "tips": [
+        "Jeder Zähler am Bus braucht eine eigene Primäradresse. Neue Zähler antworten auf 0, und zwei davon auf 0 stören sich gegenseitig. Zuerst die Adresse einstellen oder die Zähler über ihre ID-Nummer ansprechen (Sekundäradressierung).",
+        "Das FCB nur kippen, um das nächste Telegramm zu holen. Ein Datensammler, der es nie kippt, liest immer wieder Telegramm 1 und sieht die gespeicherten Werte nie.",
+        "Die Einheit aus dem VIF jedes Datensatzes nehmen. 0x13 sind Liter, 0x14 Zehnerliter: Wer die Skalierung von einem anderen Zählertyp übernimmt, liegt in der Abrechnung um den Faktor zehn daneben.",
+        "Den AES-Schlüssel jedes Funkzählers beim Lieferanten mit der Lieferung anfordern. Ohne ihn sieht der Datensammler ID und Typ, aber keinen Wert."
+    ],
+    "points": {
+        "energy": "Wärmeenergie",
+        "volume": "Volumen",
+        "flow": "Vorlauftemperatur",
+        "due": "Energie am 2025-12-31"
+    },
+    "timing": {
+        "title": "Wie Bits über die zwei Adern reisen",
+        "note": "SND_NKE vom Master, dann E5 vom Zähler. Der Master signalisiert über die Spannung: etwa 36 V für eine 1, 12 V weniger für eine 0. Der Zähler signalisiert über den Strom: 1.5 mA für eine 1, 11 bis 20 mA mehr für eine 0. So tragen dieselben zwei Adern Energie und Daten in beide Richtungen. Jedes Zeichen hat 11 Bits: ein Startbit, 8 Datenbits (niedrigstes zuerst), gerade Parität und ein Stoppbit. Bei 2400 Baud dauert ein Bit 0.42 ms.",
+        "master": "Master: Spannung",
+        "meter": "Zähler: Strom"
+    },
+    "anatomy": {
+        "maker": "Das Herstellerkürzel, in zwei Bytes gepackt",
+        "dif": "DIF 0x4C, Bit für Bit"
+    }
+}

@@ -1,0 +1,115 @@
+{
+    "intro": "로밍 덕분에 운전자는 카드 한 장으로 여러 회사의 충전기에서 충전할 수 있어요. OCPI는 충전기를 운영하는 충전 사업자(CPO)와, 운전자에게 카드와 앱을 주는 e-모빌리티 서비스 사업자(eMSP)를 이어 줘요. 양쪽이 각자 REST API를 제공하고 상대가 이를 호출해요: 충전소 위치, 카드, 세션, 그리고 충전마다의 정산서.",
+    "steps": {
+        "discover": { "title": "탐색", "text": "어떤 운전자가 로밍하기 전에, 두 회사가 한 번 연결해요. eMSP가 CPO가 제공하는 OCPI 버전과 API 각 부분의 위치를 읽어요." },
+        "register": { "title": "토큰 교환", "text": "eMSP가 임시 토큰 A로 등록해요. 결국 양쪽은 상대를 호출할 자기 토큰을 하나씩 갖게 돼요: eMSP는 토큰 C로 CPO를, CPO는 토큰 B로 eMSP를 호출해요." },
+        "location": { "title": "충전기 공개", "text": "CPO가 EVSE(충전 지점) 하나가 있는 충전소 위치를 보내서, eMSP의 앱이 운전자에게 보여 줄 수 있게 해요." },
+        "authorize": { "title": "카드 확인", "text": "eMSP 카드를 가진 운전자가 충전기에 카드를 대요. CPO는 이 카드를 모르니 eMSP에 물어요." },
+        "session": { "title": "세션", "text": "충전이 시작돼요. CPO가 세션을 보고하고, 차가 충전되는 동안 업데이트를 보내요." },
+        "cdr": { "title": "정산", "text": "충전이 끝나면 CPO가 충전 상세 기록(CDR)을 보내요: eMSP가 이번 충전에 대해 지불할 금액이에요." }
+    },
+    "frames": {
+        "versions": "어떤 OCPI 버전을 어디서 써요?",
+        "endpoints": "2.2.1이고, 엔드포인트는 이거예요",
+        "post-credentials": "제 토큰 B와 주소예요",
+        "check": "어떤 버전을 써요? (토큰 B로)",
+        "credentials": "등록 완료. 이제부터는 토큰 C로 호출하세요",
+        "put-location": "위치 LOC-0042, EVSE NL*ABC*E12345*1 포함",
+        "location-ok": "저장했어요",
+        "authorize": "LOC-0042에서 카드 04A2B3C4D5E6F7로 충전해도 돼요?",
+        "allowed": "네: ALLOWED",
+        "put-session": "세션 SES-0187 시작, 0 kWh",
+        "patch-session": "SES-0187: 지금까지 6.25 kWh",
+        "post-cdr": "정산서: 12.5 kWh, 6.05 EUR",
+        "cdr-ok": "이 주소에 저장했어요"
+    },
+    "notes": {
+        "versions": "eMSP는 이메일이나 포털로 CPO에게서 두 가지를 받았어요: 버전 목록의 URL과 토큰 A. Authorization: Token 헤더 뒤에 Base64로 쓴 토큰 A를 붙여 GET을 보내요. 그다음 버전 2.2.1의 URL로 GET을 보내요.",
+        "endpoints": "모든 OCPI 응답은 같은 봉투에 담겨요: data, status_code, status_message, timestamp. 여기서 data에는 먼저 버전 목록이, 이어서 2.2.1의 엔드포인트가 나와요: 모듈마다 URL 하나, 각각 SENDER나 RECEIVER 표시. CPO는 locations, sessions, CDR의 송신자이고 tokens의 수신자예요.",
+        "post-credentials": "아직 토큰 A로, eMSP가 자기 자격 증명을 POST해요: CPO가 쓸 새 토큰 B, 자기 버전 목록의 URL, 그리고 역할: EMSP, country_code DE, party_id XYZ.",
+        "check": "답하기 전에 CPO도 같은 방법으로 eMSP를 확인해요: 토큰 B로 버전 목록을 GET하고, 이어서 2.2.1 엔드포인트를 GET해요.",
+        "credentials": "CPO가 자기 자격 증명으로 답해요: 토큰 C, 버전 URL, 그리고 역할: CPO, country_code NL, party_id ABC. 토큰 A는 더 이상 통하지 않아요. 이제부터 eMSP는 토큰 C로, CPO는 토큰 B로 호출해요.",
+        "put-location": "CPO가 eMSP의 locations 엔드포인트에 위치를 PUT해요. URL에 소유자와 id가 들어 있어요. '하나씩 뜯어보기'에서 분해하고, 본문은 '직접 해 보기'에서 볼 수 있어요.",
+        "location-ok": "status_code 1000은 성공이에요. HTTP 상태만 보지 말고 이 값을 읽으세요: 2xxx는 클라이언트 오류, 3xxx는 서버 오류예요.",
+        "authorize": "실시간 인증이에요. 카드가 eMSP의 것이니 CPO가 eMSP의 tokens 엔드포인트로 POST해요: URL에는 카드의 uid와 ?type=RFID, 본문에는 위치와 EVSE.",
+        "allowed": "data.allowed가 ALLOWED이고, 카드의 전체 token 객체가 함께 와요. 다른 응답으로는 BLOCKED, EXPIRED, NO_CREDIT, NOT_ALLOWED가 있어요. CPO는 OCPP로 충전기에 시작하라고 알려요.",
+        "put-session": "CPO가 eMSP 쪽에 세션을 만들어요: start_date_time, kwh 0, cdr_token으로 카드, auth_method AUTH_REQUEST, 위치·EVSE·커넥터, currency EUR, status ACTIVE.",
+        "patch-session": "바뀐 것만 보내요: kwh 6.25와 last_updated. 이제 eMSP의 앱이 운전자에게 지금까지의 에너지를 보여 줄 수 있어요.",
+        "post-cdr": "CDR은 두 회사 사이의 정산서예요: 언제, 어디서, 어느 카드로, 에너지와 시간은 얼마나, 가격은 얼마인지. '직접 해 보기'에서 볼 수 있어요.",
+        "cdr-ok": "eMSP가 CDR을 저장하고 Location 헤더에 자기 쪽 URL을 돌려줘요. 이제 운전자에게 요금을 청구할 수 있어요."
+    },
+    "fields": {
+        "a-country": { "name": "국가", "note": "NL: 운영자 국가의 ISO 3166 두 글자 코드." },
+        "a-operator": { "name": "운영자", "note": "ABC: 국가 안에서 고유한 운영자 ID. OCPI에서는 CPO의 party_id예요." },
+        "a-type": { "name": "유형", "note": "E: 이 ID는 EVSE를 가리켜요." },
+        "a-evse": { "name": "EVSE", "note": "12345*1: 이 충전 지점에 운영자가 붙인 자체 번호." },
+        "u-endpoint": { "name": "엔드포인트", "note": "eMSP의 엔드포인트 목록에서 가져온 locations 엔드포인트. CPO가 절대 직접 만들지 않아요." },
+        "u-country": { "name": "country_code", "note": "객체를 소유한 쪽, 즉 CPO의 국가." },
+        "u-party": { "name": "party_id", "note": "CPO의 party ID. country_code와 함께 모든 OCPI 객체에서 회사를 가리켜요." },
+        "u-location": { "name": "location_id", "note": "이 위치에 CPO가 붙인 id. /1을 덧붙이면 그 안의 uid 1인 EVSE를 가리켜요." }
+    },
+    "devices": {
+        "car": "자동차",
+        "charger": "충전기",
+        "cpo": "CPO 플랫폼",
+        "emsp": "eMSP 플랫폼"
+    },
+    "facts": {
+        "standard": "OCPI 2.2.1(EVRoaming Foundation)",
+        "between": "CPO(충전기 운영) ↔ eMSP(운전자에게 카드와 앱 제공), 직접 또는 로밍 허브를 거쳐",
+        "transport": "HTTPS, REST, JSON",
+        "security": "TLS. 모든 요청에 Authorization: Token 헤더와 Base64로 쓴 토큰이 들어가요.",
+        "frames": "모듈: credentials, locations, tokens, sessions, cdrs, tariffs, commands"
+    },
+    "tips": [
+        "상대가 엔드포인트 목록에 적어 둔 URL을 쓰세요. 패턴으로 URL을 만들지 마세요: 플랫폼마다 달라요.",
+        "토큰 A는 등록에만 써요. 등록 뒤 401 오류가 나는 흔한 원인은 토큰 B와 C를 바꿔 쓴 거예요.",
+        "HTTP 200만으로는 부족해요: 본문의 status_code를 읽으세요. 1000은 성공, 2xxx는 클라이언트 오류, 3xxx는 서버 오류예요.",
+        "CDR은 확정이에요. 잘못된 CDR은 고치지 않아요: CPO가 상쇄 CDR(credit CDR)을 보낸 뒤 새 CDR을 보내요."
+    ],
+    "points": {
+        "to-cpo": "CPO 호출용 토큰",
+        "to-emsp": "eMSP 호출용 토큰",
+        "kwh": "에너지, kWh",
+        "cost": "부가세 포함 가격"
+    },
+    "values": {
+        "token-a": "토큰 A",
+        "token-b": "토큰 B",
+        "token-c": "토큰 C"
+    },
+    "anatomy": {
+        "evse-id": "운전자가 충전기에서 보는 EVSE ID",
+        "url": "eMSP 쪽에 있는 위치 하나의 주소"
+    },
+    "playground": {
+        "file": "이 레슨에서 CPO가 보내는 객체를 JSON으로 보여 줘요. 밑줄 친 줄을 골라 보세요.",
+        "owner": "이 위치를 소유한 CPO: 국가 NL, party ABC. 모든 객체와 그 URL에 들어가요.",
+        "location-id": "CPO가 이 위치에 붙인 자체 id. country_code, party_id와 함께 고유해요.",
+        "publish": "true: eMSP가 운전자에게 보여 줘도 돼요. false면 개인 충전기를 공개 지도에서 빼요.",
+        "country": "여기는 세 글자(ISO 3166-1 alpha-3)예요. country_code의 두 글자와 달라요.",
+        "coordinates": "위도와 경도는 숫자가 아니라 문자열이고, 소수점 아래 5~7자리예요.",
+        "evse-uid": "uid: CPO 내부의 EVSE id로, URL과 세션에 써요.",
+        "evse-id": "evse_id: 충전기에 인쇄된, 운전자용 ID. '하나씩 뜯어보기'에서 분해해요.",
+        "status": "AVAILABLE. 상태가 바뀌면 CPO가 새 상태를 PATCH로 보내요.",
+        "standard": "IEC_62196_T2: Type 2 소켓. format SOCKET은 운전자가 케이블을 가져온다는 뜻이에요.",
+        "max-voltage": "230 V: 3상 AC에서는 상 하나와 중성선 사이의 전압이에요.",
+        "max-power": "22080 W = 3 × 230 V × 32 A.",
+        "tariff": "여기 적용되는 요금제. CPO가 tariffs 모듈에 공개해요.",
+        "time-zone": "현지 시간대. OCPI의 시각은 UTC이고, 이 값은 앱에 현지 시계가 몇 시인지 알려 줘요.",
+        "last-updated": "이 객체가 마지막으로 바뀐 시각. 업데이트를 놓친 쪽은 마지막 동기화 이후 바뀐 걸 전부 요청해요.",
+        "cdr-id": "이 CDR에 CPO가 붙인 id.",
+        "session-id": "이 CDR이 마무리하는 세션: eMSP가 늘어나는 걸 지켜본 그 세션이에요.",
+        "cdr-token": "충전한 카드. 독일(DE)의 eMSP XYZ 소유예요.",
+        "contract": "contract_id: 운전자와 eMSP의 계약. eMSP는 이 계약으로 청구해요.",
+        "auth-method": "AUTH_REQUEST: CPO가 eMSP에 실시간으로 물었어요. WHITELIST라면 미리 보낸 카드 목록을 썼다는 뜻이에요.",
+        "cdr-location": "충전이 일어난 곳의 사본이에요. 나중에 위치 정보가 바뀌어도 CDR은 그대로 맞게 읽혀요.",
+        "currency": "이 CDR의 모든 금액은 EUR이에요.",
+        "periods": "충전을 요금제 하나씩 적용되는 구간으로 나눈 거예요. 여기는 구간이 하나뿐이에요.",
+        "dimensions": "이 구간에 12.5 kWh. 다음 줄: 시간 1.25 h.",
+        "excl-vat": "5.00 EUR: 12.5 kWh × 0.40 EUR, 부가세 전.",
+        "incl-vat": "6.05 EUR: 네덜란드 부가세 21 % 포함.",
+        "total-energy": "항상 kWh 단위.",
+        "total-time": "시간 단위: 14:05부터 15:20까지 1.25 h."
+    }
+}

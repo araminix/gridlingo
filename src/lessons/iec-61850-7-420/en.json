@@ -66,7 +66,7 @@
         "a-ld": { "name": "Logical device", "note": "BESS1DER: IED name BESS1 and instance DER." },
         "a-ln": { "name": "Logical node", "note": "DWMX1: the function that caps active power, instance 1." },
         "a-fc": { "name": "Functional constraint", "note": "CO: control. A Write here is a command, not a setting." },
-        "a-do": { "name": "Data object", "note": "WMaxSpt: the maximum active power set point, of type APC (a controllable analogue value)." },
+        "a-do": { "name": "Data object", "note": "WMaxSpt: the maximum active power set point, of type APC (a controllable analog value)." },
         "a-da": { "name": "Data attribute", "note": "Oper: the structure a client writes to give the command." }
     },
     "devices": {

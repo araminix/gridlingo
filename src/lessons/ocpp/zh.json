@@ -1,0 +1,98 @@
+{
+    "intro": "充电桩与管理它的服务器之间的语言，这个服务器叫 CSMS（充电管理平台）。充电桩保持一条 WebSocket 连接，发送 JSON 消息：它是谁，各个充电枪的状态，哪张卡要充电，以及每次充电过程中的电表读数。CSMS 应答每一条消息，也可以在同一条连接上发出自己的请求。",
+    "steps": {
+        "connect": { "title": "连接", "text": "充电桩向它的 CSMS 建立一条安全的 WebSocket 连接。连接一直保持，所以双方随时都可以发送。" },
+        "boot": { "title": "启动", "text": "上电后的第一条消息说明充电桩是谁。CSMS 接受它，给出时间，并设定心跳间隔。然后充电桩报告每个充电枪的状态：1 号枪 Available（空闲）。" },
+        "authorize": { "title": "刷卡", "text": "司机把一张 RFID 卡贴到读卡器上。充电桩问 CSMS 这张卡能否充电。可以。" },
+        "start": { "title": "开始充电", "text": "车插上枪，开始取电。充电桩开启一个交易，并发送开始时的电表读数。" },
+        "charge": { "title": "电表读数", "text": "车辆充电期间，充电桩每 15 分钟发送一次电表读数。CSMS 看着电量不断增加。" },
+        "stop": { "title": "结束充电", "text": "司机再刷一次卡。交易在一小时、11040 Wh 后结束。现在 CSMS 可以计费了。" }
+    },
+    "frames": {
+        "upgrade": "切换到 WebSocket，子协议 ocpp2.0.1",
+        "switch": "好的，我们用 ocpp2.0.1",
+        "boot": "我是 ExampleVendor 的 AC-22，刚刚上电",
+        "boot-conf": "已接受。这是时间；每 300 s 一次心跳",
+        "status": "1 号枪 Available（空闲）",
+        "status-conf": "已记录",
+        "authorize": "卡 04A2B3C4D5E6F7 能充电吗？",
+        "authorize-conf": "可以：Accepted",
+        "started": "交易 TX-0187 开始，读数 12840 Wh",
+        "started-conf": "已记录，这张卡仍是 Accepted",
+        "updated": "现在 15600 Wh，功率 11040 W",
+        "updated-conf": "已记录",
+        "ended": "TX-0187 结束，读数 23880 Wh",
+        "ended-conf": "已记录"
+    },
+    "notes": {
+        "upgrade": "在 TLS 内部，充电桩请求把这条 HTTP 连接升级为 WebSocket。地址以它的身份标识 CS-0042 结尾。Sec-WebSocket-Protocol 头请求 ocpp2.0.1，HTTP Basic 认证携带充电桩的密码。",
+        "switch": "CSMS 同意，并给出它选定的子协议：ocpp2.0.1。从现在起，双方都发送 WebSocket 帧，每帧装一条 JSON 格式的 OCPP 消息。",
+        "status": "一条 CALL，带 timestamp、connectorStatus Available、evseId 1 和 connectorId 1。一个 EVSE 就是一个充电点；它可以有多个充电枪。",
+        "status-conf": "一条载荷为空的 CALLRESULT：[3,\"1002\",{}]。每条 CALL 都会得到应答，即使无话可说。",
+        "authorize": "idToken 04A2B3C4D5E6F7，类型 ISO14443：RFID 卡 7 字节的序列号。很多充电桩还保存一份本地卡片列表，不用询问就能决定。",
+        "authorize-conf": "idTokenInfo 的状态为 Accepted。其他应答，如 Blocked、Expired、Invalid 或 Unknown，表示充电桩不得开始充电。",
+        "started": "eventType Started，triggerReason ChargingStateChanged，seqNo 0。transactionId 由充电桩选定：TX-0187。事件携带卡的 idToken、chargingState Charging，以及一个上下文为 Transaction.Begin 的电表读数：12840 Wh。",
+        "started-conf": "事件里带了卡，所以应答里再次带上它的状态：idTokenInfo Accepted。",
+        "updated": "eventType Updated，triggerReason MeterValuePeriodic，seqNo 1，带两个读数：电能寄存器和功率。动手试试里展示了整条消息。",
+        "updated-conf": "载荷为空：CSMS 没什么要补充的。",
+        "ended": "eventType Ended，triggerReason StopAuthorized，seqNo 2，stoppedReason Local，chargingState EVConnected（枪还插着），以及上下文为 Transaction.End 的最后一个电表读数：23880 Wh。",
+        "ended-conf": "载荷为空。CSMS 向卡主收取 23880 − 12840 = 11040 Wh 的费用。"
+    },
+    "fields": {
+        "ws-text": { "name": "FIN · 操作码", "note": "0x81：FIN 位（0x80）表示整条消息都在这一帧里。操作码 0x1 表示这是 UTF-8 文本。" },
+        "ws-mask-126": { "name": "掩码 · 长度", "note": "0xFE：掩码位（0x80）置 1，因为客户端发送的内容必须加掩码。其余部分 126（0x7E）表示长度在后面 2 个字节里。" },
+        "ws-len-170": { "name": "长度", "note": "后面跟 0x00AA = 170 字节的 JSON。动手试试里展示了它们。" },
+        "ws-key": { "name": "掩码键", "note": "4 个随机字节。JSON 的每个字节依次与它们异或：\"[\"（0x5B）传送时变成 0x61。这不是加密；加密靠 TLS。" },
+        "ws-len-88": { "name": "长度", "note": "后面跟 0x58 = 88 字节的 JSON。掩码位为 0，因为服务器从不加掩码，所以后面没有掩码键。" },
+        "a-type": { "name": "MessageTypeId", "note": "2 是 CALL，即请求。它的应答是 3（CALLRESULT）或 4（CALLERROR）。" },
+        "a-id": { "name": "MessageId", "note": "由发送方选定，在这条连接上唯一。应答带同一个 id；除此之外没有别的东西把两者联系起来。" },
+        "a-action": { "name": "Action", "note": "这是哪种消息。应答没有 action：靠 id 判断它应答的是哪条 CALL。" },
+        "a-payload": { "name": "Payload", "note": "请求本身，一个 JSON 对象。它的字段要按 BootNotificationRequest 的 JSON schema 校验。" }
+    },
+    "devices": {
+        "car": "汽车",
+        "charger": "交流充电桩",
+        "charger2": "交流充电桩",
+        "csms": "CSMS"
+    },
+    "facts": {
+        "standard": "OCPP 2.0.1（Open Charge Alliance，2020）。OCPP 1.6J 仍然很常见。",
+        "between": "充电桩 → CSMS（充电管理平台）",
+        "transport": "WebSocket（RFC 6455）over TLS，子协议 ocpp2.0.1：每个文本帧一条 JSON 消息",
+        "security": "TLS。安全配置 2 增加密码（HTTP Basic），配置 3 增加客户端证书。",
+        "frames": "CALL [2, …] · CALLRESULT [3, …] · CALLERROR [4, …]"
+    },
+    "tips": [
+        "如果 CSMS 应答的不是充电桩请求的子协议，充电桩必须关闭连接。“连上了又断开”往往就是这个原因。",
+        "一次只发一条 CALL，等到应答或超时后再发下一条。过早发出的第二条 CALL 可能会丢失。",
+        "交易何时开始是一个参数（TxStartPoint）：插枪时、授权时，或开始送电时。要和 CSMS 团队约定好，否则交易会显得太长或太短。",
+        "时间戳都是 UTC。用 BootNotification 应答中的 currentTime 设置充电桩的时钟，否则电表读数会落进错误的电价时段。"
+    ],
+    "points": {
+        "card": "卡",
+        "tx": "交易",
+        "energy": "电能表"
+    },
+    "anatomy": {
+        "call": "一条 OCPP 消息：由四部分组成的 JSON 数组"
+    },
+    "playground": {
+        "file": "本课中的一条消息，就是充电桩发出的样子，排版后便于阅读。在线路上它是一行，没有空格。",
+        "call": "2：CALL，一个需要应答的请求。",
+        "message-id": "消息 id。CSMS 的应答带同一个 id。",
+        "action": "action：这是哪种消息。后面是它的载荷。",
+        "reason": "充电桩启动的原因：PowerUp。其他原因有 FirmwareUpdate、RemoteReset、Watchdog 等。",
+        "model": "model 和 vendorName 是 chargingStation 中仅有的两个必填字段。",
+        "firmware": "当前运行的固件。CSMS 据此规划升级。",
+        "event-type": "Started、Updated 或 Ended。一个交易恰好有一个 Started 和一个 Ended。",
+        "timestamp": "UTC，带 Z。这是事件发生的时间，不是发送时间：离线时存下的事件保留它原来的时间。",
+        "trigger": "发送这个事件的原因：电表上报间隔（TxUpdatedInterval）到了。",
+        "seq": "seqNo 从 0 开始给这个交易的事件计数。出现缺口，CSMS 就知道少了一条消息。",
+        "transaction-id": "由充电桩在开始时选定。这次充电的每个事件都带着它。",
+        "charging-state": "Charging：正在送电。其他状态有 EVConnected、SuspendedEV、SuspendedEVSE 和 Idle。",
+        "energy": "电表寄存器上的 15600 Wh，就像家用电表的读数。新交易开始时它不会归零。",
+        "measurand": "测量的是什么。没有 measurand 时，数值表示 Energy.Active.Import.Register。",
+        "unit": "Wh，电能的默认单位。",
+        "power": "11040 W：3 相，每相 16 A，230 V。"
+    }
+}

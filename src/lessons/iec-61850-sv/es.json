@@ -1,0 +1,125 @@
+{
+    "intro": "Una merging unit está junto a los transformadores de corriente y de tensión de una bahía. Los mide 4000 veces por segundo y publica cada juego de muestras como una trama Ethernet en el bus de proceso. Los relés de protección se suscriben y trabajan con estas muestras en lugar de con cables de cobre que vienen de los transformadores.",
+    "steps": {
+        "sync": { "title": "Sincronizar", "text": "Un reloj PTP ajusta la hora de la merging unit y del relé con una precisión de un microsegundo, más o menos. La merging unit toma sus muestras con ese reloj: la muestra 0 al empezar cada segundo." },
+        "sample": { "title": "Flujo", "text": "Cada 250 µs, la merging unit envía una trama con ocho valores: tres corrientes de fase, la corriente de neutro, tres tensiones de fase y la tensión de neutro. Cada valor es un instante de la onda, no un valor eficaz." },
+        "gap": { "title": "Se pierde una muestra", "text": "Las tramas siguen llegando, cada una con el smpCnt siguiente. Después de 1236 viene 1238: la trama 1237 se perdió por el camino. El relé ve el hueco. Puede cubrir una muestra perdida; si faltan varias seguidas, bloquea las funciones que las necesitan." },
+        "unsync": { "title": "Se pierde el reloj", "text": "El reloj PTP falla. La merging unit mantiene la hora con su propio oscilador durante un tiempo y después pone smpSynch a 0. Este relé solo usa esta merging unit, así que sigue protegiendo y lanza una alarma. Una protección que compara varias merging units, como la diferencial de barras o de línea, se bloquearía." },
+        "fault": { "title": "Falla", "text": "Un cortocircuito de la fase A a tierra en F1. Las muestras indican 2.8 kA en la fase A y corriente en el neutro. La función de sobrecorriente del relé dispara: envía un mensaje GOOSE de vuelta a la merging unit, que cierra el contacto de disparo de Q1." },
+        "open": { "title": "Abre el interruptor", "text": "80 ms después de la falla, Q1 está abierto. Las muestras casi no indican corriente, y el relé repone su disparo." }
+    },
+    "frames": {
+        "ptp-sync": "Esta es la hora exacta",
+        "sv-0": "Muestra 0: IA 531.57 A, VA 28 169.13 V …",
+        "sv-gap": "Muestra 1238 (la 1237 nunca llegó)",
+        "sv-unsync": "Muestra 2650, sin sincronizar",
+        "sv-fault": "Muestra 3127: IA −3796.73 A",
+        "goose-trip": "¡Dispara Q1!",
+        "trip-wire": "Energiza la bobina de disparo de Q1",
+        "sv-open": "No hay corriente en F1"
+    },
+    "notes": {
+        "ptp-sync": "PTP con el perfil de potencia (IEC 61850-9-3) envía Sync una vez por segundo, como multicast. Cada switch añade cuánto esperó la trama dentro de él, para que cada equipo pueda corregirlo. La lección de PTP lo explica.",
+        "goose-trip": "Un mensaje GOOSE en el bus de proceso, del relé a la merging unit. La lección de GOOSE desmonta uno pieza a pieza.",
+        "trip-wire": "Un cable de cobre, no un mensaje de red. Esta merging unit tiene salidas hacia el interruptor junto a sus entradas desde los transformadores.",
+        "sv-open": "La misma trama que antes, con smpCnt 3447. IA, IB e IC están cerca de 0: Q1 se ha abierto."
+    },
+    "fields": {
+        "dst": { "name": "Destino", "note": "Una dirección multicast del rango que IEC 61850 reserva para los valores muestreados (01-0C-CD-04-…). Todos los suscriptores la escuchan." },
+        "src": { "name": "Origen", "note": "La dirección MAC de la propia merging unit." },
+        "vlan": { "name": "Etiqueta VLAN", "note": "0x8100, luego prioridad 4 y VLAN 20, la VLAN del bus de proceso." },
+        "ethertype": { "name": "EtherType", "note": "0x88BA significa valores muestreados. En esta trama no hay IP ni TCP." },
+        "appid": { "name": "APPID", "note": "0x4000: el primer valor del rango que usa el perfil 9-2 LE (0x4000 a 0x7FFF)." },
+        "length": { "name": "Longitud", "note": "106 bytes, desde el APPID hasta el final." },
+        "reserved": { "name": "Reservado", "note": "Dos campos reservados, aquí a cero." },
+        "savpdu": { "name": "savPdu", "note": "La etiqueta 0x60 inicia el mensaje. Su longitud también es 0x60: siguen 96 bytes." },
+        "noasdu": { "name": "noASDU", "note": "1: un juego de muestras (un ASDU) en esta trama. Con 80 muestras por ciclo, cada muestra va en su propia trama." },
+        "seqasdu": { "name": "seqASDU", "note": "Etiqueta 0xA2: la lista de ASDU, 91 bytes." },
+        "asdu": { "name": "ASDU", "note": "Etiqueta 0x30: un juego de muestras, 89 bytes." },
+        "svid": { "name": "svID", "note": "\"F1MUSV01\": el nombre de este flujo, fijado en el archivo SCL. El relé lo comprueba." },
+        "smpcnt-0": { "name": "smpCnt 0", "note": "El contador de muestras: 0, la primera muestra de este segundo. Cuenta hasta 3999 y vuelve a empezar en 0." },
+        "smpcnt-1238": { "name": "smpCnt 1238", "note": "0x04D6 = 1238. La última trama que recibió el relé fue la 1236: falta la muestra 1237." },
+        "smpcnt-2650": { "name": "smpCnt 2650", "note": "0x0A5A = 2650. La merging unit sigue contando de 0 a 3999, pero con su propio oscilador: el 0 ya no cae al principio de un segundo." },
+        "smpcnt-3127": { "name": "smpCnt 3127", "note": "0x0C37 = 3127." },
+        "confrev": { "name": "confRev 1", "note": "La revisión de la configuración. Debe coincidir con la que se configuró en el relé." },
+        "synch-1": { "name": "smpSynch 1", "note": "Sincronizada: las muestras se toman con el reloj común." },
+        "synch-0": { "name": "smpSynch 0", "note": "Sin sincronizar. Un relé que combina este flujo con otros no puede estar seguro de que sus muestras se tomaron en el mismo instante." },
+        "seqdata": { "name": "seqData", "note": "Etiqueta 0x87, 64 bytes: ocho valores de 4 bytes, cada uno seguido de 4 bytes de calidad." },
+        "ia": { "name": "IA", "note": "0x00081C72 = 531 570 mA: 531.57 A. Una cuenta es 1 mA." },
+        "ib": { "name": "IB", "note": "0xFFF96344 = −433 340 mA: −433.34 A. Los valores llevan signo: FF… es un número negativo." },
+        "ic": { "name": "IC", "note": "−98.23 A." },
+        "in": { "name": "IN", "note": "La corriente de neutro: 0. En un alimentador sano, IA + IB + IC es cero." },
+        "va": { "name": "VA", "note": "0x002AFB91 = 2 816 913 × 10 mV: 28 169.13 V. La fase A está en la cresta de su onda (34.5 kV ÷ √3 × √2). Una cuenta es 10 mV." },
+        "vb": { "name": "VB", "note": "−14 084.57 V." },
+        "vc": { "name": "VC", "note": "−14 084.56 V." },
+        "vn": { "name": "VN", "note": "La tensión de neutro: 0. En una red sana, VA + VB + VC es cero." },
+        "q": { "name": "Calidad", "note": "Buena: no hay ningún indicador activo. Los dos bits más bajos dan la validez: 01 es no válido, 11 dudoso." },
+        "x-ia": { "name": "IA", "note": "Corriente de la fase A: una cuenta con signo en mA, como en la primera trama." },
+        "x-ib": { "name": "IB", "note": "Corriente de la fase B, en mA." },
+        "x-ic": { "name": "IC", "note": "Corriente de la fase C, en mA." },
+        "x-in": { "name": "IN", "note": "Corriente de neutro, en mA: 0 mientras el alimentador está sano." },
+        "x-va": { "name": "VA", "note": "Tensión de la fase A: una cuenta con signo de 10 mV." },
+        "x-vb": { "name": "VB", "note": "Tensión de la fase B, en unidades de 10 mV." },
+        "x-vc": { "name": "VC", "note": "Tensión de la fase C, en unidades de 10 mV." },
+        "x-vn": { "name": "VN", "note": "Tensión de neutro, en unidades de 10 mV: 0 mientras la red está sana." },
+        "ia-f": { "name": "IA", "note": "0xFFC61104 = −3796.73 A en este instante. Son 2.8 kA eficaces, siete veces la corriente de carga." },
+        "ib-f": { "name": "IB", "note": "−83.61 A: la fase B sigue llevando su carga." },
+        "ic-f": { "name": "IC", "note": "526.32 A: la fase C sigue llevando su carga." },
+        "in-f": { "name": "IN", "note": "−3354.02 A. Las tres fases ya no suman cero: circula corriente por tierra." },
+        "va-f": { "name": "VA", "note": "0xFFFA62AA = −3679.58 V: una cuarta parte de lo que mostraría la fase A en este instante. La falla está en la fase A." },
+        "vb-f": { "name": "VB", "note": "−13 441.15 V." },
+        "vc-f": { "name": "VC", "note": "28 159.48 V." },
+        "vn-f": { "name": "VN", "note": "11 038.75 V: ya no es cero." }
+    },
+    "devices": {
+        "ctvt": "TC · TT de F1",
+        "q1": "Interruptor Q1",
+        "mu": "F1 MU",
+        "switch": "Switch",
+        "relay": "F1 PROT",
+        "clock": "Reloj PTP"
+    },
+    "facts": {
+        "standard": "IEC 61850-9-2, con el perfil 9-2 LE (hoy IEC 61869-9)",
+        "between": "Merging unit → relés de protección, medidores y registradores",
+        "transport": "Multicast Ethernet en el bus de proceso, sin IP",
+        "frames": "Un flujo, sin peticiones ni respuestas: 4000 tramas por segundo a 50 Hz, 4800 a 60 Hz",
+        "speed": "Unos 5 Mbit/s por cada merging unit"
+    },
+    "tips": [
+        "El relé comprueba svID, confRev, APPID y la MAC de destino. Si alguno no coincide con su configuración, descarta el flujo y su protección queda ciega.",
+        "Cuenta los flujos por puerto del switch. Cada flujo 9-2 LE ocupa unos 5 Mbit/s, y un puerto que inunda todos los flujos a todos los equipos se satura.",
+        "Las merging units más nuevas siguen IEC 61869-9: 4800 muestras por segundo, dos ASDU por trama. El relé debe esperar el mismo perfil.",
+        "En la edición 2, smpSynch 2 significa un reloj global, como el GPS, y 1 uno local. Comprueba qué aceptan tus relés antes de la puesta en servicio."
+    ],
+    "points": {
+        "smpcnt": "Contador de muestras",
+        "synch": "Sincronizada",
+        "ia": "Corriente de la fase A, esta muestra"
+    },
+    "values": {
+        "gap": "1238 (falta la 1237)"
+    },
+    "timing": {
+        "title": "80 muestras por ciclo",
+        "note": "Un ciclo a 50 Hz dura 20 ms. La merging unit lo muestrea 80 veces, cada 250 µs, y envía cada muestra en su propia trama. El relé reconstruye la onda a partir de estos escalones.",
+        "va": "VA, tal como se muestrea",
+        "frames": "Tramas SV",
+        "smp0": "smpCnt 0",
+        "smp40": "smpCnt 40"
+    },
+    "singleLine": {
+        "title": "Esquema unifilar de la barra de 34.5 kV",
+        "bus": "34.5 kV · barra A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "abierto",
+        "fault": "falla · 2.8 kA",
+        "station": "Bus de estación · Ethernet",
+        "process": "Bus de proceso · Ethernet",
+        "f1": "F1 · Línea aérea",
+        "f2": "F2 · Servicios auxiliares"
+    },
+    "playground": {
+        "scl": "El archivo SCL del bus de proceso. Abre F1MUMU01: el bloque de control MSVCB01 envía el conjunto de datos PhsMeas1 a 01-0C-CD-04-00-01. TCTR1.Amp.sVC explica por qué una cuenta es 1 mA. En F1PROT, las entradas de PTOC1 muestran a qué se suscribe el relé."
+    }
+}

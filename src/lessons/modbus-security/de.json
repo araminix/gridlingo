@@ -1,0 +1,99 @@
+{
+    "intro": "Mit reinem Modbus TCP kann jeder im Netz lesen und schreiben. Modbus/TCP Security packt dieselben Telegramme in TLS, auf Port 802. Beide Seiten weisen sich mit Zertifikaten aus, und das Zertifikat des Clients kann eine Rolle tragen. Die Regeln des Servers entscheiden dann Anfrage für Anfrage, was diese Rolle darf.",
+    "steps": {
+        "connect": { "title": "Verbinden", "text": "Der Monitoring-Server baut eine TCP-Verbindung zum Wechselrichter auf Port 802 auf, dem Port für Modbus/TCP Security. Port 502 kann geschlossen bleiben." },
+        "hello": { "title": "Hallo", "text": "Der Client bietet TLS 1.2 und eine Cipher Suite an. Der Wechselrichter antwortet mit seinem Zertifikat und verlangt das des Clients. Beide Seiten müssen sich ausweisen: Die Spezifikation verlangt es." },
+        "prove": { "title": "Rolle zeigen", "text": "Der Client sendet sein Zertifikat. Darin steht eine Rolle, \"Viewer\", in einer Extension, die die Modbus Organization definiert hat. Der Wechselrichter prüft das Zertifikat gegen die CA, der er vertraut, und merkt sich die Rolle für diese Verbindung." },
+        "read": { "title": "Lesen: erlaubt", "text": "Jetzt reisen gewöhnliche Modbus-TCP-Telegramme in verschlüsselten TLS-Records. Der Wechselrichter prüft jede Anfrage gegen seine Regeln: Ein Viewer darf lesen. Er antwortet mit 4820.5 kW." },
+        "write": { "title": "Schreiben: abgewiesen", "text": "Der Client versucht, eine Leistungsbegrenzung zu setzen. Ein Viewer darf nicht schreiben, also weist der Wechselrichter die Anfrage mit Exception 01 ab, dem Code, den die Spezifikation dafür vorsieht. Die Grenze bleibt bei 5000 kW." }
+    },
+    "frames": {
+        "tcp": "TCP-Verbindung zu Port 802 aufbauen",
+        "client-hello": "Lass uns TLS 1.2 sprechen, mit dieser Cipher Suite",
+        "server-hello": "Hier ist mein Zertifikat. Zeig mir deins.",
+        "client-cert": "Hier ist meins, Rolle Viewer, und der Beweis, dass es mir gehört",
+        "server-finished": "Geprüft. Verschlüsselung ist an.",
+        "read-req": "(verschlüsselt) Schick mir die Register 100 und 101",
+        "read-resp": "(verschlüsselt) Wirkleistung: 4820.5 kW",
+        "write-req": "(verschlüsselt) Leistungsbegrenzung auf 3000 kW setzen",
+        "write-refused": "(verschlüsselt) Abgewiesen: Exception 01"
+    },
+    "notes": {
+        "tcp": "Reines TCP zu Port 802, nicht 502. Im Klartext folgt nur noch der TLS-Handshake.",
+        "server-hello": "Fünf Handshake-Nachrichten. ServerHello wählt TLS 1.2 und 0xC02F. Certificate trägt das Zertifikat des Wechselrichters und das seiner CA. ServerKeyExchange enthält die Hälfte des Wechselrichters am Schlüsselaustausch, signiert mit seinem Schlüssel. CertificateRequest verlangt das Zertifikat des Clients: Ein Server für Modbus/TCP Security muss immer danach fragen. ServerHelloDone beendet seinen Teil.",
+        "client-cert": "Certificate trägt das Zertifikat des Clients, mit der Rolle. ClientKeyExchange enthält die Hälfte des Clients am Schlüsselaustausch. CertificateVerify signiert den bisherigen Handshake: der Beweis, dass der Client den privaten Schlüssel des Zertifikats hat. ChangeCipherSpec und Finished schalten die Verschlüsselung ein. Bei TLS 1.2 reisen die Zertifikate im Klartext, also kann jeder im Netz die Rolle lesen.",
+        "server-finished": "Auch der Wechselrichter schaltet die Verschlüsselung ein. Hätte der Client kein Zertifikat gesendet oder eines von einer unbekannten CA, hätte der Wechselrichter die Verbindung mit einem Alert beendet."
+    },
+    "fields": {
+        "rec-handshake": { "name": "Record-Typ 22", "note": "0x16: ein Handshake-Record. Der Handshake reist im Klartext." },
+        "rec-v10": { "name": "Record-Version", "note": "0x0301. Clients schreiben diese alte Nummer hierher, damit alte Server nicht daran scheitern. Die gewünschte Version kommt ein paar Bytes später." },
+        "rec-len-130": { "name": "Länge", "note": "Es folgen 0x0082 = 130 Bytes." },
+        "hs-hello": { "name": "Handshake-Typ 1", "note": "ClientHello: das Angebot des Clients." },
+        "hs-len-126": { "name": "Länge", "note": "Es folgen 0x00007E = 126 Bytes." },
+        "hello-version": { "name": "Version", "note": "0x0303: TLS 1.2. Modbus/TCP Security braucht 1.2 oder neuer." },
+        "random": { "name": "Random", "note": "32 Zufallsbytes, jeweils 8 auf einmal gezeigt. Beide Seiten mischen sie in die Sitzungsschlüssel." },
+        "random-more": { "name": "Random", "note": "Weitere der 32 Zufallsbytes." },
+        "session-id": { "name": "Session ID", "note": "Länge 0: eine neue Sitzung, keine fortgesetzte." },
+        "suites": { "name": "Cipher Suites", "note": "2 Bytes, eine Suite: 0xC02F, Schlüsselaustausch mit ECDHE, RSA-Zertifikate, Verschlüsselung mit AES-128-GCM, SHA-256. Die Spezifikation verlangt sie für Geräte mit RSA-Schlüsseln." },
+        "compression": { "name": "Kompression", "note": "Ein Verfahren: 0, keine." },
+        "ext-len": { "name": "Extensions", "note": "Es folgen 0x0053 = 83 Bytes Extensions." },
+        "ext-reneg": { "name": "renegotiation_info", "note": "0xFF01, leer: Der Client unterstützt sichere Neuverhandlung, wie es die Spezifikation verlangt." },
+        "ext-points": { "name": "ec_point_formats", "note": "0x000B: wie Punkte auf elliptischen Kurven geschrieben werden dürfen." },
+        "ext-groups": { "name": "supported_groups", "note": "0x000A, 12 Bytes: Es folgt eine Liste mit 10 Bytes." },
+        "groups": { "name": "Kurven", "note": "Fünf Kurven für den Schlüsselaustausch: x25519 (0x001D), P-256 (0x0017), x448, P-384 und P-521. Jedes Gerät, das elliptische Kurven verwendet, muss P-256 unterstützen." },
+        "ext-flags": { "name": "Zwei Flags", "note": "encrypt_then_mac (0x0016) und extended_master_secret (0x0017), beide leer." },
+        "ext-sigalgs": { "name": "signature_algorithms", "note": "0x000D: Es folgt eine Liste mit 40 Bytes, 2 für jeden von 20 Algorithmen." },
+        "sigalgs": { "name": "Signaturen", "note": "Signaturarten, die der Client akzeptiert, je 2 Bytes. 0x0403 ist ECDSA auf P-256 mit SHA-256; 0x0401, weiter hinten, ist RSA mit SHA-256." },
+        "sigalgs-more": { "name": "Signaturen", "note": "Weitere Signaturarten, je 2 Bytes." },
+        "rec-app": { "name": "Record-Typ 23", "note": "0x17: Anwendungsdaten. Was folgt, ist verschlüsselt." },
+        "rec-v12": { "name": "Version", "note": "0x0303: TLS 1.2." },
+        "len-read-req": { "name": "Länge", "note": "Es folgen 36 Bytes, nicht gezeigt: eine Nonce mit 8 Bytes, die verschlüsselte Anfrage mit 12 Bytes und ein Tag mit 16 Bytes. Darin steckt die reine Modbus-TCP-Anfrage 00 01 00 00 00 06 01 03 00 64 00 02: Register 100 und 101 lesen." },
+        "len-read-resp": { "name": "Länge", "note": "Es folgen 37 Bytes: Nonce, 13 Bytes Antwort, Tag. Darin: 00 01 00 00 00 07 01 03 04 A4 00 45 96, Wirkleistung 4820.5 kW." },
+        "len-write-req": { "name": "Länge", "note": "Es folgen 36 Bytes. Darin: 00 02 00 00 00 06 01 06 00 C8 0B B8, 3000 in Register 200 schreiben, die Leistungsbegrenzung." },
+        "len-refused": { "name": "Länge", "note": "Es folgen 33 Bytes: Nonce, 9 Bytes Antwort, Tag. Darin: 00 02 00 00 00 03 01 86 01. 0x86 ist 0x06 mit gesetztem Fehlerbit; 01 ist der Exception-Code." },
+        "a-extension": { "name": "Extension", "note": "Eine SEQUENCE mit 0x17 = 23 Bytes: eine Extension des Zertifikats." },
+        "a-oid": { "name": "Object ID", "note": "1.3.6.1.4.1.50316.802.1: die Modbus-Rolle. 50316 ist die Nummer, die die IANA der Modbus Organization gegeben hat." },
+        "a-octets": { "name": "Wert", "note": "Ein OCTET STRING mit 8 Bytes, der den Wert der Extension enthält." },
+        "a-utf8": { "name": "UTF8String", "note": "0x0C: Text in UTF-8, 6 Bytes lang. Die Spezifikation verlangt diesen Typ." },
+        "a-role": { "name": "Rolle", "note": "\"Viewer\". Eine Rolle pro Zertifikat. Die Regeln des Servers sagen, was sie darf." }
+    },
+    "devices": {
+        "monitoring": "Monitoring-Server",
+        "inverter": "Wechselrichter INV-1",
+        "pv": "PV-Module",
+        "controller": "Parkregler"
+    },
+    "facts": {
+        "standard": "MODBUS/TCP Security Protocol Specification (Modbus Organization, 2018, überarbeitet 2021)",
+        "between": "Client mit Zertifikat → Server mit Zertifikat",
+        "transport": "TLS 1.2 oder neuer, auf TCP 802",
+        "security": "Beide Seiten weisen sich mit X.509-Zertifikaten aus. Eine Rolle im Zertifikat des Clients entscheidet, was er darf.",
+        "frames": "Die üblichen Modbus-TCP-Telegramme, unverändert, in TLS-Records"
+    },
+    "tips": [
+        "Ein Zertifikat ohne Rolle verbindet sich trotzdem. Der Server wendet dann seine Regeln für „keine Rolle“ an: Sicherstellen, dass diese nichts erlauben.",
+        "Eine abgewiesene Anfrage liefert Exception 01, denselben Code wie eine unbekannte Funktion. Rolle und Regeln prüfen, bevor man einen Fehler im Code sucht.",
+        "Jedes Zertifikat enthält genau eine Rolle. Ein Tool, das lesen und schreiben muss, braucht eine Rolle, die beides erlaubt.",
+        "Zertifikate laufen ab. Planen, wie neue Zertifikate auf jedes Gerät kommen, bevor das erste abläuft, sonst verstummt die Anlage an diesem Tag."
+    ],
+    "points": {
+        "role": "Rolle des Clients",
+        "p": "Wirkleistung",
+        "limit": "Wirkleistungsbegrenzung"
+    },
+    "values": {
+        "refused": "abgewiesen (01)"
+    },
+    "anatomy": {
+        "role": "Die Rollen-Extension im Zertifikat des Clients, Byte für Byte"
+    },
+    "playground": {
+        "file": "Das Zertifikat des Monitoring-Servers, wie openssl x509 -text es ausgibt. Die Rolle ist die letzte Extension.",
+        "issuer": "Die CA, die es signiert hat. Der Wechselrichter akzeptiert nur Zertifikate einer CA, der er vertraut.",
+        "expiry": "Nach diesem Datum weist der Wechselrichter das Zertifikat ab.",
+        "subject": "Wem das Zertifikat gehört: dem Monitoring-Server.",
+        "client-auth": "Dieses Zertifikat darf von einem TLS-Client verwendet werden.",
+        "role-oid": "Die Modbus-Rollen-Extension. openssl kennt ihren Namen nicht, also gibt es die Nummer aus.",
+        "role-value": "Die Rolle. Die zwei Punkte sind die Bytes 0x0C und 0x06 (UTF8String, 6 Zeichen), die openssl nicht darstellen kann."
+    }
+}

@@ -1,0 +1,103 @@
+{
+    "intro": "IEC 61850-7-420 étend le modèle de données IEC 61850 aux ressources énergétiques distribuées : batteries, onduleurs, groupes électrogènes, et les fonctions qui les pilotent. Un contrôleur de centrale les lit et les commande avec les mêmes services MMS qu'un relais de poste. Seuls les noms sont nouveaux.",
+    "steps": {
+        "associate": { "title": "Association", "text": "Le contrôleur de centrale ouvre le port TCP 102 de l'onduleur de batterie et établit une association MMS, comme pour toute connexion IEC 61850." },
+        "read": { "title": "Lire charge et puissance", "text": "Un seul Read demande deux valeurs : l'état de charge dans DSTO1 et la puissance active dans MMXU1. La réponse contient les deux, dans le même ordre." },
+        "subscribe": { "title": "Demander des rapports", "text": "Le contrôleur active un rapport sur ces deux mêmes valeurs. Désormais, l'onduleur les envoie quand elles changent." },
+        "limit": { "title": "Limiter la production", "text": "Le gestionnaire de réseau autorise au plus 2000 kW. Le contrôleur commande WMaxSpt, la consigne de DWMX1, la fonction qui plafonne la puissance active. L'onduleur accepte et commence à réduire sa puissance progressivement." },
+        "report": { "title": "La puissance se stabilise", "text": "L'onduleur envoie des rapports pendant que TotW baisse. Le dernier indique 2000.0 kW : la limite est tenue." }
+    },
+    "frames": {
+        "tcp": "Ouvrir TCP vers le port 102, puis une connexion de transport",
+        "initiate-req": "Parlons MMS : voici mes tailles et mes services",
+        "initiate-resp": "D'accord : voici les miens",
+        "read-req": "Quels sont ton état de charge et ta puissance active ?",
+        "read-resp": "68.5 % et 3000.0 kW",
+        "enable": "Active le rapport urcbDER01",
+        "oper-req": "Limite ta puissance active à 2000 kW",
+        "oper-resp": "C'est fait",
+        "report": "TotW vaut maintenant 2000.0 kW"
+    },
+    "notes": {
+        "tcp": "Du TCP simple vers le port 102, puis une connexion de transport ISO (COTP) par-dessus. La leçon IEC 61850 MMS montre ces étapes.",
+        "initiate-req": "Un MMS Initiate dans les couches session, présentation et ACSE. Le contrôleur propose sa plus grande taille de message et les services qu'il veut. L'authentification, quand elle est utilisée, a lieu ici (IEC 62351-4).",
+        "initiate-resp": "L'onduleur répond avec ses propres tailles et services. Désormais, chaque requête nomme une variable par son équipement logique et son item.",
+        "enable": "Un Write de TRUE dans RptEna du bloc de contrôle de rapport LLN0$RP$urcbDER01. Son jeu de données dsDER contient DSTO1.UseSocPct et MMXU1.TotW.",
+        "report": "Un InformationReport non sollicité : l'onduleur l'envoie sans qu'on le lui demande, chaque fois qu'une valeur de dsDER change."
+    },
+    "fields": {
+        "tpkt-110": { "name": "TPKT", "note": "Version 3, puis la longueur du message entier : 0x006E = 110 octets." },
+        "tpkt-43": { "name": "TPKT", "note": "Version 3, puis la longueur : 0x002B = 43 octets." },
+        "tpkt-111": { "name": "TPKT", "note": "Version 3, puis la longueur : 0x006F = 111 octets." },
+        "tpkt-29": { "name": "TPKT", "note": "Version 3, puis la longueur : 0x001D = 29 octets." },
+        "cotp-dt": { "name": "COTP", "note": "Une unité de données (0xF0), la dernière de son message (0x80)." },
+        "session": { "name": "Session", "note": "Deux courts en-têtes de session : give tokens, transfert de données." },
+        "presentation": { "name": "Présentation", "note": "Données entièrement encodées, contexte de présentation 3 : la suite est du MMS." },
+        "confirmed-req": { "name": "Requête confirmée", "note": "Tag A0 : une requête qui attend une réponse. L'octet suivant compte les octets qu'elle contient." },
+        "confirmed-resp": { "name": "Réponse confirmée", "note": "Tag A1 : la réponse à une requête." },
+        "invoke-7": { "name": "Invoke ID 7", "note": "Un numéro choisi par le contrôleur. La réponse porte le même." },
+        "invoke-7-resp": { "name": "Invoke ID 7", "note": "Le même numéro que la requête : ceci y répond." },
+        "invoke-8": { "name": "Invoke ID 8", "note": "Une nouvelle requête, un nouveau numéro." },
+        "invoke-8-resp": { "name": "Invoke ID 8", "note": "Ceci répond à la requête portant la consigne." },
+        "read": { "name": "Read", "note": "Tag A4 : le service Read." },
+        "spec": { "name": "Liste de variables", "note": "Une liste de variables, chacune donnée par son nom. Ici, il y en a deux." },
+        "var": { "name": "Variable", "note": "Une entrée de la liste. Son nom suit." },
+        "domain-specific": { "name": "Nom propre à un domaine", "note": "Un nom en deux parties : le domaine et l'item." },
+        "domain": { "name": "Domaine", "note": "\"BESS1DER\" : l'équipement logique DER de l'IED BESS1." },
+        "item-soc": { "name": "Item", "note": "\"DSTO1$MX$UseSocPct$mag$f\" : l'état de charge de l'unité de stockage, en pourcentage de son énergie utilisable." },
+        "item-totw": { "name": "Item", "note": "\"MMXU1$MX$TotW$mag$f\" : la puissance active totale côté AC de l'onduleur." },
+        "results": { "name": "Résultats", "note": "Un résultat par variable, dans l'ordre où elles ont été demandées." },
+        "float-tag": { "name": "Virgule flottante", "note": "Tag 0x87 (un flottant), 5 octets. 08 : un flottant IEEE 754 simple précision suit." },
+        "soc": { "name": "UseSocPct", "note": "68.5 (%), octet de poids fort en premier." },
+        "totw": { "name": "TotW", "note": "3000.0. L'unité, kW, se trouve dans l'attribut units (CF)." },
+        "write": { "name": "Write", "note": "Tag A5 : le service Write. IEC 61850 envoie une commande sous forme de Write dans Oper." },
+        "write-spec": { "name": "Variable", "note": "Une liste d'une seule variable, donnée par son nom." },
+        "item-oper": { "name": "Item", "note": "\"DWMX1$CO$WMaxSpt$Oper\" : la structure Oper de la consigne WMaxSpt. CO signifie commande (control)." },
+        "data-list": { "name": "Données", "note": "Les valeurs à écrire, une par variable." },
+        "oper-struct": { "name": "Oper", "note": "Une structure (tag A2) de six parties, dans l'ordre fixé par le modèle de données." },
+        "ctlval": { "name": "ctlVal", "note": "La nouvelle valeur : une structure contenant un flottant, 0x44FA0000 = 2000.0 (kW)." },
+        "origin": { "name": "origin", "note": "L'émetteur : orCat 5 (automatic-station : un contrôleur de la centrale) et orIdent \"PPC\"." },
+        "ctlnum": { "name": "ctlNum", "note": "1 : le client numérote ses commandes, pour pouvoir les distinguer." },
+        "oper-t": { "name": "T", "note": "L'heure d'envoi par le contrôleur : 10:41:12.250 UTC. 4 octets de secondes, 3 de fractions de seconde, 1 de qualité d'horloge." },
+        "test": { "name": "Test", "note": "FALSE : une vraie commande, pas un test." },
+        "check": { "name": "Check", "note": "Deux bits : contrôle de synchronisme et contrôle de verrouillage. Les deux sont désactivés : une consigne n'a besoin ni de l'un ni de l'autre." },
+        "write-resp": { "name": "Réponse au Write", "note": "Tag A5 : la réponse à un Write, un résultat par variable." },
+        "success": { "name": "Succès", "note": "Tag 0x81, vide : l'écriture a réussi. En commande directe, la nouvelle limite s'applique aussitôt." },
+        "a-ld": { "name": "Équipement logique", "note": "BESS1DER : nom d'IED BESS1 et instance DER." },
+        "a-ln": { "name": "Nœud logique", "note": "DWMX1 : la fonction qui plafonne la puissance active, instance 1." },
+        "a-fc": { "name": "Contrainte fonctionnelle", "note": "CO : commande. Un Write ici est une commande, pas un réglage." },
+        "a-do": { "name": "Objet de données", "note": "WMaxSpt : la consigne de puissance active maximale, de type APC (une valeur analogique commandable)." },
+        "a-da": { "name": "Attribut de données", "note": "Oper : la structure qu'un client écrit pour donner la commande." }
+    },
+    "devices": {
+        "meter": "Compteur réseau",
+        "ppc": "Contrôleur de centrale",
+        "bess": "Onduleur BESS1",
+        "battery": "Batterie"
+    },
+    "facts": {
+        "standard": "IEC 61850-7-420 édition 2 (2021), sur IEC 61850-7-4 et le mapping MMS d'IEC 61850-8-1",
+        "between": "Contrôleur de centrale, SCADA ou agrégateur → onduleur, batterie, groupe électrogène",
+        "transport": "MMS sur TCP 102",
+        "security": "TLS (IEC 62351-4), TCP 3782",
+        "model": "Nœuds logiques DER : DSTO, DBAT, DINV, DGEN, et des fonctions comme DWMX"
+    },
+    "tips": [
+        "L'édition 1 (2009) et l'édition 2 (2021) n'utilisent pas les mêmes noms. L'édition 1 a ZINV, ZBAT et DRCT ; l'édition 2 a DINV, DBAT, DSTO et des fonctions comme DWMX. Vérifiez quelle édition utilise le fichier SCL de l'équipement avant de faire la moindre correspondance.",
+        "Lisez ctlModel (CF) avant de commander. En direct-with-normal-security, la réponse au Write termine l'échange. En enhanced security, un CommandTermination suit quand l'équipement a fini.",
+        "Les fonctions de l'édition 2 peuvent revenir à leurs valeurs par défaut après un délai fixé dans RvrtTms. Un contrôleur qui envoie une limite une seule fois peut la voir disparaître.",
+        "Mettez-vous d'accord sur le signe de la puissance. Certains équipements comptent la décharge en positif, d'autres en négatif. Testez d'abord avec une petite consigne."
+    ],
+    "points": {
+        "soc": "État de charge",
+        "totw": "Puissance active",
+        "wmax": "Limite de puissance"
+    },
+    "anatomy": {
+        "control": "Le nom d'une consigne, et la façon dont MMS l'écrit"
+    },
+    "playground": {
+        "scl": "La description configurée de l'onduleur de batterie (.cid). Ouvrez DER, puis DSTO1 et MMXU1 pour les deux valeurs lues ici, et DWMX1 pour WMaxSpt : sa structure Oper et son ctlModel. Ouvrez ensuite votre propre fichier, si vous en avez un.",
+        "encoder": "MMS envoie un flottant octet de poids fort en premier (ABCD). La limite, 2000.0, voyage sous la forme 44 FA 00 00."
+    }
+}

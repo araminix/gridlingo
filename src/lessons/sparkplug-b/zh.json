@@ -1,0 +1,98 @@
+{
+    "intro": "Sparkplug B 是建立在 MQTT 之上、面向 SCADA 的一套规则。固定的主题名说明谁发送什么。上线（Birth）消息把每个指标列出一次，带名称、别名和数据类型；此后只传变化，用别名指代。离线（Death）消息让 SCADA 在网关失联时立即知道。",
+    "steps": {
+        "host": { "title": "SCADA 上线", "text": "SCADA 作为主主机连接 Broker，留下遗嘱，订阅所有 Sparkplug 主题，然后发布它的 STATE：online，保留。" },
+        "connect": { "title": "边缘节点连接", "text": "边缘节点 GW1 带着自己的遗嘱 NDEATH 连接，编号 bdSeq 0。它读到 SCADA 保留的 STATE：SCADA 在线，所以它可以开始了。" },
+        "birth": { "title": "上线", "text": "NBIRTH 列出边缘节点的每个指标，DBIRTH 列出它后面那台逆变器的每个指标：名称、别名、数据类型和数值。现在 SCADA 掌握了整个模型。" },
+        "data": { "title": "变化上报", "text": "只有逆变器的功率变了。DDATA 只携带这一个指标，用它的别名，并带下一个序号。" },
+        "rebirth": { "title": "重新上线", "text": "SCADA 在 seq 2 之后收到了 seq 4：消息 3 丢了。SCADA 再也不能信任手里的副本，于是请求重新上线。边缘节点再次发送 NBIRTH 和 DBIRTH。" },
+        "death": { "title": "离线", "text": "边缘节点的链路在 300 s 时断开。45 s 后（30 s 保活时间的 1.5 倍），Broker 发布它的遗嘱 NDEATH。SCADA 把 GW1 标为离线，把它的值标为 STALE（过时）。" }
+    },
+    "frames": {
+        "host-connect": "我是 SCADA1。如果我消失了，就发布我已离线",
+        "state": "SCADA1 在线",
+        "edge-connect": "我是 GW1。如果我消失了，发布我的离线消息，bdSeq 0",
+        "state-seen": "SCADA1 在线（由 Broker 保留）",
+        "nbirth": "GW1 上线了：这是它的全部指标",
+        "dbirth": "INV1 上线了：这是它的全部指标",
+        "ddata": "INV1：别名 2 = 4820.5",
+        "ddata-gap": "INV1：seq 4（3 在哪里？）",
+        "ncmd": "GW1，把所有内容重发一遍",
+        "nbirth-again": "GW1：全部指标，再发一遍",
+        "dbirth-again": "INV1：全部指标，再发一遍",
+        "ndeath": "GW1 离线了（bdSeq 0）"
+    },
+    "notes": {
+        "host-connect": "一条清除会话的 MQTT CONNECT。它的遗嘱发往 spBv1.0/STATE/SCADA1：{\"online\":false,\"timestamp\":1794480000000}，QoS 1，保留。然后 SCADA 订阅 spBv1.0/#，即所有 Sparkplug 消息。",
+        "edge-connect": "一条清除会话、保活时间 30 s 的 MQTT CONNECT。它的遗嘱是发往 spBv1.0/SolarPark/NDEATH/GW1 的 NDEATH，QoS 1，不保留，带一个指标：bdSeq = 0。然后边缘节点订阅自己的 NCMD 和 DCMD 主题，以及 spBv1.0/STATE/SCADA1。",
+        "state-seen": "边缘节点一订阅，Broker 就发来保留的 STATE。如果 SCADA 离线，边缘节点会等待，什么也不发布。",
+        "nbirth": "发往 spBv1.0/SolarPark/NBIRTH/GW1，QoS 0，seq 0。里面是边缘节点自身的每个指标，各带名称、别名、数据类型和数值。有两个必须始终存在：bdSeq = 0，与遗嘱中的编号相同；以及 Node Control/Rebirth = false。",
+        "dbirth": "发往 spBv1.0/SolarPark/DBIRTH/GW1/INV1，seq 1：逆变器的每个指标，由边缘节点通过 Modbus 读取。AC/Power 得到别名 2，类型为 Float。动手试试里展示了解码后的这条消息。",
+        "ddata-gap": "这条 DDATA 的 seq 是 4，但 SCADA 期待的是 3。它稍等一会儿（重排超时），看 3 会不会晚到。没有来。",
+        "ncmd": "发往 spBv1.0/SolarPark/NCMD/GW1，带一个指标：Node Control/Rebirth = true。只要 SCADA 对自己掌握的数据有怀疑，就会发这条消息。",
+        "nbirth-again": "同一个 MQTT 会话，所以还是 bdSeq 0。在上线消息发完之前，边缘节点停止发送数据。",
+        "dbirth-again": "INV1 的每个指标再来一遍，功率现在是 4835.0 kW。SCADA 的副本又完整了。",
+        "ndeath": "边缘节点 CONNECT 中的遗嘱。它的 bdSeq 0 与最后一条 NBIRTH 一致，所以属于当前会话。SCADA 把 GW1 和 INV1 标为离线，把它们的每个指标都标为 STALE：最后的值仍留在画面上，但标明是旧值。"
+    },
+    "fields": {
+        "publish-q1-retain": { "name": "MQTT PUBLISH", "note": "0x33：QoS 1，保留。Broker 为之后订阅的每个边缘节点保存它。" },
+        "rl-65": { "name": "剩余长度", "note": "后面跟 65 个字节。" },
+        "state-topic": { "name": "主题", "note": "spBv1.0/STATE/SCADA1：ID 为 SCADA1 的主机的 STATE 主题。" },
+        "packet-id": { "name": "报文 id 1", "note": "供 Broker 的 PUBACK 使用，和任何 QoS 1 消息一样。" },
+        "state-online": { "name": "online", "note": "{\"online\":true，SCADA 在线。STATE 是唯一用 JSON 的 Sparkplug 消息；其他都是 protobuf。" },
+        "state-time": { "name": "timestamp", "note": "自 1970 年起 1794480000000 ms = 10:40:00.000 UTC。与它 CONNECT 中遗嘱里的值相同：边缘节点据此区分本次会话和之前的会话。" },
+        "publish-q0": { "name": "MQTT PUBLISH", "note": "0x30：QoS 0，不保留。之后连接的主机从上线消息中得知各个值，而不是从旧数据中。" },
+        "rl-59": { "name": "剩余长度", "note": "后面跟 59 个字节：主题和载荷。" },
+        "ddata-topic": { "name": "主题", "note": "spBv1.0/SolarPark/DDATA/GW1/INV1，32 字节（0x0020）。从这里开始，字节是一个 protobuf Payload。" },
+        "payload-time": { "name": "timestamp", "note": "标签 0x08：字段 1，varint。消息发送的时间：自 1970 年起 1794480067280 ms = 10:41:07.280 UTC。varint 每个字节装 7 位，低位在前；最高位为 1 表示后面还有。" },
+        "metric": { "name": "metrics", "note": "标签 0x12：字段 2，一个指标。后面跟 0x0E = 14 个字节。" },
+        "alias": { "name": "alias", "note": "标签 0x10：指标的字段 2，别名 2。上线消息已说明 2 是 AC/Power，所以不发名称。" },
+        "metric-time": { "name": "timestamp", "note": "标签 0x18：指标的字段 3，读取这个值的时间：1794480067250，比消息发送早 30 ms。" },
+        "float": { "name": "float_value", "note": "标签 0x65：字段 12，4 个字节，低字节在前：4820.5（kW）。不发数据类型：上线消息已经给出。" },
+        "seq": { "name": "seq", "note": "又是标签 0x18，这次在指标之外：载荷的字段 3，seq 2。在指标内部，字段 3 是时间戳。" },
+        "a-namespace": { "name": "命名空间", "note": "spBv1.0：Sparkplug B，主题格式 1.0 版。" },
+        "a-group": { "name": "group_id", "note": "一组边缘节点，这里是一座电站。" },
+        "a-type": { "name": "message_type", "note": "消息的种类。NBIRTH、NDATA、NCMD 和 NDEATH 针对边缘节点；DBIRTH、DDATA、DCMD 和 DDEATH 针对设备。" },
+        "a-node": { "name": "edge_node_id", "note": "网关。它在所属组内必须唯一。" },
+        "a-device": { "name": "device_id", "note": "边缘节点后面的一台设备。关于边缘节点本身的主题到 GW1 就结束了。" }
+    },
+    "devices": {
+        "inv1": "逆变器 INV1",
+        "gw": "边缘节点 GW1",
+        "broker": "MQTT Broker",
+        "scada": "SCADA（SCADA1）"
+    },
+    "facts": {
+        "standard": "Eclipse Sparkplug 3.0（2022），也是 ISO/IEC 20237:2023",
+        "between": "边缘节点 → MQTT Broker → 主机应用（SCADA、历史数据库）",
+        "transport": "MQTT 3.1.1 或 5.0，走 TCP 1883 或 TLS 8883",
+        "security": "只有 MQTT 的：TLS 和 Broker 登录。Sparkplug 本身没有增加任何安全措施。",
+        "frames": "NBIRTH、DBIRTH、NDATA、DDATA、NCMD、DCMD、NDEATH、DDEATH、STATE",
+        "model": "带名称、别名、数据类型和数值的指标，用 Protocol Buffers 编码"
+    },
+    "tips": [
+        "每个边缘节点都需要一个在组内唯一的 edge_node_id，以及它自己的 MQTT 客户端 ID。两台 ID 相同的网关会互相踢下线，SCADA 整天看到上线和离线。",
+        "别名只在下一次上线之前有效。重新上线后还沿用旧别名的工具，会把数值记到错误的指标下。",
+        "不在上线消息里的指标，对 SCADA 来说就不存在。新增指标后，要发布一条新的上线消息。",
+        "在每个边缘节点上设置主主机 ID。这样它会先等 SCADA 的 STATE，再发上线消息。不设置的话，上线消息会在 SCADA 不在时发出，SCADA 只好请求重新上线。"
+    ],
+    "points": {
+        "node": "边缘节点状态",
+        "power": "逆变器功率"
+    },
+    "values": {
+        "online": "在线",
+        "offline": "离线"
+    },
+    "anatomy": {
+        "topic": "Sparkplug 主题：谁发送什么，关于哪台设备"
+    },
+    "playground": {
+        "file": "INV1 的 DBIRTH，从 protobuf 解码成 JSON 以便阅读。在线路上它是二进制的，和上面的 DDATA 一样。",
+        "payload-time": "消息发送的时间，自 1970 年起的毫秒数，UTC。",
+        "metric": "一个指标：名称、别名、读取时间、数据类型和数值。Sparkplug 没有单位字段：电站约定 AC/Power 的单位是 kW。",
+        "double": "总电能，单位 MWh，类型为 Double。指标的数据类型保持不变，直到下一次上线。",
+        "string": "文本也可以。DDATA 只会发送别名 5 和新的文本。",
+        "seq": "seq 1：NBIRTH 是 0。边缘节点发出的每条消息都接着往下数，到 255 后从 0 重新开始。"
+    }
+}

@@ -1,0 +1,82 @@
+{
+    "intro": "GOOSE tek bir trafo merkezinin içinde kalır: IP adresi yoktur, bu yüzden yönlendiriciler onu atar. R-GOOSE aynı mesajı IP üzerinden UDP'ye koyar; böylece mesaj geniş alan ağını geçip başka bir trafo merkezine ulaşabilir. Çitin dışına çıktığı için her mesaj, yalnızca gruptaki rölelerin sahip olduğu bir anahtarla imzalanır. R-SV aynısını sampled values için yapar.",
+    "steps": {
+        "keys": { "title": "Anahtarları al", "text": "İki röle de sertifikalarıyla anahtar dağıtım merkezine (KDC) kim olduklarını kanıtlar. KDC her birine bir kimlik ve bir geçerlilik süresiyle aynı grup anahtarını verir. Bu anahtar olmadan kimse rölelerin kabul edeceği bir mesaj üretemez." },
+        "heartbeat": { "title": "Kalp atışı", "text": "Röle A, karşı uç açma (intertrip) sinyalini 239.192.0.1 IP multicast grubuna yayınlar; bir şey olmadığı sürece saniyede bir kez. Yönlendiriciler onu WAN üzerinden B trafo merkezine taşır. Her mesaj grup anahtarıyla imzalanır." },
+        "fault": { "title": "Hatta arıza", "text": "İki trafo merkezi arasındaki hatta kısa devre. Röle A kendi kesicisini açar ve aynı anda değişikliği yayınlar: stNum bir artar." },
+        "repeat": { "title": "Tekrarla", "text": "GOOSE'ta olduğu gibi röle A mesajı 2 ms sonra yeniden gönderir, sonra 4, 8 … ms sonra. WAN bir paketi kaybederse açmayı bir sonraki kopya taşır." },
+        "act": { "title": "Denetle ve aç", "text": "Röle B gelen ilk kopyayı denetler: bildiği anahtar kimliği, geçerli bir imza (bir HMAC) ve yeni bir SPDU numarası; yani yeniden oynatılan eski bir mesaj değil. Sonra B kesicisini açar: hat iki uçtan da kesilmiş olur." }
+    },
+    "frames": {
+        "pull-a": "İşte sertifikam: bana grubumun anahtarlarını ver",
+        "pull-b": "İşte sertifikam: bana grubumun anahtarlarını ver",
+        "keys-a": "Grup anahtarı 7, yarına kadar geçerli",
+        "keys-b": "Grup anahtarı 7, yarına kadar geçerli",
+        "heartbeat": "Karşı uç açma yok (kalp atışı)",
+        "trip-a": "A kesicisinin açma bobinini enerjilendir",
+        "intertrip": "Karşı uç açma! Tr.general = TRUE",
+        "repeat": "Karşı uç açma, yine (kopya 1)",
+        "trip-b": "B kesicisinin açma bobinini enerjilendir"
+    },
+    "notes": {
+        "pull-a": "IEC 62351-9'un istediği gibi UDP 848 üzerinde GDOI (RFC 6407). Önce röle ve KDC bir IKE değişimiyle birbirlerinin sertifikalarını denetler. Sonra röle kendi R-GOOSE grubunun anahtarlarını ister.",
+        "pull-b": "Röle B, kendi sertifikasıyla aynı grubu ister.",
+        "keys-a": "Geçerli anahtar, anahtar kimliği ve ne kadar süre geçerli olduğu. Gruptaki her üye aynı anahtarı alır.",
+        "keys-b": "Röle A'nınkiyle aynı anahtar ve anahtar kimliği.",
+        "trip-a": "Bir ağ mesajı değil, kesicinin açma bobinine giden bakır bir kablo.",
+        "intertrip": "Kalp atışıyla aynı başlıklar, bir sonraki IP kimlik numarasıyla. İçinde: stNum 5, sqNum 0, Tr.general TRUE, SPDU numarası 20872 ve yeni bir imza.",
+        "repeat": "sqNum 1 ve SPDU numarası 20873: her mesaj, bir kopya bile olsa, yeni bir SPDU numarası alır.",
+        "trip-b": "Röle B açma kontağını kapatır. Arıza akımı iki taraftan da kesilir."
+    },
+    "fields": {
+        "e-dst": { "name": "Hedef", "note": "01-00-5E-40-00-01: 239.192.0.1 IP grubunun Ethernet adresi. Nasıl oluştuğu aşağıda gösteriliyor." },
+        "e-src": { "name": "Kaynak", "note": "Röle A'nın MAC adresi. Bir sonraki atlamada yönlendirici buraya kendi adresini koyar." },
+        "e-type": { "name": "EtherType", "note": "0x0800: ardından bir IPv4 paketi gelir. LAN'daki GOOSE bunun yerine 0x88B8 kullanır." },
+        "ip-ver": { "name": "Sürüm", "note": "0x45: IPv4, 5 × 4 = 20 baytlık bir başlıkla." },
+        "dscp": { "name": "DSCP", "note": "0xB8: DSCP 46, expedited forwarding. Buna göre ayarlanmış yönlendiriciler bu paketi diğer trafikten önce gönderir." },
+        "ip-len": { "name": "Toplam uzunluk", "note": "0x00C4 = 196 bayt: bu başlık, UDP başlığı ve R-GOOSE mesajı." },
+        "ip-id": { "name": "Kimlik", "note": "0x2F3A, bu pakete ait bir numara. Ardından 00 00: paket bir parça (fragment) değil." },
+        "ttl": { "name": "TTL", "note": "16: paket en fazla 16 yönlendiriciden geçebilir. Her biri bunu bir azaltır." },
+        "proto": { "name": "Protokol", "note": "0x11 = 17: UDP." },
+        "ip-sum": { "name": "Sağlama toplamı", "note": "0x806A, başlığın 20 baytı üzerinden. Her yönlendirici TTL'i azalttıktan sonra onu yeniden hesaplar." },
+        "ip-src": { "name": "Kaynak IP", "note": "10.1.0.11: röle A." },
+        "ip-dst": { "name": "Hedef IP", "note": "239.192.0.1: bir multicast grubu. Abone olan her röle bu gruba katılır ve yönlendiriciler paketi her birine iletir." },
+        "udp-src": { "name": "Kaynak port", "note": "0xC001 = 49153, röle A'nın seçtiği bir port. Önemli olan hedef porttur." },
+        "udp-dst": { "name": "Hedef port", "note": "0x0066 = 102, R-GOOSE ve R-SV'nin portu." },
+        "udp-len": { "name": "UDP uzunluğu", "note": "0x00B0 = 176: bu 8 baytlık başlık ve 168 bayt R-GOOSE. Burada gösterilmeyenler: UDP sağlama toplamı, ardından oturum başlığı (SPDU numarası, anahtar kimliği, anahtar süreleri), GOOSE mesajı ve imza." },
+        "a-prefix": { "name": "Multicast öneki", "note": "Her IPv4 multicast grubunun MAC adresi 01-00-5E ile başlar." },
+        "a-low": { "name": "Alt 23 bit", "note": "239.192.0.1'in son 23 biti. Diğer bitler atılır; bu yüzden her MAC adresini 32 IP grubu paylaşır ve bir ağ anahtarı onları birbirinden ayıramaz." }
+    },
+    "devices": {
+        "breakera": "A kesicisi",
+        "relaya": "Röle A",
+        "routera": "Yönlendirici A",
+        "wan": "WAN",
+        "kdc": "KDC",
+        "routerb": "Yönlendirici B",
+        "relayb": "Röle B",
+        "breakerb": "B kesicisi"
+    },
+    "facts": {
+        "standard": "IEC TR 61850-90-5; edition 2.1'den beri IEC 61850-8-1 (R-GOOSE) ve IEC 61850-9-2 (R-SV) içinde",
+        "between": "Farklı trafo merkezlerindeki röleler ya da bir trafo merkezi ile bir kontrol merkezi",
+        "transport": "IP üzerinden UDP 102, multicast ya da unicast: yönlendiricilerden geçer",
+        "security": "HMAC ile imzalı, şifreleme isteğe bağlı; grup anahtarları bir KDC'den (IEC 62351-9, GDOI)",
+        "frames": "Olaylar ve açmalar için R-GOOSE, sampled values ve senkrofazörler için R-SV"
+    },
+    "tips": [
+        "Yönlendiriciler, buna göre ayarlanmadıkça (PIM ya da grup için statik bir yol) multicast'i atar. TTL de yol üzerindeki yönlendirici sayısından büyük olmalıdır. Yoksa paketler hiçbir hata vermeden kaybolur.",
+        "Yanlış anahtara ya da anahtar kimliğine sahip bir abone her mesajı atar ve yayıncı bunu hiç öğrenmez. Her değişiklikten sonra iki tarafta da anahtar durumunu denetleyin.",
+        "KDC'ye ulaşılamazsa röleler ellerindeki anahtarları süreleri dolana kadar kullanır. Anahtar ömrünü, hesaba kattığınız en uzun KDC kesintisinden uzun tutun.",
+        "WAN'ın yalnızca bant genişliğini değil, gecikmesini de ölçün. Ortalamada hızlı ama zaman zaman yavaş bir yol, açmayı en kötü anda geciktirir."
+    ],
+    "points": {
+        "tr": "Karşı uç açma",
+        "stnum": "Durum numarası",
+        "spdu": "Mesaj sayacı",
+        "key": "Grup anahtarı"
+    },
+    "anatomy": {
+        "multicast": "Bir IP multicast grubu nasıl MAC adresine dönüşür"
+    }
+}

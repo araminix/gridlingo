@@ -1,0 +1,121 @@
+{
+    "intro": "IEC 101 lleva los mismos mensajes que IEC 104, pero por una línea serie, un módem o una radio, a menudo a 9600 bit/s. En el modo no balanceado habitual, el SCADA sondea y la RTU solo responde. Una suma de comprobación detecta las tramas dañadas, un bit de cuenta de tramas detecta las perdidas y un bit en cada respuesta avisa al SCADA de que hay datos urgentes esperando.",
+    "steps": {
+        "link": { "title": "Reiniciar el enlace", "text": "El SCADA y la RTU comparten un canal de radio a 9600 bit/s. El SCADA reinicia el enlace para que ambos lados vuelvan a contar las tramas desde el principio. En modo no balanceado la RTU nunca habla primero: solo responde." },
+        "ask": { "title": "Pedirlo todo", "text": "El SCADA envía una interrogación general. Por ahora la RTU solo puede confirmarla, con un ACK corto. Pero el ACK lleva ACD = 1: la RTU tiene datos de clase 1 esperando." },
+        "values": { "title": "Recoger la respuesta", "text": "Mientras ACD valga 1, el SCADA pide datos de clase 1. Cada petición recibe un ASDU: la confirmación, los estados de los interruptores y, al final, el cierre. El FCB cambia con cada petición." },
+        "trip": { "title": "Dispara el interruptor", "text": "A las 10:41:07.280 dispara CB-1. La RTU tiene que esperar a que le pregunten. El siguiente sondeo de clase 2 recibe \"sin datos\", pero con ACD = 1. El SCADA pide la clase 1 y recibe el cambio, con la hora en que ocurrió." }
+    },
+    "frames": {
+        "reset": "Reinicia tu enlace",
+        "reset-ack": "Hecho",
+        "gi-act": "Interrogación general: envíame todo",
+        "gi-ack": "Recibido. Tengo datos urgentes",
+        "poll-1": "Envíame los datos de clase 1",
+        "gi-con": "Interrogación confirmada",
+        "poll-2": "Siguientes datos de clase 1, por favor",
+        "states": "CB-1 y CB-2 están cerrados",
+        "poll-3": "Siguientes datos de clase 1, por favor",
+        "gi-term": "Eso era todo",
+        "poll-class2": "¿Hay algo en la clase 2?",
+        "no-data": "Nada en la clase 2, pero hay datos urgentes esperando",
+        "poll-4": "Envíame los datos de clase 1",
+        "trip": "CB-1 se abrió a las 10:41:07.280"
+    },
+    "fields": {
+        "start-fixed": { "name": "Inicio", "note": "0x10: una trama corta de longitud fija. Le siguen control, dirección, suma de comprobación y fin. No lleva datos." },
+        "link": { "name": "Dirección de enlace 1", "note": "La RTU de la línea. En modo no balanceado la trama lleva la dirección de la RTU en ambos sentidos. Su tamaño, aquí 1 byte, es un parámetro de configuración." },
+        "cs-fixed": { "name": "Suma de comprobación", "note": "La suma de los bytes de control y de dirección, módulo 256." },
+        "end": { "name": "Fin", "note": "0x16 cierra todas las tramas." },
+        "head-9": { "name": "Inicio · longitud 9", "note": "68, la longitud dos veces y otra vez 68. Siguen 9 bytes, desde el campo de control hasta el final del ASDU. Las dos copias de la longitud deben coincidir." },
+        "head-12": { "name": "Inicio · longitud 12", "note": "12 bytes desde el campo de control hasta el final del ASDU." },
+        "head-16": { "name": "Inicio · longitud 16", "note": "16 bytes desde el campo de control hasta el final del ASDU." },
+        "cs-var": { "name": "Suma de comprobación", "note": "La suma de todos los bytes desde el campo de control hasta el final del ASDU, módulo 256." },
+        "c-reset": { "name": "Control · FC 0", "note": "0x40: desde el SCADA (PRM 1), reinicio del enlace remoto. FCV 0: esta trama no cuenta. Muchos maestros piden antes el estado del enlace (función 9)." },
+        "c-ack": { "name": "Control · ACK", "note": "0x00: una respuesta (PRM 0), función 0: ACK. ACD 0: nada urgente. Algunas RTU envían en su lugar el byte único E5." },
+        "c-send": { "name": "Control · FC 3", "note": "0x73: datos de usuario, con confirmación esperada (SEND/CONFIRM). FCV 1 y FCB 1: la primera trama contada tras un reinicio lleva FCB 1." },
+        "c-ack-acd": { "name": "Control · ACK", "note": "0x20: ACK, con ACD 1: la RTU tiene datos de clase 1 esperando." },
+        "c-class1-fcb0": { "name": "Control · FC 10", "note": "0x5A: petición de datos de clase 1. FCB 0: lo contrario que en la última petición." },
+        "c-class1-fcb1": { "name": "Control · FC 10", "note": "0x7A: petición de datos de clase 1. FCB 1: ha vuelto a cambiar, así que es una petición nueva, no una repetición." },
+        "c-class2-fcb1": { "name": "Control · FC 11", "note": "0x7B: petición de datos de clase 2, FCB 1. El SCADA la envía cada 2 s cuando no tiene nada más que preguntar." },
+        "c-data-acd": { "name": "Control · FC 8", "note": "0x28: datos de usuario, sigue un ASDU. ACD 1: quedan más datos de clase 1 esperando." },
+        "c-data": { "name": "Control · FC 8", "note": "0x08: datos de usuario. ACD 0: no quedan datos de clase 1." },
+        "c-no-data-acd": { "name": "Control · FC 9", "note": "0x29: no hay datos de la clase pedida. Pero ACD 1: hay datos de clase 1 esperando." },
+        "type100": { "name": "Tipo 100", "note": "C_IC_NA_1: comando de interrogación." },
+        "vsq1": { "name": "Cantidad", "note": "Un objeto de información." },
+        "vsq2": { "name": "Cantidad", "note": "Dos objetos, cada uno con su propia dirección." },
+        "cot6": { "name": "Causa 6", "note": "Activación. Aquí la causa ocupa 1 byte: no hay dirección del originador, a diferencia de IEC 104." },
+        "cot7": { "name": "Causa 7", "note": "Activación confirmada." },
+        "cot10": { "name": "Causa 10", "note": "Activación terminada: la respuesta está completa." },
+        "cot20": { "name": "Causa 20", "note": "Enviado por la interrogación de estación." },
+        "cot3": { "name": "Causa 3", "note": "Espontáneo: el valor cambió sin que nadie lo pidiera." },
+        "ca": { "name": "Dirección común", "note": "Estación 1, en 1 byte." },
+        "ioa0": { "name": "IOA 0", "note": "2 bytes. El comando es para toda la estación, no para un punto." },
+        "qoi20": { "name": "QOI 20", "note": "Interrogación de estación: todos los grupos." },
+        "type3": { "name": "Tipo 3", "note": "M_DP_NA_1: un punto doble sin etiqueta de tiempo." },
+        "ioa2001": { "name": "IOA 2001", "note": "Interruptor CB-1: 0x07D1 en 2 bytes, el byte bajo primero." },
+        "ioa2002": { "name": "IOA 2002", "note": "Interruptor CB-2: 0x07D2." },
+        "diq-on": { "name": "Estado 2", "note": "On: el interruptor está cerrado. 1 es off; 0 y 3 significan en movimiento o en falla." },
+        "diq-off": { "name": "Estado 1", "note": "Off: el interruptor está abierto." },
+        "type31": { "name": "Tipo 31", "note": "M_DP_TB_1: un punto doble con etiqueta de tiempo CP56Time2a." },
+        "cp56": { "name": "CP56Time2a", "note": "7.280 s, 41 min, 10 h, jueves 12, noviembre, (20)26. La RTU tomó la hora en que se movió el interruptor, no la hora en que envió la trama." },
+        "a-res": { "name": "RES", "note": "Reservado, 0. En modo balanceado este bit es DIR: el sentido." },
+        "a-prm1": { "name": "PRM 1", "note": "Primaria: esta trama inicia una transferencia. En modo no balanceado solo el SCADA las envía." },
+        "a-fcb": { "name": "FCB 1", "note": "Bit de cuenta de tramas. Cambia con cada petición nueva. Una repetición lo conserva, y la RTU vuelve a enviar su última respuesta." },
+        "a-fcv": { "name": "FCV 1", "note": "En esta trama el FCB cuenta. Los reinicios y las peticiones de estado del enlace llevan FCV 0." },
+        "a-fc3": { "name": "Función 3", "note": "Datos de usuario, con confirmación esperada." },
+        "a-prm0": { "name": "PRM 0", "note": "Secundaria: una respuesta." },
+        "a-acd": { "name": "ACD 1", "note": "Demanda de acceso: hay datos de clase 1 esperando y el SCADA debería pedirlos." },
+        "a-dfc": { "name": "DFC 0", "note": "Control del flujo de datos. Un 1 indicaría que la RTU está llena: hay que esperar antes de enviar más." },
+        "a-fc8": { "name": "Función 8", "note": "Datos de usuario: sigue un ASDU." }
+    },
+    "devices": {
+        "scada": "Maestro SCADA",
+        "radio-cc": "Radio de la sala de control",
+        "radio-rtu": "Radio de la subestación",
+        "rtu": "RTU",
+        "cb1": "Interruptor CB-1",
+        "cb2": "Interruptor CB-2"
+    },
+    "facts": {
+        "standard": "IEC 60870-5-101, edición 2 (2003)",
+        "between": "RTU → SCADA, por líneas serie, módems y radio",
+        "transport": "Serie, tramas FT 1.2: 8 bits de datos, paridad par, 1 bit de parada",
+        "security": "Ninguna en el protocolo. IEC 62351-5 añade autenticación.",
+        "frames": "Fija: 10 … 16 · variable: 68 L L 68 … 16 · byte único: E5",
+        "speed": "Normalmente de 1200 a 19200 bit/s; aquí 9600"
+    },
+    "tips": [
+        "Los tamaños de la dirección de enlace, la causa, la dirección común y la IOA son parámetros de configuración. Aquí son 1, 1, 1 y 2 bytes. Si el SCADA y la RTU no coinciden, no aparece ningún mensaje de error: solo valores incorrectos.",
+        "FT 1.2 usa 8 bits de datos con paridad par (8E1). Un puerto serie configurado en 8N1 no funciona.",
+        "Pon un tiempo de espera de respuesta más largo que el viaje de ida y vuelta de la radio. Si es más corto, el SCADA repite peticiones que la RTU ya respondió, y la línea lenta se llena de repeticiones.",
+        "IEC 104 lleva los mismos ASDU por TCP, con una causa de 2 bytes, una dirección común de 2 bytes y una IOA de 3 bytes. No tiene FCB, ni clases, ni sondeo: TCP entrega las tramas y la RTU envía en cuanto tiene datos."
+    ],
+    "points": {
+        "cb1": "Interruptor CB-1",
+        "cb2": "Interruptor CB-2"
+    },
+    "values": {
+        "closed": "cerrado",
+        "open": "abierto"
+    },
+    "anatomy": {
+        "primary": "El byte de control de una petición (0x73)",
+        "secondary": "El byte de control de una respuesta (0x28)"
+    },
+    "playground": {
+        "file": "Los parámetros de línea y la lista de puntos de la RTU. El SCADA debe usar la misma velocidad, el mismo formato, las mismas direcciones y los mismos tamaños. Si no, no lee nada o lee valores incorrectos.",
+        "baud": "9600 bit/s. Cada carácter ocupa 11 bits, así que una trama de 5 bytes tarda unos 6 ms en la línea.",
+        "format": "8 bits de datos, paridad par, 1 bit de parada: lo que exige FT 1.2.",
+        "mode": "No balanceado: el SCADA sondea y la RTU responde. En modo balanceado ambos lados pueden enviar, pero solo en una línea entre dos estaciones.",
+        "link-address": "La dirección de enlace de la RTU. Va en cada trama.",
+        "sizes": "El tamaño de cada campo de dirección, en bytes. Ambos lados deben usar los mismos.",
+        "common-address": "La dirección de la estación. Va en cada ASDU.",
+        "class2": "Con qué frecuencia pide el SCADA datos de clase 2 cuando no tiene nada más que hacer.",
+        "timeout": "Cuánto espera el SCADA una respuesta. Después repite la petición, con el mismo FCB.",
+        "ioa": "La dirección del objeto de información del interruptor.",
+        "class": "Sus cambios van a la clase 1: la RTU activa ACD en cuanto hay uno esperando.",
+        "spontaneous": "Un cambio se envía como tipo 31, con etiqueta de tiempo.",
+        "time": "Anota qué reloj usan las etiquetas de tiempo: aquí, UTC."
+    }
+}

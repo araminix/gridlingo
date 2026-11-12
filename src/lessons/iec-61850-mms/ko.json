@@ -1,0 +1,89 @@
+{
+    "intro": "IEC 61850 기기에는 레지스터 번호가 없어요. 대신 SCL 파일에 기술된, 이름이 붙은 객체의 트리가 있어요: 논리 장치, 논리 노드, 데이터 객체, 속성. 클라이언트는 MMS로 이 트리를 따라가서 필요한 값만 정확히 읽거나 써요.",
+    "steps": {
+        "connect": { "title": "연결", "text": "클라이언트가 포트 102로 TCP를 열고, 그 위에 ISO 전송 연결(COTP)을 열어요." },
+        "associate": { "title": "어소시에이션", "text": "MMS Initiate로 크기와 서비스를 합의해요. 이 어소시에이션이 끝나야 클라이언트가 질문할 수 있어요." },
+        "browse": { "title": "모델 탐색", "text": "GetNameList가 논리 장치 목록을 돌려주고, 이어서 그중 하나에 들어 있는 변수 목록을 돌려줘요. 도구가 SCL 파일 없이 기기를 알아내는 방법이에요." },
+        "read": { "title": "값 하나 읽기", "text": "클라이언트가 PV1INV/MMXU1$MX$TotW$mag$f를 읽고 부동소수점 4820.0을 받아요. 단위 kW는 별도 속성(CF)에 있어요." },
+        "report": { "title": "리포트 받기", "text": "클라이언트는 계속 묻는 대신 리포트를 활성화해요. 이제 인버터가 값이 바뀔 때 알아서 보내요." }
+    },
+    "frames": {
+        "tcp": "포트 102로 TCP 연결 열기",
+        "cotp-cr": "ISO 전송 연결을 열어 주세요",
+        "cotp-cc": "전송 연결 수락",
+        "initiate-req": "MMS로 이야기해요: 제 크기와 서비스예요",
+        "initiate-resp": "좋아요: 제 건 이래요",
+        "names-req": "어떤 논리 장치가 있어요?",
+        "names-resp": "PV1LD0과 PV1INV",
+        "read-req": "총 유효 전력이 얼마예요?",
+        "read-resp": "4820.0",
+        "enable": "리포트 urcbMeas01 활성화",
+        "report": "TotW가 이제 4790.5, Hz 50.00"
+    },
+    "notes": {
+        "tcp": "순수 TCP예요. MMS는 RFC 1006의 ISO-on-TCP 포트인 102를 써요.",
+        "cotp-cr": "COTP(ISO 8073)는 TCP 위에서 동작해요. 연결 요청에 양쪽의 전송 셀렉터가 들어 있어요.",
+        "cotp-cc": "기기가 수락해요. 이제부터 모든 메시지는 TPKT와 COTP 데이터 헤더로 시작해요.",
+        "initiate-req": "안에 계층이 세 개 더 있어요: 세션, 프레젠테이션, ACSE. MMS 부분은 크기(가장 큰 메시지)와 클라이언트가 원하는 서비스를 제안해요.",
+        "initiate-resp": "기기가 자기 크기와 서비스로 답해요. 인증을 쓴다면 이 단계에서 함께 이뤄져요(IEC 62351-4).",
+        "names-req": "객체 클래스 \"domain\"으로 GetNameList를 보내요: IEC 61850에서 도메인은 논리 장치예요.",
+        "names-resp": "MMS는 논리 장치를 IED 이름 뒤에 인스턴스를 붙여 불러요: PV1과 INV가 PV1INV가 돼요.",
+        "enable": "리포트 제어 블록의 RptEna에 TRUE를 쓰는 Write예요. 클라이언트는 그 전에 트리거 옵션과 데이터 세트를 설정해요.",
+        "report": "비요청 InformationReport예요: 데이터 세트의 값이 바뀔 때마다 기기가 묻지 않아도 보내요."
+    },
+    "fields": {
+        "tpkt-66": { "name": "TPKT", "note": "버전 3, 이어서 메시지 전체 길이: 0x0042 = 66바이트." },
+        "tpkt-36": { "name": "TPKT", "note": "버전 3, 이어서 길이: 0x0024 = 36바이트." },
+        "cotp-dt": { "name": "COTP", "note": "데이터 단위(0xF0), 메시지의 마지막(0x80)." },
+        "session": { "name": "세션", "note": "짧은 세션 헤더 두 개: give tokens, data transfer." },
+        "presentation": { "name": "프레젠테이션", "note": "완전 인코딩 데이터, 프레젠테이션 컨텍스트 3: 이어지는 내용은 MMS예요." },
+        "confirmed-req": { "name": "확인형 요청", "note": "태그 A0, 44바이트: 응답을 기대하는 요청." },
+        "confirmed-resp": { "name": "확인형 응답", "note": "태그 A1, 14바이트: 응답." },
+        "invoke": { "name": "Invoke ID 5", "note": "클라이언트가 고르는 번호. 응답에도 같은 번호가 담겨요." },
+        "invoke-resp": { "name": "Invoke ID 5", "note": "요청과 같은 번호: 그 요청에 대한 응답이에요." },
+        "read": { "name": "Read", "note": "태그 A4: Read 서비스." },
+        "spec": { "name": "변수 목록", "note": "이름으로 지정한 변수 하나짜리 목록." },
+        "domain-specific": { "name": "도메인 지정 이름", "note": "도메인과 항목, 두 부분으로 된 이름." },
+        "domain": { "name": "도메인", "note": "\"PV1INV\": 논리 장치." },
+        "item": { "name": "항목", "note": "\"MMXU1$MX$TotW$mag$f\": 논리 노드, 기능 제약, 데이터 객체, 속성을 $로 이었어요." },
+        "results": { "name": "결과", "note": "요청한 변수마다 하나씩 있는 결과 목록." },
+        "float-tag": { "name": "부동소수점", "note": "태그 0x87(부동소수점), 5바이트." },
+        "exponent": { "name": "지수 폭", "note": "8비트: IEEE 754 단정밀도 부동소수점이 이어져요." },
+        "float": { "name": "값", "note": "4820.0, 최상위 바이트 먼저. IEC 104는 부동소수점을 반대 순서로 보내요." },
+        "a-ld": { "name": "논리 장치", "note": "PV1INV: IED 이름 PV1과 인스턴스 INV." },
+        "a-ln": { "name": "논리 노드", "note": "MMXU1: 측정, 인스턴스 1." },
+        "a-fc": { "name": "기능 제약", "note": "MX: 측정값. ST는 상태, CF는 설정, SP는 설정값이에요." },
+        "a-do": { "name": "데이터 객체", "note": "TotW: 총 유효 전력, 유형 MV." },
+        "a-da": { "name": "데이터 속성", "note": "mag.f: 크기, 부동소수점." }
+    },
+    "devices": {
+        "client": "클라이언트",
+        "pv1": "PV1 인버터",
+        "pv": "PV 어레이"
+    },
+    "facts": {
+        "standard": "IEC 61850-8-1(MMS는 ISO 9506)",
+        "between": "클라이언트(SCADA, 게이트웨이, 엔지니어링 도구) → IED",
+        "transport": "TCP 102",
+        "security": "TLS(IEC 62351-4), TCP 3782",
+        "model": "IEC 61850-7: 논리 장치, 논리 노드, 데이터 객체"
+    },
+    "tips": [
+        "SCL 파일부터 읽으세요. 큰 기기를 GetNameList로 탐색하면 몇 초씩 걸릴 수 있어요.",
+        "단위와 배율은 값 옆이 아니라 CF 속성에 있어요. 4820이라는 값이 kW인 건 기기가 그렇다고 말하기 때문이에요.",
+        "리포트 제어 블록은 몇 개 없어요. 하나를 예약하고 풀어 주지 않는 도구 때문에 진짜 SCADA가 접속하지 못할 수 있어요.",
+        "MMS 부동소수점은 최상위 바이트부터 보내요. IEC 104나 Modbus도 함께 다루는 코드에서 자주 틀려요."
+    ],
+    "points": {
+        "totw": "총 유효 전력",
+        "mult": "TotW의 단위",
+        "hz": "주파수"
+    },
+    "anatomy": {
+        "reference": "값 하나의 이름, 그리고 MMS가 그 이름을 쓰는 방식"
+    },
+    "playground": {
+        "scl": "인버터의 설정된 기술 파일(.cid)이에요. INV, MMXU1, TotW를 차례로 열어 보세요: 읽는 값은 mag.f이고, 단위는 units 속성에 있어요. 가지고 있다면 여러분의 파일도 열어 보세요.",
+        "encoder": "MMS는 부동소수점을 최상위 바이트부터 보내요(ABCD). 값을 입력해서 바이트를 확인해 보세요."
+    }
+}

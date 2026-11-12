@@ -1,0 +1,99 @@
+{
+    "intro": "普通 Modbus TCP 让网络上的任何人都能读写。Modbus/TCP Security 把同样的帧包进 TLS，走 802 端口。双方用证书证明自己的身份，客户端的证书里还可以带一个角色。然后由服务器的规则逐个请求地决定这个角色能做什么。",
+    "steps": {
+        "connect": { "title": "连接", "text": "监控服务器向逆变器的 802 端口建立 TCP 连接，这是 Modbus/TCP Security 的端口。502 端口可以保持关闭。" },
+        "hello": { "title": "打招呼", "text": "客户端提出 TLS 1.2 和一种密码套件。逆变器回复它的证书，并要求客户端出示证书。双方都必须证明自己的身份：规范要求如此。" },
+        "prove": { "title": "出示角色", "text": "客户端发送它的证书。证书里有一个角色 \"Viewer\"，放在 Modbus 组织定义的一个扩展中。逆变器用它信任的 CA 检查证书，并为这条连接记下这个角色。" },
+        "read": { "title": "读：允许", "text": "现在普通的 Modbus TCP 帧在加密的 TLS 记录里传送。逆变器按规则检查每个请求：查看者可以读。它回复 4820.5 kW。" },
+        "write": { "title": "写：拒绝", "text": "客户端试图设定功率限值。查看者不能写，所以逆变器用异常 01 拒绝，这是规范为此规定的代码。限值仍为 5000 kW。" }
+    },
+    "frames": {
+        "tcp": "向 802 端口建立 TCP 连接",
+        "client-hello": "我们用 TLS 1.2 通信吧，用这种密码套件",
+        "server-hello": "这是我的证书。请出示你的。",
+        "client-cert": "这是我的，角色 Viewer，还有证明它属于我的签名",
+        "server-finished": "已验证。加密已开启。",
+        "read-req": "（已加密）把寄存器 100 和 101 发给我",
+        "read-resp": "（已加密）有功功率：4820.5 kW",
+        "write-req": "（已加密）把功率限值设为 3000 kW",
+        "write-refused": "（已加密）拒绝：异常 01"
+    },
+    "notes": {
+        "tcp": "普通 TCP，连接 802 端口，不是 502。之后只有 TLS 握手是明文。",
+        "server-hello": "五条握手消息。ServerHello 选定 TLS 1.2 和 0xC02F。Certificate 携带逆变器的证书和它的 CA 证书。ServerKeyExchange 装着逆变器那一半的密钥交换，用它的私钥签名。CertificateRequest 要求客户端出示证书：Modbus/TCP Security 服务器必须始终要求。ServerHelloDone 表示它这一轮说完了。",
+        "client-cert": "Certificate 携带客户端的证书，里面有角色。ClientKeyExchange 装着客户端那一半的密钥交换。CertificateVerify 对迄今为止的握手签名：证明客户端持有证书的私钥。ChangeCipherSpec 和 Finished 开启加密。在 TLS 1.2 中证书以明文传送，所以网络上任何人都能读到角色。",
+        "server-finished": "逆变器也开启加密。如果客户端没有发证书，或者证书来自未知的 CA，逆变器就会发出告警并结束连接。"
+    },
+    "fields": {
+        "rec-handshake": { "name": "记录类型 22", "note": "0x16：握手记录。握手以明文传送。" },
+        "rec-v10": { "name": "记录版本", "note": "0x0301。客户端在这里写这个旧编号，免得老服务器出错。它真正想要的版本在后面几个字节。" },
+        "rec-len-130": { "name": "长度", "note": "后面跟 0x0082 = 130 个字节。" },
+        "hs-hello": { "name": "握手类型 1", "note": "ClientHello：客户端的提议。" },
+        "hs-len-126": { "name": "长度", "note": "后面跟 0x00007E = 126 个字节。" },
+        "hello-version": { "name": "版本", "note": "0x0303：TLS 1.2。Modbus/TCP Security 需要 1.2 或更新的版本。" },
+        "random": { "name": "随机数", "note": "32 个随机字节，每次显示 8 个。双方把它们混入会话密钥。" },
+        "random-more": { "name": "随机数", "note": "32 个随机字节中的其余部分。" },
+        "session-id": { "name": "会话 ID", "note": "长度 0：新会话，不是恢复的会话。" },
+        "suites": { "name": "密码套件", "note": "2 字节，一种套件：0xC02F，ECDHE 密钥交换、RSA 证书、AES-128-GCM 加密、SHA-256。规范要求使用 RSA 密钥的设备支持它。" },
+        "compression": { "name": "压缩", "note": "一种方法：0，不压缩。" },
+        "ext-len": { "name": "扩展", "note": "后面跟 0x0053 = 83 个字节的扩展。" },
+        "ext-reneg": { "name": "renegotiation_info", "note": "0xFF01，为空：客户端支持规范要求的安全重新协商。" },
+        "ext-points": { "name": "ec_point_formats", "note": "0x000B：椭圆曲线点可以采用的写法。" },
+        "ext-groups": { "name": "supported_groups", "note": "0x000A，12 字节：后面跟一个 10 字节的列表。" },
+        "groups": { "name": "曲线", "note": "密钥交换可用的五条曲线：x25519（0x001D）、P-256（0x0017）、x448、P-384 和 P-521。凡使用椭圆曲线的设备都必须支持 P-256。" },
+        "ext-flags": { "name": "两个标志", "note": "encrypt_then_mac（0x0016）和 extended_master_secret（0x0017），都为空。" },
+        "ext-sigalgs": { "name": "signature_algorithms", "note": "0x000D：后面跟一个 40 字节的列表，20 种算法各 2 字节。" },
+        "sigalgs": { "name": "签名", "note": "客户端接受的签名类型，各 2 字节。0x0403 是 P-256 上的 ECDSA 配 SHA-256；后面的 0x0401 是 RSA 配 SHA-256。" },
+        "sigalgs-more": { "name": "签名", "note": "更多签名类型，各 2 字节。" },
+        "rec-app": { "name": "记录类型 23", "note": "0x17：应用数据。后面是加密的。" },
+        "rec-v12": { "name": "版本", "note": "0x0303：TLS 1.2。" },
+        "len-read-req": { "name": "长度", "note": "后面跟 36 个字节，未显示：8 字节的 nonce、加密后的 12 字节请求和 16 字节的认证标签。里面是普通的 Modbus TCP 请求 00 01 00 00 00 06 01 03 00 64 00 02：读寄存器 100 和 101。" },
+        "len-read-resp": { "name": "长度", "note": "后面跟 37 个字节：nonce、13 字节应答、认证标签。里面是：00 01 00 00 00 07 01 03 04 A4 00 45 96，有功功率 4820.5 kW。" },
+        "len-write-req": { "name": "长度", "note": "后面跟 36 个字节。里面是：00 02 00 00 00 06 01 06 00 C8 0B B8，把 3000 写入寄存器 200，即功率限值。" },
+        "len-refused": { "name": "长度", "note": "后面跟 33 个字节：nonce、9 字节应答、认证标签。里面是：00 02 00 00 00 03 01 86 01。0x86 是置了错误位的 0x06；01 是异常码。" },
+        "a-extension": { "name": "扩展", "note": "一个 0x17 = 23 字节的 SEQUENCE：证书的一个扩展。" },
+        "a-oid": { "name": "对象 ID", "note": "1.3.6.1.4.1.50316.802.1：Modbus 角色。50316 是 IANA 分配给 Modbus 组织的编号。" },
+        "a-octets": { "name": "值", "note": "一个 8 字节的 OCTET STRING，装着扩展的值。" },
+        "a-utf8": { "name": "UTF8String", "note": "0x0C：UTF-8 文本，长 6 个字节。规范要求使用这种类型。" },
+        "a-role": { "name": "角色", "note": "\"Viewer\"。每张证书一个角色。它能做什么由服务器的规则决定。" }
+    },
+    "devices": {
+        "monitoring": "监控服务器",
+        "inverter": "逆变器 INV-1",
+        "pv": "光伏阵列",
+        "controller": "电站控制器"
+    },
+    "facts": {
+        "standard": "MODBUS/TCP Security Protocol Specification（Modbus 组织，2018，2021 年修订）",
+        "between": "带证书的客户端 → 带证书的服务器",
+        "transport": "TLS 1.2 或更新版本，走 TCP 802",
+        "security": "双方用 X.509 证书证明身份。客户端证书中的角色决定它能做什么。",
+        "frames": "常规的 Modbus TCP 帧，原封不动，装在 TLS 记录里"
+    },
+    "tips": [
+        "没有角色的证书照样能连接。这时服务器套用“无角色”的规则：确保这些规则什么都不允许。",
+        "被拒绝的请求返回异常 01，和未知功能码是同一个代码。先检查角色和规则，再去找程序错误。",
+        "每张证书只带一个角色。既要读又要写的工具，需要一个同时允许两者的角色。",
+        "证书会过期。在第一张证书到期之前，规划好新证书怎样送到每台设备上，否则到了那天电站就会断了通信。"
+    ],
+    "points": {
+        "role": "客户端角色",
+        "p": "有功功率",
+        "limit": "有功功率限值"
+    },
+    "values": {
+        "refused": "拒绝（01）"
+    },
+    "anatomy": {
+        "role": "客户端证书中的角色扩展，逐字节拆解"
+    },
+    "playground": {
+        "file": "监控服务器的证书，即 openssl x509 -text 打印出来的样子。角色是最后一个扩展。",
+        "issuer": "签发它的 CA。逆变器只接受它信任的 CA 签发的证书。",
+        "expiry": "过了这个日期，逆变器就拒绝这张证书。",
+        "subject": "证书属于谁：监控服务器。",
+        "client-auth": "这张证书可以由 TLS 客户端使用。",
+        "role-oid": "Modbus 角色扩展。openssl 不知道它的名称，所以打印出编号。",
+        "role-value": "角色。那两个点是字节 0x0C 和 0x06（UTF8String，6 个字符），openssl 无法打印它们。"
+    }
+}

@@ -1,0 +1,86 @@
+{
+    "intro": "PRP sendet jeden Frame zweimal, über zwei getrennte Netze: LAN A und LAN B. Der Empfänger behält die Kopie, die zuerst ankommt, und verwirft die andere. Fällt ein Netz aus, kommt die andere Kopie trotzdem an: Nichts geht verloren, und nichts wartet darauf, dass sich das Netz selbst repariert. HSR macht dasselbe auf einem Ring.",
+    "steps": {
+        "two": { "title": "Zwei Netze", "text": "Schutzgerät und Feldleitgerät haben je zwei Ports: einen an LAN A, einen an LAN B. Ein solches Gerät ist ein DAN, ein Doubly Attached Node. Die beiden LANs teilen sich keinen Switch, kein Kabel und keine Stromversorgung. Alle 2 s meldet sich jeder DAN auf beiden LANs." },
+        "send": { "title": "Doppelt senden", "text": "Das Schutzgerät hat eine GOOSE-Nachricht für das Feldleitgerät. Seine PRP-Schicht hängt einen Trailer mit 6 Bytes an und sendet im selben Moment je eine Kopie auf jedem Port. Diese Kopie geht über LAN A." },
+        "drop": { "title": "Duplikat verwerfen", "text": "Die Kopie auf LAN B kommt 4 µs später an. Gleiche Quelle, gleiche Sequenznummer: Das Feldleitgerät hat sie schon, also verwirft es sie. Seine Anwendung sieht die Nachricht nur einmal." },
+        "break": { "title": "Ein Kabel bricht", "text": "Das Kabel von Switch A zum Feldleitgerät ist durchtrennt. Genau jetzt löst das Schutzgerät aus. Die Kopie auf LAN A kommt bis Switch A. Die Kopie auf LAN B kommt wie gewohnt an: Nichts geht verloren, nichts verspätet sich, nichts muss umschalten." },
+        "alarm": { "title": "Reserve reparieren", "text": "Der Schutz hat nichts bemerkt. Das Feldleitgerät schon: Sein Port A hat keinen Link, und die Frames des Schutzgeräts kommen nur noch über LAN B. Es meldet einen Alarm. Bis LAN A repariert ist, würde ein weiterer Fehler das Schutzgerät abschneiden." }
+    },
+    "frames": {
+        "sup-a": "Ich bin da, mit zwei Ports",
+        "sup-b": "Ich bin da, mit zwei Ports",
+        "copy-a": "Heartbeat: keine Auslösung (Kopie auf LAN A)",
+        "copy-b": "Heartbeat: keine Auslösung (Kopie auf LAN B)",
+        "trip-a": "Auslösung! (Kopie auf LAN A, verloren)",
+        "trip-b": "Auslösung! (Kopie auf LAN B)",
+        "sup-only": "Ich bin da (nur auf LAN B gehört)"
+    },
+    "notes": {
+        "sup-a": "Ein PRP-Supervision-Frame, alle 2 s auf beiden LANs an 01-15-4E-00-01-00 gesendet, EtherType 0x88FB. Er sagt den anderen Knoten, dass das Schutzgerät doppelt angeschlossen ist und beide Wege funktionieren.",
+        "sup-b": "Derselbe Supervision-Frame, im selben Moment auf LAN B gesendet.",
+        "trip-a": "Die Kopie auf LAN A erreicht Switch A. Dessen Kabel zum Feldleitgerät ist durchtrennt, also kommt diese Kopie nicht weiter.",
+        "sup-only": "Der nächste Supervision-Frame des Schutzgeräts. Er geht weiterhin auf beiden LANs hinaus, aber nur die Kopie auf LAN B erreicht das Feldleitgerät."
+    },
+    "fields": {
+        "dst": { "name": "Ziel", "note": "Die GOOSE-Multicast-Adresse von F1 PROT, wie in der Lektion zu GOOSE. PRP ändert vor dem Trailer nichts." },
+        "src": { "name": "Quelle", "note": "Die MAC-Adresse des Schutzgeräts. Beide Ports verwenden dieselbe Adresse, deshalb sehen die beiden Kopien gleich aus." },
+        "vlan": { "name": "VLAN-Tag", "note": "Priorität 4, VLAN 10." },
+        "ethertype": { "name": "EtherType", "note": "0x88B8: GOOSE. PRP fügt vorne keinen Header hinzu: Der Trailer am Ende ist alles, was es ergänzt." },
+        "goose-header": { "name": "GOOSE-Header", "note": "APPID 0x0001, Länge 115 und zwei reservierte Felder, unverändert." },
+        "goose-pdu": { "name": "GOOSE-Nachricht", "note": "0x61 beginnt die GOOSE-Nachricht; es folgen 105 Bytes. PRP lässt alles so, wie es ist." },
+        "gocbref": { "name": "gocbRef", "note": "F1PROTLD0/LLN0$GO$gcbTrip, der Control Block." },
+        "tal": { "name": "Time Allowed to Live", "note": "2000 ms." },
+        "datset": { "name": "datSet", "note": "F1PROTLD0/LLN0$dsTrip." },
+        "goid": { "name": "goID", "note": "F1PROT_Trip." },
+        "t-old": { "name": "t", "note": "08:00:00 UTC, die Zeit der letzten Änderung." },
+        "t-event": { "name": "t", "note": "10:41:07.232 UTC, die Zeit der Auslösung." },
+        "st-12": { "name": "stNum 12 · sqNum 3", "note": "Nichts hat sich geändert: die vierte Kopie von Zustand 12." },
+        "st-13": { "name": "stNum 13 · sqNum 0", "note": "Ein neuer Zustand: seine erste Kopie." },
+        "flags-1": { "name": "simulation · confRev", "note": "Keine Testnachricht; Konfigurationsrevision 1." },
+        "flags-2": { "name": "ndsCom · entries", "note": "Vollständig konfiguriert; es folgen 2 Werte." },
+        "data-idle": { "name": "allData", "note": "Tr.general = FALSE (keine Auslösung), Qualität gut." },
+        "data-trip": { "name": "allData", "note": "Tr.general = TRUE (Auslösung!), Qualität gut." },
+        "seq-3900": { "name": "Sequenznummer", "note": "0x0F3C = 3900. Das Schutzgerät nummeriert jeden Frame, den es sendet; beide Kopien tragen dieselbe Nummer." },
+        "seq-3905": { "name": "Sequenznummer", "note": "0x0F41 = 3905: Das Schutzgerät hat seitdem andere Frames gesendet." },
+        "lan-a": { "name": "LAN und Größe", "note": "A: auf LAN A gesendet. Dann 0x079 = 121, die Anzahl der Bytes nach dem EtherType, Trailer inklusive." },
+        "lan-b": { "name": "LAN und Größe", "note": "B: auf LAN B gesendet. Das ist das einzige Byte, das sich von der Kopie auf LAN A unterscheidet." },
+        "suffix": { "name": "PRP-Suffix", "note": "0x88FB markiert das Ende eines PRP-Trailers." },
+        "a-seq": { "name": "SeqNr", "note": "16 Bit. Der Empfänger behält den ersten Frame mit einer neuen Nummer von dieser Quelle und verwirft den zweiten." },
+        "a-lan": { "name": "LanId", "note": "4 Bit: 1010 (A) oder 1011 (B), das LAN, auf dem die Kopie gesendet wurde." },
+        "a-size": { "name": "LSDUsize", "note": "12 Bit: 121 Bytes. Der Empfänger vergleicht sie mit der tatsächlichen Größe des Frames: Stimmen sie überein, sind die letzten 6 Bytes ein Trailer. Ein VLAN-Tag zählt nicht mit, weil Switches es hinzufügen oder entfernen dürfen." },
+        "a-suffix": { "name": "PRPsuffix", "note": "0x88FB, dieselbe Zahl wie der EtherType der Supervision-Frames." }
+    },
+    "devices": {
+        "relay": "F1 PROT",
+        "swa": "Switch A",
+        "swb": "Switch B",
+        "controller": "Feldleitgerät"
+    },
+    "facts": {
+        "standard": "IEC 62439-3 (PRP in Abschnitt 4, HSR in Abschnitt 5)",
+        "between": "Doppelt angeschlossene Knoten: Schutzgeräte, Feldleitgeräte, Merging Units, Gateways",
+        "transport": "Ethernet, unterhalb von IP: GOOSE, SV und MMS laufen alle darüber",
+        "frames": "PRP: ein Trailer mit 6 Bytes am Ende (0x88FB). HSR: ein Tag mit 6 Bytes nach der Quelladresse (0x892F)",
+        "speed": "Keine Umschaltzeit: Fällt ein LAN aus, geht kein Frame verloren"
+    },
+    "tips": [
+        "LAN A nie mit LAN B verbinden. Beide bei Switches, Kabeln, Farben und Stromversorgung getrennt halten. Ein Knoten zählt Frames, die mit dem falschen LAN im Trailer ankommen: Diesen Zähler nach der Inbetriebnahme prüfen.",
+        "Ein ausgefallenes LAN hält nichts an, deshalb bemerkt es niemand. Für jeden Port und für fehlende Supervision-Frames einen Alarm einrichten, sonst legt der nächste Ausfall alles lahm.",
+        "Der Trailer fügt 6 Bytes hinzu. Ein Frame in voller Größe (1522 Bytes mit VLAN-Tag) wird zu 1528: Jeder Switch muss das akzeptieren, oder die Knoten müssen kleinere Frames senden.",
+        "HSR hat keine Switches im Ring: Jeder Knoten reicht die Frames des Rings weiter. Ein ausgeschalteter Knoten öffnet den Ring an dieser Stelle, ein zweiter teilt ihn."
+    ],
+    "points": {
+        "tr": "Auslösung",
+        "seq": "Sequenznummer",
+        "porta": "LAN A",
+        "portb": "LAN B"
+    },
+    "values": {
+        "up": "in Betrieb",
+        "down": "kein Link"
+    },
+    "anatomy": {
+        "rct": "Der Redundancy Control Trailer, Bit für Bit"
+    }
+}

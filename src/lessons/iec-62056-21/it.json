@@ -1,0 +1,97 @@
+{
+    "intro": "Il protocollo in testo semplice della porta ottica sul fronte della maggior parte dei contatori elettrici europei. Un tecnico appoggia una sonda sulla porta. Portatile e contatore si scambiano brevi messaggi ASCII, prima a 300 baud, poi più velocemente. Il contatore risponde con righe come 1.8.0(012345.678*kWh): un indirizzo, un valore e un'unità.",
+    "steps": {
+        "signon": { "title": "Sign-on", "text": "Il tecnico appoggia la sonda ottica sul fronte del contatore. Il portatile invia /?! a 300 baud, 7 bit di dati, parità pari. Il contatore risponde con il suo costruttore, la sua velocità massima e il suo modello." },
+        "select": { "title": "Scegli velocità e modo", "text": "Il portatile sceglie il protocollo normale, 9600 baud e una lettura dati. Dopo l'ultimo byte di questo messaggio, entrambe le parti passano a 9600 baud." },
+        "readout": { "title": "Lettura", "text": "Il contatore invia la sua lista di lettura in un unico messaggio, chiuso da un controllo BCC. Non serve password: la lista contiene solo ciò che l'azienda elettrica ha scelto di mostrare." },
+        "program": { "title": "Modo programmazione", "text": "L'energia immessa non è nella lista. Il portatile rifà il sign-on, a 300 baud, e chiede il modo programmazione. Il contatore chiede una password." },
+        "password": { "title": "Password", "text": "Il portatile invia la password in chiaro (P1). Il contatore la accetta con un singolo ACK." },
+        "read": { "title": "Leggi ed esci", "text": "R1 legge un valore tramite il suo indirizzo. Il contatore risponde con l'indirizzo, il valore e l'unità. Poi B0 chiude la sessione e il contatore torna a 300 baud." }
+    },
+    "frames": {
+        "signon": "Chi sei?",
+        "ident": "Costruttore EXA, modello EM340, fino a 9600 baud",
+        "ack-readout": "9600 baud, lettura dati per favore",
+        "data": "1.8.0 = 12 345.678 kWh, poi fascia 1 e fascia 2",
+        "signon-2": "Chi sei? (di nuovo)",
+        "ident-2": "Costruttore EXA, modello EM340, fino a 9600 baud",
+        "ack-program": "9600 baud, modo programmazione per favore",
+        "p0": "La password, per favore",
+        "p1": "La password è 18273645",
+        "ack-password": "Corretta",
+        "r1": "Leggi 2.8.0",
+        "answer": "2.8.0 = 123.456 kWh",
+        "b0": "Arrivederci"
+    },
+    "fields": {
+        "slash": { "name": "Inizio", "note": "/ (0x2F) apre il sign-on e l'identificazione." },
+        "request": { "name": "Richiesta", "note": "? (0x3F): una richiesta di dialogo." },
+        "end-request": { "name": "Fine", "note": "! (0x21) chiude la richiesta. Su una linea condivisa da più contatori, l'indirizzo del contatore sta tra ? e !." },
+        "crlf": { "name": "CR LF", "note": "0D 0A: la fine di una riga." },
+        "maker": { "name": "Costruttore", "note": "EXA: il codice di tre lettere del costruttore (qui inventato)." },
+        "baud-5": { "name": "Velocità massima", "note": "5: nel modo C, questo contatore può passare a 9600 baud. 0 sarebbe 300 baud, 6 è 19200." },
+        "model": { "name": "Modello", "note": "EM340: il modello, fino a 16 caratteri scelti dal costruttore." },
+        "ack": { "name": "ACK", "note": "ACK (0x06) apre il messaggio di conferma e scelta delle opzioni." },
+        "protocol": { "name": "Protocollo", "note": "0: il protocollo normale. 2 passerebbe a HDLC e DLMS (modo E)." },
+        "speed": { "name": "Velocità", "note": "5: passa a 9600 baud, la velocità offerta dal contatore." },
+        "mode-readout": { "name": "Modo", "note": "0: lettura dati. Subito dopo questo messaggio, entrambe le parti passano a 9600 baud." },
+        "mode-program": { "name": "Modo", "note": "1: modo programmazione. Il contatore chiederà una password." },
+        "stx": { "name": "STX", "note": "STX (0x02): iniziano i dati. Il BCC conta dal byte successivo." },
+        "a-180": { "name": "Indirizzo", "note": "1.8.0: energia attiva prelevata, tutte le fasce. La parte C.D.E del codice OBIS." },
+        "v-180": { "name": "Valore", "note": "(012345.678*kWh): il valore e la sua unità, tra parentesi." },
+        "a-181": { "name": "Indirizzo", "note": "1.8.1: la stessa energia, in fascia 1." },
+        "v-181": { "name": "Valore", "note": "(008765.432*kWh)." },
+        "a-182": { "name": "Indirizzo", "note": "1.8.2: la stessa energia, in fascia 2." },
+        "v-182": { "name": "Valore", "note": "(003580.246*kWh). Fascia 1 e fascia 2 sommate danno il totale." },
+        "end-data": { "name": "Fine dei dati", "note": "! CR LF: non ci sono altre righe." },
+        "etx": { "name": "ETX", "note": "ETX (0x03): il messaggio finisce. È l'ultimo byte contato dal BCC." },
+        "bcc-data": { "name": "BCC", "note": "0x76: tutti i byte dopo STX, fino a ETX compreso, combinati in XOR. Se non coincide, rileggi." },
+        "soh": { "name": "SOH", "note": "SOH (0x01): inizia un messaggio di comando. Il BCC conta dal byte successivo, STX compreso." },
+        "p0": { "name": "P0", "note": "Una richiesta di password, con un operando." },
+        "stx-command": { "name": "STX", "note": "STX (0x02): inizia il data set." },
+        "operand": { "name": "Operando", "note": "(87654321): un numero scelto dal contatore. Un contatore che vuole una password cifrata (P2) lo usa come seme. Questo accetta la password in chiaro." },
+        "bcc-p0": { "name": "BCC", "note": "0x68: XOR di tutti i byte dopo SOH, fino a ETX compreso." },
+        "p1": { "name": "P1", "note": "Ecco la password, in chiaro." },
+        "password": { "name": "Password", "note": "(18273645). Chiunque osservi la porta ottica può leggerla." },
+        "bcc-p1": { "name": "BCC", "note": "0x69." },
+        "ack-password": { "name": "ACK", "note": "ACK (0x06): la password è giusta. Lettura e scrittura sono aperte." },
+        "r1": { "name": "R1", "note": "Legge un valore, come testo ASCII." },
+        "ask-280": { "name": "Indirizzo", "note": "2.8.0(): l'indirizzo da leggere, con parentesi vuote." },
+        "bcc-r1": { "name": "BCC", "note": "0x59." },
+        "a-280": { "name": "Indirizzo", "note": "2.8.0: energia attiva immessa, tutte le fasce: quanto i pannelli solari dell'edificio hanno ceduto alla rete." },
+        "v-280": { "name": "Valore", "note": "(000123.456*kWh)." },
+        "bcc-answer": { "name": "BCC", "note": "0x5F: dal byte dopo STX fino a ETX compreso." },
+        "b0": { "name": "B0", "note": "Break: la sessione termina subito." },
+        "bcc-b0": { "name": "BCC", "note": "0x71, la lettera q. Un break è sempre fatto degli stessi 5 byte: 01 42 30 03 71." },
+        "l-c": { "name": "C · grandezza", "note": "1: potenza attiva, prelievo." },
+        "l-d": { "name": "D · elaborazione", "note": "8: il totale nel tempo, quindi energia." },
+        "l-e": { "name": "E · fascia", "note": "0: tutte le fasce. 1.8.1 è la fascia 1." },
+        "l-value": { "name": "Valore", "note": "012345.678: le cifre che il contatore conserva, con il suo punto decimale." },
+        "l-unit": { "name": "Unità", "note": "kWh, dopo un asterisco (*)." }
+    },
+    "devices": {
+        "laptop": "Portatile del tecnico",
+        "meter": "Contatore elettrico",
+        "house": "Edificio"
+    },
+    "facts": {
+        "standard": "IEC 62056-21 (ex IEC 61107)",
+        "between": "Terminale portatile o portatile → contatore, tramite una sonda ottica",
+        "transport": "Porta a infrarossi con sonda magnetica; anche loop di corrente 20 mA o RS-232",
+        "security": "Nessuna per la lettura. Modo programmazione: una password, inviata in chiaro",
+        "speed": "Parte a 300 baud, 7E1; poi fino a 19200 baud"
+    },
+    "tips": [
+        "Imposta la porta seriale a 7 bit di dati e parità pari (7E1). A 8N1 il contatore vede errori di parità e resta muto, e le sue risposte sembrano spazzatura.",
+        "Passa alla nuova velocità solo quando l'ultimo byte del messaggio ACK è partito. Gli adattatori USB bufferizzano i dati: cambiare troppo presto invia la fine del messaggio alla velocità sbagliata.",
+        "Il BCC parte dopo STX o SOH, non da loro, e include ETX. Sbagliare uno dei due estremi è un errore comune nei lettori fatti in casa."
+    ],
+    "points": {
+        "speed": "Velocità",
+        "import": "Energia prelevata",
+        "export": "Energia immessa"
+    },
+    "anatomy": {
+        "line": "Una riga della lettura"
+    }
+}

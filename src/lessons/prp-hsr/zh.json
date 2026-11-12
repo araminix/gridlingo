@@ -1,0 +1,86 @@
+{
+    "intro": "PRP 把每一帧发两次，分别走两张独立的网络：LAN A 和 LAN B。接收方留下先到的那份，丢掉另一份。一张网络故障时，另一份照样到达：什么也不丢，也不用等网络自愈。HSR 在环网上做同样的事。",
+    "steps": {
+        "two": { "title": "两张网络", "text": "保护装置和测控装置各有两个端口：一个接 LAN A，一个接 LAN B。这样的设备叫 DAN，即双连接节点。两张 LAN 不共用任何交换机、电缆或电源。每个 DAN 每 2 s 在两张 LAN 上各通告一次自己。" },
+        "send": { "title": "发两次", "text": "保护装置有一条 GOOSE 报文要发给测控装置。它的 PRP 层加上 6 字节的尾标，同时从两个端口各发一份。这一份走 LAN A。" },
+        "drop": { "title": "丢弃重复帧", "text": "LAN B 上的那份晚 4 µs 到达。源地址相同，序号相同：测控装置已经有了，就把它丢掉。它的应用只看到一次这条报文。" },
+        "break": { "title": "电缆断了", "text": "交换机 A 到测控装置的电缆被切断。恰在此时保护装置跳闸。LAN A 上的那份只走到交换机 A。LAN B 上的那份照常到达：什么也没丢，没有延迟，也不需要切换。" },
+        "alarm": { "title": "修好备用网", "text": "保护什么都没察觉。测控装置察觉了：它的端口 A 没有链路，保护装置的帧现在只从 LAN B 到达。它发出告警。在 LAN A 修好之前，再出一次故障就会让保护装置失联。" }
+    },
+    "frames": {
+        "sup-a": "我在这里，有两个端口",
+        "sup-b": "我在这里，有两个端口",
+        "copy-a": "心跳：未跳闸（LAN A 上的副本）",
+        "copy-b": "心跳：未跳闸（LAN B 上的副本）",
+        "trip-a": "跳闸！（LAN A 上的副本，丢失）",
+        "trip-b": "跳闸！（LAN B 上的副本）",
+        "sup-only": "我在这里（只在 LAN B 上收到）"
+    },
+    "notes": {
+        "sup-a": "PRP 监视帧，每 2 s 在两张 LAN 上发往 01-15-4E-00-01-00，EtherType 0x88FB。它告诉其他节点：这台保护装置是双连接的，两条路径都正常。",
+        "sup-b": "同一个监视帧，同时在 LAN B 上发出。",
+        "trip-a": "LAN A 上的副本到达交换机 A。交换机到测控装置的电缆断了，所以这一份走不下去了。",
+        "sup-only": "保护装置的下一个监视帧。它仍从两张 LAN 发出，但只有 LAN B 上的那份到达测控装置。"
+    },
+    "fields": {
+        "dst": { "name": "目的地址", "note": "F1 PROT 的 GOOSE 组播地址，与 GOOSE 课程中相同。PRP 不改动尾标前面的任何内容。" },
+        "src": { "name": "源地址", "note": "保护装置的 MAC 地址。它的两个端口用同一个地址，所以两份副本看起来一样。" },
+        "vlan": { "name": "VLAN 标签", "note": "优先级 4，VLAN 10。" },
+        "ethertype": { "name": "EtherType", "note": "0x88B8：GOOSE。PRP 不在前面加任何报头：它只在末尾加一个尾标。" },
+        "goose-header": { "name": "GOOSE 报头", "note": "APPID 0x0001，长度 115，以及两个保留字段，均未改动。" },
+        "goose-pdu": { "name": "GOOSE 报文", "note": "0x61 开始 GOOSE 报文，后面跟 105 个字节。PRP 原样保留全部内容。" },
+        "gocbref": { "name": "gocbRef", "note": "F1PROTLD0/LLN0$GO$gcbTrip，控制块。" },
+        "tal": { "name": "允许生存时间", "note": "2000 ms。" },
+        "datset": { "name": "datSet", "note": "F1PROTLD0/LLN0$dsTrip。" },
+        "goid": { "name": "goID", "note": "F1PROT_Trip。" },
+        "t-old": { "name": "t", "note": "08:00:00 UTC，上次变化的时间。" },
+        "t-event": { "name": "t", "note": "10:41:07.232 UTC，跳闸的时间。" },
+        "st-12": { "name": "stNum 12 · sqNum 3", "note": "没有变化：状态 12 的第四个副本。" },
+        "st-13": { "name": "stNum 13 · sqNum 0", "note": "新状态：它的第一个副本。" },
+        "flags-1": { "name": "simulation · confRev", "note": "不是测试报文；配置版本 1。" },
+        "flags-2": { "name": "ndsCom · entries", "note": "配置完整；后面跟 2 个值。" },
+        "data-idle": { "name": "allData", "note": "Tr.general = FALSE（未跳闸），品质良好。" },
+        "data-trip": { "name": "allData", "note": "Tr.general = TRUE（跳闸！），品质良好。" },
+        "seq-3900": { "name": "序号", "note": "0x0F3C = 3900。保护装置给它发出的每一帧编号；两份副本带相同的编号。" },
+        "seq-3905": { "name": "序号", "note": "0x0F41 = 3905：此后保护装置又发了其他帧。" },
+        "lan-a": { "name": "LAN 与长度", "note": "A：在 LAN A 上发出。然后是 0x079 = 121，即 EtherType 之后的字节数，包括尾标。" },
+        "lan-b": { "name": "LAN 与长度", "note": "B：在 LAN B 上发出。这是与 LAN A 上那份唯一不同的字节。" },
+        "suffix": { "name": "PRP 后缀", "note": "0x88FB 标志 PRP 尾标的结束。" },
+        "a-seq": { "name": "SeqNr", "note": "16 位。接收方保留来自该源的、带新编号的第一帧，丢弃第二帧。" },
+        "a-lan": { "name": "LanId", "note": "4 位：1010（A）或 1011（B），即副本发出时所在的 LAN。" },
+        "a-size": { "name": "LSDUsize", "note": "12 位：121 字节。接收方把它与帧的实际长度比较：如果一致，最后 6 个字节就是尾标。VLAN 标签不计在内，因为交换机可能添加或去掉它。" },
+        "a-suffix": { "name": "PRPsuffix", "note": "0x88FB，与监视帧的 EtherType 是同一个数。" }
+    },
+    "devices": {
+        "relay": "F1 PROT",
+        "swa": "交换机 A",
+        "swb": "交换机 B",
+        "controller": "测控装置"
+    },
+    "facts": {
+        "standard": "IEC 62439-3（PRP 见第 4 章，HSR 见第 5 章）",
+        "between": "双连接节点：保护装置、测控装置、合并单元、网关",
+        "transport": "以太网，位于 IP 之下：GOOSE、SV 和 MMS 都在其上传输",
+        "frames": "PRP：末尾加 6 字节尾标（0x88FB）。HSR：源地址后加 6 字节标签（0x892F）",
+        "speed": "零恢复时间：一张 LAN 故障时不丢任何帧"
+    },
+    "tips": [
+        "绝不要把 LAN A 和 LAN B 连在一起。交换机、电缆、颜色和电源都要分开。节点会统计尾标中 LAN 标识不对的帧：调试完成后检查这个计数器。",
+        "一张 LAN 故障不会让任何东西停下来，所以没人发觉。对每个端口以及监视帧缺失设置告警，否则下一次故障会让一切瘫痪。",
+        "尾标多出 6 个字节。一个最大长度的帧（带 VLAN 标签为 1522 字节）变成 1528 字节：每台交换机都必须能接收，否则节点就得发更小的帧。",
+        "HSR 的环上没有交换机：每个节点转发环上的帧。一个节点断电，环就在那里断开；再断一个，环就被分成两段。"
+    ],
+    "points": {
+        "tr": "跳闸",
+        "seq": "序号",
+        "porta": "LAN A",
+        "portb": "LAN B"
+    },
+    "values": {
+        "up": "正常",
+        "down": "无链路"
+    },
+    "anatomy": {
+        "rct": "冗余控制尾标，逐位拆解"
+    }
+}

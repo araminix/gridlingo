@@ -1,0 +1,122 @@
+{
+    "intro": "Le langage de la plupart des compteurs communicants en Europe, en Asie et en Afrique. Un compteur contient des objets : chacun a une classe, un nom appelé code OBIS, et des attributs numérotés. Un client ouvre d'abord une association, avec un mot de passe ou des clés, puis lit et écrit des attributs avec GET, SET et ACTION.",
+    "steps": {
+        "connect": { "title": "Connexion", "text": "À minuit, le système central (head-end) ouvre TCP vers le port 4059 du compteur. Le modem du compteur a une adresse privée dans le réseau mobile propre au distributeur (un APN privé)." },
+        "associate": { "title": "Association", "text": "Rien ne peut être lu avant une association. L'AARQ fixe les règles (noms logiques, pas de chiffrement) et porte le mot de passe. L'AARE accepte et liste les services que le compteur autorise." },
+        "value": { "title": "Lire la valeur", "text": "GET lit un attribut d'un objet, désigné par sa classe et son code OBIS. La réponse est un nombre brut : 1234567. Son unité n'y figure pas." },
+        "scale": { "title": "Lire échelle et unité", "text": "L'attribut 3 dit ce que signifie le nombre : multiplié par 10, en Wh. Le système central a maintenant la relève : 12 345.67 kWh." },
+        "release": { "title": "Libération", "text": "Le système central libère l'association et ferme TCP. Le compteur suivant attend." }
+    },
+    "frames": {
+        "tcp": "Ouvrir TCP vers le port 4059",
+        "aarq": "Laisse-moi entrer : client lecteur, mot de passe 12345678",
+        "aare": "Accepté. Tu peux utiliser GET, SET et ACTION",
+        "get-value": "Quelle est la valeur de 1-0:1.8.0*255 ?",
+        "value": "1234567",
+        "get-scaler": "Et son facteur d'échelle et son unité ?",
+        "scaler": "Multiplié par 10, en Wh",
+        "rlrq": "Terminé : libère l'association",
+        "rlre": "Libérée"
+    },
+    "notes": {
+        "tcp": "Du TCP simple. Le port 4059 est enregistré pour DLMS/COSEM. Sur une liaison série ou le port optique, les mêmes messages voyagent dans des trames HDLC au lieu de cette enveloppe (wrapper)."
+    },
+    "fields": {
+        "version": { "name": "Version", "note": "0x0001 : la version de l'enveloppe. Elle ouvre chaque message DLMS sur TCP ou UDP." },
+        "src-client": { "name": "wPort source", "note": "0x0011 : l'adresse du client. Ce compteur a été configuré pour laisser lire le client 0x11, après un mot de passe. Le client public, 0x10, n'a pas besoin de mot de passe mais ne peut lire que peu de chose." },
+        "dst-meter": { "name": "wPort destination", "note": "0x0001 : l'équipement logique de gestion. Tout compteur en possède un." },
+        "src-meter": { "name": "wPort source", "note": "0x0001 : l'équipement logique qui répond." },
+        "dst-client": { "name": "wPort destination", "note": "0x0011 : retour au client qui a demandé." },
+        "len-56": { "name": "Longueur", "note": "0x0038 = 56 octets suivent." },
+        "len-43": { "name": "Longueur", "note": "0x002B = 43 octets suivent." },
+        "len-13": { "name": "Longueur", "note": "0x000D = 13 octets suivent." },
+        "len-9": { "name": "Longueur", "note": "9 octets suivent." },
+        "len-10": { "name": "Longueur", "note": "0x000A = 10 octets suivent." },
+        "len-5": { "name": "Longueur", "note": "5 octets suivent." },
+        "aarq": { "name": "AARQ", "note": "Tag 0x60 : une demande d'ouverture d'association. 0x36 = 54 octets suivent. Cette partie est en BER : un tag, une longueur, une valeur." },
+        "context": { "name": "Contexte d'application", "note": "L'identifiant d'objet 2.16.756.5.8.1.1 : référencement par noms logiques, sans chiffrement. Avec chiffrement, il finirait par .3." },
+        "acse-req": { "name": "Exigences ACSE", "note": "Un bit levé : authentification. Un mot de passe ou un défi suit." },
+        "mech-lls": { "name": "Mécanisme", "note": "2.16.756.5.8.2.1 : sécurité de bas niveau (LLS), un mot de passe. La sécurité de haut niveau (HLS, par exemple …2.5) envoie plutôt un défi aléatoire dans chaque sens : chaque côté prouve qu'il connaît une clé secrète, qui ne passe jamais sur le fil." },
+        "password": { "name": "Mot de passe", "note": "Tag 0x80, 8 caractères : \"12345678\". Il circule en clair." },
+        "user-info": { "name": "Informations utilisateur", "note": "Tag 0xBE, puis une chaîne d'octets de 0x0E = 14 octets contenant la partie xDLMS. À l'intérieur, le codage est A-XDR, pas BER." },
+        "initiate-req": { "name": "InitiateRequest", "note": "0x01, puis trois options omises (00 00 00) : pas de clé dédiée, le mode de réponse par défaut, pas de qualité de service." },
+        "dlms-version": { "name": "Version DLMS", "note": "Version 6." },
+        "conformance-req": { "name": "Conformité", "note": "24 bits, un par service que le client veut utiliser : GET, SET, ACTION, accès sélectif, transfert par blocs, entre autres." },
+        "pdu-client": { "name": "Taille max. de PDU", "note": "0xFFFF : le client accepte des réponses jusqu'à 65535 octets." },
+        "aare": { "name": "AARE", "note": "Tag 0x61 : la réponse à l'AARQ. 0x29 = 41 octets suivent." },
+        "result": { "name": "Résultat", "note": "0 : accepté. Un refus vaut 1 ou 2." },
+        "diagnostic": { "name": "Diagnostic", "note": "0 : rien à signaler. Un mauvais mot de passe donne le résultat 1 et le diagnostic 13, échec d'authentification." },
+        "initiate-resp": { "name": "InitiateResponse", "note": "0x08, puis pas de qualité de service (0x00)." },
+        "conformance-resp": { "name": "Conformité", "note": "Les services que le compteur autorise : GET, SET, ACTION, l'accès sélectif et le transfert par blocs avec GET, entre autres. Seuls ceux-là peuvent maintenant être utilisés." },
+        "pdu-meter": { "name": "Taille max. de PDU", "note": "0x01F4 : le compteur accepte des messages jusqu'à 500 octets." },
+        "vaa": { "name": "Nom VAA", "note": "0x0007 : le nom fixe d'une association avec référencement par noms logiques." },
+        "get-req": { "name": "GET-Request", "note": "0xC0 : GET-Request. 0x01 : normal, un seul attribut." },
+        "invoke-1": { "name": "Invoke ID et priorité", "note": "0xC1 : invoke ID 1, un service confirmé, priorité haute. La réponse porte le même octet." },
+        "invoke-2": { "name": "Invoke ID et priorité", "note": "0xC2 : invoke ID 2." },
+        "class-3": { "name": "Classe 3", "note": "Register : une valeur avec un facteur d'échelle et une unité." },
+        "obis": { "name": "Code OBIS", "note": "1-0:1.8.0*255 : énergie active importée, tous tarifs. Décomposé plus bas." },
+        "attr-2": { "name": "Attribut 2", "note": "La valeur. L'attribut 1 de tout objet est son propre code OBIS." },
+        "attr-3": { "name": "Attribut 3", "note": "Le facteur d'échelle et l'unité." },
+        "no-selection": { "name": "Accès sélectif", "note": "0x00 : aucun, envoyer l'attribut entier. Une courbe de charge l'utilise pour demander une plage horaire." },
+        "get-resp": { "name": "GET-Response", "note": "0xC4 : GET-Response. 0x01 : normal." },
+        "invoke-1-resp": { "name": "Invoke ID", "note": "0xC1, le même que la requête : ceci y répond." },
+        "invoke-2-resp": { "name": "Invoke ID", "note": "0xC2 : la réponse au second GET." },
+        "data": { "name": "Résultat", "note": "0x00 : des données suivent. 0x01 serait suivi d'un code d'erreur." },
+        "uint32": { "name": "Type", "note": "0x06 : double-long-unsigned, un nombre de 32 bits non signé." },
+        "raw": { "name": "Valeur", "note": "0x0012D687 = 1234567, octet de poids fort en premier. Sans facteur d'échelle ni unité, elle ne veut encore rien dire." },
+        "structure": { "name": "Structure", "note": "0x02 : une structure de 2 éléments." },
+        "scaler": { "name": "Facteur d'échelle", "note": "0x0F : un entier de 8 bits. 1 : multiplier la valeur par 10 puissance 1." },
+        "unit": { "name": "Unité", "note": "0x16 : une énumération. 30 (0x1E) correspond au Wh. Donc 1234567 × 10 Wh = 12 345.67 kWh." },
+        "rlrq": { "name": "RLRQ", "note": "Tag 0x62 : libérer l'association. 3 octets suivent." },
+        "rlre": { "name": "RLRE", "note": "Tag 0x63 : l'association est libérée." },
+        "reason": { "name": "Motif", "note": "0 : normal." },
+        "o-a": { "name": "A · fluide", "note": "1 : électricité. 6 est la chaleur, 7 le gaz, 8 l'eau froide. 0 sert aux objets sans fluide, comme l'horloge." },
+        "o-b": { "name": "B · canal", "note": "0 : aucun canal particulier. Un compteur à plusieurs entrées les numérote 1, 2 …" },
+        "o-c": { "name": "C · grandeur", "note": "1 : puissance active, import (+P). 2 est l'export, 32 la tension de L1." },
+        "o-d": { "name": "D · traitement", "note": "8 : le total dans le temps, donc l'énergie. 7 est la valeur instantanée." },
+        "o-e": { "name": "E · tarif", "note": "0 : tous tarifs confondus. 1 et 2 sont le tarif 1 et le tarif 2." },
+        "o-f": { "name": "F · période de facturation", "note": "255 : inutilisé, la valeur actuelle. D'autres valeurs désignent des périodes de facturation mémorisées." }
+    },
+    "devices": {
+        "headend": "Système central",
+        "apn": "Réseau mobile",
+        "meter": "Compteur communicant",
+        "meter2": "Compteur suivant"
+    },
+    "facts": {
+        "standard": "IEC 62056-5-3 (couche application), -6-1 (OBIS), -6-2 (classes), -9-7 (TCP et UDP)",
+        "between": "Système central (client) → compteur (serveur)",
+        "transport": "TCP ou UDP 4059 avec une enveloppe ; HDLC sur les liaisons série et le port optique",
+        "security": "LLS : un mot de passe en clair. HLS : un défi dans chaque sens, et AES-GCM-128 pour les messages",
+        "model": "Des objets : une classe, un code OBIS, des attributs et des méthodes numérotés"
+    },
+    "tips": [
+        "Une valeur sans son facteur d'échelle et son unité n'est pas une relève. Lisez l'attribut 3 une fois pour chaque registre et gardez-le : le même 1234567 peut valoir des Wh, des dizaines de Wh ou des kWh.",
+        "L'adresse client choisit l'association, et l'association fixe les droits. Le bon mot de passe avec la mauvaise adresse client est quand même refusé.",
+        "LLS envoie le mot de passe en clair. Sur tout réseau que vous ne maîtrisez pas entièrement, utilisez HLS et le chiffrement.",
+        "Une réponse plus grande que la taille de message convenue arrive par blocs. Le client doit demander chaque bloc suivant (GET-Request-Next), sinon il ne reçoit que la première partie."
+    ],
+    "points": {
+        "association": "Association",
+        "raw": "Valeur",
+        "scaler": "Échelle et unité",
+        "energy": "Relève"
+    },
+    "values": {
+        "none": "aucune",
+        "lls": "ouverte, LLS"
+    },
+    "anatomy": {
+        "obis": "Le code OBIS du registre d'énergie"
+    },
+    "playground": {
+        "file": "Le plan du système central pour la relève de minuit de ce compteur : où il se trouve, comment s'y connecter, et quels objets lire.",
+        "client": "Client 17 = 0x11, le wPort de chaque requête.",
+        "low": "Low = LLS : le mot de passe de la ligne suivante part dans l'AARQ, en clair.",
+        "clock": "Lisez d'abord l'horloge. Si elle est fausse, les horodatages de la courbe de charge le sont aussi.",
+        "register": "Le registre de cette leçon : classe 3, attribut 2.",
+        "keep": "Le facteur d'échelle et l'unité ne changent que si le compteur est reconfiguré. Lisez-les une fois et gardez-les.",
+        "profile": "Une courbe de charge (classe 7) avec accès sélectif : le compteur n'envoie que les lignes entre les deux heures.",
+        "encoder": "DLMS envoie les nombres octet de poids fort en premier (ABCD). Saisissez une valeur pour voir les octets qu'envoie le compteur."
+    }
+}

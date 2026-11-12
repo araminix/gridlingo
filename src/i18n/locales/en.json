@@ -85,7 +85,7 @@
     "frames.size": "Size",
     "frames.bytes": { "one": "{{count}} byte", "other": "{{count}} bytes" },
     "bytes.title": "Bytes",
-    "bytes.legend": "What the colours mean",
+    "bytes.legend": "What the colors mean",
     "role.frame": "Framing",
     "role.control": "Control",
     "role.type": "Type",

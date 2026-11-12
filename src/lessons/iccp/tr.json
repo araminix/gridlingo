@@ -1,0 +1,112 @@
+{
+    "intro": "Kontrol merkezlerinin birbirleriyle canlı veri alışverişi: bir iletim sistemi işletmecisinin (TSO) dağıtım sistemi işletmecileriyle (DSO), santrallerle ve komşu TSO'larla. TASE.2 olarak da bilinen ICCP, MMS üzerinde çalışır. İki şirketin üzerinde anlaştığı bir ikili tablo, her ortağın tam olarak neyi okuyabileceğini listeler ve sunucu buna uyulmasını sağlar.",
+    "steps": {
+        "connect": { "title": "Bağlan ve ilişkilen", "text": "DSO'nun ICCP istemcisi, bir VPN üzerinden TSO'nun sunucusuna TCP 102 bağlantısı açar. Ardından MMS ilişkilendirmesi (association) kurulur: istemci kendini bir AP title ile tanıtır; sunucu yalnızca ikili tablolarından birinde geçen adları kabul eder." },
+        "check": { "title": "Tablo kimliğini denetle", "text": "İstemci, sunucudaki kendi domain'inden Bilateral_Table_ID'yi okur ve kendi kopyasıyla karşılaştırır. İkisi tutar: iki taraf da aynı anlaşmaya göre çalışıyor." },
+        "subscribe": { "title": "Rapor iste", "text": "İstemci kendi domain'inde DS_TIELINES adlı bir veri seti oluşturur: birlikte almak istediği değerler. Bir transfer set, sunucuya bunu ne zaman göndereceğini söyler. İstemci boş bir transfer set ister (Next_DSTransfer_Set), sonra ona yazar: her 4 s'de bir ve herhangi bir değişiklikte hemen." },
+        "interval": { "title": "Her 4 s'de rapor", "text": "Sunucu tüm veri setini her 4 saniyede bir InformationReport olarak gönderir. Kimse istemez, kimse yanıt vermez." },
+        "change": { "title": "Değişiklikte rapor", "text": "Trafo merkezinde 2 numaralı enterkonneksiyon hattının kesicisi açılır. Sunucu bir sonraki aralığı beklemez: hemen raporlar. Güç akışı 1 numaralı hatta kaymıştır." },
+        "denied": { "title": "Tablonun dışında", "text": "Bir DSO operatörü, bir TSO jeneratörünün çıkışı olan GEN_K1_MW'yi ister. Bu değer DSO_EAST'in ikili tablosunda yok; bu yüzden sunucu değer yerine bir erişim hatası döndürür." }
+    },
+    "frames": {
+        "connect": "TCP 102'yi ve bir ISO taşıma bağlantısını aç",
+        "initiate-req": "Ben DSO_EAST: MMS konuşalım",
+        "initiate-resp": "Kabul: ikili tablolarımda varsın",
+        "blt-req": "Bende senin için hangi ikili tablo kimliği var?",
+        "blt-resp": "DSOEAST-2026-03",
+        "define-ds": "DS_TIELINES veri setini oluştur: TIE1_MW, TIE2_MW, TIE2_CB",
+        "define-ok": "Veri seti oluşturuldu",
+        "next-ts": "Bana boş bir transfer set ver",
+        "next-ts-resp": "DSTS_07'yi kullan",
+        "ts-start": "DSTS_07: DS_TIELINES'ı her 4 s'de bir ve değişiklikte gönder",
+        "report-interval": "TIE1 212.4 MW, TIE2 36.2 MW, TIE2 kesicisi kapalı",
+        "report-change": "TIE2 kesicisi açık: TIE1 248.9 MW, TIE2 0.0 MW",
+        "denied-req": "GEN_K1_MW kaç?",
+        "denied-resp": "Erişim hatası: senin tablonda yok"
+    },
+    "notes": {
+        "connect": "102 portuna TCP, onun üzerinde de bir COTP bağlantısı; tıpkı IEC 61850 MMS'teki gibi. İki şirket arasında bu genellikle bir IPsec VPN içinde çalışır, çünkü ICCP'nin kendisi hiçbir şeyi şifrelemez.",
+        "initiate-req": "Oturum, sunum ve ACSE katmanları MMS Initiate'i sarar. ACSE, iki tarafın AP title'larını taşır. Sunucu, arayan AP title'a bakarak bu istemciye hangi ikili tablonun, dolayısıyla hangi domain'in ait olduğunu bulur.",
+        "initiate-resp": "Hiçbir ikili tabloda olmayan bir AP title, daha hiçbir veri okunamadan burada reddedilir. MMS kısmı mesaj boyutları ve servisler üzerinde anlaşır.",
+        "define-ds": "DSO_EAST domain'inde MMS DefineNamedVariableList. Bir transfer set için oluşturulan veri seti üç özel üyeyle başlayabilir: Transfer_Set_Name, Transfer_Set_Time_Stamp ve DSConditions_Detected. Böylece her rapor, onu hangi transfer set'in, ne zaman ve neden gönderdiğini söyler.",
+        "define-ok": "Sunucu, listeyi oluşturmadan önce her adı ikili tabloya göre denetler. İstemcinin okuyamayacağı bir ad isteği başarısız kılar.",
+        "next-ts": "DSO_EAST domain'indeki özel Next_DSTransfer_Set değişkeninin okunması (Read). Her okuma, sunucunun havuzundan boş bir transfer set dağıtır.",
+        "next-ts-resp": "İstemcinin artık kullanabileceği bir transfer set'in adı: DSTS_07.",
+        "ts-start": "Transfer set'in özniteliklerine yazma (Write): DataSetName DSO_EAST/DS_TIELINES, Interval 4 s, koşullar IntervalTimeOut ve ObjectChange, Status enabled. Sunucu yazmayı onaylar, sonra raporlamaya başlar.",
+        "report-interval": "Veri setinin adını taşıyan, onaysız bir MMS InformationReport. Transfer set'in adını, zamanı, nedeni (aralık zaman aşımı) ve her değeri kalite bayraklarıyla taşır: geçerli (valid), tutulan (held), şüpheli (suspect) ya da geçersiz (not valid).",
+        "report-change": "Bir değer değiştiği için (neden: nesne değişikliği) iki aralık raporu arasında gönderildi. Buna da yanıt verilmez; transfer set kritik olarak işaretlenmişse başka: o zaman istemci onaylamalıdır.",
+        "denied-req": "DSO_EAST domain'inde değil, TSO'nun kendi kapsamındaki (VCC) bir değerin okunması. Başka ortakların okumasına izin verilmiş olabilir; DSO_EAST'inkine verilmemiş.",
+        "denied-resp": "Okuma sonucu, değer yerine bir MMS erişim hatasıdır. Çözüm yazılımda değil: iki şirket değeri tabloya ekler ve tablonun kimliğini yükseltir."
+    },
+    "fields": {
+        "tpkt-67": { "name": "TPKT", "note": "Sürüm 3, ardından tüm mesajın uzunluğu: 0x0043 = 67 bayt." },
+        "tpkt-46": { "name": "TPKT", "note": "Sürüm 3, ardından uzunluk: 0x002E = 46 bayt." },
+        "cotp-dt": { "name": "COTP", "note": "Bir veri birimi (0xF0), mesajının sonuncusu (0x80)." },
+        "session": { "name": "Oturum", "note": "İki kısa oturum başlığı: give tokens, data transfer." },
+        "presentation": { "name": "Sunum", "note": "Tam kodlanmış veri, sunum bağlamı 3: ardından gelen MMS'tir." },
+        "confirmed-req": { "name": "Onaylı istek", "note": "Etiket A0, 45 bayt: yanıt bekleyen bir istek." },
+        "confirmed-resp": { "name": "Onaylı yanıt", "note": "Etiket A1, 24 bayt: yanıt." },
+        "invoke": { "name": "Invoke ID 1", "note": "İstemcinin seçtiği bir numara. Yanıt da aynısını taşır." },
+        "invoke-resp": { "name": "Invoke ID 1", "note": "İstekteki numaranın aynısı: bu, o isteğin yanıtı." },
+        "read": { "name": "Read", "note": "Etiket A4: MMS Read servisi." },
+        "spec": { "name": "Değişken listesi", "note": "Adıyla verilmiş tek değişkenlik bir liste." },
+        "domain-specific": { "name": "Domain'e özgü ad", "note": "İki parçalı bir ad: domain ve öğe." },
+        "domain": { "name": "Domain", "note": "\"DSO_EAST\": bu istemcinin sunucudaki domain'i, ikili tablosunun adını taşır. Yalnızca bu ortağa yönelik değerler (ICC kapsamı) burada durur." },
+        "item": { "name": "Öğe", "note": "\"Bilateral_Table_ID\": bir ICCP sunucusunun her istemcinin domain'inde tuttuğu bir değişken." },
+        "results": { "name": "Sonuçlar", "note": "İstenen her değişken için bir tane olmak üzere sonuçların listesi." },
+        "blt-value": { "name": "Visible string", "note": "Etiket 0x8A, 15 karakter: DSOEAST-2026-03. İstemci bunu kendi tablosundaki kimlikle karşılaştırır. Farklıysa ilişkilendirmeyi kapatmalıdır." }
+    },
+    "devices": {
+        "dso": "DSO kontrol merkezi",
+        "dsovpn": "DSO VPN yönlendiricisi",
+        "tsovpn": "TSO VPN yönlendiricisi",
+        "tso": "TSO kontrol merkezi",
+        "sub": "Bağlantı trafo merkezi"
+    },
+    "facts": {
+        "standard": "IEC 60870-6-503 (servisler) ve IEC 60870-6-802 (nesneler): TASE.2",
+        "between": "Kontrol merkezi ↔ kontrol merkezi: TSO'lar, DSO'lar, santraller, piyasa işletmecileri",
+        "transport": "TCP 102 üzerinde ISO ile MMS (RFC 1006), genellikle bir IPsec VPN içinde",
+        "security": "Kendine ait yok. Secure ICCP, sertifikalı TLS ekler (IEC 62351-3 ve -4).",
+        "model": "İkili tablolar, veri değerleri, veri setleri, transfer set'ler"
+    },
+    "tips": [
+        "İkili tabloyu iki tarafta birlikte değiştirin. Bilateral_Table_ID farklıysa istemci ilişkilendirmeyi kapatır ve hiç veri akmaz.",
+        "Yalnızca değere değil, kalite bayraklarına da bakın. Held ya da suspect olarak işaretlenmiş bir değer, ekranda hâlâ normal görünen eski ya da şüpheli bir sayıdır.",
+        "Birimlerde ve işaretlerde anlaşın. TSO'dan DSO'ya 212.4 MW, DSO'nun kendi SCADA'sında −212.4 MW olabilir. Yönü tabloya yazın.",
+        "ICCP'nin kendine ait bir güvenliği yoktur. Onu bir VPN içinde tutun ya da Secure ICCP kullanın; 102 portunu asla internete açmayın."
+    ],
+    "points": {
+        "blt": "Tablo kimliği",
+        "tie1": "1. hat akışı",
+        "tie2": "2. hat akışı",
+        "cb2": "2. hat kesicisi"
+    },
+    "values": {
+        "closed": "kapalı",
+        "open": "açık"
+    },
+    "timing": {
+        "title": "Bir transfer set ne zaman raporlar",
+        "note": "Sunucu DS_TIELINES'ı her 4 s'de bir (aralık) ve bir değer değiştiğinde hemen (nesne değişikliği) raporlar. Bir transfer set bütünlük denetimi de isteyebilir: ne olursa olsun birkaç dakikada bir tam rapor. Transfer set'i başlattıktan sonra istemci bir daha hiç sormaz.",
+        "dso": "DSO istemcisi",
+        "interval": "Aralık raporları",
+        "change": "Değişiklik raporları",
+        "start": "Status = enabled",
+        "every-4s": "her 4 s'de bir",
+        "tie2-open": "TIE2_CB açılıyor"
+    },
+    "playground": {
+        "file": "Bir tarafın tutabileceği hâliyle bir ikili tablo (uydurma: her üreticinin kendi formatı vardır). İki şirkette de aynı içerik bulunur.",
+        "table": "Tablonun adı. Sunucuda aynı zamanda istemcinin domain'idir: DSO_EAST.",
+        "table-id": "İki tarafın anlaştığı sürüm. İstemci her ilişkilendirmeden sonra bunu sunucudan okur.",
+        "client-ap": "İstemcinin AP title'ı (altında AE qualifier'ıyla): sunucu arayanın kim olduğunu bununla bilir.",
+        "blocks": "Ortakların kullandığı uyumluluk blokları: 1, temel servisler, ve 2, değişiklikte raporlar.",
+        "read": "DSO'nun okuyabileceği değerler. Kendi domain'i olan DSO_EAST'te (ICC kapsamı) durur. Başka her şey erişim hatası verir.",
+        "data-value": "Data_RealQ: kalite bayraklı bir float.",
+        "state": "Data_State: açık ya da kapalı gibi bir durum, kalite bayraklarıyla.",
+        "write": "Hiçbir şey yazılamaz: DSO bir TSO değerini değiştiremez.",
+        "devices": "Cihaz kontrolüne (blok 5) izin yok: hiçbir cihaz listelenmemiş, bu yüzden DSO bir TSO kesicisini kumanda edemez.",
+        "transfer-sets": "Bu istemcinin aynı anda kaç transfer set kullanabileceği."
+    }
+}

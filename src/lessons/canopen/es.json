@@ -1,0 +1,103 @@
+{
+    "intro": "Dentro de un sistema de baterías, el sistema de gestión de baterías (BMS) y el sistema de conversión de potencia (PCS) suelen compartir un bus CAN. Una trama CAN es corta: un identificador y hasta 8 bytes de datos, sin dirección del emisor. CANopen da significado a los identificadores: qué nodo envía y qué tipo de mensaje es.",
+    "steps": {
+        "boot": { "title": "Arranque", "text": "El BMS (nodo 5) se enciende y envía un mensaje de arranque (boot-up). Ahora está en preoperacional: responde a las peticiones SDO, pero no envía datos de proceso." },
+        "identify": { "title": "Comprobar la identidad", "text": "El PCS es el maestro NMT: arranca y supervisa a los demás nodos. Lee el número de serie del BMS con un SDO: objeto 0x1018, subíndice 4." },
+        "start": { "title": "Arrancar", "text": "El PCS ordena al nodo 5 pasar a operacional. A partir de ahora, el BMS envía un heartbeat cada segundo, además de sus datos de proceso." },
+        "data": { "title": "Datos de proceso", "text": "El TPDO1 lleva la tensión y la corriente del pack, el estado de carga y la celda más caliente, cada 100 ms. Nadie pregunta y nadie responde: el PCS solo escucha. El archivo EDS del fabricante del BMS dice qué significa cada byte." },
+        "alarm": { "title": "Celda muy caliente", "text": "Una celda del módulo 3 llega a 61 °C. El BMS envía al instante un mensaje de emergencia. El PCS reduce la corriente a 40 A." },
+        "recover": { "title": "Todo en orden", "text": "La celda se enfría. El BMS envía un mensaje de emergencia con el código de error 0x0000: el error ha desaparecido." }
+    },
+    "frames": {
+        "bootup": "El nodo 5 está en marcha",
+        "sdo-req": "¿Cuál es tu número de serie?",
+        "sdo-resp": "123456",
+        "nmt-start": "Nodo 5: pasa a operacional",
+        "heartbeat": "Nodo 5: operacional y vivo",
+        "tpdo": "812.4 V, 152.3 A, 68 %, celda más caliente 31 °C",
+        "emcy": "Emergencia: una celda está demasiado caliente",
+        "tpdo-low": "809.8 V, 40.0 A, 67 %, celda más caliente 58 °C",
+        "emcy-reset": "El error ha desaparecido"
+    },
+    "fields": {
+        "id-705": { "name": "Identificador 0x705", "note": "0x700 + nodo 5: el arranque y el heartbeat del nodo 5. 11 bits en el cable, mostrados aquí en 2 bytes." },
+        "id-605": { "name": "Identificador 0x605", "note": "0x600 + nodo 5: una petición SDO al nodo 5. 11 bits en el cable." },
+        "id-585": { "name": "Identificador 0x585", "note": "0x580 + nodo 5: una respuesta SDO del nodo 5. 11 bits en el cable." },
+        "id-000": { "name": "Identificador 0x000", "note": "NMT: el identificador más bajo, así que gana el bus frente a cualquier otra trama. Solo lo envía el maestro NMT." },
+        "id-185": { "name": "Identificador 0x185", "note": "0x180 + nodo 5: TPDO1, el primer objeto de datos de proceso que envía el nodo 5. 11 bits en el cable." },
+        "id-085": { "name": "Identificador 0x085", "note": "0x080 + nodo 5: el mensaje de emergencia del nodo 5. Su identificador bajo le permite ganar el bus frente a los PDO." },
+        "dlc-1": { "name": "DLC 1", "note": "Un byte de datos. El código de longitud de datos ocupa 4 bits en el cable, mostrados aquí en 1 byte." },
+        "dlc-2": { "name": "DLC 2", "note": "Dos bytes de datos." },
+        "dlc-6": { "name": "DLC 6", "note": "Seis bytes de datos, colocados según el mapeo de PDO del BMS (objeto 0x1A00)." },
+        "dlc-8": { "name": "DLC 8", "note": "Ocho bytes de datos: los mensajes SDO y de emergencia siempre tienen 8." },
+        "state-boot": { "name": "Estado 0x00", "note": "Arranque: el nodo 5 se ha iniciado y ahora está en preoperacional." },
+        "state-op": { "name": "Estado 0x05", "note": "Operacional. 0x7F sería preoperacional, 0x04 detenido." },
+        "sdo-upload": { "name": "Comando 0x40", "note": "Iniciar upload: envíame el valor de un objeto. \"Upload\" significa del nodo al cliente." },
+        "sdo-expedited": { "name": "Comando 0x43", "note": "Respuesta de upload, expedita: el valor va en esta trama y tiene 4 bytes." },
+        "index-1018": { "name": "Índice 0x1018", "note": "El byte bajo primero: objeto 0x1018, el objeto de identidad." },
+        "sub-4": { "name": "Subíndice 4", "note": "El número de serie. 1 es el ID del fabricante, 2 el código de producto, 3 la revisión." },
+        "reserved": { "name": "Reservado", "note": "Cuatro bytes a cero: una petición de lectura no lleva datos." },
+        "serial": { "name": "Número de serie", "note": "0x0001E240 = 123456, el byte bajo primero." },
+        "nmt-start": { "name": "Comando 0x01", "note": "Start remote node: pasa a operacional. 0x02 lo detiene, 0x81 lo reinicia." },
+        "nmt-node": { "name": "Nodo 5", "note": "El nodo que debe arrancar. 0 arrancaría todos los nodos del bus." },
+        "volt": { "name": "Tensión del pack", "note": "0x1FBC = 8124, en pasos de 0.1 V: 812.4 V. El byte bajo primero, como todos los números de CANopen." },
+        "amp": { "name": "Corriente del pack", "note": "0x05F3 = 1523, en pasos de 0.1 A: 152.3 A. En este BMS, positivo significa descarga." },
+        "soc": { "name": "Estado de carga", "note": "0x44 = 68 %." },
+        "tmax": { "name": "Celda más caliente", "note": "0x1F = 31 °C." },
+        "volt-low": { "name": "Tensión del pack", "note": "0x1FA2 = 8098: 809.8 V." },
+        "amp-low": { "name": "Corriente del pack", "note": "0x0190 = 400: 40.0 A. El PCS ha reducido la corriente." },
+        "soc-low": { "name": "Estado de carga", "note": "0x43 = 67 %." },
+        "tmax-hot": { "name": "Celda más caliente", "note": "0x3A = 58 °C: se está enfriando, pero sigue caliente." },
+        "err-4200": { "name": "Código de error 0x4200", "note": "El byte bajo primero: temperatura del equipo, dentro de la clase de errores de temperatura (0x4xxx)." },
+        "errreg-09": { "name": "Registro de error 0x09", "note": "El valor del objeto 0x1001: bit 0 (hay un error) y bit 3 (temperatura)." },
+        "emcy-maker": { "name": "Datos del fabricante", "note": "Cinco bytes que define el fabricante del BMS. Este envía módulo 3, celda 12 (0x0C) y 61 °C (0x3D)." },
+        "err-0000": { "name": "Código de error 0x0000", "note": "Error eliminado: ya no hay ningún error activo." },
+        "errreg-00": { "name": "Registro de error 0x00", "note": "No hay ningún bit de error activo." },
+        "emcy-maker-0": { "name": "Datos del fabricante", "note": "Todo a cero." },
+        "a-function": { "name": "Código de función", "note": "Los 4 bits altos. 0011 = 3: TPDO1, 0x180 en el identificador." },
+        "a-node": { "name": "ID de nodo", "note": "Los 7 bits bajos. 0000101 = 5: el BMS. Un bus tiene sitio para los nodos 1 a 127." }
+    },
+    "devices": {
+        "rack": "Rack de baterías",
+        "bms": "BMS",
+        "pcs": "PCS",
+        "ems": "Controlador del sitio"
+    },
+    "facts": {
+        "standard": "CAN: ISO 11898. CANopen: CiA 301 (EN 50325-4)",
+        "between": "BMS ↔ sistema de conversión de potencia, dentro de un sistema de baterías",
+        "transport": "Un bus CAN: dos hilos (CAN_H, CAN_L), 120 Ω en cada extremo",
+        "frames": "NMT · heartbeat · PDO · SDO · EMCY, cada uno con su propio identificador",
+        "speed": "Aquí, 500 kbit/s: una trama con 8 bytes de datos tarda unos 0.25 ms"
+    },
+    "tips": [
+        "Muchos fabricantes de baterías usan sus propios mensajes CAN, con sus propios identificadores y escalas, en lugar de CANopen. CANopen es una forma estándar habitual. Pide el archivo EDS del fabricante o su lista de mensajes CAN antes de conectar.",
+        "Dos nodos nunca deben enviar el mismo identificador. En CANopen, cada ID de nodo del bus debe ser único.",
+        "Vigila el heartbeat. Configura el tiempo de heartbeat del consumidor en el PCS (objeto 0x1016) algo más largo que el periodo de heartbeat del BMS (0x1017), para que un BMS en silencio detenga el PCS.",
+        "Pon una resistencia de 120 Ω en cada extremo del bus, y en ningún otro sitio. Sin ninguna, o con una de más, las tramas se rompen a medida que el cable es más largo."
+    ],
+    "points": {
+        "state": "Estado NMT",
+        "volt": "Tensión del pack",
+        "amp": "Corriente del pack",
+        "soc": "Estado de carga",
+        "tmax": "Celda más caliente"
+    },
+    "values": {
+        "preop": "preoperacional",
+        "operational": "operacional"
+    },
+    "anatomy": {
+        "cobid": "Un identificador: un código de función y un ID de nodo"
+    },
+    "timing": {
+        "title": "Lo que lleva el bus en dos segundos",
+        "note": "El TPDO1 sale cada 100 ms (su temporizador de eventos), el heartbeat cada 1000 ms. Un mensaje de emergencia sale una vez cuando aparece la falla, y otra vez cuando desaparece. El chip controlador CAN añade a cada trama el bit de inicio, el CRC, la ranura de confirmación y los bits de relleno; los bytes que se muestran aquí son los que ve el software.",
+        "tpdo": "TPDO1 · 0x185",
+        "heartbeat": "Heartbeat · 0x705",
+        "emcy": "EMCY · 0x085",
+        "every-100": "cada 100 ms",
+        "every-1000": "cada 1000 ms",
+        "on-fault": "una vez, con la falla"
+    }
+}

@@ -1,0 +1,96 @@
+{
+    "intro": "Bir elektrikli aracın ve bir DC hızlı şarj cihazının şarj sırasında nasıl konuştuğu. Mesajlar şarj kablosunun kontrol pilot hattı üzerinde bir powerline sinyali olarak, üstünde IPv6 ve TCP ile taşınır. Yönetim araçtadır: her adımı ve istediği akımı araç ister, şarj cihazı da verebildiğiyle yanıt verir.",
+    "steps": {
+        "plug": { "title": "Tak ve eşleş", "text": "Kontrol pilotta %5 doluluk oranı (duty cycle) dijital iletişim ister. Aracın ve şarj cihazının powerline modemleri birbirini bulur (SLAC). Sonra araç bağlantıdaki herkese, UDP 15118 portundan ff02::1'e, şarj cihazının IP adresini ve portunu sorar (SDP)." },
+        "session": { "title": "Oturum aç", "text": "TCP, ardından TLS. İkisi bir protokol sürümünde anlaşır ve şarj cihazı bir oturum açar." },
+        "limits": { "title": "Ödeme ve sınırlar", "text": "Sürücü şarj cihazında bir kartla öder. Araç ve şarj cihazı birbirine sınırlarını söyler: gerilim, akım ve güç." },
+        "prepare": { "title": "Kontrol ve ön şarj", "text": "Hiç akım akmadan önce şarj cihazı kablonun yalıtımını test eder. Sonra gerilimini bataryanın gerilimine yükseltir." },
+        "charge": { "title": "Şarj et", "text": "Araç kontaktörlerini kapatır ve akım ister. İstemeye devam eder, şarj cihazı da onu izler." },
+        "stop": { "title": "Durdur", "text": "%80'de araç önce şarjı, sonra oturumu bitirir." }
+    },
+    "frames": {
+        "cp": "Benimle dijital konuş",
+        "slac": "Kabloma hangi şarj cihazı bağlı?",
+        "sdp-req": "Neredesin? TCP üzerinden TLS istiyorum",
+        "sdp-res": "Buradayım: fe80::ff:fe00:a1, port 54321, TLS ile",
+        "tls": "Kim olduğunu kanıtla, sonra şifrele",
+        "app": "ISO 15118-2 ya da DIN 70121 konuşuyorum",
+        "setup": "Yeni oturum 4A1F09C27B3E8D15",
+        "payment": "Araç dışında ödeyeceğim: ExternalPayment",
+        "params": "500 V, 125 A, 50 kW verebilirim",
+        "cable-check": "Yalıtım iyi",
+        "pre-charge": "Çıkışını 396 V'a yükselt",
+        "power-on": "Başla: kontaktörlerim kapalı",
+        "current-demand": "Bana 120 A ver",
+        "stop": "Bitti: oturumu kapat"
+    },
+    "notes": {
+        "cp": "Bu hâlâ IEC 61851: %5 doluluk oranlı 1 kHz'lik bir kare dalga. %5 hiç akım sunmaz; \"dijital iletişim kullan\" demektir. Aracın powerline modemi uyanır.",
+        "slac": "SLAC (ISO 15118-3), bu kablonun öbür ucundaki şarj cihazını bulur. Bir otoparkta sinyaller kablolar arasında sızar; bu yüzden araç bir dizi sounding mesajı gönderir ve bunları duyan her şarj cihazı ne kadar güçlü geldiklerini bildirir. Araç en güçlüsünü CM_SLAC_MATCH.REQ ile seçer. O şarj cihazı CM_SLAC_MATCH.CNF ile, ikisine özel bir powerline ağının anahtarını göndererek yanıt verir.",
+        "tls": "Araç [fe80::ff:fe00:a1]:54321'e TCP açar, ardından TLS 1.2. Şarj cihazı sertifikasını gösterir; araç da onu elindeki V2G kök sertifikalarına göre denetler. Buradan itibaren her şey şifrelidir.",
+        "app": "Oturumdaki ilk mesaj, aracın konuştuğu protokolleri her birinin sürümü ve önceliğiyle listeler. Şarj cihazı supportedAppProtocolRes ile, OK_SuccessfulNegotiation ve seçtiği SchemaID'yi göndererek yanıt verir: 1, ISO 15118-2. Mesajı XML olarak deneme alanı gösteriyor.",
+        "setup": "Araç, EVCCID'si, yani modeminin MAC adresi (02-00-00-00-00-E1) ile SessionSetupReq gönderdi. Şarj cihazı yeni bir 8 baytlık SessionID, kendi EVSEID'si ve saatle yanıt verir. Bundan sonraki her mesaj başlığında SessionID'yi taşır.",
+        "payment": "Bundan önce ServiceDiscovery: şarj cihazı DC şarj ve iki ödeme yolu sundu: Contract (Plug & Charge) ve ExternalPayment. Araç ExternalPayment'ı seçer: sürücü bir kart ya da uygulamayla öder. Sonra şarj cihazı Finished diyene kadar AuthorizationReq'i tekrarlar.",
+        "params": "Araç sınırlarını ve şarj durumunu (%54) gönderdi. Şarj cihazı kendi sınırlarıyla yanıt verir: en fazla 500 V, 125 A ve 50 kW. Her değer 16 bitlik bir tam sayı, onun bir kuvveti ve bir birimdir; bu yüzden 50 kW, 5000 × 10^1 W olarak taşınır.",
+        "cable-check": "Araç kontrol pilotu C durumuna getirdi. Şarj cihazı DC kabloya bir test gerilimi uygular ve toprağa karşı yalıtımı ölçer. Bitirene kadar Ongoing, sonra EVSEIsolationStatus Valid ile Finished yanıtını verir.",
+        "pre-charge": "Batarya, aracın açık kontaktörlerinin arkasında 396 V'ta. Araç şarj cihazından çıkışını en fazla 2 A ile aynı gerilime yükseltmesini ister. Şarj cihazı mevcut gerilimiyle yanıt verir, 395 V: kontaktörleri ark olmadan kapatmaya yetecek kadar yakın.",
+        "power-on": "Araç kontaktörlerini kapattı. ChargeProgress Start: şarj cihazı artık akım verebilir.",
+        "current-demand": "Araç şarj durumuyla birlikte 120 A ister ve yanıt gelir gelmez bir sonraki isteği gönderir. Şarj cihazı her birine verdiğiyle yanıt verir: 398 V, 120 A. Kontrol araçtadır: batarya doldukça akımı değiştirir.",
+        "stop": "Önce ChargeProgress Stop ile PowerDeliveryReq: akım 0'a düşer ve araç kontaktörlerini açar. WeldingDetection, gerçekten açıldıklarını denetler. Sonra ChargingSession Terminate ile SessionStopReq oturumu bitirir."
+    },
+    "fields": {
+        "version": { "name": "V2GTP sürümü", "note": "Sürüm 0x01, ardından aynı baytın tersi, 0xFE. Alıcı başka bir değer taşıyan mesajı atar." },
+        "sdp-req": { "name": "Payload türü", "note": "0x9000: bir SDP isteği." },
+        "sdp-res": { "name": "Payload türü", "note": "0x9001: bir SDP yanıtı." },
+        "len-2": { "name": "Uzunluk", "note": "Ardından 2 bayt payload gelir. Başlığın kendisi her zaman 8 bayttır." },
+        "len-20": { "name": "Uzunluk", "note": "Ardından 0x14 = 20 bayt gelir: adres, port, güvenlik ve taşıma." },
+        "tls-req": { "name": "Güvenlik", "note": "0x00: araç TLS istiyor. 0x10, TLS olmadan demek olurdu." },
+        "tls-res": { "name": "Güvenlik", "note": "0x00: şarj cihazı TLS'i kabul ediyor." },
+        "tcp": { "name": "Taşıma", "note": "0x00: TCP." },
+        "ip-prefix": { "name": "IPv6 öneki", "note": "fe80::/64: yalnızca bu bağlantıda geçerli, link-local bir adres." },
+        "ip-id": { "name": "Arayüz kimliği", "note": "Şarj cihazının MAC adresinden (02-00-00-00-00-A1) üretilir: ortaya FF FE eklenir ve 0x02 biti ters çevrilir. Adresin tamamı fe80::ff:fe00:a1." },
+        "port": { "name": "TCP portu", "note": "0xD431 = 54321: şarj cihazının bu aracı beklediği yer." },
+        "a-urn": { "name": "URN", "note": "Bir uniform resource name: açılacak bir adres değil, sabit bir etiket." },
+        "a-body": { "name": "Kuruluş", "note": "iso: adın sahibi olan kuruluş." },
+        "a-standard": { "name": "Standart", "note": "15118: bir araç ile şebeke arasındaki iletişim." },
+        "a-part": { "name": "Bölüm", "note": "Bölüm 2: ağ ve uygulama mesajları." },
+        "a-year": { "name": "Yıl", "note": "2013, şemanın adındaki tarih. Standardın kendisi 2014'te yayımlandı." },
+        "a-schema": { "name": "Şema", "note": "MsgDef: mesaj tanımları. DIN 70121, urn:din:70121:2012:MsgDef kullanır." }
+    },
+    "devices": {
+        "car": "Araç",
+        "charger": "DC şarj cihazı",
+        "csms": "CSMS"
+    },
+    "facts": {
+        "standard": "Mesajlar için ISO 15118-2 (2014), powerline için ISO 15118-3. Sonraki nesil ISO 15118-20.",
+        "between": "Aracın kontrolörü (EVCC) → şarj cihazınınki (SECC). Araç sorar, şarj cihazı yanıt verir.",
+        "transport": "Kontrol pilot üzerinde HomePlug Green PHY, IPv6, UDP 15118 üzerinde SDP, ardından TCP",
+        "security": "TLS 1.2: şarj cihazı kendini bir sertifikayla kanıtlar. Plug & Charge, araçta bir sözleşme sertifikası ekler.",
+        "frames": "8 baytlık bir V2GTP başlığı içinde EXI (bitlere sıkıştırılmış XML)"
+    },
+    "tips": [
+        "Başarısız şarjların çoğu SLAC'ı hiç geçemez. Mesajlara bakmadan önce modemi, kontrol pilot kablolamasını ve şarj cihazının bildirdiği sinyal gücünü kontrol edin.",
+        "Her fiziksel değer bir tam sayı, onun bir kuvveti ve bir birimdir. Multiplier'ı okuyun: Multiplier 1 ile 5000, 5 kW değil 50 kW'tır.",
+        "CableCheck ya da Authorization gibi yavaş işler hemen EVSEProcessing Ongoing ile yanıtlanır. Araç yeniden sorar; yanıt için aracı bekleten bir şarj cihazı, aracın vazgeçmesine yol açar.",
+        "Birçok şarj cihazı aracın listesinden hâlâ DIN 70121'i seçer. urn:din:70121:2012:MsgDef'in seçildiği bir kayıt, Plug & Charge'ın neden hiç başlamadığını açıklar."
+    ],
+    "points": {
+        "session": "Oturum",
+        "soc": "Şarj durumu",
+        "voltage": "Şarj cihazı çıkışı",
+        "current": "İstenen akım"
+    },
+    "anatomy": {
+        "namespace": "supportedAppProtocol'ün taşıdığı hâliyle bir protokol sürümünün adı"
+    },
+    "playground": {
+        "file": "Aracın oturumdaki ilk mesajı, XML olarak yazılmış. Hatta, aynı içeriği birkaç düzine bayta sıkıştıran EXI olarak taşınır.",
+        "root": "Kök öğe. 2010 tarihli kendi namespace'i her sürümde aynıdır; böylece her şarj cihazı bu ilk mesajı okuyabilir.",
+        "iso": "İlk girdi: ISO 15118-2.",
+        "version": "Sürüm 2.0. Başka bir alt sürüme sahip bir şarj cihazı OK_SuccessfulNegotiationWithMinorDeviation ile yanıt verebilir.",
+        "schema-id": "Aracın bu girdiye verdiği bir numara. Şarj cihazı seçimini bununla belirtir.",
+        "priority": "1, aracın ilk tercihidir.",
+        "din": "İkinci girdi: daha eski DC protokolü DIN 70121. TLS'i ve Plug & Charge'ı yoktur."
+    }
+}

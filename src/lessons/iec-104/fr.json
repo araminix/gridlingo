@@ -1,0 +1,105 @@
+{
+    "intro": "La façon dont un RTU de poste ou de centrale rend compte à la salle de conduite sur un réseau IP ordinaire. Chaque valeur a une adresse (l'IOA), un type et un motif d'envoi. Le RTU répond quand on l'interroge, et prend la parole de lui-même quand quelque chose change.",
+    "steps": {
+        "connect": { "title": "Connexion", "text": "Le SCADA ouvre une connexion TCP vers le RTU sur le port 2404. Rien d'autre ne se passe pour l'instant." },
+        "start": { "title": "Lancer les données", "text": "Aucune donnée ne circule tant que le SCADA n'a pas envoyé STARTDT. Le RTU répond par STARTDT con." },
+        "ask": { "title": "Tout demander", "text": "Une interrogation générale demande au RTU la valeur actuelle de chacun de ses points." },
+        "values": { "title": "Les valeurs arrivent", "text": "Le RTU envoie ses mesures et l'état de ses disjoncteurs, puis annonce qu'il a terminé. Le SCADA connaît maintenant la centrale." },
+        "ack": { "title": "Acquitter", "text": "Le SCADA confirme les trames reçues. Sans cela, le RTU cesse d'émettre après 12 trames non confirmées." },
+        "trip": { "title": "Déclenchement", "text": "Personne n'a rien demandé : le RTU envoie le changement aussitôt, avec l'heure à laquelle il s'est produit." }
+    },
+    "frames": {
+        "tcp": "Ouvrir une connexion TCP vers le port 2404",
+        "startdt-act": "Démarre l'envoi des données, s'il te plaît",
+        "startdt-con": "OK, le transfert de données est lancé",
+        "gi-act": "Interrogation générale : envoie-moi tout",
+        "gi-con": "Confirmé, les valeurs arrivent",
+        "measured": "P = 4.82 MW, Q = 0.61 Mvar",
+        "breaker": "CB-1 est fermé",
+        "gi-term": "C'était tout",
+        "s-frame": "J'ai bien reçu tes trames 0 à 3",
+        "trip": "CB-1 s'est ouvert à 10:41:07.280"
+    },
+    "notes": {
+        "tcp": "Du TCP simple, pas encore d'octet IEC 104. Le RTU accepte la connexion et attend."
+    },
+    "fields": {
+        "start": { "name": "Début", "note": "Toute trame IEC 104 commence par 0x68." },
+        "len4": { "name": "Longueur", "note": "4 octets suivent : seulement le champ de contrôle." },
+        "len14": { "name": "Longueur", "note": "14 octets suivent." },
+        "len26": { "name": "Longueur", "note": "26 octets suivent." },
+        "len21": { "name": "Longueur", "note": "21 octets suivent." },
+        "startdt-act": { "name": "Contrôle · trame U", "note": "0x07 correspond à STARTDT act : démarrer le transfert de données." },
+        "startdt-con": { "name": "Contrôle · trame U", "note": "0x0B correspond à STARTDT con : le RTU accepte." },
+        "i-0-0": { "name": "Contrôle · trame I", "note": "Numéro d'émission 0, numéro de réception 0." },
+        "i-0-1": { "name": "Contrôle · trame I", "note": "Numéro d'émission 0, numéro de réception 1 : « J'ai bien reçu ta trame 0 ». Les numéros sont décalés d'un bit vers la gauche : 1 est donc envoyé sous la forme 02." },
+        "i-1-1": { "name": "Contrôle · trame I", "note": "Numéro d'émission 1, numéro de réception 1." },
+        "i-2-1": { "name": "Contrôle · trame I", "note": "Numéro d'émission 2, numéro de réception 1." },
+        "i-3-1": { "name": "Contrôle · trame I", "note": "Numéro d'émission 3, numéro de réception 1." },
+        "i-4-1": { "name": "Contrôle · trame I", "note": "Numéro d'émission 4, numéro de réception 1." },
+        "s-4": { "name": "Contrôle · trame S", "note": "0x01 signale une trame S. Numéro de réception 4 (envoyé sous la forme 08) : « J'ai bien tes trames 0 à 3 »." },
+        "type100": { "name": "Type 100", "note": "C_IC_NA_1 : commande d'interrogation." },
+        "type13": { "name": "Type 13", "note": "M_ME_NC_1 : une valeur mesurée en flottant 32 bits." },
+        "type3": { "name": "Type 3", "note": "M_DP_NA_1 : un point double, utilisé pour les disjoncteurs et les sectionneurs." },
+        "type31": { "name": "Type 31", "note": "M_DP_TB_1 : un point double avec horodatage." },
+        "vsq1": { "name": "Nombre", "note": "Un seul objet d'information." },
+        "vsq2": { "name": "Nombre", "note": "Deux objets, chacun avec sa propre adresse." },
+        "cot6": { "name": "Cause 6", "note": "Activation. Le second octet est l'adresse d'origine, ici 0." },
+        "cot7": { "name": "Cause 7", "note": "Activation confirmée." },
+        "cot10": { "name": "Cause 10", "note": "Fin d'activation : la réponse est complète." },
+        "cot20": { "name": "Cause 20", "note": "Envoyé en réponse à l'interrogation générale." },
+        "cot3": { "name": "Cause 3", "note": "Spontané : la valeur a changé, personne n'a rien demandé." },
+        "ca": { "name": "Adresse commune", "note": "Station 1. Deux octets, octet de poids faible en premier." },
+        "ioa0": { "name": "IOA 0", "note": "La commande vise toute la station, pas un seul point." },
+        "ioa1001": { "name": "IOA 1001", "note": "L'adresse de la puissance active : 0x0003E9, octet de poids faible en premier." },
+        "ioa1002": { "name": "IOA 1002", "note": "L'adresse de la puissance réactive." },
+        "ioa2001": { "name": "IOA 2001", "note": "L'adresse du disjoncteur CB-1 : 0x0007D1." },
+        "qoi20": { "name": "QOI 20", "note": "Interrogation générale : tous les groupes." },
+        "value-p": { "name": "Valeur", "note": "Un flottant 32 bits, octet de poids faible en premier : 4.82 (MW)." },
+        "value-q": { "name": "Valeur", "note": "0.61 (Mvar)." },
+        "qds": { "name": "Qualité", "note": "Bonne : aucun indicateur n'est levé." },
+        "diq-on": { "name": "État 2", "note": "ON : le disjoncteur est fermé. 1 vaut OFF ; 0 et 3 signifient « en manœuvre » ou « en défaut »." },
+        "diq-off": { "name": "État 1", "note": "OFF : le disjoncteur est ouvert." },
+        "cp56": { "name": "CP56Time2a", "note": "7.280 s, 41 min, 10 h, jeudi 12, novembre, (20)26. Aucun fuseau horaire n'y figure." }
+    },
+    "devices": {
+        "scada": "Maître SCADA",
+        "rtu": "RTU",
+        "inverter": "Onduleur PV",
+        "pv": "Champ PV",
+        "battery": "Batterie",
+        "breaker": "Disjoncteur CB-1"
+    },
+    "facts": {
+        "standard": "IEC 60870-5-104, édition 2 (2006)",
+        "between": "RTU ou passerelle → SCADA",
+        "transport": "TCP 2404",
+        "security": "TLS (IEC 62351-3), TCP 19998",
+        "frames": "I : données · S : acquittement · U : contrôle"
+    },
+    "tips": [
+        "Les deux côtés doivent s'accorder sur la taille des adresses : adresse commune sur 2 octets, IOA sur 3 octets. En cas de désaccord, on lit n'importe quoi, sans la moindre erreur.",
+        "Les horodatages ne portent aucun fuseau horaire, seulement un bit d'heure d'été. Mettez-vous d'accord sur UTC ou l'heure locale avant la mise en service.",
+        "Acquittez au moins toutes les 8 trames (w). Après 12 trames non confirmées (k), le RTU cesse d'émettre."
+    ],
+    "points": {
+        "p": "Puissance active",
+        "q": "Puissance réactive",
+        "cb": "Disjoncteur CB-1"
+    },
+    "values": {
+        "closed": "fermé",
+        "open": "ouvert"
+    },
+    "playground": {
+        "encoder": "Saisissez une valeur et voyez les quatre octets sous lesquels voyage un flottant IEC 104. IEC 104 les envoie octet de poids faible en premier (DCBA).",
+        "file": "La liste des points du RTU : ce que signifie chaque adresse. Le SCADA a besoin de la même liste, sinon il ne peut pas lire les valeurs.",
+        "common-address": "L'adresse de la station. Elle figure dans chaque trame.",
+        "ioa": "L'adresse de l'objet d'information : une par signal.",
+        "type": "La forme sous laquelle la valeur voyage : un flottant, sans horodatage.",
+        "scale": "Une valeur envoyée en flottant n'a pas besoin de mise à l'échelle. Les types normalisés et mis à l'échelle, si.",
+        "double": "Un point double : 2 bits pour ON, OFF, en manœuvre et en défaut.",
+        "spontaneous": "Quand elle change, elle est envoyée aussitôt, avec un horodatage.",
+        "time": "Notez par écrit l'horloge qu'utilisent les horodatages."
+    }
+}

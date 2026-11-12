@@ -1,0 +1,90 @@
+{
+    "intro": "La façon la plus simple de lire et d'écrire dans un équipement par Ethernet. Un équipement range ses données dans des registres numérotés de 16 bits. Un client demande certains registres par leur numéro et en reçoit le contenu. Rien dans le protocole ne dit ce que signifie un registre : c'est dans le manuel de l'équipement.",
+    "steps": {
+        "connect": { "title": "Connexion", "text": "Le contrôleur de centrale ouvre une connexion TCP vers l'onduleur sur le port 502. Modbus TCP n'a ni identification ni commande de démarrage : la connexion suffit." },
+        "read": { "title": "Lire la puissance", "text": "Le manuel place la puissance active au registre 40101. Sur le fil, c'est l'adresse 100, car le fil compte à partir de 0. La réponse fait 4 octets : un flottant 32 bits sur deux registres, 4820.5 kW." },
+        "limit": { "title": "Fixer une limite", "text": "Le gestionnaire de réseau demande moins de puissance. Le contrôleur écrit 3000 à l'adresse 200, la limite de puissance. L'onduleur répond par une copie exacte de la requête : cette copie veut dire « c'est fait »." },
+        "check": { "title": "Vérifier", "text": "Modbus ne signale jamais un changement de lui-même : le client doit redemander. Six secondes plus tard, la puissance est de 2998.7 kW." },
+        "mistake": { "title": "Une mauvaise adresse", "text": "Un nouveau script envoie le numéro du manuel, 40101, comme adresse. L'onduleur n'a aucun registre à cet endroit : il répond par une exception au lieu de données." }
+    },
+    "frames": {
+        "tcp": "Ouvrir une connexion TCP vers le port 502",
+        "read-req": "Envoie-moi les registres 100 et 101",
+        "read-resp": "Puissance active : 4820.5 kW",
+        "write-req": "Règle la limite de puissance à 3000 kW",
+        "write-resp": "C'est fait : la limite est de 3000 kW",
+        "check-req": "Renvoie-moi les registres 100 et 101",
+        "check-resp": "Puissance active : 2998.7 kW",
+        "wrong-req": "Envoie-moi les registres 40101 et 40102",
+        "exception": "Erreur 02 : ce registre n'existe pas"
+    },
+    "notes": {
+        "tcp": "Du TCP simple, pas encore d'octet Modbus. Beaucoup d'équipements n'acceptent que quelques connexions à la fois : un client garde donc sa connexion ouverte et la réutilise."
+    },
+    "fields": {
+        "tid-1": { "name": "Transaction ID 1", "note": "Un numéro choisi par le client. La réponse porte le même : le client peut ainsi les apparier." },
+        "tid-2": { "name": "Transaction ID 2", "note": "La requête suivante, le numéro suivant." },
+        "tid-3": { "name": "Transaction ID 3", "note": "La réponse à la requête 3 porte 3." },
+        "tid-4": { "name": "Transaction ID 4", "note": "Même une réponse d'erreur porte le numéro de la requête." },
+        "proto": { "name": "Protocol ID", "note": "0x0000 : Modbus. Il vaut toujours zéro." },
+        "len-6": { "name": "Longueur", "note": "6 octets suivent : l'unit ID et 5 octets de requête." },
+        "len-7": { "name": "Longueur", "note": "7 octets suivent." },
+        "len-3": { "name": "Longueur", "note": "3 octets suivent." },
+        "unit": { "name": "Unit ID 1", "note": "Choisit un équipement derrière une passerelle. Cet onduleur répond à 1." },
+        "fc03": { "name": "Fonction 03", "note": "0x03 : lire des holding registers." },
+        "fc06": { "name": "Fonction 06", "note": "0x06 : écrire un registre." },
+        "fc06-echo": { "name": "Fonction 06", "note": "La réponse à une écriture répète la requête octet pour octet." },
+        "fc83": { "name": "Fonction 83", "note": "0x83 = 0x03 + 0x80. Le bit de poids fort à 1 signifie : ceci est une erreur." },
+        "addr-100": { "name": "Adresse 100", "note": "0x0064 = 100 : le registre 40101 du manuel." },
+        "addr-200": { "name": "Adresse 200", "note": "0x00C8 = 200 : le registre 40201, la limite de puissance active." },
+        "addr-40101": { "name": "Adresse 40101", "note": "0x9CA5 = 40101 : le numéro du manuel, envoyé tel quel. Erreur : l'onduleur n'a rien à cet endroit." },
+        "qty-2": { "name": "Nombre", "note": "2 registres : une valeur de 32 bits." },
+        "count-4": { "name": "Nombre d'octets", "note": "4 octets de données suivent : 2 registres." },
+        "reg-100": { "name": "Registre 100", "note": "0xA400 : la moitié basse du flottant. Cet onduleur envoie le mot de poids faible en premier (CDAB)." },
+        "reg-101": { "name": "Registre 101", "note": "0x4596 : la moitié haute. Haute puis basse, 0x4596A400, vaut 4820.5 (kW)." },
+        "reg-100-later": { "name": "Registre 100", "note": "0x6B33 : la moitié basse." },
+        "reg-101-later": { "name": "Registre 101", "note": "0x453B : la moitié haute. 0x453B6B33 vaut 2998.7 (kW)." },
+        "limit-3000": { "name": "Valeur", "note": "0x0BB8 = 3000 (kW)." },
+        "code-02": { "name": "Exception 02", "note": "Illegal data address : le registre n'existe pas. 01 signifierait une fonction inconnue, 03 une valeur incorrecte." },
+        "a-table": { "name": "Table", "note": "4 : un holding register, lu avec la fonction 03. 3 désigne un input register (fonction 04), 1 une entrée discrète, 0 une coil." },
+        "a-number": { "name": "Numéro", "note": "0101 : le 101e registre. Les manuels comptent à partir de 1, le fil à partir de 0." }
+    },
+    "devices": {
+        "controller": "Contrôleur de centrale",
+        "inverter": "Onduleur INV-1",
+        "pv": "Champ PV",
+        "meter": "Compteur réseau"
+    },
+    "facts": {
+        "standard": "Modbus Application Protocol V1.1b3 et Modbus Messaging on TCP/IP V1.0b (Modbus Organization)",
+        "between": "Client (contrôleur de centrale, SCADA, enregistreur) → serveur (onduleur, compteur, batterie)",
+        "transport": "TCP 502",
+        "security": "Aucune. Quiconque atteint le port 502 peut lire et écrire. Modbus/TCP Security ajoute TLS sur le port 802.",
+        "frames": "Un en-tête MBAP de 7 octets, puis un code de fonction et ses données",
+        "since": "1979 sur liaisons série (Modicon), sur TCP depuis 1999"
+    },
+    "tips": [
+        "Vérifiez si le manuel compte les registres à partir de 0 ou de 1. Un décalage d'un registre lit la moitié d'une valeur et la moitié de la suivante, et le résultat peut sembler presque juste.",
+        "Vérifiez l'ordre des mots des valeurs 32 bits avec une valeur connue, comme la puissance affichée sur l'écran de l'onduleur. Beaucoup d'équipements envoient le mot de poids faible en premier (CDAB).",
+        "Beaucoup d'équipements n'acceptent que quelques connexions TCP. Un outil de test resté connecté peut bloquer le contrôleur de centrale.",
+        "Modbus n'a pas de mots de passe. Gardez le port 502 à l'intérieur du réseau de la centrale, et ne le rendez jamais accessible depuis Internet."
+    ],
+    "points": {
+        "p": "Puissance active",
+        "limit": "Limite de puissance active"
+    },
+    "anatomy": {
+        "register": "Un numéro de registre tiré d'un manuel, et l'adresse qui part sur le fil"
+    },
+    "playground": {
+        "encoder": "Cet onduleur envoie un flottant 32 bits mot de poids faible en premier (CDAB). Saisissez une valeur pour voir ses octets, et ce que ces mêmes octets signifient lus dans un autre ordre.",
+        "file": "La table des registres de l'onduleur, tirée de son manuel. Le contrôleur doit être configuré avec les mêmes adresses, les mêmes types et le même ordre des mots.",
+        "unit": "L'unit ID auquel répond l'onduleur.",
+        "offset": "Comment transformer un numéro de registre en adresse. Cherchez-le dans chaque manuel : certains comptent à partir de 0.",
+        "float": "Deux registres, un flottant, mot de poids faible en premier. Le contrôleur doit être réglé sur CDAB.",
+        "scaled": "Un entier avec un facteur d'échelle : 5001 signifie 50.01 Hz.",
+        "uint32": "Deux registres aussi, mot de poids faible en premier aussi.",
+        "limit": "Accessible en écriture : la limite que le contrôleur fixe à l'étape 3.",
+        "fallback": "Si le contrôleur cesse d'écrire pendant cette durée, l'onduleur revient à son réglage de repli. Une liaison perdue ne laisse alors pas la centrale bloquée sur une ancienne limite."
+    }
+}

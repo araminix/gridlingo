@@ -1,0 +1,125 @@
+{
+    "intro": "Merging unit, bir fiderin akım ve gerilim trafolarının hemen yanında durur. Onları saniyede 4000 kez ölçer ve her örnek setini proses veri yoluna bir Ethernet çerçevesi olarak yayınlar. Koruma röleleri abone olur ve trafolardan gelen bakır kablolar yerine bu örneklerle çalışır.",
+    "steps": {
+        "sync": { "title": "Senkronize et", "text": "Bir PTP saati, merging unit'teki ve röledeki zamanı yaklaşık bir mikrosaniye hassasiyetle ayarlar. Merging unit örneklerini bu saate göre alır: her saniyenin başında örnek 0." },
+        "sample": { "title": "Akış", "text": "Merging unit her 250 µs'de sekiz değer taşıyan bir çerçeve gönderir: üç faz akımı, nötr akımı, üç faz gerilimi ve nötr gerilimi. Her değer dalganın tek bir anıdır, rms değeri değildir." },
+        "gap": { "title": "Bir örnek kayboluyor", "text": "Çerçeveler gelmeye devam eder, her biri bir sonraki smpCnt ile. 1236'dan sonra 1238 gelir: 1237 numaralı çerçeve yolda kayboldu. Röle boşluğu görür. Tek bir eksik örneği kapatabilir; arka arkaya birkaç örnek eksikse onlara ihtiyaç duyan fonksiyonları bloke eder." },
+        "unsync": { "title": "Saat kayboldu", "text": "PTP saati arızalanır. Merging unit bir süre zamanı kendi osilatörüyle tutar, sonra smpSynch'i 0 yapar. Bu röle yalnızca bu merging unit'i kullanır; bu yüzden korumaya devam eder ve bir alarm verir. Bara ya da hat diferansiyeli gibi birkaç merging unit'i karşılaştıran korumalar bloke olurdu." },
+        "fault": { "title": "Arıza", "text": "F1'de A fazından toprağa kısa devre. Örnekler A fazında 2.8 kA ve nötrde akım gösterir. Rölenin aşırı akım fonksiyonu açar: merging unit'e bir GOOSE mesajı geri gönderir, merging unit de Q1'in açma kontağını kapatır." },
+        "open": { "title": "Kesici açılır", "text": "Arızadan 80 ms sonra Q1 açıktır. Örnekler neredeyse hiç akım göstermez ve röle açmasını sıfırlar." }
+    },
+    "frames": {
+        "ptp-sync": "Tam saat bu",
+        "sv-0": "Örnek 0: IA 531.57 A, VA 28 169.13 V …",
+        "sv-gap": "Örnek 1238 (1237 hiç gelmedi)",
+        "sv-unsync": "Örnek 2650, senkron değil",
+        "sv-fault": "Örnek 3127: IA −3796.73 A",
+        "goose-trip": "Q1'i aç!",
+        "trip-wire": "Q1'in açma bobinini enerjilendir",
+        "sv-open": "F1'de akım yok"
+    },
+    "notes": {
+        "ptp-sync": "Power profile ile PTP (IEC 61850-9-3), saniyede bir kez multicast olarak Sync gönderir. Her ağ anahtarı çerçevenin kendi içinde ne kadar beklediğini ekler; böylece her cihaz bunu düzeltebilir. PTP dersi bunu anlatıyor.",
+        "goose-trip": "Proses veri yolunda, röleden merging unit'e giden bir GOOSE mesajı. GOOSE dersi böyle bir mesajı parça parça açıyor.",
+        "trip-wire": "Bir ağ mesajı değil, bakır bir kablo. Bu merging unit'in, trafolardan gelen girişlerinin yanında kesiciye giden çıkışları da var.",
+        "sv-open": "Öncekiyle aynı çerçeve, smpCnt 3447 ile. IA, IB ve IC 0'a yakın: Q1 açıldı."
+    },
+    "fields": {
+        "dst": { "name": "Hedef", "note": "IEC 61850'nin sampled values için ayırdığı aralıktan bir multicast adresi (01-0C-CD-04-…). Her abone onu dinler." },
+        "src": { "name": "Kaynak", "note": "Merging unit'in kendi MAC adresi." },
+        "vlan": { "name": "VLAN etiketi", "note": "0x8100, ardından öncelik 4 ve proses veri yolunun VLAN'ı olan VLAN 20." },
+        "ethertype": { "name": "EtherType", "note": "0x88BA, sampled values demektir. Bu çerçevede IP de TCP de yoktur." },
+        "appid": { "name": "APPID", "note": "0x4000: 9-2 LE profilinin kullandığı aralığın (0x4000 ile 0x7FFF arası) ilk değeri." },
+        "length": { "name": "Uzunluk", "note": "APPID'den sona kadar 106 bayt." },
+        "reserved": { "name": "Ayrılmış", "note": "İki ayrılmış alan, burada sıfır." },
+        "savpdu": { "name": "savPdu", "note": "Etiket 0x60 mesajı başlatır. Uzunluğu da 0x60'tır: ardından 96 bayt gelir." },
+        "noasdu": { "name": "noASDU", "note": "1: bu çerçevede tek bir örnek seti (bir ASDU) var. Periyot başına 80 örnekte her örnek kendi çerçevesini alır." },
+        "seqasdu": { "name": "seqASDU", "note": "Etiket 0xA2: ASDU listesi, 91 bayt." },
+        "asdu": { "name": "ASDU", "note": "Etiket 0x30: tek bir örnek seti, 89 bayt." },
+        "svid": { "name": "svID", "note": "\"F1MUSV01\": SCL dosyasında belirlenen bu akışın adı. Röle bunu denetler." },
+        "smpcnt-0": { "name": "smpCnt 0", "note": "Örnek sayacı: 0, bu saniyenin ilk örneği. 3999'a kadar sayar, sonra yeniden 0'dan başlar." },
+        "smpcnt-1238": { "name": "smpCnt 1238", "note": "0x04D6 = 1238. Rölenin aldığı son çerçeve 1236'ydı: 1237 numaralı örnek eksik." },
+        "smpcnt-2650": { "name": "smpCnt 2650", "note": "0x0A5A = 2650. Merging unit hâlâ 0'dan 3999'a sayıyor, ama kendi osilatörüyle: 0 artık bir saniyenin başına denk gelmiyor." },
+        "smpcnt-3127": { "name": "smpCnt 3127", "note": "0x0C37 = 3127." },
+        "confrev": { "name": "confRev 1", "note": "Konfigürasyon revizyonu. Rölenin kurulduğu revizyonla aynı olmalıdır." },
+        "synch-1": { "name": "smpSynch 1", "note": "Senkron: örnekler ortak saate göre alınıyor." },
+        "synch-0": { "name": "smpSynch 0", "note": "Senkron değil. Bu akışı başkalarıyla birleştiren bir röle, örneklerin aynı anda alındığından emin olamaz." },
+        "seqdata": { "name": "seqData", "note": "Etiket 0x87, 64 bayt: her birinin ardından 4 bayt kalite gelen, 4 baytlık sekiz değer." },
+        "ia": { "name": "IA", "note": "0x00081C72 = 531 570 mA: 531.57 A. Bir sayım 1 mA'dir." },
+        "ib": { "name": "IB", "note": "0xFFF96344 = −433 340 mA: −433.34 A. Değerler işaretlidir: FF… negatif bir sayıdır." },
+        "ic": { "name": "IC", "note": "−98.23 A." },
+        "in": { "name": "IN", "note": "Nötr akımı: 0. Sağlıklı bir fiderde IA + IB + IC sıfırdır." },
+        "va": { "name": "VA", "note": "0x002AFB91 = 2 816 913 × 10 mV: 28 169.13 V. A fazı dalgasının tepesinde (34.5 kV ÷ √3 × √2). Bir sayım 10 mV'tur." },
+        "vb": { "name": "VB", "note": "−14 084.57 V." },
+        "vc": { "name": "VC", "note": "−14 084.56 V." },
+        "vn": { "name": "VN", "note": "Nötr gerilimi: 0. Sağlıklı bir şebekede VA + VB + VC sıfırdır." },
+        "q": { "name": "Kalite", "note": "İyi: hiçbir bayrak işaretli değil. En düşük iki bit geçerliliği verir: 01 geçersiz, 11 şüpheli demektir." },
+        "x-ia": { "name": "IA", "note": "A fazı akımı: ilk çerçevedeki gibi, işaretli bir mA sayımı." },
+        "x-ib": { "name": "IB", "note": "B fazı akımı, mA cinsinden." },
+        "x-ic": { "name": "IC", "note": "C fazı akımı, mA cinsinden." },
+        "x-in": { "name": "IN", "note": "Nötr akımı, mA cinsinden: fider sağlıklıyken 0." },
+        "x-va": { "name": "VA", "note": "A fazı gerilimi: işaretli bir 10 mV sayımı." },
+        "x-vb": { "name": "VB", "note": "B fazı gerilimi, 10 mV cinsinden." },
+        "x-vc": { "name": "VC", "note": "C fazı gerilimi, 10 mV cinsinden." },
+        "x-vn": { "name": "VN", "note": "Nötr gerilimi, 10 mV cinsinden: şebeke sağlıklıyken 0." },
+        "ia-f": { "name": "IA", "note": "0xFFC61104 = bu anda −3796.73 A. Bu, 2.8 kA rms eder; yük akımının yedi katı." },
+        "ib-f": { "name": "IB", "note": "−83.61 A: B fazı hâlâ yükünü taşıyor." },
+        "ic-f": { "name": "IC", "note": "526.32 A: C fazı hâlâ yükünü taşıyor." },
+        "in-f": { "name": "IN", "note": "−3354.02 A. Üç fazın toplamı artık sıfır değil: akım topraktan akıyor." },
+        "va-f": { "name": "VA", "note": "0xFFFA62AA = −3679.58 V: A fazının bu anda göstermesi gerekenin dörtte biri. Arıza A fazında." },
+        "vb-f": { "name": "VB", "note": "−13 441.15 V." },
+        "vc-f": { "name": "VC", "note": "28 159.48 V." },
+        "vn-f": { "name": "VN", "note": "11 038.75 V: artık sıfır değil." }
+    },
+    "devices": {
+        "ctvt": "F1'in AT · GT'si",
+        "q1": "Q1 kesicisi",
+        "mu": "F1 MU",
+        "switch": "Ağ anahtarı",
+        "relay": "F1 PROT",
+        "clock": "PTP saati"
+    },
+    "facts": {
+        "standard": "IEC 61850-9-2, 9-2 LE profiliyle (bugün IEC 61869-9)",
+        "between": "Merging unit → koruma röleleri, sayaçlar ve kaydediciler",
+        "transport": "Proses veri yolunda Ethernet multicast, IP yok",
+        "frames": "Tek bir akış, istek yok, yanıt yok: 50 Hz'te saniyede 4000 çerçeve, 60 Hz'te 4800",
+        "speed": "Her merging unit için yaklaşık 5 Mbit/s"
+    },
+    "tips": [
+        "Röle svID'yi, confRev'i, APPID'yi ve hedef MAC'i denetler. Biri kendi ayarından farklıysa akışı atar ve koruması kör kalır.",
+        "Ağ anahtarı portu başına akışları sayın. Her 9-2 LE akışı yaklaşık 5 Mbit/s tutar; her akışı her cihaza basan bir port dolar.",
+        "Yeni merging unit'ler IEC 61869-9'u izler: saniyede 4800 örnek, çerçeve başına iki ASDU. Röle de aynı profili beklemelidir.",
+        "Edition 2'de smpSynch 2, GPS gibi global bir saat, 1 ise yerel bir saat demektir. Devreye almadan önce rölelerinizin neyi kabul ettiğini denetleyin."
+    ],
+    "points": {
+        "smpcnt": "Örnek sayacı",
+        "synch": "Senkron",
+        "ia": "A fazı akımı, bu örnek"
+    },
+    "values": {
+        "gap": "1238 (1237 eksik)"
+    },
+    "timing": {
+        "title": "Periyot başına 80 örnek",
+        "note": "50 Hz'te bir periyot 20 ms sürer. Merging unit onu her 250 µs'de bir, 80 kez örnekler ve her örneği kendi çerçevesinde gönderir. Röle dalgayı bu basamaklardan yeniden kurar.",
+        "va": "VA, örneklendiği hâliyle",
+        "frames": "SV çerçeveleri",
+        "smp0": "smpCnt 0",
+        "smp40": "smpCnt 40"
+    },
+    "singleLine": {
+        "title": "34.5 kV baranın tek hat şeması",
+        "bus": "34.5 kV · A barası",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "açık",
+        "fault": "arıza · 2.8 kA",
+        "station": "İstasyon veri yolu · Ethernet",
+        "process": "Proses veri yolu · Ethernet",
+        "f1": "F1 · Havai hat",
+        "f2": "F2 · İç ihtiyaç"
+    },
+    "playground": {
+        "scl": "Proses veri yolunun SCL dosyası. F1MUMU01'i açın: MSVCB01 kontrol bloğu PhsMeas1 veri setini 01-0C-CD-04-00-01'e gönderir. TCTR1.Amp.sVC, bir sayımın neden 1 mA olduğunu söyler. F1PROT'ta PTOC1'in girişleri, rölenin neye abone olduğunu gösterir."
+    }
+}

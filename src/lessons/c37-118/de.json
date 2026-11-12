@@ -1,0 +1,116 @@
+{
+    "intro": "Eine Phasor Measurement Unit (PMU) misst Spannung und Strom als Zeiger: die Amplitude der Sinuswelle und ihren Winkel gegenüber einer idealen 50-Hz-Welle, die zu jeder UTC-Sekunde beginnt. Ihre Uhr kommt von GPS, also hat jeder Wert einen genauen Zeitstempel. Ein Konzentrator (PDC) sammelt die Datenströme vieler PMUs und ordnet sie nach der Zeit, um das ganze Netz in einem Augenblick zu sehen.",
+    "steps": {
+        "connect": { "title": "Verbinden", "text": "Der PDC in der Leitstelle baut eine TCP-Verbindung zur PMU auf Port 4712 auf. Die PMU sendet nichts, bis sie gefragt wird." },
+        "config": { "title": "Konfiguration anfordern", "text": "Datenframes tragen nur Zahlen: keine Namen, keine Einheiten. Deshalb fordert der PDC zuerst Konfigurationsframe 2 (CFG-2) an: welche Werte kommen, in welchem Format, mit welcher Rate." },
+        "start": { "title": "Datenstrom starten", "text": "Befehl 2 schaltet die Datenframes ein. Die PMU sendet sie, bis der PDC Befehl 1 sendet oder die Verbindung schließt." },
+        "stream": { "title": "50 Frames pro Sekunde", "text": "Alle 20 ms ein Datenframe: Zeitstempel, Status, zwei Zeiger und die Frequenz. In 20 ms haben sich beide Winkel um +0.144° gedreht, weil das Netz mit 50.020 Hz läuft, etwas schneller als die 50-Hz-Referenz." },
+        "event": { "title": "Ein Generator fällt aus", "text": "Irgendwo im Netz fällt ein großer Generator aus. Die Frequenz sinkt: 49.946 Hz, mit −0.12 Hz pro Sekunde. Alle PMUs stempeln auf dieselbe GPS-Sekunde, also kann der PDC ihre Werte Abtastwert für Abtastwert vergleichen." }
+    },
+    "frames": {
+        "tcp": "TCP-Verbindung zu Port 4712 aufbauen",
+        "cmd-cfg": "Schick mir deine Konfiguration (CFG-2)",
+        "cfg2": "Eine PMU, 2 Zeiger als Gleitkommazahlen, 50 Frames pro Sekunde",
+        "cmd-on": "Mit dem Senden von Daten beginnen",
+        "data-0": "V1 89.120 kV bei −12.400°, 50.020 Hz",
+        "data-20": "20 ms später: V1 bei −12.256°",
+        "data-event": "Frequenz 49.946 Hz, fällt mit 0.12 Hz/s"
+    },
+    "notes": {
+        "tcp": "Reines TCP. Befehle und Daten können sich diese eine Verbindung teilen, wie hier. Eine PMU kann ihre Daten auch über UDP senden, meist an Port 4713, was auch Multicast an mehrere PDCs erlaubt."
+    },
+    "fields": {
+        "sync-cmd": { "name": "SYNC", "note": "0xAA beginnt jeden Frame. 0x41: Frame-Typ 4 (ein Befehl), Version 1." },
+        "sync-cfg2": { "name": "SYNC", "note": "0x31: Frame-Typ 3 (Konfigurationsframe 2), Version 1." },
+        "sync-data": { "name": "SYNC", "note": "0x01: Frame-Typ 0 (ein Datenframe), Version 1." },
+        "size-18": { "name": "FRAMESIZE", "note": "18 Bytes: der ganze Frame, mit Prüfsumme." },
+        "size-94": { "name": "FRAMESIZE", "note": "94 Bytes." },
+        "size-42": { "name": "FRAMESIZE", "note": "42 Bytes." },
+        "idcode": { "name": "IDCODE", "note": "Datenstrom 7. Ein Befehl trägt den Datenstrom, für den er gilt; jeder andere Frame trägt seinen eigenen." },
+        "soc-06": { "name": "SOC", "note": "Sekunden seit 1970-01-01 UTC: 0x6AF597C2 = 12. November 2026, 10:41:06." },
+        "soc-07": { "name": "SOC", "note": "0x6AF597C3 = 10:41:07 UTC." },
+        "soc-12": { "name": "SOC", "note": "0x6AF597C8 = 10:41:12 UTC." },
+        "tq-0": { "name": "Zeitqualität", "note": "0: Die Uhr ist auf UTC synchronisiert, und keine Schaltsekunde steht an. Fällt GPS aus, sagt dieser Code, wie weit die Uhr danebenliegen kann." },
+        "frac-954": { "name": "FRACSEC", "note": "0x0E8E90 = 954 000 µs: 10:41:06.954." },
+        "frac-961": { "name": "FRACSEC", "note": "0x0EA9E8 = 961 000 µs: 10:41:06.961." },
+        "frac-970": { "name": "FRACSEC", "note": "0x0ECD10 = 970 000 µs: 10:41:06.970." },
+        "frac-0": { "name": "FRACSEC", "note": "0: genau auf die Sekunde. Das ist der Zeitpunkt der Messung, nicht der, an dem der Frame hinausging." },
+        "frac-20": { "name": "FRACSEC", "note": "0x004E20 = 20 000 µs: 20 ms nach der Sekunde, einen Frame später." },
+        "frac-460": { "name": "FRACSEC", "note": "0x0704E0 = 460 000 µs: 10:41:12.460." },
+        "cmd-5": { "name": "CMD 5", "note": "Konfigurationsframe 2 senden. Andere Befehle: 1 stoppt die Daten, 2 startet sie, 3 fordert den Header-Frame an, 4 CFG-1." },
+        "cmd-2": { "name": "CMD 2", "note": "Die Datenframes einschalten." },
+        "chk": { "name": "CHK", "note": "CRC-CCITT über alle Bytes davor: Polynom 0x1021, Startwert 0xFFFF. Ein Frame mit falscher Prüfsumme wird verworfen." },
+        "timebase": { "name": "TIME_BASE", "note": "1 000 000 (0x0F4240): FRACSEC zählt Millionstel Sekunden." },
+        "numpmu": { "name": "NUM_PMU", "note": "1 PMU in diesem Datenstrom. Ein PDC, der viele PMUs weiterleitet, listet sie hier alle auf, und seine Datenframes tragen für jede einen Block." },
+        "stn": { "name": "STN", "note": "Der Stationsname: ALPHA PMU1." },
+        "pad": { "name": "Auffüllung", "note": "Leerzeichen: Jeder Name in CFG-2 ist genau 16 Zeichen lang." },
+        "pmuid": { "name": "IDCODE", "note": "Die ID der Daten dieser PMU: 7." },
+        "format": { "name": "FORMAT", "note": "0x000B: Zeiger als Gleitkommazahlen in Polarform (Betrag und Winkel), FREQ und DFREQ ebenfalls als Gleitkommazahlen." },
+        "counts": { "name": "PHNMR · ANNMR · DGNMR", "note": "2 Zeiger, 0 Analogwerte, 0 digitale Statuswörter. Zusammen mit FORMAT legt das die Größe jedes Datenframes fest." },
+        "chnam-v": { "name": "CHNAM", "note": "Der Name von Zeiger 1: V1 POS SEQ, die Spannung im Mitsystem." },
+        "chnam-i": { "name": "CHNAM", "note": "Zeiger 2: I1 POS SEQ, der Strom im Mitsystem." },
+        "phunit-v": { "name": "PHUNIT", "note": "Erstes Byte 0: Zeiger 1 ist eine Spannung. Die anderen 3 Bytes skalieren 16-Bit-Ganzzahlen (300 000 × 10⁻⁵ V pro Bit); bei Gleitkommazahlen werden sie ignoriert." },
+        "phunit-i": { "name": "PHUNIT", "note": "Erstes Byte 1: Zeiger 2 ist ein Strom. 3 000 × 10⁻⁵ A pro Bit, bei Gleitkommazahlen ebenfalls ungenutzt." },
+        "fnom": { "name": "FNOM", "note": "Bit 0 gesetzt: ein 50-Hz-Netz. Gelöscht würde es 60 Hz bedeuten." },
+        "cfgcnt": { "name": "CFGCNT", "note": "3: Die Konfiguration der PMU wurde dreimal geändert. Der PDC vergleicht den Wert, um zu wissen, ob seine Kopie aktuell ist." },
+        "rate": { "name": "DATA_RATE", "note": "50 Frames pro Sekunde: einer alle 20 ms." },
+        "stat": { "name": "STAT", "note": "0x0000: Daten gut, PMU synchron mit UTC, nach Zeitstempel sortiert, kein Trigger, keine Konfigurationsänderung angekündigt." },
+        "v1-mag-0": { "name": "V1 Betrag", "note": "89 120 V, eine Gleitkommazahl. Leiter gegen Sternpunkt: etwa 154 kV zwischen den Leitern." },
+        "v1-ang-0": { "name": "V1 Winkel", "note": "−0.21642 rad = −12.400°, gegenüber der 50-Hz-Referenzwelle." },
+        "i1-mag-0": { "name": "I1 Betrag", "note": "412.0 A." },
+        "i1-ang-0": { "name": "I1 Winkel", "note": "−0.54454 rad = −31.200°." },
+        "freq": { "name": "FREQ", "note": "50.020 Hz, als Gleitkommazahl." },
+        "dfreq-0": { "name": "DFREQ", "note": "Die Frequenzänderungsrate: 0.000 Hz/s." },
+        "v1-mag-20": { "name": "V1 Betrag", "note": "89 118 V." },
+        "v1-ang-20": { "name": "V1 Winkel", "note": "−12.256°: In 20 ms hat er sich um +0.144° gedreht." },
+        "i1-mag-20": { "name": "I1 Betrag", "note": "412.3 A." },
+        "i1-ang-20": { "name": "I1 Winkel", "note": "−31.056°: ebenfalls +0.144°." },
+        "v1-mag-ev": { "name": "V1 Betrag", "note": "88 870 V." },
+        "v1-ang-ev": { "name": "V1 Winkel", "note": "−15.620°." },
+        "i1-mag-ev": { "name": "I1 Betrag", "note": "455.0 A: Die Leitung trägt jetzt mehr Leistung." },
+        "i1-ang-ev": { "name": "I1 Winkel", "note": "−27.900°." },
+        "freq-ev": { "name": "FREQ", "note": "49.946 Hz: unter 50 Hz, weil dem Netz ein Generator fehlt." },
+        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s: Die Frequenz fällt." }
+    },
+    "devices": {
+        "gps": "GPS-Uhr",
+        "bay": "154-kV-Leitungsfeld",
+        "pmu": "PMU 1",
+        "pdc": "PDC",
+        "pmu2": "PMU 2",
+        "wams": "Weitbereichsüberwachung"
+    },
+    "facts": {
+        "standard": "IEEE C37.118.2-2011 (die Frames); die Messung selbst: IEC/IEEE 60255-118-1",
+        "between": "PMU → PDC, PDC → PDC und Anwendungen",
+        "transport": "TCP 4712 für Befehle und oft auch Daten; UDP 4713 für Daten",
+        "security": "Keine: nur ein CRC. Ein getrenntes Netz oder ein VPN verwenden. IEC 61850-90-5 ist die abgesicherte Alternative.",
+        "speed": "10 bis 50 Frames pro Sekunde in einem 50-Hz-Netz. Zeit auf etwa 1 µs genau zu UTC: 1 µs sind 0.018° bei 50 Hz."
+    },
+    "tips": [
+        "Datenframes tragen keine Namen und keine Einheiten. Ändert sich die Konfiguration der PMU und behält der PDC die alte CFG-2, liest er falsche Werte ohne Fehlermeldung. STAT-Bit 10 warnt vor einer Änderung: CFG-2 dann neu lesen.",
+        "Die Zeitqualität prüfen, bevor man einem Winkel traut. Fällt GPS aus, wird STAT-Bit 13 gesetzt, und die Winkel driften: 1 ms Uhrfehler sind 18° bei 50 Hz.",
+        "Der IDCODE muss auf beiden Seiten übereinstimmen. Ein PDC, der für Datenstrom 7 eingerichtet ist, ignoriert Frames mit einer anderen Nummer.",
+        "Winkel sind nur beim selben Zeitstempel vergleichbar. Ein PDC wartet eine feste Zeit auf verspätete Frames: zu kurz, und er verwirft Daten; zu lang, und jede Anzeige hinkt hinterher."
+    ],
+    "points": {
+        "rate": "Frames pro Sekunde",
+        "v1": "Spannung V1",
+        "i1": "Strom I1",
+        "freq": "Frequenz"
+    },
+    "timing": {
+        "title": "Jeder Frame hängt an der UTC-Sekunde",
+        "note": "Die PMU misst zu festen Zeitpunkten: 0, 20, 40 ms … nach jeder UTC-Sekunde, wie ihre GPS-Uhr sie markiert. Der Frame geht etwas später hinaus, hier nach 30 ms. Der Zeitstempel ist der Moment der Messung, so kann ein PDC PMUs abgleichen, deren Frames zu unterschiedlichen Zeiten ankommen.",
+        "utc": "UTC (GPS)",
+        "measured": "Gemessen",
+        "sent": "An den PDC gesendet",
+        "pps": "1 PPS: eine neue Sekunde",
+        "frac-0": "FRACSEC 0",
+        "frac-20": "FRACSEC 20000",
+        "latency": "+30 ms"
+    },
+    "playground": {
+        "encoder": "C37.118 sendet Gleitkommazahlen mit dem höchstwertigen Byte zuerst (ABCD). 89120 ist der Betrag von V1 im ersten Datenframe: 47 AE 10 00."
+    }
+}

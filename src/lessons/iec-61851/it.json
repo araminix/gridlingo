@@ -1,0 +1,71 @@
+{
+    "intro": "Il control pilot (CP) è un filo presente in ogni cavo di ricarica. La colonnina vi applica una tensione e l'auto la abbassa con delle resistenze. Dal livello, entrambe le parti sanno se un'auto è collegata e se vuole energia. Un'onda quadra a 1 kHz sullo stesso filo dice all'auto quanta corrente può prelevare.",
+    "steps": {
+        "plug": { "title": "Collega", "text": "Prima che la spina entri, la colonnina tiene il CP a +12 V: stato A. La resistenza dell'auto lo abbassa a +9 V: stato B. La colonnina legge anche la portata del cavo dal pin PP." },
+        "offer": { "title": "Offri corrente", "text": "La colonnina avvia un'onda quadra a 1 kHz sul CP. La quota di tempo in cui è alta, il duty cycle, è la corrente che l'auto può prelevare. La casa consente 24 A, quindi la colonnina da 32 A offre 24 A: 40 %." },
+        "charge": { "title": "Ricarica", "text": "L'auto inserisce una seconda resistenza: il CP scende a +6 V, stato C. Solo ora la colonnina chiude il suo contattore. L'auto preleva fino a 24 A su ogni fase." },
+        "reduce": { "title": "Meno corrente", "text": "La casa ha bisogno della sua potenza altrove. Il suo gestore dell'energia avvisa la colonnina, che abbassa il duty cycle al 10 %: 6 A. L'auto ha 5 s per adeguarsi." },
+        "stop": { "title": "Stop", "text": "La batteria è piena. L'auto apre il suo interruttore: il CP torna a +9 V, stato B. La colonnina apre il contattore." },
+        "unplug": { "title": "Scollega", "text": "La spina esce. Il CP torna a +12 V, stato A, e la colonnina ferma l'onda quadra." }
+    },
+    "frames": {
+        "b1": "Un'auto è collegata",
+        "pp": "Questo cavo porta fino a 32 A",
+        "pwm": "Puoi prelevare 24 A",
+        "c": "Pronta: voglio energia",
+        "contactor": "Corrente inserita",
+        "limit": "Limita l'auto a 6 A",
+        "pwm-10": "Ora solo 6 A",
+        "b2": "Ho finito",
+        "open": "Corrente disinserita",
+        "a": "L'auto se n'è andata"
+    },
+    "notes": {
+        "b1": "La colonnina alimenta +12 V attraverso una resistenza da 1 kΩ. L'auto collega 2.74 kΩ tra CP e terra di protezione (PE), dietro un diodo, e la tensione scende a +9 V. B1 indica lo stato B con tensione continua; B2 è lo stesso stato con l'onda quadra.",
+        "pp": "Il proximity pilot (PP) non è un segnale. È una resistenza nella spina del cavo, tra PP e PE, e il suo valore indica la portata del cavo: 1.5 kΩ sono 13 A, 680 Ω sono 20 A, 220 Ω sono 32 A, 100 Ω sono 63 A.",
+        "pwm": "Un periodo dura 1 ms. Il CP sta a +9 V per il 40 % del periodo (0.4 ms) e a −12 V per il resto. Tra il 10 % e l'85 %, la corrente è il duty cycle × 0.6 A: 40 × 0.6 = 24 A.",
+        "c": "L'auto chiude il suo interruttore S2 e aggiunge 1.3 kΩ in parallelo ai 2.74 kΩ. Il livello alto dell'onda quadra scende a +6 V. Con 270 Ω scenderebbe invece a +3 V: stato D, che richiede ventilazione.",
+        "contactor": "Non è un segnale sul CP. Il contattore della colonnina collega L1, L2, L3 e N all'auto, e il caricatore di bordo dell'auto trasforma l'AC in DC per la batteria.",
+        "limit": "Non è IEC 61851: un gestore dell'energia parla Modbus, OCPP o chiude un contatto. L'auto non vede mai questo messaggio, solo il nuovo duty cycle.",
+        "pwm-10": "10 × 0.6 = 6 A, la corrente più bassa che un duty cycle può offrire. L'auto deve ridurre la corrente entro 5 s.",
+        "b2": "L'auto apre S2 e il livello alto torna a +9 V. Un'auto fatta bene riduce prima la corrente, così il contattore non si apre sotto carico.",
+        "open": "Nello stato B la colonnina non deve erogare energia, quindi apre il contattore. L'onda quadra continua: l'auto potrebbe chiedere di nuovo energia.",
+        "a": "Niente abbassa più il CP: +12 V, stato A. La colonnina ferma l'onda quadra (A1) e aspetta la prossima auto."
+    },
+    "fields": {},
+    "devices": {
+        "car": "Auto",
+        "charger": "Colonnina",
+        "ems": "Casa · gestore energia"
+    },
+    "facts": {
+        "standard": "IEC 61851-1, edizione 3 (2017)",
+        "between": "Colonnina (EVSE) ↔ auto, su ogni spina Tipo 1, Tipo 2 e CCS",
+        "transport": "Un filo, CP, rispetto alla terra di protezione: ±12 V e un'onda quadra a 1 kHz",
+        "security": "Nessuna. È un segnale analogico dentro il cavo.",
+        "frames": "Stati A +12 V · B +9 V · C +6 V · D +3 V · E 0 V · F −12 V",
+        "speed": "1 kHz. L'auto segue un nuovo duty cycle entro 5 s."
+    },
+    "tips": [
+        "Controlla anche il livello basso. Un'onda quadra che non arriva a −12 V significa che il diodo dell'auto manca o è in corto, e la colonnina non deve inserirsi.",
+        "Il 5 % non è una corrente. Significa \"prima parliamo in digitale\" (ISO 15118): il limite arriva allora dai messaggi, non dal duty cycle.",
+        "Anche il cavo limita la corrente. Con un cavo da 20 A (680 Ω), una colonnina da 32 A offre al massimo 20 A: un duty cycle del 33.3 %.",
+        "Lo stato D (+3 V) richiede ventilazione. Una colonnina senza ventilatore per il locale non deve caricare nello stato D. E (0 V) è un corto o mancanza di alimentazione; F (−12 V) significa che la colonnina non è disponibile."
+    ],
+    "points": {
+        "state": "Stato CP",
+        "cable": "Portata del cavo",
+        "offer": "Corrente offerta",
+        "drawn": "Corrente prelevata"
+    },
+    "timing": {
+        "title": "Il control pilot, 3 ms per ogni stato",
+        "note": "Ogni riga è la tensione del CP: −12 V in basso, +12 V in alto (livello = (V + 12) / 24). L'onda quadra si ripete ogni 1 ms. Il suo duty cycle è la corrente: 40 % sono 24 A, 10 % sono 6 A. Oltre l'85 %, la corrente è (duty − 64) × 2.5 A, fino a 80 A al 96 %. Il 5 % richiede la comunicazione digitale. Il livello basso resta a −12 V, perché il diodo dell'auto lo blocca.",
+        "a": "A · nessuna auto",
+        "b1": "B1 · auto",
+        "b2": "B2 · 40 %",
+        "c2": "C2 · 40 %",
+        "c2-low": "C2 · 10 %",
+        "digital": "B2 · 5 %"
+    }
+}

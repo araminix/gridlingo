@@ -1,0 +1,86 @@
+{
+    "intro": "PRP envoie chaque trame deux fois, sur deux réseaux séparés : le LAN A et le LAN B. Le récepteur garde la copie qui arrive la première et jette l'autre. Quand un réseau tombe, l'autre copie arrive quand même : rien n'est perdu, et rien n'attend que le réseau se répare. HSR fait la même chose sur un anneau.",
+    "steps": {
+        "two": { "title": "Deux réseaux", "text": "Le relais et le contrôleur ont chacun deux ports : un sur le LAN A, un sur le LAN B. Un tel équipement est un DAN, un nœud à double attachement. Les deux LAN ne partagent ni switch, ni câble, ni alimentation. Toutes les 2 s, chaque DAN s'annonce sur les deux LAN." },
+        "send": { "title": "Envoyer deux fois", "text": "Le relais a un message GOOSE pour le contrôleur. Sa couche PRP ajoute une remorque de 6 octets et envoie une copie sur chaque port au même instant. Cette copie passe par le LAN A." },
+        "drop": { "title": "Jeter le doublon", "text": "La copie du LAN B arrive 4 µs plus tard. Même source, même numéro de séquence : le contrôleur l'a déjà, il la jette. Son application ne voit le message qu'une fois." },
+        "break": { "title": "Un câble casse", "text": "Le câble du switch A vers le contrôleur est coupé. Juste à ce moment, le relais déclenche. La copie du LAN A va jusqu'au switch A. La copie du LAN B arrive comme d'habitude : rien n'est perdu, rien n'est en retard, rien n'a à basculer." },
+        "alarm": { "title": "Réparer le secours", "text": "La protection n'a rien remarqué. Le contrôleur, si : son port A n'a plus de lien, et les trames du relais n'arrivent plus que par le LAN B. Il lève une alarme. Tant que le LAN A n'est pas réparé, un défaut de plus couperait le relais du reste." }
+    },
+    "frames": {
+        "sup-a": "Je suis là, avec deux ports",
+        "sup-b": "Je suis là, avec deux ports",
+        "copy-a": "Heartbeat : pas de déclenchement (copie sur le LAN A)",
+        "copy-b": "Heartbeat : pas de déclenchement (copie sur le LAN B)",
+        "trip-a": "Déclenchement ! (copie sur le LAN A, perdue)",
+        "trip-b": "Déclenchement ! (copie sur le LAN B)",
+        "sup-only": "Je suis là (entendu sur le LAN B seulement)"
+    },
+    "notes": {
+        "sup-a": "Une trame de supervision PRP, envoyée toutes les 2 s sur les deux LAN vers 01-15-4E-00-01-00, EtherType 0x88FB. Elle indique aux autres nœuds que le relais est à double attachement et que ses deux chemins fonctionnent.",
+        "sup-b": "La même trame de supervision, envoyée au même instant sur le LAN B.",
+        "trip-a": "La copie du LAN A atteint le switch A. Son câble vers le contrôleur est coupé : cette copie ne va pas plus loin.",
+        "sup-only": "La trame de supervision suivante du relais. Elle part toujours sur les deux LAN, mais seule la copie du LAN B atteint le contrôleur."
+    },
+    "fields": {
+        "dst": { "name": "Destination", "note": "L'adresse multicast GOOSE de F1 PROT, comme dans la leçon GOOSE. PRP ne change rien avant la remorque." },
+        "src": { "name": "Source", "note": "L'adresse MAC du relais. Ses deux ports utilisent cette même adresse : les deux copies se ressemblent donc." },
+        "vlan": { "name": "Étiquette VLAN", "note": "Priorité 4, VLAN 10." },
+        "ethertype": { "name": "EtherType", "note": "0x88B8 : GOOSE. PRP n'ajoute aucun en-tête au début : la remorque à la fin est tout ce qu'il ajoute." },
+        "goose-header": { "name": "En-tête GOOSE", "note": "APPID 0x0001, longueur 115 et deux champs réservés, inchangés." },
+        "goose-pdu": { "name": "Message GOOSE", "note": "0x61 ouvre le message GOOSE ; 105 octets suivent. PRP le laisse entièrement tel quel." },
+        "gocbref": { "name": "gocbRef", "note": "F1PROTLD0/LLN0$GO$gcbTrip, le bloc de contrôle." },
+        "tal": { "name": "Durée de vie autorisée", "note": "2000 ms." },
+        "datset": { "name": "datSet", "note": "F1PROTLD0/LLN0$dsTrip." },
+        "goid": { "name": "goID", "note": "F1PROT_Trip." },
+        "t-old": { "name": "t", "note": "08:00:00 UTC, l'heure du dernier changement." },
+        "t-event": { "name": "t", "note": "10:41:07.232 UTC, l'heure du déclenchement." },
+        "st-12": { "name": "stNum 12 · sqNum 3", "note": "Rien n'a changé : la quatrième copie de l'état 12." },
+        "st-13": { "name": "stNum 13 · sqNum 0", "note": "Un nouvel état : sa première copie." },
+        "flags-1": { "name": "simulation · confRev", "note": "Pas un message de test ; révision de configuration 1." },
+        "flags-2": { "name": "ndsCom · entries", "note": "Configuration complète ; 2 valeurs suivent." },
+        "data-idle": { "name": "allData", "note": "Tr.general = FALSE (pas de déclenchement), qualité bonne." },
+        "data-trip": { "name": "allData", "note": "Tr.general = TRUE (déclenchement !), qualité bonne." },
+        "seq-3900": { "name": "Numéro de séquence", "note": "0x0F3C = 3900. Le relais numérote chaque trame qu'il envoie ; les deux copies portent le même numéro." },
+        "seq-3905": { "name": "Numéro de séquence", "note": "0x0F41 = 3905 : le relais a envoyé d'autres trames entre-temps." },
+        "lan-a": { "name": "LAN et taille", "note": "A : envoyée sur le LAN A. Puis 0x079 = 121, le nombre d'octets après l'EtherType, remorque comprise." },
+        "lan-b": { "name": "LAN et taille", "note": "B : envoyée sur le LAN B. C'est le seul octet qui diffère de la copie du LAN A." },
+        "suffix": { "name": "Suffixe PRP", "note": "0x88FB marque la fin d'une remorque PRP." },
+        "a-seq": { "name": "SeqNr", "note": "16 bits. Le récepteur garde la première trame portant un nouveau numéro de cette source et jette la seconde." },
+        "a-lan": { "name": "LanId", "note": "4 bits : 1010 (A) ou 1011 (B), le LAN sur lequel la copie a été envoyée." },
+        "a-size": { "name": "LSDUsize", "note": "12 bits : 121 octets. Le récepteur le compare à la taille réelle de la trame : s'ils concordent, les 6 derniers octets sont une remorque. Une étiquette VLAN n'est pas comptée, car les switchs peuvent l'ajouter ou la retirer." },
+        "a-suffix": { "name": "PRPsuffix", "note": "0x88FB, le même nombre que l'EtherType des trames de supervision." }
+    },
+    "devices": {
+        "relay": "F1 PROT",
+        "swa": "Switch A",
+        "swb": "Switch B",
+        "controller": "Contrôleur de travée"
+    },
+    "facts": {
+        "standard": "IEC 62439-3 (PRP à l'article 4, HSR à l'article 5)",
+        "between": "Nœuds à double attachement : relais, contrôleurs, merging units, passerelles",
+        "transport": "Ethernet, sous IP : GOOSE, SV et MMS passent tous dessus",
+        "frames": "PRP : une remorque de 6 octets à la fin (0x88FB). HSR : une étiquette de 6 octets après l'adresse source (0x892F)",
+        "speed": "Aucun temps de reprise : aucune trame n'est perdue quand un LAN tombe"
+    },
+    "tips": [
+        "Ne reliez jamais le LAN A au LAN B. Séparez-les en switchs, câbles, couleurs et alimentations. Un nœud compte les trames qui arrivent avec le mauvais LAN dans leur remorque : vérifiez ce compteur après la mise en service.",
+        "Un LAN en panne n'arrête rien : personne ne le remarque. Mettez une alarme sur chaque port et sur l'absence de trames de supervision, sinon la panne suivante fait tout tomber.",
+        "La remorque ajoute 6 octets. Une trame de taille maximale (1522 octets avec une étiquette VLAN) passe à 1528 : chaque switch doit l'accepter, ou les nœuds doivent envoyer des trames plus petites.",
+        "HSR n'a pas de switch dans l'anneau : chaque nœud fait suivre les trames de l'anneau. Un nœud éteint ouvre l'anneau à cet endroit, et un second le coupe en deux."
+    ],
+    "points": {
+        "tr": "Déclenchement",
+        "seq": "Numéro de séquence",
+        "porta": "LAN A",
+        "portb": "LAN B"
+    },
+    "values": {
+        "up": "en service",
+        "down": "pas de lien"
+    },
+    "anatomy": {
+        "rct": "La remorque de contrôle de redondance, bit par bit"
+    }
+}

@@ -1,0 +1,129 @@
+{
+    "intro": "Come una sottostazione tiene ogni merging unit e ogni relè su un unico orologio, entro un microsecondo, sulla stessa Ethernet dei suoi sampled values. Un grandmaster GPS invia la sua ora ogni secondo. Ogni switch misura per quanto tempo ha trattenuto il messaggio e lo aggiunge al messaggio stesso, così ogni orologio può correggere ogni ritardo lungo il percorso.",
+    "steps": {
+        "announce": { "title": "Master migliore", "text": "L'orologio GPS si annuncia come grandmaster una volta al secondo: agganciato al GPS (clock class 6), priorità 128. Ogni orologio confronta i messaggi Announce che sente e segue il migliore." },
+        "pdelay": { "title": "Misura il cavo", "text": "Ogni porta misura il ritardo del proprio cavo, una volta al secondo. La MU invia Pdelay_Req a t1; lo switch lo riceve a t2, risponde a t3, e la MU riceve la risposta a t4. Ritardo = ((t4 − t1) − (t3 − t2)) / 2 = 1486 ns. I due orologi non devono essere d'accordo: ognuno misura solo una differenza." },
+        "sync": { "title": "Sync", "text": "Il grandmaster invia Sync e annota l'istante esatto in cui è partito. In modalità two-step quell'ora segue in un Follow_Up. Lo switch inoltra il Sync, e annota quando è entrato e quando è uscito." },
+        "correct": { "title": "Somma i ritardi", "text": "Lo switch aggiunge al correction field del Follow_Up il tempo per cui ha trattenuto il Sync (7.436 µs) e il ritardo del suo cavo dal grandmaster (0.412 µs). Offset = arrivo − origine − correzione − ritardo del cavo della MU = +2.461318 ms." },
+        "lock": { "title": "Aggancio", "text": "La MU riporta indietro il suo orologio di 2.461318 ms, poi ne regola la velocità a ogni Sync. Dopo pochi secondi il suo offset resta sotto 1 µs." },
+        "sv": { "title": "Campioni allineati", "text": "La MU marca i suoi sampled values con l'ora sincronizzata e lo dichiara in smpSynch. Ora un relè può combinarli con i campioni di altre merging unit." }
+    },
+    "frames": {
+        "announce": "Sono un grandmaster: class 6, agganciato al GPS",
+        "pdelay-req": "Quanto è lungo il nostro cavo? (ho annotato t1)",
+        "pdelay-resp": "La tua richiesta è arrivata a t2",
+        "pdelay-fup": "La mia risposta è partita a t3",
+        "sync": "Annota quando arriva questo",
+        "fup-gm": "Quel Sync è partito alle 10:41:07.000 000 120 UTC",
+        "fup-tc": "Lo stesso, più 7848 ns passati lungo il percorso",
+        "lock": "Di nuovo Sync e Follow_Up, ogni secondo",
+        "sv": "Campioni, ora marcati come sincronizzati"
+    },
+    "notes": {
+        "lock": "La stessa coppia di prima, con un numero di sequenza più alto. Il tempo per cui lo switch trattiene un Sync cambia ogni volta, quindi cambia anche il correction field. L'offset della MU è ora +38 ns.",
+        "sv": "Un flusso di sampled values, non PTP: la lezione su IEC 61850 Sampled Values ne mostra i byte. smpSynch = 2 dice che i campioni seguono un orologio globale, qui il GPS tramite PTP."
+    },
+    "fields": {
+        "dst-all": { "name": "Destinazione", "note": "01-1B-19-00-00-00: l'indirizzo multicast di PTP su Ethernet. I transparent clock lo inoltrano a tutte le porte." },
+        "dst-peer": { "name": "Destinazione", "note": "01-80-C2-00-00-0E: un indirizzo multicast link-local. Nessuno switch lo inoltra, quindi Pdelay resta su un solo cavo." },
+        "src-gm": { "name": "Sorgente", "note": "L'indirizzo MAC del grandmaster. Lo switch lo mantiene quando inoltra il frame." },
+        "src-sw": { "name": "Sorgente", "note": "L'indirizzo MAC della porta 3 dello switch." },
+        "src-mu": { "name": "Sorgente", "note": "L'indirizzo MAC della merging unit." },
+        "ethertype": { "name": "EtherType", "note": "0x88F7 significa PTP. Niente IP, niente UDP." },
+        "type-announce": { "name": "Announce", "note": "4 bit bassi: tipo di messaggio 0xB, Announce. 4 bit alti: transportSpecific 0." },
+        "type-sync": { "name": "Sync", "note": "Tipo di messaggio 0x0: Sync." },
+        "type-fup": { "name": "Follow_Up", "note": "Tipo di messaggio 0x8: Follow_Up." },
+        "type-preq": { "name": "Pdelay_Req", "note": "Tipo di messaggio 0x2: peer delay request." },
+        "type-presp": { "name": "Pdelay_Resp", "note": "Tipo di messaggio 0x3: peer delay response." },
+        "type-pfup": { "name": "Pdelay_Resp_Follow_Up", "note": "Tipo di messaggio 0xA: il follow-up della risposta." },
+        "version": { "name": "versionPTP", "note": "2: PTP versione 2 (IEEE 1588-2008)." },
+        "len64": { "name": "messageLength", "note": "64 byte, dall'intestazione alla fine del messaggio." },
+        "len54": { "name": "messageLength", "note": "54 byte. Tutti e tre i messaggi Pdelay hanno questa lunghezza." },
+        "len44": { "name": "messageLength", "note": "44 byte: l'intestazione e un timestamp." },
+        "domain": { "name": "domainNumber", "note": "0, il predefinito di IEC 61850-9-3. Un orologio ignora i messaggi di un altro dominio." },
+        "reserved1": { "name": "Riservato", "note": "0." },
+        "reserved4": { "name": "Riservato", "note": "0." },
+        "flags-announce": { "name": "flagField", "note": "0x003C: l'offset UTC è valido, si usa la scala dei tempi PTP, tempo e frequenza sono tracciabili (al GPS)." },
+        "flags-two-step": { "name": "flagField", "note": "0x0200: twoStepFlag. L'ora esatta di invio segue in un secondo messaggio." },
+        "flags-0": { "name": "flagField", "note": "Nessun flag attivo." },
+        "corr-0": { "name": "correctionField", "note": "0: ancora niente da aggiungere." },
+        "corr-tc": { "name": "correctionField", "note": "0x1EA80000, in nanosecondi × 2^16: 7848 ns = 7436 ns nello switch + 412 ns di cavo dal grandmaster." },
+        "port-gm": { "name": "sourcePortIdentity", "note": "Il clockIdentity del grandmaster, ricavato dal suo indirizzo MAC, e la porta 1." },
+        "port-sw": { "name": "sourcePortIdentity", "note": "Il clockIdentity dello switch e la porta 3." },
+        "port-mu": { "name": "sourcePortIdentity", "note": "Il clockIdentity della MU e la porta 1." },
+        "seq-announce": { "name": "sequenceId", "note": "0x02A7 = 679. Ogni tipo di messaggio conta per conto proprio." },
+        "seq-sync": { "name": "sequenceId", "note": "0x2C1B = 11291." },
+        "seq-fup": { "name": "sequenceId", "note": "0x2C1B: lo stesso del Sync a cui appartiene." },
+        "seq-pdelay": { "name": "sequenceId", "note": "0x0151 = 337. Entrambe le risposte portano il numero della richiesta." },
+        "control-other": { "name": "controlField", "note": "0x05: qualsiasi altro messaggio. Un campo mantenuto per i dispositivi PTP versione 1." },
+        "control-sync": { "name": "controlField", "note": "0x00: Sync." },
+        "control-fup": { "name": "controlField", "note": "0x02: Follow_Up." },
+        "interval-1s": { "name": "logMessageInterval", "note": "0: uno ogni 2^0 = 1 s." },
+        "interval-none": { "name": "logMessageInterval", "note": "0x7F: nessun intervallo per questo messaggio." },
+        "origin-announce": { "name": "originTimestamp", "note": "0: un Announce può lasciarlo vuoto." },
+        "utc-offset": { "name": "currentUtcOffset", "note": "0x0025 = 37 s. PTP conta il tempo TAI: UTC = TAI − 37 s." },
+        "priority1": { "name": "priority1", "note": "128, confrontato per primo. Vince il valore più basso." },
+        "class6": { "name": "clockClass", "note": "6: agganciato a un riferimento primario, qui il GPS." },
+        "accuracy": { "name": "clockAccuracy", "note": "0x21: entro 100 ns." },
+        "variance": { "name": "offsetScaledLogVariance", "note": "0x4E5D: quanto è stabile l'orologio. Più basso significa più stabile." },
+        "priority2": { "name": "priority2", "note": "128, confrontato dopo la qualità dell'orologio." },
+        "gm-id": { "name": "grandmasterIdentity", "note": "Il miglior orologio che questo conosce: sé stesso." },
+        "steps-removed": { "name": "stepsRemoved", "note": "0: direttamente dal grandmaster. I transparent clock non lo incrementano." },
+        "source-gps": { "name": "timeSource", "note": "0x20: GPS." },
+        "origin-preq": { "name": "originTimestamp", "note": "0. La MU tiene per sé t1, l'istante in cui la richiesta è partita." },
+        "reserved10": { "name": "Riservato", "note": "10 byte vuoti: la richiesta è lunga quanto le risposte." },
+        "t2": { "name": "requestReceiptTimestamp", "note": "t2: quando la richiesta è arrivata, secondo l'orologio dello switch. 0x6AF597E7 s e 0x2BC1CA3A = 734120506 ns: 10:41:06.734 120 506 UTC." },
+        "t3": { "name": "responseOriginTimestamp", "note": "t3: quando il Pdelay_Resp è partito dallo switch, 48216 ns dopo t2." },
+        "requesting": { "name": "requestingPortIdentity", "note": "La porta della MU: questa risposta è per lei." },
+        "origin-sync": { "name": "originTimestamp", "note": "0. In modalità two-step l'ora esatta arriva nel Follow_Up." },
+        "t-origin": { "name": "preciseOriginTimestamp", "note": "Quando il Sync è partito: 6 byte di secondi (0x6AF597E8 = 1794480104) e 4 di nanosecondi (0x78 = 120). In TAI, quindi 37 s avanti rispetto a 10:41:07.000 000 120 UTC." },
+        "padding": { "name": "Riempimento", "note": "2 byte: un frame Ethernet deve avere almeno 60 byte." },
+        "a-oui": { "name": "MAC, prima metà", "note": "02-00-00: i primi 3 byte dell'indirizzo MAC." },
+        "a-fffe": { "name": "FF FE", "note": "Inserito nel mezzo: un MAC di 6 byte diventa un clockIdentity di 8 byte." },
+        "a-nic": { "name": "MAC, seconda metà", "note": "00-01-01: gli ultimi 3 byte dell'indirizzo MAC." },
+        "a-port": { "name": "portNumber", "note": "1: la prima porta di questo orologio." }
+    },
+    "devices": {
+        "antenna": "Antenna GPS",
+        "gm": "Orologio GPS",
+        "switch": "Switch (TC)",
+        "mu": "Merging unit MU1",
+        "relay": "Relè di linea"
+    },
+    "facts": {
+        "standard": "IEC/IEEE 61850-9-3 (2016) e IEEE C37.238-2017, profili di IEEE 1588-2008 (PTP versione 2)",
+        "between": "Grandmaster → switch transparent clock → merging unit, relè, PMU",
+        "transport": "Multicast Ethernet, EtherType 0x88F7, senza IP",
+        "security": "Nessuna integrata: qualsiasi dispositivo può annunciarsi come orologio migliore",
+        "speed": "Sync, Announce e Pdelay una volta al secondo; meno di 1 µs su ogni orologio"
+    },
+    "tips": [
+        "Ogni switch tra il grandmaster e un orologio deve essere un transparent clock PTP (o un boundary clock). Uno switch normale aggiunge un ritardo che cambia con il traffico, e nessuno lo corregge.",
+        "PTP conta il tempo TAI, 37 s avanti rispetto a UTC. Un dispositivo che ignora currentUtcOffset marca ogni evento con 37 s di errore.",
+        "Controlla il domain number su ogni dispositivo. IEC 61850-9-3 usa 0 come predefinito, IEEE C37.238-2017 usa 254, e un orologio ignora i messaggi di un altro dominio.",
+        "PTP presume che un cavo sia veloce allo stesso modo nei due versi. Due fibre di lunghezza diversa nello stesso collegamento mettono metà della differenza direttamente nell'offset."
+    ],
+    "points": {
+        "class": "Clock class",
+        "utc": "Offset UTC",
+        "delay": "Ritardo del proprio cavo",
+        "offset": "Offset dell'orologio"
+    },
+    "values": {
+        "reference": "riferimento"
+    },
+    "timing": {
+        "title": "Un Sync lungo il percorso",
+        "note": "Tempi dall'istante in cui il Sync lascia il grandmaster. Il cavo fino allo switch impiega 0.412 µs, lo switch trattiene il Sync per 7.436 µs, il cavo fino alla MU impiega 1.486 µs. Il Follow_Up porta l'ora di origine e una correzione di 7.848 µs; la MU conosce il proprio cavo. Ciò che resta di arrivo − origine è l'errore del suo orologio.",
+        "gm": "Orologio GPS",
+        "switch": "Switch (TC)",
+        "mu": "MU1",
+        "leave": "Il Sync parte: ora di origine",
+        "in": "entrata",
+        "out": "uscita, 7.436 µs dopo",
+        "arrive": "Il Sync arriva: ora di arrivo"
+    },
+    "anatomy": {
+        "port": "Una port identity, ricavata dall'indirizzo MAC"
+    }
+}

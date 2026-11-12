@@ -1,0 +1,99 @@
+{
+    "intro": "Avec Modbus TCP ordinaire, n'importe qui sur le réseau peut lire et écrire. Modbus/TCP Security enveloppe les mêmes trames dans TLS, sur le port 802. Les deux côtés prouvent leur identité avec des certificats, et le certificat du client peut porter un rôle. Les règles du serveur décident alors, requête par requête, ce que ce rôle a le droit de faire.",
+    "steps": {
+        "connect": { "title": "Connexion", "text": "Le serveur de supervision ouvre TCP vers l'onduleur sur le port 802, celui de Modbus/TCP Security. Le port 502 peut rester fermé." },
+        "hello": { "title": "Hello", "text": "Le client propose TLS 1.2 et une suite cryptographique. L'onduleur répond avec son certificat et demande celui du client. Les deux côtés doivent prouver leur identité : la spécification l'exige." },
+        "prove": { "title": "Montrer le rôle", "text": "Le client envoie son certificat. Il contient un rôle, \"Viewer\", dans une extension définie par la Modbus Organization. L'onduleur vérifie le certificat auprès de l'autorité de certification (CA) en laquelle il a confiance et retient le rôle pour cette connexion." },
+        "read": { "title": "Lecture : autorisée", "text": "Des trames Modbus TCP ordinaires circulent maintenant dans des enregistrements TLS chiffrés. L'onduleur vérifie chaque requête au regard de ses règles : un viewer a le droit de lire. Il répond 4820.5 kW." },
+        "write": { "title": "Écriture : refusée", "text": "Le client essaie de fixer une limite de puissance. Un viewer n'a pas le droit d'écrire : l'onduleur refuse avec l'exception 01, le code prévu par la spécification. La limite reste à 5000 kW." }
+    },
+    "frames": {
+        "tcp": "Ouvrir une connexion TCP vers le port 802",
+        "client-hello": "Parlons TLS 1.2, avec cette suite cryptographique",
+        "server-hello": "Voici mon certificat. Montre-moi le tien.",
+        "client-cert": "Voici le mien, rôle Viewer, et la preuve qu'il est à moi",
+        "server-finished": "Vérifié. Le chiffrement est actif.",
+        "read-req": "(chiffré) Envoie-moi les registres 100 et 101",
+        "read-resp": "(chiffré) Puissance active : 4820.5 kW",
+        "write-req": "(chiffré) Règle la limite de puissance à 3000 kW",
+        "write-refused": "(chiffré) Refusé : exception 01"
+    },
+    "notes": {
+        "tcp": "Du TCP simple vers le port 802, pas le 502. Seule la négociation TLS qui suit passe en clair.",
+        "server-hello": "Cinq messages de négociation. ServerHello choisit TLS 1.2 et 0xC02F. Certificate porte le certificat de l'onduleur et celui de sa CA. ServerKeyExchange contient la moitié de l'échange de clés côté onduleur, signée avec sa clé. CertificateRequest demande le certificat du client : un serveur Modbus/TCP Security doit toujours le demander. ServerHelloDone termine son tour.",
+        "client-cert": "Certificate porte le certificat du client, avec le rôle. ClientKeyExchange contient la moitié de l'échange de clés côté client. CertificateVerify signe la négociation jusqu'ici : la preuve que le client détient la clé privée du certificat. ChangeCipherSpec et Finished activent le chiffrement. En TLS 1.2, les certificats circulent en clair : n'importe qui sur le réseau peut lire le rôle.",
+        "server-finished": "L'onduleur active lui aussi le chiffrement. Si le client n'avait envoyé aucun certificat, ou un certificat d'une CA inconnue, l'onduleur aurait mis fin à la connexion par une alerte."
+    },
+    "fields": {
+        "rec-handshake": { "name": "Type d'enregistrement 22", "note": "0x16 : un enregistrement de négociation (handshake). La négociation circule en clair." },
+        "rec-v10": { "name": "Version d'enregistrement", "note": "0x0301. Les clients écrivent ici ce vieux numéro pour ne pas faire trébucher les anciens serveurs. La version voulue vient quelques octets plus loin." },
+        "rec-len-130": { "name": "Longueur", "note": "0x0082 = 130 octets suivent." },
+        "hs-hello": { "name": "Type de négociation 1", "note": "ClientHello : l'offre du client." },
+        "hs-len-126": { "name": "Longueur", "note": "0x00007E = 126 octets suivent." },
+        "hello-version": { "name": "Version", "note": "0x0303 : TLS 1.2. Modbus/TCP Security exige la version 1.2 ou plus récente." },
+        "random": { "name": "Aléa", "note": "32 octets aléatoires, montrés 8 par 8. Les deux côtés les mélangent dans les clés de session." },
+        "random-more": { "name": "Aléa", "note": "La suite des 32 octets aléatoires." },
+        "session-id": { "name": "Session ID", "note": "Longueur 0 : une nouvelle session, pas une reprise." },
+        "suites": { "name": "Suites cryptographiques", "note": "2 octets, une seule suite : 0xC02F, échange de clés par ECDHE, certificats RSA, chiffrement AES-128-GCM, SHA-256. La spécification l'exige pour les équipements à clés RSA." },
+        "compression": { "name": "Compression", "note": "Une seule méthode : 0, aucune." },
+        "ext-len": { "name": "Extensions", "note": "0x0053 = 83 octets d'extensions suivent." },
+        "ext-reneg": { "name": "renegotiation_info", "note": "0xFF01, vide : le client prend en charge la renégociation sûre, qu'exige la spécification." },
+        "ext-points": { "name": "ec_point_formats", "note": "0x000B : la façon dont les points de courbe elliptique peuvent être écrits." },
+        "ext-groups": { "name": "supported_groups", "note": "0x000A, 12 octets : une liste de 10 octets suit." },
+        "groups": { "name": "Courbes", "note": "Cinq courbes pour l'échange de clés : x25519 (0x001D), P-256 (0x0017), x448, P-384 et P-521. Tout équipement qui utilise les courbes elliptiques doit prendre en charge P-256." },
+        "ext-flags": { "name": "Deux indicateurs", "note": "encrypt_then_mac (0x0016) et extended_master_secret (0x0017), tous deux vides." },
+        "ext-sigalgs": { "name": "signature_algorithms", "note": "0x000D : une liste de 40 octets suit, 2 pour chacun des 20 algorithmes." },
+        "sigalgs": { "name": "Signatures", "note": "Les sortes de signature qu'accepte le client, 2 octets chacune. 0x0403 est ECDSA sur P-256 avec SHA-256 ; 0x0401, plus loin, est RSA avec SHA-256." },
+        "sigalgs-more": { "name": "Signatures", "note": "D'autres sortes de signature, 2 octets chacune." },
+        "rec-app": { "name": "Type d'enregistrement 23", "note": "0x17 : données applicatives. La suite est chiffrée." },
+        "rec-v12": { "name": "Version", "note": "0x0303 : TLS 1.2." },
+        "len-read-req": { "name": "Longueur", "note": "36 octets suivent, non montrés : un nonce de 8 octets, la requête de 12 octets chiffrée, et un tag de 16 octets. À l'intérieur se trouve la requête Modbus TCP en clair 00 01 00 00 00 06 01 03 00 64 00 02 : lire les registres 100 et 101." },
+        "len-read-resp": { "name": "Longueur", "note": "37 octets suivent : nonce, 13 octets de réponse, tag. À l'intérieur : 00 01 00 00 00 07 01 03 04 A4 00 45 96, puissance active 4820.5 kW." },
+        "len-write-req": { "name": "Longueur", "note": "36 octets suivent. À l'intérieur : 00 02 00 00 00 06 01 06 00 C8 0B B8, écrire 3000 dans le registre 200, la limite de puissance." },
+        "len-refused": { "name": "Longueur", "note": "33 octets suivent : nonce, 9 octets de réponse, tag. À l'intérieur : 00 02 00 00 00 03 01 86 01. 0x86 est 0x06 avec le bit d'erreur levé ; 01 est le code d'exception." },
+        "a-extension": { "name": "Extension", "note": "Une SEQUENCE de 0x17 = 23 octets : une extension du certificat." },
+        "a-oid": { "name": "Object ID", "note": "1.3.6.1.4.1.50316.802.1 : le rôle Modbus. 50316 est le numéro attribué par l'IANA à la Modbus Organization." },
+        "a-octets": { "name": "Valeur", "note": "Une OCTET STRING de 8 octets qui contient la valeur de l'extension." },
+        "a-utf8": { "name": "UTF8String", "note": "0x0C : du texte en UTF-8, long de 6 octets. La spécification exige ce type." },
+        "a-role": { "name": "Rôle", "note": "\"Viewer\". Un seul rôle par certificat. Les règles du serveur disent ce qu'il a le droit de faire." }
+    },
+    "devices": {
+        "monitoring": "Serveur de supervision",
+        "inverter": "Onduleur INV-1",
+        "pv": "Champ PV",
+        "controller": "Contrôleur de centrale"
+    },
+    "facts": {
+        "standard": "MODBUS/TCP Security Protocol Specification (Modbus Organization, 2018, révisée en 2021)",
+        "between": "Client avec certificat → serveur avec certificat",
+        "transport": "TLS 1.2 ou plus récent, sur TCP 802",
+        "security": "Les deux côtés prouvent leur identité avec des certificats X.509. Un rôle dans le certificat du client décide de ce qu'il a le droit de faire.",
+        "frames": "Les trames Modbus TCP habituelles, inchangées, dans des enregistrements TLS"
+    },
+    "tips": [
+        "Un certificat sans rôle se connecte quand même. Le serveur applique alors ses règles pour « aucun rôle » : assurez-vous qu'elles n'autorisent rien.",
+        "Une requête refusée renvoie l'exception 01, le même code qu'une fonction inconnue. Vérifiez le rôle et les règles avant de chercher un bug.",
+        "Chaque certificat contient exactement un rôle. Un outil qui doit lire et écrire a besoin d'un rôle qui autorise les deux.",
+        "Les certificats expirent. Prévoyez comment les nouveaux arriveront sur chaque équipement avant l'expiration du premier, sinon la centrale cesse de communiquer ce jour-là."
+    ],
+    "points": {
+        "role": "Rôle du client",
+        "p": "Puissance active",
+        "limit": "Limite de puissance active"
+    },
+    "values": {
+        "refused": "refusée (01)"
+    },
+    "anatomy": {
+        "role": "L'extension de rôle dans le certificat du client, octet par octet"
+    },
+    "playground": {
+        "file": "Le certificat du serveur de supervision, tel que l'affiche openssl x509 -text. Le rôle est la dernière extension.",
+        "issuer": "La CA qui l'a signé. L'onduleur n'accepte que les certificats d'une CA en laquelle il a confiance.",
+        "expiry": "Après cette date, l'onduleur refuse le certificat.",
+        "subject": "Le titulaire du certificat : le serveur de supervision.",
+        "client-auth": "Ce certificat peut être utilisé par un client TLS.",
+        "role-oid": "L'extension de rôle Modbus. openssl ne connaît pas son nom : il affiche donc le numéro.",
+        "role-value": "Le rôle. Les deux points sont les octets 0x0C et 0x06 (UTF8String, 6 caractères), qu'openssl ne sait pas afficher."
+    }
+}

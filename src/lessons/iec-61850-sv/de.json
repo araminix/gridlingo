@@ -1,0 +1,125 @@
+{
+    "intro": "Eine Merging Unit sitzt neben den Strom- und Spannungswandlern eines Felds. Sie misst sie 4000-mal pro Sekunde und veröffentlicht jeden Satz Abtastwerte als Ethernet-Frame auf dem Prozessbus. Schutzgeräte abonnieren diese Abtastwerte und arbeiten damit statt mit Kupferadern von den Wandlern.",
+    "steps": {
+        "sync": { "title": "Synchronisieren", "text": "Eine PTP-Uhr stellt die Zeit in der Merging Unit und im Schutzgerät auf etwa eine Mikrosekunde genau. Die Merging Unit tastet nach dieser Uhr ab: Abtastwert 0 zu Beginn jeder Sekunde." },
+        "sample": { "title": "Datenstrom", "text": "Alle 250 µs sendet die Merging Unit einen Frame mit acht Werten: drei Leiterströme, den Neutralleiterstrom, drei Leiterspannungen und die Sternpunktspannung. Jeder Wert ist ein Augenblickswert auf der Welle, kein Effektivwert." },
+        "gap": { "title": "Ein Abtastwert fehlt", "text": "Die Frames kommen weiter, jeder mit dem nächsten smpCnt. Nach 1236 kommt 1238: Frame 1237 ist unterwegs verloren gegangen. Das Schutzgerät erkennt die Lücke. Einen fehlenden Abtastwert kann es überbrücken; fehlen mehrere hintereinander, blockiert es die Funktionen, die sie brauchen." },
+        "unsync": { "title": "Uhr verloren", "text": "Die PTP-Uhr fällt aus. Die Merging Unit hält die Zeit eine Weile mit ihrem eigenen Oszillator und setzt dann smpSynch auf 0. Dieses Schutzgerät verwendet nur diese eine Merging Unit, also schützt es weiter und meldet einen Alarm. Ein Schutz, der mehrere Merging Units vergleicht, etwa Sammelschienen- oder Leitungsdifferentialschutz, würde blockieren." },
+        "fault": { "title": "Fehler", "text": "Ein Erdkurzschluss von Leiter A in F1. Die Abtastwerte zeigen 2.8 kA in Leiter A und Strom im Neutralleiter. Die Überstromfunktion des Schutzgeräts löst aus: Sie sendet eine GOOSE-Nachricht zurück an die Merging Unit, die den Auslösekontakt von Q1 schließt." },
+        "open": { "title": "Schalter öffnet", "text": "80 ms nach dem Fehler ist Q1 offen. Die Abtastwerte zeigen fast keinen Strom mehr, und das Schutzgerät setzt seine Auslösung zurück." }
+    },
+    "frames": {
+        "ptp-sync": "Das ist die genaue Zeit",
+        "sv-0": "Abtastwert 0: IA 531.57 A, VA 28 169.13 V …",
+        "sv-gap": "Abtastwert 1238 (1237 kam nie an)",
+        "sv-unsync": "Abtastwert 2650, nicht synchronisiert",
+        "sv-fault": "Abtastwert 3127: IA −3796.73 A",
+        "goose-trip": "Q1 auslösen!",
+        "trip-wire": "Auslösespule von Q1 erregen",
+        "sv-open": "Kein Strom in F1"
+    },
+    "notes": {
+        "ptp-sync": "PTP mit dem Power Profile (IEC 61850-9-3) sendet einmal pro Sekunde ein Sync als Multicast. Jeder Switch trägt ein, wie lange der Frame in ihm gewartet hat, damit jedes Gerät das korrigieren kann. Die Lektion zu PTP erklärt das.",
+        "goose-trip": "Eine GOOSE-Nachricht auf dem Prozessbus, vom Schutzgerät an die Merging Unit. Die Lektion zu GOOSE nimmt eine auseinander.",
+        "trip-wire": "Eine Kupferader, keine Netzwerknachricht. Diese Merging Unit hat neben ihren Eingängen von den Wandlern auch Ausgänge zum Leistungsschalter.",
+        "sv-open": "Derselbe Frame wie zuvor, mit smpCnt 3447. IA, IB und IC liegen nahe 0: Q1 hat geöffnet."
+    },
+    "fields": {
+        "dst": { "name": "Ziel", "note": "Eine Multicast-Adresse aus dem Bereich, den IEC 61850 für Sampled Values reserviert (01-0C-CD-04-…). Jeder Subscriber hört darauf." },
+        "src": { "name": "Quelle", "note": "Die eigene MAC-Adresse der Merging Unit." },
+        "vlan": { "name": "VLAN-Tag", "note": "0x8100, dann Priorität 4 und VLAN 20, das VLAN des Prozessbusses." },
+        "ethertype": { "name": "EtherType", "note": "0x88BA bedeutet Sampled Values. In diesem Frame gibt es kein IP und kein TCP." },
+        "appid": { "name": "APPID", "note": "0x4000: der erste Wert des Bereichs, den das Profil 9-2 LE verwendet (0x4000 bis 0x7FFF)." },
+        "length": { "name": "Länge", "note": "106 Bytes, von der APPID bis zum Ende." },
+        "reserved": { "name": "Reserviert", "note": "Zwei reservierte Felder, hier null." },
+        "savpdu": { "name": "savPdu", "note": "Tag 0x60 beginnt die Nachricht. Ihre Länge ist ebenfalls 0x60: Es folgen 96 Bytes." },
+        "noasdu": { "name": "noASDU", "note": "1: ein Satz Abtastwerte (eine ASDU) in diesem Frame. Bei 80 Abtastwerten pro Periode bekommt jeder Abtastwert seinen eigenen Frame." },
+        "seqasdu": { "name": "seqASDU", "note": "Tag 0xA2: die Liste der ASDUs, 91 Bytes." },
+        "asdu": { "name": "ASDU", "note": "Tag 0x30: ein Satz Abtastwerte, 89 Bytes." },
+        "svid": { "name": "svID", "note": "\"F1MUSV01\": der Name dieses Datenstroms, festgelegt in der SCL-Datei. Das Schutzgerät prüft ihn." },
+        "smpcnt-0": { "name": "smpCnt 0", "note": "Der Abtastzähler: 0, der erste Abtastwert dieser Sekunde. Er zählt bis 3999 und beginnt dann wieder bei 0." },
+        "smpcnt-1238": { "name": "smpCnt 1238", "note": "0x04D6 = 1238. Der letzte Frame, den das Schutzgerät erhalten hat, war 1236: Abtastwert 1237 fehlt." },
+        "smpcnt-2650": { "name": "smpCnt 2650", "note": "0x0A5A = 2650. Die Merging Unit zählt weiter von 0 bis 3999, aber nach ihrem eigenen Oszillator: 0 fällt nicht mehr auf den Beginn einer Sekunde." },
+        "smpcnt-3127": { "name": "smpCnt 3127", "note": "0x0C37 = 3127." },
+        "confrev": { "name": "confRev 1", "note": "Die Konfigurationsrevision. Sie muss zu der passen, mit der das Schutzgerät eingerichtet wurde." },
+        "synch-1": { "name": "smpSynch 1", "note": "Synchronisiert: Die Abtastwerte werden nach der gemeinsamen Uhr genommen." },
+        "synch-0": { "name": "smpSynch 0", "note": "Nicht synchronisiert. Ein Schutzgerät, das diesen Datenstrom mit anderen kombiniert, kann nicht sicher sein, dass ihre Abtastwerte im selben Augenblick genommen wurden." },
+        "seqdata": { "name": "seqData", "note": "Tag 0x87, 64 Bytes: acht Werte zu je 4 Bytes, jeder gefolgt von 4 Bytes Qualität." },
+        "ia": { "name": "IA", "note": "0x00081C72 = 531 570 mA: 531.57 A. Ein Zählschritt ist 1 mA." },
+        "ib": { "name": "IB", "note": "0xFFF96344 = −433 340 mA: −433.34 A. Die Werte sind vorzeichenbehaftet: FF… ist eine negative Zahl." },
+        "ic": { "name": "IC", "note": "−98.23 A." },
+        "in": { "name": "IN", "note": "Der Neutralleiterstrom: 0. In einem gesunden Abgang ist IA + IB + IC null." },
+        "va": { "name": "VA", "note": "0x002AFB91 = 2 816 913 × 10 mV: 28 169.13 V. Leiter A steht im Scheitel seiner Welle (34.5 kV ÷ √3 × √2). Ein Zählschritt ist 10 mV." },
+        "vb": { "name": "VB", "note": "−14 084.57 V." },
+        "vc": { "name": "VC", "note": "−14 084.56 V." },
+        "vn": { "name": "VN", "note": "Die Sternpunktspannung: 0. In einem gesunden Netz ist VA + VB + VC null." },
+        "q": { "name": "Qualität", "note": "Gut: Es ist kein Flag gesetzt. Die beiden niedrigsten Bits geben die Gültigkeit an: 01 ist ungültig, 11 fragwürdig." },
+        "x-ia": { "name": "IA", "note": "Strom in Leiter A: ein vorzeichenbehafteter Zählwert in mA, wie im ersten Frame." },
+        "x-ib": { "name": "IB", "note": "Strom in Leiter B, in mA." },
+        "x-ic": { "name": "IC", "note": "Strom in Leiter C, in mA." },
+        "x-in": { "name": "IN", "note": "Neutralleiterstrom, in mA: 0, solange der Abgang gesund ist." },
+        "x-va": { "name": "VA", "note": "Spannung von Leiter A: ein vorzeichenbehafteter Zählwert in Schritten von 10 mV." },
+        "x-vb": { "name": "VB", "note": "Spannung von Leiter B, in 10 mV." },
+        "x-vc": { "name": "VC", "note": "Spannung von Leiter C, in 10 mV." },
+        "x-vn": { "name": "VN", "note": "Sternpunktspannung, in 10 mV: 0, solange das Netz gesund ist." },
+        "ia-f": { "name": "IA", "note": "0xFFC61104 = −3796.73 A in diesem Augenblick. Das sind 2.8 kA effektiv, das Siebenfache des Laststroms." },
+        "ib-f": { "name": "IB", "note": "−83.61 A: Leiter B führt noch seine Last." },
+        "ic-f": { "name": "IC", "note": "526.32 A: Leiter C führt noch seine Last." },
+        "in-f": { "name": "IN", "note": "−3354.02 A. Die drei Leiter ergeben zusammen nicht mehr null: Strom fließt über die Erde." },
+        "va-f": { "name": "VA", "note": "0xFFFA62AA = −3679.58 V: ein Viertel dessen, was Leiter A in diesem Augenblick zeigen würde. Der Fehler liegt auf Leiter A." },
+        "vb-f": { "name": "VB", "note": "−13 441.15 V." },
+        "vc-f": { "name": "VC", "note": "28 159.48 V." },
+        "vn-f": { "name": "VN", "note": "11 038.75 V: nicht mehr null." }
+    },
+    "devices": {
+        "ctvt": "Wandler F1",
+        "q1": "Leistungsschalter Q1",
+        "mu": "F1 MU",
+        "switch": "Switch",
+        "relay": "F1 PROT",
+        "clock": "PTP-Uhr"
+    },
+    "facts": {
+        "standard": "IEC 61850-9-2, mit dem Profil 9-2 LE (heute IEC 61869-9)",
+        "between": "Merging Unit → Schutzgeräte, Zähler und Störschreiber",
+        "transport": "Ethernet-Multicast auf dem Prozessbus, kein IP",
+        "frames": "Ein Datenstrom, keine Anfragen, keine Antworten: 4000 Frames pro Sekunde bei 50 Hz, 4800 bei 60 Hz",
+        "speed": "Etwa 5 Mbit/s pro Merging Unit"
+    },
+    "tips": [
+        "Das Schutzgerät prüft svID, confRev, APPID und die Ziel-MAC. Weicht eines davon von seiner Konfiguration ab, verwirft es den Datenstrom, und sein Schutz ist blind.",
+        "Die Datenströme pro Switch-Port zählen. Jeder Datenstrom nach 9-2 LE braucht etwa 5 Mbit/s, und ein Port, der jeden Datenstrom an jedes Gerät flutet, läuft voll.",
+        "Neuere Merging Units folgen IEC 61869-9: 4800 Abtastwerte pro Sekunde, zwei ASDUs pro Frame. Das Schutzgerät muss dasselbe Profil erwarten.",
+        "In Edition 2 bedeutet smpSynch 2 eine globale Uhr wie GPS und 1 eine lokale. Vor der Inbetriebnahme prüfen, was die Schutzgeräte akzeptieren."
+    ],
+    "points": {
+        "smpcnt": "Abtastzähler",
+        "synch": "Synchronisiert",
+        "ia": "Strom Leiter A, dieser Abtastwert"
+    },
+    "values": {
+        "gap": "1238 (1237 fehlt)"
+    },
+    "timing": {
+        "title": "80 Abtastwerte pro Periode",
+        "note": "Eine Periode bei 50 Hz dauert 20 ms. Die Merging Unit tastet sie 80-mal ab, alle 250 µs, und sendet jeden Abtastwert in einem eigenen Frame. Das Schutzgerät setzt die Welle aus diesen Stufen wieder zusammen.",
+        "va": "VA, abgetastet",
+        "frames": "SV-Frames",
+        "smp0": "smpCnt 0",
+        "smp40": "smpCnt 40"
+    },
+    "singleLine": {
+        "title": "Übersichtsschaltplan der 34.5-kV-Sammelschiene",
+        "bus": "34.5 kV · Sammelschiene A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "offen",
+        "fault": "Fehler · 2.8 kA",
+        "station": "Stationsbus · Ethernet",
+        "process": "Prozessbus · Ethernet",
+        "f1": "F1 · Freileitung",
+        "f2": "F2 · Eigenbedarf"
+    },
+    "playground": {
+        "scl": "Die SCL-Datei des Prozessbusses. F1MUMU01 öffnen: Der Control Block MSVCB01 sendet den Datensatz PhsMeas1 an 01-0C-CD-04-00-01. TCTR1.Amp.sVC zeigt, warum ein Zählschritt 1 mA ist. In F1PROT zeigen die Eingänge von PTOC1, was das Schutzgerät abonniert."
+    }
+}

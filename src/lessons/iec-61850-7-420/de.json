@@ -1,0 +1,103 @@
+{
+    "intro": "IEC 61850-7-420 überträgt das Datenmodell von IEC 61850 auf dezentrale Energieanlagen: Batterien, Wechselrichter, Generatoren und die Funktionen, die sie steuern. Ein Parkregler liest und steuert sie mit denselben MMS-Diensten wie ein Schutzgerät im Umspannwerk. Nur die Namen sind neu.",
+    "steps": {
+        "associate": { "title": "Assoziieren", "text": "Der Parkregler baut eine Verbindung zu TCP-Port 102 am Batteriewechselrichter auf und richtet eine MMS-Assoziation ein, wie bei jeder Verbindung nach IEC 61850." },
+        "read": { "title": "Ladezustand und Leistung lesen", "text": "Ein einziges Read fragt zwei Werte ab: den Ladezustand in DSTO1 und die Wirkleistung in MMXU1. Die Antwort enthält beide, in derselben Reihenfolge." },
+        "subscribe": { "title": "Reports anfordern", "text": "Der Regler aktiviert einen Report für dieselben zwei Werte. Ab jetzt sendet der Wechselrichter sie, wenn sie sich ändern." },
+        "limit": { "title": "Leistung begrenzen", "text": "Der Netzbetreiber erlaubt höchstens 2000 kW. Der Regler bedient WMaxSpt, den Sollwert von DWMX1, der Funktion, die die Wirkleistung begrenzt. Der Wechselrichter nimmt an und fährt seine Leistung herunter." },
+        "report": { "title": "Leistung pendelt sich ein", "text": "Der Wechselrichter meldet, während TotW sinkt. Der letzte Report sagt 2000.0 kW: Die Grenze hält." }
+    },
+    "frames": {
+        "tcp": "TCP zu Port 102 öffnen, dann eine Transportverbindung",
+        "initiate-req": "Lass uns MMS sprechen: meine Größen und Dienste",
+        "initiate-resp": "Einverstanden: Das sind meine",
+        "read-req": "Wie hoch sind dein Ladezustand und deine Wirkleistung?",
+        "read-resp": "68.5 % und 3000.0 kW",
+        "enable": "Report urcbDER01 aktivieren",
+        "oper-req": "Begrenze deine Wirkleistung auf 2000 kW",
+        "oper-resp": "Erledigt",
+        "report": "TotW ist jetzt 2000.0 kW"
+    },
+    "notes": {
+        "tcp": "Reines TCP zu Port 102, darauf eine ISO-Transportverbindung (COTP). Die Lektion zu IEC 61850 MMS zeigt diese Schritte.",
+        "initiate-req": "Ein MMS-Initiate in den Schichten Session, Presentation und ACSE. Der Regler bietet seine größte Nachrichtengröße und die gewünschten Dienste an. Eine Authentifizierung, falls verwendet, findet hier statt (IEC 62351-4).",
+        "initiate-resp": "Der Wechselrichter antwortet mit seinen eigenen Größen und Diensten. Ab jetzt nennt jede Anfrage eine Variable über ihr logisches Gerät und ihr Item.",
+        "enable": "Ein Write von TRUE auf RptEna im Report Control Block LLN0$RP$urcbDER01. Sein Datensatz dsDER enthält DSTO1.UseSocPct und MMXU1.TotW.",
+        "report": "Ein unaufgeforderter InformationReport: Der Wechselrichter sendet ihn ungefragt, jedes Mal, wenn sich ein Wert in dsDER ändert."
+    },
+    "fields": {
+        "tpkt-110": { "name": "TPKT", "note": "Version 3, dann die Länge der ganzen Nachricht: 0x006E = 110 Bytes." },
+        "tpkt-43": { "name": "TPKT", "note": "Version 3, dann die Länge: 0x002B = 43 Bytes." },
+        "tpkt-111": { "name": "TPKT", "note": "Version 3, dann die Länge: 0x006F = 111 Bytes." },
+        "tpkt-29": { "name": "TPKT", "note": "Version 3, dann die Länge: 0x001D = 29 Bytes." },
+        "cotp-dt": { "name": "COTP", "note": "Eine Dateneinheit (0xF0), die letzte ihrer Nachricht (0x80)." },
+        "session": { "name": "Session", "note": "Zwei kurze Session-Header: Give Tokens, Data Transfer." },
+        "presentation": { "name": "Presentation", "note": "Fully Encoded Data, Presentation Context 3: Was folgt, ist MMS." },
+        "confirmed-req": { "name": "Confirmed Request", "note": "Tag A0: eine Anfrage, die eine Antwort erwartet. Das nächste Byte zählt die Bytes darin." },
+        "confirmed-resp": { "name": "Confirmed Response", "note": "Tag A1: die Antwort auf eine Anfrage." },
+        "invoke-7": { "name": "Invoke ID 7", "note": "Eine Nummer, die der Regler wählt. Die Antwort trägt dieselbe." },
+        "invoke-7-resp": { "name": "Invoke ID 7", "note": "Dieselbe Nummer wie in der Anfrage: Das hier beantwortet sie." },
+        "invoke-8": { "name": "Invoke ID 8", "note": "Eine neue Anfrage, eine neue Nummer." },
+        "invoke-8-resp": { "name": "Invoke ID 8", "note": "Das beantwortet die Anfrage mit dem Sollwert." },
+        "read": { "name": "Read", "note": "Tag A4: der Dienst Read." },
+        "spec": { "name": "Variablenliste", "note": "Eine Liste von Variablen, jede über ihren Namen angegeben. Hier sind es zwei." },
+        "var": { "name": "Variable", "note": "Ein Eintrag der Liste. Sein Name folgt." },
+        "domain-specific": { "name": "Domain-spezifischer Name", "note": "Ein Name in zwei Teilen: Domain und Item." },
+        "domain": { "name": "Domain", "note": "\"BESS1DER\": das logische Gerät DER des IED BESS1." },
+        "item-soc": { "name": "Item", "note": "\"DSTO1$MX$UseSocPct$mag$f\": der Ladezustand des Speichers, in Prozent seiner nutzbaren Energie." },
+        "item-totw": { "name": "Item", "note": "\"MMXU1$MX$TotW$mag$f\": die gesamte Wirkleistung auf der AC-Seite des Wechselrichters." },
+        "results": { "name": "Ergebnisse", "note": "Ein Ergebnis pro Variable, in der Reihenfolge der Anfrage." },
+        "float-tag": { "name": "Gleitkommazahl", "note": "Tag 0x87 (eine Gleitkommazahl), 5 Bytes. 08: Es folgt eine Gleitkommazahl nach IEEE 754 mit einfacher Genauigkeit." },
+        "soc": { "name": "UseSocPct", "note": "68.5 (%), höchstwertiges Byte zuerst." },
+        "totw": { "name": "TotW", "note": "3000.0. Die Einheit, kW, steht im Attribut units (CF)." },
+        "write": { "name": "Write", "note": "Tag A5: der Dienst Write. IEC 61850 sendet einen Befehl als Write auf Oper." },
+        "write-spec": { "name": "Variable", "note": "Eine Liste mit einer Variable, angegeben über ihren Namen." },
+        "item-oper": { "name": "Item", "note": "\"DWMX1$CO$WMaxSpt$Oper\": die Oper-Struktur des Sollwerts WMaxSpt. CO bedeutet Control." },
+        "data-list": { "name": "Daten", "note": "Die zu schreibenden Werte, einer pro Variable." },
+        "oper-struct": { "name": "Oper", "note": "Eine Struktur (Tag A2) aus sechs Teilen, in der Reihenfolge, die das Datenmodell vorgibt." },
+        "ctlval": { "name": "ctlVal", "note": "Der neue Wert: eine Struktur mit einer Gleitkommazahl, 0x44FA0000 = 2000.0 (kW)." },
+        "origin": { "name": "origin", "note": "Wer ihn sendet: orCat 5 (automatic-station: ein Regler in der Anlage) und orIdent \"PPC\"." },
+        "ctlnum": { "name": "ctlNum", "note": "1: Der Client zählt seine Befehle, damit sich jeder unterscheiden lässt." },
+        "oper-t": { "name": "T", "note": "Wann der Regler ihn gesendet hat: 10:41:12.250 UTC. 4 Bytes Sekunden, 3 Bytes Sekundenbruchteile, 1 Byte Uhrqualität." },
+        "test": { "name": "Test", "note": "FALSE: ein echter Befehl, kein Test." },
+        "check": { "name": "Check", "note": "Zwei Bits: Synchrocheck und Verriegelungsprüfung. Beide sind aus: Ein Sollwert braucht keines davon." },
+        "write-resp": { "name": "Write Response", "note": "Tag A5: die Antwort auf ein Write, ein Ergebnis pro Variable." },
+        "success": { "name": "Erfolg", "note": "Tag 0x81, leer: Das Schreiben hat funktioniert. Bei direkter Steuerung gilt die neue Grenze sofort." },
+        "a-ld": { "name": "Logisches Gerät", "note": "BESS1DER: IED-Name BESS1 und Instanz DER." },
+        "a-ln": { "name": "Logischer Knoten", "note": "DWMX1: die Funktion, die die Wirkleistung begrenzt, Instanz 1." },
+        "a-fc": { "name": "Functional Constraint", "note": "CO: Control. Ein Write hier ist ein Befehl, keine Einstellung." },
+        "a-do": { "name": "Datenobjekt", "note": "WMaxSpt: der Sollwert für die maximale Wirkleistung, vom Typ APC (ein steuerbarer Analogwert)." },
+        "a-da": { "name": "Datenattribut", "note": "Oper: die Struktur, die ein Client schreibt, um den Befehl zu geben." }
+    },
+    "devices": {
+        "meter": "Netzzähler",
+        "ppc": "Parkregler",
+        "bess": "Wechselrichter BESS1",
+        "battery": "Batterie"
+    },
+    "facts": {
+        "standard": "IEC 61850-7-420 Edition 2 (2021), auf Basis von IEC 61850-7-4 und dem MMS-Mapping von IEC 61850-8-1",
+        "between": "Parkregler, SCADA oder Aggregator → Wechselrichter, Batterie, Generator",
+        "transport": "MMS über TCP 102",
+        "security": "TLS (IEC 62351-4), TCP 3782",
+        "model": "Logische Knoten für DER: DSTO, DBAT, DINV, DGEN und Funktionen wie DWMX"
+    },
+    "tips": [
+        "Edition 1 (2009) und Edition 2 (2021) verwenden unterschiedliche Namen. Edition 1 hat ZINV, ZBAT und DRCT; Edition 2 hat DINV, DBAT, DSTO und Funktionen wie DWMX. Vor jedem Mapping prüfen, welche Edition die SCL-Datei des Geräts verwendet.",
+        "Vor dem Bedienen ctlModel (CF) lesen. Bei direct-with-normal-security ist die Write Response das Ende. Bei enhanced security folgt eine CommandTermination, wenn das Gerät fertig ist.",
+        "Funktionen der Edition 2 können nach einer in RvrtTms eingestellten Zeit auf ihre Standardwerte zurückfallen. Ein Regler, der eine Grenze einmal sendet und nie wieder, sieht sie womöglich verschwinden.",
+        "Das Vorzeichen der Leistung vereinbaren. Manche Geräte zählen Entladen als positiv, andere als negativ. Zuerst mit einem kleinen Sollwert testen."
+    ],
+    "points": {
+        "soc": "Ladezustand",
+        "totw": "Wirkleistung",
+        "wmax": "Leistungsgrenze"
+    },
+    "anatomy": {
+        "control": "Der Name eines Sollwerts und wie MMS ihn schreibt"
+    },
+    "playground": {
+        "scl": "Die konfigurierte Beschreibung des Batteriewechselrichters (.cid). DER öffnen, dann DSTO1 und MMXU1 für die beiden hier gelesenen Werte und DWMX1 für WMaxSpt: seine Oper-Struktur und sein ctlModel. Danach kannst du deine eigene Datei öffnen, falls du eine hast.",
+        "encoder": "MMS sendet eine Gleitkommazahl mit dem höchstwertigen Byte zuerst (ABCD). Die Grenze, 2000.0, reist als 44 FA 00 00."
+    }
+}

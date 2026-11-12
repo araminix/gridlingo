@@ -1,0 +1,85 @@
+{
+    "intro": "Pas un protocole sur le fil, mais le référentiel pour sécuriser les systèmes de contrôle-commande d'une installation (OT). Il découpe une installation en zones, des groupes d'équipements qui ont besoin de la même protection, et ne les laisse communiquer qu'à travers des conduits aux règles claires. Chaque zone reçoit un niveau de sécurité cible, et sept exigences fondamentales disent ce que signifie ce niveau.",
+    "steps": {
+        "inside": { "title": "Zones et conduits", "text": "La centrale solaire a quatre zones : le bureau, une DMZ, le contrôle et le terrain. Elles ne communiquent qu'à travers des conduits, gardés ici par deux pare-feux. Le SCADA qui interroge un onduleur traverse FW-2, et une règle autorise exactement cela." },
+        "historian": { "title": "Vers la DMZ", "text": "L'historien, dans la DMZ, recueille les valeurs de la centrale auprès du SCADA. La DMZ est la zone tampon : le bureau et la centrale ne se parlent jamais directement." },
+        "office": { "title": "Le bureau lit la DMZ", "text": "Un ingénieur au bureau ouvre le rapport de production du jour. Il vient de l'historien ; le bureau n'atteint jamais la centrale." },
+        "blocked": { "title": "Bloqué", "text": "Un PC du bureau tente d'atteindre directement un onduleur. Aucune règle ne l'autorise : FW-1 rejette la connexion et la journalise." },
+        "vendor": { "title": "Accès fournisseur", "text": "Le fabricant de l'onduleur doit mettre à jour INV-07. Son ingénieur se connecte au bastion avec deux facteurs et travaille depuis celui-ci, pendant une intervention approuvée. Tout est journalisé." }
+    },
+    "frames": {
+        "scada-poll": "Le SCADA lit l'onduleur INV-07",
+        "historian-read": "Donne-moi les dernières valeurs de la centrale",
+        "scada-values": "Les voici",
+        "office-read": "Montre-moi la production du jour",
+        "blocked": "Connecte-moi à l'onduleur INV-07, port 502",
+        "vendor-login": "Connexion fournisseur : mot de passe et code à usage unique",
+        "vendor-session": "Ouvre la page de maintenance d'INV-07"
+    },
+    "notes": {
+        "scada-poll": "Du Modbus TCP, du SCADA dans la zone de contrôle vers l'onduleur dans la zone terrain. La connexion traverse FW-2, et le conduit C3 a une règle précisément pour cela : depuis le SCADA, vers les onduleurs, TCP 502.",
+        "historian-read": "Le conduit C2 permet à l'historien, et à lui seul, d'ouvrir OPC UA (TCP 4840) vers le SCADA. L'historien garde une copie des données de la centrale dans la DMZ.",
+        "scada-values": "La réponse n'a pas besoin de sa propre règle : le pare-feu sait qu'elle appartient à une connexion qu'il a autorisée.",
+        "office-read": "Les utilisateurs du bureau lisent l'historien dans la DMZ, jamais la centrale. Si le bureau est attaqué, l'attaquant trouve une copie des données, pas les commandes.",
+        "blocked": "Aucune règle ne permet au bureau d'atteindre la zone terrain : la dernière règle de C1 rejette donc la connexion. Le PC ne reçoit aucune réponse. L'entrée du journal mérite une alarme : le PC est peut-être infecté, ou quelqu'un fait une tentative.",
+        "vendor-login": "Depuis Internet, le fournisseur atteint le bastion dans la DMZ, et rien d'autre. Le bastion demande un mot de passe et un code à usage unique venant du téléphone de l'ingénieur : deux facteurs, si bien qu'un mot de passe volé ne suffit pas. Il enregistre la session.",
+        "vendor-session": "Depuis le bastion, le conduit C4 autorise HTTPS vers les onduleurs, seulement tant que l'intervention est approuvée. Le PC du fournisseur lui-même ne touche jamais le réseau de la centrale."
+    },
+    "fields": {
+        "sl1": { "name": "Erreurs", "note": "Protège contre l'erreur et le hasard : quelqu'un branche le mauvais câble ou ouvre le mauvais fichier." },
+        "sl2": { "name": "Attaques simples", "note": "Contre quelqu'un de malveillant, avec des moyens simples : outils courants, compétences informatiques générales, peu d'argent." },
+        "sl3": { "name": "Attaques expertes", "note": "Contre un attaquant qui connaît les systèmes OT, avec de bons outils et un peu d'argent." },
+        "sl4": { "name": "Attaques bien financées", "note": "Contre une équipe aux compétences OT pointues, avec beaucoup d'argent et beaucoup de temps, comme un État." },
+        "fr1": { "name": "FR 1 · Identification et authentification", "note": "Savoir qui demande, une personne, un programme ou un équipement, avant de le laisser entrer." },
+        "fr2": { "name": "FR 2 · Contrôle d'utilisation", "note": "Une fois identifié, chacun ne peut faire que ce que son rôle permet. Un opérateur ne peut pas charger un nouveau firmware." },
+        "fr3": { "name": "FR 3 · Intégrité du système", "note": "Les logiciels, les réglages et les messages ne peuvent pas être modifiés sans que cela se remarque." },
+        "fr4": { "name": "FR 4 · Confidentialité des données", "note": "Garder secret ce qui doit l'être, stocké ou sur le fil : mots de passe, clés, certaines données. Seulement 2 ici : la plupart des valeurs de la centrale ne sont pas secrètes." },
+        "fr5": { "name": "FR 5 · Flux de données restreints", "note": "Les données ne circulent que là où il le faut : les zones, les conduits et leurs règles." },
+        "fr6": { "name": "FR 6 · Réponse rapide aux événements", "note": "Journaux et alarmes, pour qu'une attaque soit vue et traitée à temps." },
+        "fr7": { "name": "FR 7 · Disponibilité des ressources", "note": "La centrale continue de fonctionner sous charge ou sous attaque, et peut être restaurée à partir de sauvegardes." }
+    },
+    "devices": {
+        "laptop": "PC du bureau",
+        "vendor": "Ingénieur fournisseur",
+        "fw1": "FW-1",
+        "historian": "Historien (DMZ)",
+        "jump": "Bastion (DMZ)",
+        "fw2": "FW-2",
+        "scada": "SCADA (contrôle)",
+        "fswitch": "Switch de terrain",
+        "rtu": "RTU (terrain)",
+        "inverter": "INV-07 (terrain)"
+    },
+    "facts": {
+        "standard": "Série ISA/IEC 62443 : zones et conduits dans 62443-3-2, exigences système dans 62443-3-3",
+        "between": "Propriétaire de l'installation, intégrateur et fournisseur de produits : chacun a ses propres parties",
+        "transport": "Aucun en propre : ses règles couvrent tous les protocoles de l'installation",
+        "security": "Un niveau de sécurité cible, de SL 1 à SL 4, pour chaque zone",
+        "model": "Zones, conduits et 7 exigences fondamentales"
+    },
+    "tips": [
+        "Une règle de any vers any, même pour une journée, fusionne deux zones en une. Nommez la source, la destination et le port.",
+        "Faites aboutir les accès distants dans la DMZ. Un VPN fournisseur qui arrive directement dans la zone de contrôle contourne tous les conduits.",
+        "Les comptes partagés enfreignent FR 1 : personne ne peut dire qui a fait quoi. Donnez à chaque personne son propre identifiant, fournisseurs compris.",
+        "Trois niveaux sont souvent confondus : SL-T est la cible de la zone, SL-C ce qu'un produit peut atteindre, SL-A ce que la zone construite atteint réellement. Vérifiez le SL-A, pas la fiche technique."
+    ],
+    "anatomy": {
+        "levels": "Les niveaux de sécurité : à qui une zone doit résister",
+        "vector": "La cible de la zone de contrôle : un niveau par exigence fondamentale"
+    },
+    "playground": {
+        "file": "Les zones de la centrale et les règles de ses conduits. Trouvez la règle derrière chaque étape.",
+        "zones": "Une zone est un groupe d'équipements qui ont besoin de la même protection. SL-T est le niveau de sécurité que la zone doit atteindre.",
+        "enterprise": "SL 1 : le réseau du bureau. C'est de l'IT, pas de l'OT, et la centrale le considère comme non fiable.",
+        "dmz": "SL 2 : la zone tampon entre le bureau et la centrale. Les connexions s'y terminent, et de nouvelles en partent.",
+        "control": "SL 3 : le SCADA pilote la centrale, il doit donc résister à un attaquant expert qui connaît l'OT.",
+        "field": "SL 3 également : les onduleurs et le RTU agissent sur le réseau électrique.",
+        "conduits": "Un conduit regroupe les connexions entre deux zones. Chaque règle nomme une source, une destination et un service ; la première règle qui correspond décide.",
+        "office": "Le bureau lit les données de la centrale sur l'historien, jamais sur la centrale.",
+        "vendor": "Depuis Internet, seul le bastion est joignable. Le bastion demande deux facteurs.",
+        "deny": "Tout le reste est rejeté et journalisé. Cette règle arrête le PC à l'étape 4.",
+        "historian": "Une source, une destination, un port : OPC UA de l'historien vers le SCADA.",
+        "scada-poll": "Le SCADA lit les onduleurs en Modbus TCP : étape 1.",
+        "job": "Les sessions du fournisseur n'atteignent les onduleurs que tant qu'une intervention est approuvée. Le reste du temps, cette règle est désactivée."
+    }
+}

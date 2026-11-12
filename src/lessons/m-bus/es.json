@@ -1,0 +1,99 @@
+{
+    "intro": "El bus de medidores de calor, agua y gas en Europa (EN 13757). Un maestro alimenta dos hilos y pregunta a cada medidor por turno. El medidor responde con una cabecera y registros de datos; cada registro dice qué mide y en qué unidad. Wireless M-Bus envía los mismos registros por radio, sin que nadie pregunte.",
+    "steps": {
+        "reset": { "title": "Reiniciar el enlace", "text": "El concentrador envía SND_NKE a la dirección primaria 5. El medidor responde con un solo byte, E5. El bus funciona a 2400 baudios, 8 bits de datos, paridad par." },
+        "ask": { "title": "Pedir datos", "text": "REQ_UD2 pide sus datos al medidor de calor. El bit de cuenta de tramas (FCB) vale 1, como debe ser en la primera petición tras un reinicio." },
+        "answer": { "title": "Registros de datos", "text": "Una trama larga: una cabecera fija y luego registros de datos. Cada registro empieza con un DIF (cómo se codifica el valor) y un VIF (qué es y en qué unidad). El último byte antes de la suma de comprobación, 0x1F, dice: hay más en el siguiente telegrama." },
+        "next": { "title": "Siguiente telegrama", "text": "El concentrador invierte el FCB y vuelve a preguntar. El medidor envía su segundo telegrama: los valores guardados en la última fecha de corte, el día en que factura la compañía." },
+        "radio": { "title": "Wireless M-Bus", "text": "El medidor de agua no tiene hilo al bus. Cada 16 segundos envía sus valores por radio, cifrados con AES-128. El concentrador necesita la clave de este medidor para leerlos." }
+    },
+    "frames": {
+        "snd-nke": "Medidor 5, reinicia tu enlace",
+        "e5": "OK",
+        "req-1": "Medidor 5, envíame tus datos",
+        "rsp-1": "12 345 kWh, 456.78 m³, 70.2 °C y 45.3 °C; hay más",
+        "req-2": "El siguiente telegrama, por favor",
+        "rsp-2": "El 2025-12-31: 9 876 kWh y 381.23 m³",
+        "wmbus": "Medidor de agua 87654321: mis valores (cifrados)"
+    },
+    "notes": {
+        "wmbus": "Nadie preguntó: un medidor T1 solo envía. En claro van la longitud, el campo C 0x44 (SND_NR: envío sin respuesta), el fabricante EXA, el ID 87654321, una versión y el tipo 0x07 (agua). Después, CI 0x7A con un número de acceso, un byte de estado y una palabra de configuración que indica el modo 5: AES-128 en modo CBC. El resto va cifrado. El IV se construye con el fabricante, la dirección y el número de acceso; la clave es solo de este medidor. Una vez descifrados, los datos empiezan por 2F 2F, seguidos de registros DIF y VIF como los del bus cableado. Cada bloque de la trama tiene su propio CRC. Por el aire, cada 4 bits viajan como 6 chips (el código 3 de 6)."
+    },
+    "fields": {
+        "short": { "name": "Inicio", "note": "0x10 inicia una trama corta: 5 bytes en total." },
+        "c-nke": { "name": "Campo C 0x40", "note": "SND_NKE: reinicia el enlace. El medidor borra su bit de cuenta de tramas." },
+        "a-5": { "name": "Dirección 5", "note": "La dirección primaria del medidor. De 1 a 250 son para medidores, y un medidor nuevo responde en la 0. 253 significa: usa en su lugar la dirección secundaria (el ID). 254 y 255 llegan a todos los medidores." },
+        "cs-nke": { "name": "Suma de comprobación", "note": "0x45 = 0x40 + 0x05: la suma de C y A, módulo 256." },
+        "stop": { "name": "Fin", "note": "0x16 termina toda trama M-Bus." },
+        "e5": { "name": "ACK", "note": "Un byte, 0xE5: la confirmación del medidor." },
+        "c-req-1": { "name": "Campo C 0x7B", "note": "REQ_UD2: envíame tus datos de usuario. El bit de cuenta de tramas (0x20) vale 1: la primera petición tras un reinicio lleva FCB 1." },
+        "cs-req-1": { "name": "Suma de comprobación", "note": "0x80 = 0x7B + 0x05." },
+        "long-42": { "name": "Inicio", "note": "Una trama larga: 0x68, la longitud dos veces y otra vez 0x68. 0x2A = 42 bytes desde C hasta el último byte de datos." },
+        "c-rsp": { "name": "Campo C 0x08", "note": "RSP_UD: los datos de usuario del medidor." },
+        "a-5-rsp": { "name": "Dirección 5", "note": "La respuesta indica quién la envía." },
+        "ci": { "name": "Campo CI 0x72", "note": "Datos variables con la cabecera larga que sigue, números con el byte bajo primero." },
+        "id": { "name": "Número de ID", "note": "12345678 en BCD, el byte bajo primero. Va impreso en el medidor y es su dirección secundaria." },
+        "maker": { "name": "Fabricante", "note": "0x1701 = EXA, un código inventado: tres letras empaquetadas en 15 bits (desglosado más abajo)." },
+        "version": { "name": "Versión", "note": "1: la versión de este tipo de medidor." },
+        "medium": { "name": "Medio", "note": "0x04: calor, con el sensor de caudal en la tubería de retorno. 0x07 es agua, 0x03 gas." },
+        "access-42": { "name": "Número de acceso", "note": "0x2A = 42. Sube en uno con cada respuesta." },
+        "access-43": { "name": "Número de acceso", "note": "0x2B = 43: uno más que en la última respuesta." },
+        "status": { "name": "Estado", "note": "0x00: sin errores, batería correcta." },
+        "signature": { "name": "Firma", "note": "0x0000: sin cifrar." },
+        "energy": { "name": "Energía", "note": "DIF 0x0C: 8 dígitos BCD. VIF 0x06: energía en kWh. 00012345 = 12 345 kWh." },
+        "volume": { "name": "Volumen", "note": "DIF 0x0C. VIF 0x14: volumen en pasos de 0.01 m³. 00045678 = 456.78 m³." },
+        "flow": { "name": "Temperatura de impulsión", "note": "DIF 0x0A: 4 dígitos BCD. VIF 0x5A: temperatura de impulsión en pasos de 0.1 °C. 0702 = 70.2 °C." },
+        "return": { "name": "Temperatura de retorno", "note": "VIF 0x5E: temperatura de retorno en pasos de 0.1 °C. 0453 = 45.3 °C." },
+        "now": { "name": "Fecha y hora", "note": "DIF 0x04: 32 bits. VIF 0x6D: fecha y hora (tipo F), empaquetadas en bits: 2026-11-12 08:15." },
+        "more": { "name": "Más", "note": "DIF 0x1F: siguen más registros en el próximo telegrama." },
+        "cs-rsp-1": { "name": "Suma de comprobación", "note": "0xA1: la suma de todos los bytes desde C hasta el último byte de datos, módulo 256." },
+        "c-req-2": { "name": "Campo C 0x5B", "note": "REQ_UD2 con FCB 0. El bit cambió, así que el medidor envía su siguiente telegrama. Con el mismo bit, volvería a enviar el último." },
+        "cs-req-2": { "name": "Suma de comprobación", "note": "0x60 = 0x5B + 0x05." },
+        "long-31": { "name": "Inicio", "note": "0x1F = 31 bytes desde C hasta el último byte de datos." },
+        "due-date": { "name": "Fecha de corte", "note": "DIF 0x42: almacenamiento 1, 16 bits. VIF 0x6C: una fecha (tipo G): 2025-12-31." },
+        "due-energy": { "name": "Energía en la fecha de corte", "note": "DIF 0x4C: almacenamiento 1, 8 dígitos BCD. VIF 0x06: kWh. 00009876 = 9 876 kWh." },
+        "due-volume": { "name": "Volumen en la fecha de corte", "note": "DIF 0x4C, VIF 0x14. 00038123 = 381.23 m³." },
+        "cs-rsp-2": { "name": "Suma de comprobación", "note": "0x6B: la suma desde C hasta el último byte de datos." },
+        "m-1": { "name": "Primera letra", "note": "E = 5 (A es 1, Z es 26), por 1024." },
+        "m-2": { "name": "Segunda letra", "note": "X = 24, por 32." },
+        "m-3": { "name": "Tercera letra", "note": "A = 1." },
+        "d-extension": { "name": "Extensión", "note": "0: no sigue ningún byte DIFE. Los DIFE añaden bits para números de almacenamiento más altos, tarifas y subunidades." },
+        "d-storage": { "name": "Número de almacenamiento", "note": "1. 0 es el valor actual; los números más altos son valores guardados. En este medidor, 1 es la última fecha de corte." },
+        "d-function": { "name": "Función", "note": "00: un valor instantáneo. 01 es un máximo, 10 un mínimo, 11 un valor durante un error." },
+        "d-data": { "name": "Campo de datos", "note": "1100: 8 dígitos BCD, en 4 bytes. 0100 sería un entero de 32 bits." }
+    },
+    "devices": {
+        "heat": "Medidor de calor",
+        "collector": "Concentrador de datos",
+        "water": "Medidor de agua"
+    },
+    "facts": {
+        "standard": "EN 13757-2 (cableado), -3 (datos), -4 (inalámbrico), -7 (seguridad)",
+        "between": "Concentrador de datos (maestro) → medidores de calor, agua, gas y electricidad",
+        "transport": "Dos hilos, alimentados por el maestro, 2400 baudios 8E1; radio a 868 MHz (T1: 868.95 MHz)",
+        "security": "Cableado: ninguna. Inalámbrico: AES-128 con una clave por medidor (modo 5 o 7)",
+        "frames": "E5: confirmación · 10 … 16: trama corta · 68 L L 68 … 16: trama larga"
+    },
+    "tips": [
+        "Cada medidor del bus necesita su propia dirección primaria. Los medidores nuevos responden en la 0, y dos de ellos en la 0 se pisan. Asigna primero la dirección, o direcciona los medidores por su número de ID (direccionamiento secundario).",
+        "Invierte el FCB solo para obtener el siguiente telegrama. Un concentrador que nunca lo invierte lee el telegrama 1 una y otra vez, y nunca ve los valores guardados.",
+        "Toma la unidad del VIF de cada registro. 0x13 son litros, 0x14 decenas de litros: copiar la escala de otro tipo de medidor da facturas diez veces equivocadas.",
+        "Pide al proveedor la clave AES de cada medidor inalámbrico junto con la entrega. Sin ella, el concentrador ve el ID y el tipo, pero ningún valor."
+    ],
+    "points": {
+        "energy": "Energía térmica",
+        "volume": "Volumen",
+        "flow": "Temperatura de impulsión",
+        "due": "Energía el 2025-12-31"
+    },
+    "timing": {
+        "title": "Cómo viajan los bits por los dos hilos",
+        "note": "SND_NKE del maestro y luego E5 del medidor. El maestro señaliza con tensión: unos 36 V para un 1, 12 V menos para un 0. El medidor señaliza con corriente: 1.5 mA para un 1, de 11 a 20 mA más para un 0. Así, los mismos dos hilos llevan alimentación y datos en ambos sentidos. Cada carácter tiene 11 bits: un bit de inicio, 8 bits de datos (el más bajo primero), paridad par y un bit de parada. A 2400 baudios, un bit dura 0.42 ms.",
+        "master": "Maestro: tensión",
+        "meter": "Medidor: corriente"
+    },
+    "anatomy": {
+        "maker": "El código del fabricante, empaquetado en dos bytes",
+        "dif": "DIF 0x4C, bit a bit"
+    }
+}

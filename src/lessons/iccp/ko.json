@@ -1,0 +1,112 @@
+{
+    "intro": "제어 센터끼리 실시간 데이터를 주고받는 방법이에요: 송전 계통 운영자(TSO)가 배전 계통 운영자(DSO), 발전소, 이웃 TSO와 주고받아요. ICCP는 TASE.2라고도 하며, MMS 위에서 동작해요. 두 회사가 합의한 양자 테이블(bilateral table)이 상대가 읽을 수 있는 항목을 정확히 나열하고, 서버가 이를 강제해요.",
+    "steps": {
+        "connect": { "title": "연결과 어소시에이션", "text": "DSO의 ICCP 클라이언트가 VPN을 거쳐 TSO 서버로 TCP 102를 열어요. 이어서 MMS 어소시에이션을 해요: 클라이언트는 AP 타이틀로 자기를 밝히고, 서버는 자기 양자 테이블 중 하나에 있는 이름만 받아들여요." },
+        "check": { "title": "테이블 ID 확인", "text": "클라이언트가 서버에 있는 자기 도메인에서 Bilateral_Table_ID를 읽어 자기 사본과 비교해요. 일치해요: 양쪽이 같은 합의를 기준으로 일해요." },
+        "subscribe": { "title": "리포트 요청", "text": "클라이언트가 자기 도메인에 데이터 세트 DS_TIELINES를 만들어요: 함께 받고 싶은 값들이에요. 전송 세트(transfer set)는 서버에 언제 보낼지 알려 줘요. 클라이언트가 빈 전송 세트를 요청하고(Next_DSTransfer_Set), 거기에 써요: 4초마다, 그리고 변화가 생기면 즉시." },
+        "interval": { "title": "4초마다 리포트", "text": "서버가 4초마다 데이터 세트 전체를 InformationReport로 보내요. 아무도 요청하지 않고 아무도 답하지 않아요." },
+        "change": { "title": "변화 시 리포트", "text": "변전소에서 연계선 2의 차단기가 열려요. 서버는 다음 주기를 기다리지 않고 바로 리포트해요. 조류가 연계선 1로 옮겨 갔어요." },
+        "denied": { "title": "테이블 밖", "text": "DSO 운전원이 TSO 발전기의 출력인 GEN_K1_MW를 요청해요. DSO_EAST의 양자 테이블에 없는 값이라, 서버는 값 대신 접근 오류로 답해요." }
+    },
+    "frames": {
+        "connect": "TCP 102와 ISO 전송 연결 열기",
+        "initiate-req": "저는 DSO_EAST예요: MMS로 이야기해요",
+        "initiate-resp": "수락: 제 양자 테이블에 있어요",
+        "blt-req": "저에 대한 양자 테이블 ID가 뭐예요?",
+        "blt-resp": "DSOEAST-2026-03",
+        "define-ds": "데이터 세트 DS_TIELINES 생성: TIE1_MW, TIE2_MW, TIE2_CB",
+        "define-ok": "데이터 세트 생성 완료",
+        "next-ts": "빈 전송 세트를 주세요",
+        "next-ts-resp": "DSTS_07을 쓰세요",
+        "ts-start": "DSTS_07: DS_TIELINES를 4초마다, 그리고 변화 시 보내 주세요",
+        "report-interval": "TIE1 212.4 MW, TIE2 36.2 MW, TIE2 차단기 닫힘",
+        "report-change": "TIE2 차단기 열림: TIE1 248.9 MW, TIE2 0.0 MW",
+        "denied-req": "GEN_K1_MW가 얼마예요?",
+        "denied-resp": "접근 오류: 테이블에 없어요"
+    },
+    "notes": {
+        "connect": "포트 102로 TCP, 그 위에 COTP 연결. IEC 61850 MMS와 똑같아요. 두 회사 사이에서는 보통 IPsec VPN 안에서 동작해요. ICCP 자체는 아무것도 암호화하지 않으니까요.",
+        "initiate-req": "세션, 프레젠테이션, ACSE 계층이 MMS Initiate를 감싸요. ACSE에는 양쪽의 AP 타이틀이 담겨요. 서버는 호출한 AP 타이틀로 이 클라이언트에 해당하는 양자 테이블, 즉 도메인을 찾아요.",
+        "initiate-resp": "어떤 양자 테이블에도 없는 AP 타이틀은 데이터를 읽기도 전에 여기서 거부돼요. MMS 부분은 메시지 크기와 서비스를 합의해요.",
+        "define-ds": "도메인 DSO_EAST에서의 MMS DefineNamedVariableList예요. 전송 세트용 데이터 세트는 특별한 멤버 세 개, Transfer_Set_Name, Transfer_Set_Time_Stamp, DSConditions_Detected로 시작할 수 있어요. 그러면 리포트마다 어느 전송 세트가, 언제, 왜 보냈는지 알 수 있어요.",
+        "define-ok": "서버는 목록을 만들기 전에 이름 하나하나를 양자 테이블과 대조해요. 클라이언트가 읽을 수 없는 이름이 있으면 요청이 실패해요.",
+        "next-ts": "도메인 DSO_EAST의 특별한 변수 Next_DSTransfer_Set을 Read해요. 읽을 때마다 서버의 풀에서 빈 전송 세트를 하나씩 내줘요.",
+        "next-ts-resp": "클라이언트가 이제 쓸 수 있는 전송 세트의 이름: DSTS_07.",
+        "ts-start": "전송 세트의 속성을 Write해요: DataSetName DSO_EAST/DS_TIELINES, Interval 4 s, 조건 IntervalTimeOut과 ObjectChange, Status 활성. 서버가 쓰기를 확인하고 리포트를 시작해요.",
+        "report-interval": "데이터 세트 이름이 붙은 비확인형 MMS InformationReport예요. 전송 세트 이름, 시각, 이유(주기 만료), 그리고 모든 값이 품질 플래그와 함께 담겨요: valid, held, suspect, not valid.",
+        "report-change": "값이 바뀌어서(이유: 객체 변화) 두 주기 리포트 사이에 보냈어요. 이것도 응답을 받지 않아요. 단, 전송 세트가 critical로 표시돼 있으면 클라이언트가 수신 확인해야 해요.",
+        "denied-req": "도메인 DSO_EAST가 아니라 TSO 자체 범위(VCC)에 있는 값을 Read해요. 다른 상대는 읽을 수 있을지 몰라도, DSO_EAST는 안 돼요.",
+        "denied-resp": "읽기 결과가 값 대신 MMS 접근 오류예요. 해결책은 소프트웨어에 있지 않아요: 두 회사가 테이블에 값을 추가하고 ID를 올려야 해요."
+    },
+    "fields": {
+        "tpkt-67": { "name": "TPKT", "note": "버전 3, 이어서 메시지 전체 길이: 0x0043 = 67바이트." },
+        "tpkt-46": { "name": "TPKT", "note": "버전 3, 이어서 길이: 0x002E = 46바이트." },
+        "cotp-dt": { "name": "COTP", "note": "데이터 단위(0xF0), 메시지의 마지막(0x80)." },
+        "session": { "name": "세션", "note": "짧은 세션 헤더 두 개: give tokens, data transfer." },
+        "presentation": { "name": "프레젠테이션", "note": "완전 인코딩 데이터, 프레젠테이션 컨텍스트 3: 이어지는 내용은 MMS예요." },
+        "confirmed-req": { "name": "확인형 요청", "note": "태그 A0, 45바이트: 응답을 기대하는 요청." },
+        "confirmed-resp": { "name": "확인형 응답", "note": "태그 A1, 24바이트: 응답." },
+        "invoke": { "name": "Invoke ID 1", "note": "클라이언트가 고르는 번호. 응답에도 같은 번호가 담겨요." },
+        "invoke-resp": { "name": "Invoke ID 1", "note": "요청과 같은 번호: 그 요청에 대한 응답이에요." },
+        "read": { "name": "Read", "note": "태그 A4: MMS Read 서비스." },
+        "spec": { "name": "변수 목록", "note": "이름으로 지정한 변수 하나짜리 목록." },
+        "domain-specific": { "name": "도메인 지정 이름", "note": "도메인과 항목, 두 부분으로 된 이름." },
+        "domain": { "name": "도메인", "note": "\"DSO_EAST\": 서버에 있는 이 클라이언트의 도메인으로, 양자 테이블의 이름을 따요. 이 상대만을 위한 값(ICC 범위)이 여기에 있어요." },
+        "item": { "name": "항목", "note": "\"Bilateral_Table_ID\": ICCP 서버가 클라이언트 도메인마다 두는 변수." },
+        "results": { "name": "결과", "note": "요청한 변수마다 하나씩 있는 결과 목록." },
+        "blt-value": { "name": "Visible string", "note": "태그 0x8A, 15자: DSOEAST-2026-03. 클라이언트는 이를 자기 테이블의 ID와 비교해요. 다르면 어소시에이션을 닫아야 해요." }
+    },
+    "devices": {
+        "dso": "DSO 제어 센터",
+        "dsovpn": "DSO VPN 라우터",
+        "tsovpn": "TSO VPN 라우터",
+        "tso": "TSO 제어 센터",
+        "sub": "연계 변전소"
+    },
+    "facts": {
+        "standard": "IEC 60870-6-503(서비스)과 IEC 60870-6-802(객체): TASE.2",
+        "between": "제어 센터 ↔ 제어 센터: TSO, DSO, 발전소, 시장 운영자",
+        "transport": "TCP 102 위의 ISO 위 MMS(RFC 1006), 보통 IPsec VPN 안에서",
+        "security": "자체 보안 없음. Secure ICCP가 인증서 기반 TLS를 더해요(IEC 62351-3과 -4).",
+        "model": "양자 테이블, 데이터 값, 데이터 세트, 전송 세트"
+    },
+    "tips": [
+        "양자 테이블은 양쪽에서 함께 바꾸세요. Bilateral_Table_ID가 다르면 클라이언트가 어소시에이션을 닫고 데이터가 흐르지 않아요.",
+        "값만이 아니라 품질 플래그도 확인하세요. held나 suspect로 표시된 값은 오래됐거나 의심스러운 숫자지만, 화면에서는 여전히 정상처럼 보여요.",
+        "단위와 부호를 합의하세요. TSO에서 DSO로 가는 212.4 MW가 DSO 자체 SCADA에서는 −212.4 MW일 수 있어요. 방향을 테이블에 적어 두세요.",
+        "ICCP에는 자체 보안이 없어요. VPN 안에 두거나 Secure ICCP를 쓰고, 포트 102를 절대 인터넷에 열지 마세요."
+    ],
+    "points": {
+        "blt": "테이블 ID",
+        "tie1": "연계선 1 조류",
+        "tie2": "연계선 2 조류",
+        "cb2": "연계선 2 차단기"
+    },
+    "values": {
+        "closed": "닫힘",
+        "open": "열림"
+    },
+    "timing": {
+        "title": "전송 세트가 리포트하는 때",
+        "note": "서버는 DS_TIELINES를 4초마다(주기), 그리고 값이 바뀌면 즉시(객체 변화) 리포트해요. 전송 세트는 무결성 검사도 요청할 수 있어요: 무슨 일이 있든 몇 분마다 전체 리포트. 전송 세트를 시작한 뒤에는 클라이언트가 다시 묻지 않아요.",
+        "dso": "DSO 클라이언트",
+        "interval": "주기 리포트",
+        "change": "변화 리포트",
+        "start": "Status = 활성",
+        "every-4s": "4초마다",
+        "tie2-open": "TIE2_CB 열림"
+    },
+    "playground": {
+        "file": "한쪽이 보관할 법한 양자 테이블이에요(지어낸 것: 제조사마다 형식이 달라요). 두 회사가 같은 내용을 가지고 있어요.",
+        "table": "테이블 이름. 서버에서는 클라이언트의 도메인이기도 해요: DSO_EAST.",
+        "table-id": "양쪽이 합의한 버전. 클라이언트는 어소시에이션 때마다 서버에서 이를 읽어요.",
+        "client-ap": "클라이언트의 AP 타이틀(아래 AE qualifier와 함께): 서버가 누가 호출하는지 아는 방법이에요.",
+        "blocks": "상대끼리 쓰는 적합성 블록: 1은 기본 서비스, 2는 변화 시 리포트.",
+        "read": "DSO가 읽을 수 있는 값들. DSO의 도메인 DSO_EAST(ICC 범위)에 있어요. 그 밖의 것은 모두 접근 오류예요.",
+        "data-value": "Data_RealQ: 품질 플래그가 붙은 부동소수점.",
+        "state": "Data_State: 열림이나 닫힘 같은 상태, 품질 플래그 포함.",
+        "write": "아무것도 쓸 수 없어요: DSO는 TSO의 값을 바꿀 수 없어요.",
+        "devices": "기기 제어(블록 5)는 허용되지 않아요: 등록된 기기가 없으니 DSO는 TSO의 차단기를 조작할 수 없어요.",
+        "transfer-sets": "이 클라이언트가 동시에 쓸 수 있는 전송 세트 수."
+    }
+}

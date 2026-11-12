@@ -1,0 +1,108 @@
+{
+    "intro": "So sagen sich Schutzgeräte gegenseitig, dass sie auslösen sollen: in wenigen Millisekunden, über das Stationsnetz statt über Kupferadern. Ein Schutzgerät veröffentlicht seine Daten an eine Multicast-Adresse; jedes Schutzgerät, das sie braucht, abonniert sie. Niemand antwortet, deshalb wiederholt der Publisher jede Änderung, erst schnell, dann langsamer.",
+    "steps": {
+        "heartbeat": { "title": "Heartbeat", "text": "Alles in Ordnung. Jede Sekunde wiederholt das Schutzgerät seinen letzten Zustand für alle, die zuhören." },
+        "fault": { "title": "Fehler", "text": "Ein Kurzschluss im Abgang F1. Das Schutzgerät misst 2.8 kA und schließt seinen Auslösekontakt zum Leistungsschalter." },
+        "publish": { "title": "Veröffentlichen", "text": "Im selben Moment sendet es den neuen Zustand. Die Zustandsnummer steigt um eins, und die Sequenznummer beginnt wieder bei 0." },
+        "repeat": { "title": "Schnell wiederholen", "text": "Kein Subscriber antwortet auf GOOSE, deshalb sendet das Schutzgerät dieselbe Nachricht 2 ms später noch einmal, dann nach 4, 8, 16 … bis es wieder bei einmal pro Sekunde ist." },
+        "act": { "title": "Subscriber handeln", "text": "F2 PROT startet die Zeitstufe seines Schalterversagerschutzes. Das Gateway gibt die Auslösung an SCADA weiter." },
+        "open": { "title": "Schalter öffnet", "text": "48 ms nach dem Fehler ist Q1 offen, und der Fehlerstrom ist unterbrochen." }
+    },
+    "frames": {
+        "heartbeat": "Weiterhin keine Auslösung (Heartbeat)",
+        "trip-wire": "Auslösespule von Q1 erregen",
+        "event": "Auslösung! Tr.general = TRUE",
+        "repeat": "Auslösung, noch einmal (Kopie 1)",
+        "to-scada": "Q1 ausgelöst, mit Zeitstempel",
+        "opened": "Q1 ist offen"
+    },
+    "notes": {
+        "trip-wire": "Eine Kupferader, keine Netzwerknachricht: Das Schutzgerät schließt einen Kontakt, und Strom fließt in die Auslösespule des Leistungsschalters.",
+        "to-scada": "Das ist IEC 104, nicht GOOSE: Das Gateway übersetzt zwischen beiden. Die Lektion zu IEC 104 zeigt diese Bytes.",
+        "opened": "Ein Hilfskontakt am Leistungsschalter meldet dem Schutzgerät, dass er geöffnet hat."
+    },
+    "fields": {
+        "dst": { "name": "Ziel", "note": "Eine Multicast-Adresse aus dem Bereich, den IEC 61850 für GOOSE reserviert (01-0C-CD-01-…). Jedes Gerät im Netz hört sie; nur Subscriber behalten den Frame." },
+        "src": { "name": "Quelle", "note": "Die eigene MAC-Adresse des Schutzgeräts." },
+        "vlan": { "name": "VLAN-Tag", "note": "0x8100, dann Priorität 4 und VLAN 10. Dank der Priorität leiten Switches den Frame vor anderem Verkehr weiter." },
+        "ethertype": { "name": "EtherType", "note": "0x88B8 bedeutet GOOSE. In diesem Frame gibt es kein IP und kein TCP." },
+        "appid": { "name": "APPID", "note": "0x0001: eine Nummer, nach der Subscriber filtern." },
+        "length": { "name": "Länge", "note": "115 Bytes, von der APPID bis zum Ende." },
+        "reserved": { "name": "Reserviert", "note": "Zwei reservierte Felder, hier null. IEC 62351-6 nutzt sie, wenn der Frame signiert ist." },
+        "pdu": { "name": "GOOSE-Nachricht", "note": "0x61 beginnt die Nachricht; es folgen 105 Bytes (0x69). Jedes Feld danach besteht aus Tag, Länge und Wert." },
+        "gocbref": { "name": "gocbRef", "note": "Tag 0x80, 25 Bytes: der Name des Control Blocks, F1PROTLD0/LLN0$GO$gcbTrip." },
+        "tal": { "name": "Time Allowed to Live", "note": "2000 ms. Kommt in dieser Zeit keine Kopie an, betrachten die Subscriber die Daten als ungültig." },
+        "datset": { "name": "datSet", "note": "Der Datensatz, den die Nachricht trägt: F1PROTLD0/LLN0$dsTrip." },
+        "goid": { "name": "goID", "note": "F1PROT_Trip, eine ID, die Subscriber prüfen können." },
+        "t-old": { "name": "t", "note": "Wann sich die Daten zuletzt geändert haben: heute um 08:00:00 UTC. Ein Heartbeat behält die Zeit der letzten Änderung." },
+        "t-event": { "name": "t", "note": "Wann sich die Daten geändert haben: 10:41:07.232 UTC. 4 Bytes Sekunden, 3 Bytes Sekundenbruchteile, 1 Byte Uhrqualität." },
+        "stnum-12": { "name": "stNum 12", "note": "Die Zustandsnummer: unverändert seit der letzten Änderung." },
+        "stnum-13": { "name": "stNum 13", "note": "Die Zustandsnummer ist um eins gestiegen: Die Daten haben sich geändert." },
+        "sqnum-3": { "name": "sqNum 3", "note": "Die Sequenznummer: die vierte Kopie desselben Zustands." },
+        "sqnum-0": { "name": "sqNum 0", "note": "Die erste Kopie des neuen Zustands." },
+        "sqnum-1": { "name": "sqNum 1", "note": "Derselbe Zustand, noch einmal gesendet." },
+        "simulation": { "name": "simulation", "note": "False. True kennzeichnet Testnachrichten, die Subscriber ignorieren, solange sie nicht im Testmodus sind." },
+        "confrev": { "name": "confRev 1", "note": "Die Konfigurationsrevision. Sie muss zu der passen, mit der der Subscriber eingerichtet wurde." },
+        "ndscom": { "name": "ndsCom", "note": "Needs Commissioning: false. True würde bedeuten, dass die Konfiguration des Publishers unvollständig ist." },
+        "entries": { "name": "Einträge", "note": "2 Werte im Datensatz." },
+        "data-idle": { "name": "allData", "note": "Die Werte: Tr.general = FALSE (keine Auslösung) und seine Qualität: gut." },
+        "data-trip": { "name": "allData", "note": "Die Werte: Tr.general = TRUE (Auslösung!) und seine Qualität: gut." },
+        "a-ied": { "name": "IED", "note": "Der Name des Geräts in der SCL-Datei." },
+        "a-ld": { "name": "Logisches Gerät", "note": "LD0, eine Gruppe von Funktionen im IED." },
+        "a-ln": { "name": "Logischer Knoten", "note": "LLN0, wo die Control Blocks liegen." },
+        "a-fc": { "name": "Functional Constraint", "note": "GO: ein GOOSE Control Block." },
+        "a-cb": { "name": "Control Block", "note": "gcbTrip, sein Name." }
+    },
+    "devices": {
+        "q1": "Leistungsschalter Q1",
+        "f1prot": "F1 PROT",
+        "f2prot": "F2 PROT",
+        "switch": "Stations-Switch",
+        "hmi": "Stations-HMI",
+        "gateway": "Gateway",
+        "scada": "SCADA"
+    },
+    "facts": {
+        "standard": "IEC 61850-8-1",
+        "between": "Ein Schutzgerät → jedes Schutzgerät, Feldleitgerät und Gateway, das abonniert",
+        "transport": "Ethernet-Multicast, kein IP",
+        "frames": "Eine Nachricht, wiederholt: keine Anfragen, keine Antworten",
+        "speed": "Eine Auslösung muss innerhalb von 3 ms ankommen (IEC 61850-5, Typ 1A)"
+    },
+    "tips": [
+        "Ein Subscriber prüft gocbRef, APPID, Datensatz und Konfigurationsrevision. Weicht eines davon von seiner Konfiguration ab, ignoriert er den Frame und meldet nichts.",
+        "GOOSE hat keine IP-Adresse, deshalb verwerfen Router es. Um ein anderes Umspannwerk zu erreichen, braucht man R-GOOSE.",
+        "Mit gesetztem Simulation-Flag und dem Subscriber im Testmodus testen. Sonst öffnet eine Testauslösung einen echten Leistungsschalter.",
+        "Jeder Switch auf dem Weg muss das VLAN-Tag und seine Priorität erhalten. Ein Switch, der es entfernt, kann eine Auslösung hinter anderem Verkehr verzögern."
+    ],
+    "points": {
+        "tr": "Auslösung",
+        "stnum": "Zustandsnummer",
+        "sqnum": "Sequenznummer"
+    },
+    "anatomy": {
+        "gocbref": "Der Name des GOOSE Control Blocks und wie er übertragen wird"
+    },
+    "timing": {
+        "title": "Warum GOOSE nie auf eine Antwort wartet",
+        "note": "GOOSE kennt keine Quittung. Der Publisher wiederholt jede Änderung schnell und wird dann bis zum Heartbeat langsamer. Hört ein Subscriber innerhalb der Time Allowed to Live nichts, markiert er die Daten als ungültig. Die Wiederholzeiten hier sind typisch; jeder Hersteller legt seine eigenen fest.",
+        "publisher": "F1 PROT",
+        "event": "stNum 12 → 13",
+        "repeats": "sqNum 1, 2, 3 …",
+        "heartbeat": "Heartbeat"
+    },
+    "singleLine": {
+        "title": "Übersichtsschaltplan der 34.5-kV-Sammelschiene",
+        "bus": "34.5 kV · Sammelschiene A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "offen",
+        "fault": "Fehler · 2.8 kA",
+        "station": "Stationsbus · Ethernet",
+        "f1": "F1 · PV-Anlage",
+        "f2": "F2 · Batterie",
+        "f3": "F3 · Eigenbedarf"
+    },
+    "playground": {
+        "scl": "Die SCL-Datei des Umspannwerks. Suche den GOOSE Control Block von F1PROT, seinen Datensatz sowie die MAC-Adresse und APPID, an die er sendet. Suche dann den Eingang von F2PROT, der darauf hört."
+    }
+}

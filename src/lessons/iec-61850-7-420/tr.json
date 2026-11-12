@@ -1,0 +1,103 @@
+{
+    "intro": "IEC 61850-7-420, IEC 61850 veri modelini dağıtık enerjiye taşır: bataryalar, inverterler, jeneratörler ve onları kontrol eden fonksiyonlar. Bir santral kontrolörü onları, bir trafo merkezi rölesindeki aynı MMS servisleriyle okur ve kontrol eder. Yeni olan yalnızca adlardır.",
+    "steps": {
+        "associate": { "title": "İlişkilen", "text": "Santral kontrolörü batarya inverterinde TCP 102 portunu açar ve her IEC 61850 bağlantısında olduğu gibi bir MMS ilişkilendirmesi (association) kurar." },
+        "read": { "title": "Şarj ve gücü oku", "text": "Tek bir Read iki değer ister: DSTO1'deki şarj durumu ve MMXU1'deki aktif güç. Yanıt ikisini de aynı sırayla içerir." },
+        "subscribe": { "title": "Rapor iste", "text": "Kontrolör aynı iki değer için bir raporu etkinleştirir. Artık inverter bunları değiştikçe gönderir." },
+        "limit": { "title": "Çıkışı sınırla", "text": "Şebeke işletmecisi en fazla 2000 kW'a izin veriyor. Kontrolör, aktif gücü sınırlayan fonksiyon olan DWMX1'in ayar değeri WMaxSpt'yi kumanda eder. İnverter kabul eder ve gücünü düşürmeye başlar." },
+        "report": { "title": "Güç oturuyor", "text": "TotW düşerken inverter raporlar. Son rapor 2000.0 kW diyor: sınır tutuyor." }
+    },
+    "frames": {
+        "tcp": "102 portuna TCP aç, sonra bir taşıma bağlantısı kur",
+        "initiate-req": "MMS konuşalım: benim boyutlarım ve servislerim",
+        "initiate-resp": "Anlaştık: bunlar da benimkiler",
+        "read-req": "Şarj durumun ve aktif gücün ne?",
+        "read-resp": "%68.5 ve 3000.0 kW",
+        "enable": "urcbDER01 raporunu etkinleştir",
+        "oper-req": "Aktif gücünü 2000 kW ile sınırla",
+        "oper-resp": "Tamam",
+        "report": "TotW artık 2000.0 kW"
+    },
+    "notes": {
+        "tcp": "102 portuna düz TCP, ardından onun üzerinde bir ISO taşıma bağlantısı (COTP). Bu adımları IEC 61850 MMS dersi gösteriyor.",
+        "initiate-req": "Oturum, sunum ve ACSE katmanlarının içinde bir MMS Initiate. Kontrolör en büyük mesaj boyutunu ve istediği servisleri önerir. Kimlik doğrulama kullanılıyorsa burada yapılır (IEC 62351-4).",
+        "initiate-resp": "İnverter kendi boyutları ve servisleriyle yanıt verir. Bundan sonra her istek bir değişkeni mantıksal cihazı ve öğesiyle adlandırır.",
+        "enable": "LLN0$RP$urcbDER01 rapor kontrol bloğundaki RptEna'ya TRUE yazılması (Write). Veri seti dsDER, DSTO1.UseSocPct ve MMXU1.TotW'yi içerir.",
+        "report": "İstenmeden gönderilen bir InformationReport: inverter, dsDER'deki bir değer her değiştiğinde bunu sorulmadan gönderir."
+    },
+    "fields": {
+        "tpkt-110": { "name": "TPKT", "note": "Sürüm 3, ardından tüm mesajın uzunluğu: 0x006E = 110 bayt." },
+        "tpkt-43": { "name": "TPKT", "note": "Sürüm 3, ardından uzunluk: 0x002B = 43 bayt." },
+        "tpkt-111": { "name": "TPKT", "note": "Sürüm 3, ardından uzunluk: 0x006F = 111 bayt." },
+        "tpkt-29": { "name": "TPKT", "note": "Sürüm 3, ardından uzunluk: 0x001D = 29 bayt." },
+        "cotp-dt": { "name": "COTP", "note": "Bir veri birimi (0xF0), mesajının sonuncusu (0x80)." },
+        "session": { "name": "Oturum", "note": "İki kısa oturum başlığı: give tokens, data transfer." },
+        "presentation": { "name": "Sunum", "note": "Tam kodlanmış veri, sunum bağlamı 3: ardından gelen MMS'tir." },
+        "confirmed-req": { "name": "Onaylı istek", "note": "Etiket A0: yanıt bekleyen bir istek. Sonraki bayt, içindeki baytları sayar." },
+        "confirmed-resp": { "name": "Onaylı yanıt", "note": "Etiket A1: bir isteğin yanıtı." },
+        "invoke-7": { "name": "Invoke ID 7", "note": "Kontrolörün seçtiği bir numara. Yanıt da aynısını taşır." },
+        "invoke-7-resp": { "name": "Invoke ID 7", "note": "İstekteki numaranın aynısı: bu, o isteğin yanıtı." },
+        "invoke-8": { "name": "Invoke ID 8", "note": "Yeni bir istek, yeni bir numara." },
+        "invoke-8-resp": { "name": "Invoke ID 8", "note": "Bu, ayar değerini içeren isteğin yanıtı." },
+        "read": { "name": "Read", "note": "Etiket A4: Read servisi." },
+        "spec": { "name": "Değişken listesi", "note": "Her biri adıyla verilmiş değişkenlerin listesi. Burada iki tane var." },
+        "var": { "name": "Değişken", "note": "Listenin bir girdisi. Ardından adı gelir." },
+        "domain-specific": { "name": "Domain'e özgü ad", "note": "İki parçalı bir ad: domain ve öğe." },
+        "domain": { "name": "Domain", "note": "\"BESS1DER\": BESS1 IED'sinin DER mantıksal cihazı." },
+        "item-soc": { "name": "Öğe", "note": "\"DSTO1$MX$UseSocPct$mag$f\": depolama biriminin kullanılabilir enerjisinin yüzdesi olarak şarj durumu." },
+        "item-totw": { "name": "Öğe", "note": "\"MMXU1$MX$TotW$mag$f\": inverterin AC tarafındaki toplam aktif güç." },
+        "results": { "name": "Sonuçlar", "note": "İstendikleri sırayla, her değişken için bir sonuç." },
+        "float-tag": { "name": "Kayan nokta", "note": "Etiket 0x87 (bir float), 5 bayt. 08: ardından IEEE 754 tek duyarlıklı bir float gelir." },
+        "soc": { "name": "UseSocPct", "note": "68.5 (%), en anlamlı bayt önce." },
+        "totw": { "name": "TotW", "note": "3000.0. Birim (kW), units özniteliğinde (CF)." },
+        "write": { "name": "Write", "note": "Etiket A5: Write servisi. IEC 61850 bir komutu Oper'a yazma (Write) olarak gönderir." },
+        "write-spec": { "name": "Değişken", "note": "Adıyla verilmiş tek değişkenlik bir liste." },
+        "item-oper": { "name": "Öğe", "note": "\"DWMX1$CO$WMaxSpt$Oper\": WMaxSpt ayar değerinin Oper yapısı. CO, kontrol demektir." },
+        "data-list": { "name": "Veri", "note": "Yazılacak değerler, her değişken için bir tane." },
+        "oper-struct": { "name": "Oper", "note": "Veri modelinin belirlediği sırayla altı parçalı bir yapı (etiket A2)." },
+        "ctlval": { "name": "ctlVal", "note": "Yeni değer: tek bir float içeren bir yapı, 0x44FA0000 = 2000.0 (kW)." },
+        "origin": { "name": "origin", "note": "Kimin gönderdiği: orCat 5 (automatic-station: santraldeki bir kontrolör) ve orIdent \"PPC\"." },
+        "ctlnum": { "name": "ctlNum", "note": "1: istemci komutlarını sayar; böylece her biri ayırt edilebilir." },
+        "oper-t": { "name": "T", "note": "Kontrolörün gönderdiği an: 10:41:12.250 UTC. 4 bayt saniye, 3 bayt saniyenin kesirleri, 1 bayt saat kalitesi." },
+        "test": { "name": "Test", "note": "FALSE: test değil, gerçek bir komut." },
+        "check": { "name": "Check", "note": "İki bit: senkronizm kontrolü ve kilitleme kontrolü. İkisi de kapalı: bir ayar değeri ikisine de ihtiyaç duymaz." },
+        "write-resp": { "name": "Write yanıtı", "note": "Etiket A5: bir Write'ın yanıtı, her değişken için bir sonuç." },
+        "success": { "name": "Başarılı", "note": "Etiket 0x81, boş: yazma işe yaradı. Doğrudan kontrolde yeni sınır hemen uygulanır." },
+        "a-ld": { "name": "Mantıksal cihaz", "note": "BESS1DER: IED adı BESS1 ve örnek DER." },
+        "a-ln": { "name": "Mantıksal düğüm", "note": "DWMX1: aktif gücü sınırlayan fonksiyon, örnek 1." },
+        "a-fc": { "name": "Fonksiyonel kısıt", "note": "CO: kontrol. Buraya yapılan bir Write bir ayar değil, bir komuttur." },
+        "a-do": { "name": "Veri nesnesi", "note": "WMaxSpt: APC türünde (kontrol edilebilir bir analog değer) maksimum aktif güç ayar değeri." },
+        "a-da": { "name": "Veri özniteliği", "note": "Oper: istemcinin komutu vermek için yazdığı yapı." }
+    },
+    "devices": {
+        "meter": "Şebeke sayacı",
+        "ppc": "Santral kontrolörü",
+        "bess": "BESS1 inverteri",
+        "battery": "Batarya"
+    },
+    "facts": {
+        "standard": "IEC 61850-7-420 edition 2 (2021); IEC 61850-7-4 ve IEC 61850-8-1'in MMS eşlemesi üzerine",
+        "between": "Santral kontrolörü, SCADA ya da toplayıcı → inverter, batarya, jeneratör",
+        "transport": "TCP 102 üzerinden MMS",
+        "security": "TLS (IEC 62351-4), TCP 3782",
+        "model": "DER mantıksal düğümleri: DSTO, DBAT, DINV, DGEN ve DWMX gibi fonksiyonlar"
+    },
+    "tips": [
+        "Edition 1 (2009) ve edition 2 (2021) farklı adlar kullanır. Edition 1'de ZINV, ZBAT ve DRCT; edition 2'de DINV, DBAT, DSTO ve DWMX gibi fonksiyonlar vardır. Herhangi bir eşleme yapmadan önce cihazın SCL dosyasının hangi edition'ı kullandığını kontrol edin.",
+        "Kumanda etmeden önce ctlModel'i (CF) okuyun. direct-with-normal-security'de Write yanıtı son adımdır. Enhanced security'de cihaz işini bitirdiğinde ardından bir CommandTermination gelir.",
+        "Edition 2 fonksiyonları, RvrtTms'de ayarlanan bir süreden sonra varsayılanlarına dönebilir. Bir sınırı bir kez gönderip bir daha hiç göndermeyen bir kontrolör, sınırın kaybolduğunu görebilir.",
+        "Gücün işaretinde anlaşın. Bazı cihazlar deşarjı pozitif, bazıları negatif sayar. Önce küçük bir ayar değeriyle test edin."
+    ],
+    "points": {
+        "soc": "Şarj durumu",
+        "totw": "Aktif güç",
+        "wmax": "Güç sınırı"
+    },
+    "anatomy": {
+        "control": "Bir ayar değerinin adı ve MMS'in onu nasıl yazdığı"
+    },
+    "playground": {
+        "scl": "Batarya inverterinin konfigüre edilmiş tanımı (.cid). Burada okunan iki değer için DER'i, sonra DSTO1 ve MMXU1'i; WMaxSpt için de DWMX1'i açın: Oper yapısı ve ctlModel'i oradadır. Sonra varsa kendi dosyanızı açın.",
+        "encoder": "MMS bir float'ı en anlamlı bayt önce gönderir (ABCD). Sınır olan 2000.0, 44 FA 00 00 olarak taşınır."
+    }
+}

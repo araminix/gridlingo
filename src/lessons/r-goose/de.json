@@ -1,0 +1,82 @@
+{
+    "intro": "GOOSE bleibt in einem Umspannwerk: Es hat keine IP-Adresse, also verwerfen Router es. R-GOOSE packt dieselbe Nachricht in UDP über IP, damit sie über ein Weitverkehrsnetz ein anderes Umspannwerk erreicht. Weil sie den Zaun verlässt, wird jede Nachricht mit einem Schlüssel signiert, den nur die Schutzgeräte der Gruppe haben. R-SV macht dasselbe für Sampled Values.",
+    "steps": {
+        "keys": { "title": "Schlüssel holen", "text": "Beide Schutzgeräte weisen sich mit ihren Zertifikaten beim Key Distribution Center (KDC) aus. Das KDC gibt beiden denselben Gruppenschlüssel, mit einer ID und einer Gültigkeitsdauer. Ohne diesen Schlüssel kann niemand eine Nachricht erzeugen, die die Schutzgeräte akzeptieren." },
+        "heartbeat": { "title": "Heartbeat", "text": "Schutzgerät A veröffentlicht sein Mitnahmesignal an die IP-Multicast-Gruppe 239.192.0.1, einmal pro Sekunde, solange nichts passiert. Router tragen es über das WAN zu Umspannwerk B. Jede Nachricht ist mit dem Gruppenschlüssel signiert." },
+        "fault": { "title": "Fehler auf der Leitung", "text": "Ein Kurzschluss auf der Leitung zwischen den beiden Umspannwerken. Schutzgerät A löst seinen eigenen Leistungsschalter aus und veröffentlicht im selben Moment die Änderung: stNum steigt um eins." },
+        "repeat": { "title": "Wiederholen", "text": "Wie bei GOOSE sendet Schutzgerät A die Nachricht 2 ms später noch einmal, dann nach 4, 8 … ms. Verliert das WAN ein Paket, trägt die nächste Kopie die Auslösung." },
+        "act": { "title": "Prüfen und auslösen", "text": "Schutzgerät B prüft die erste Kopie, die ankommt: eine Key ID, die es kennt, eine gültige Signatur (ein HMAC) und eine neue SPDU-Nummer, damit es keine alte, erneut abgespielte Nachricht ist. Dann löst es Leistungsschalter B aus: Die Leitung ist an beiden Enden abgeschaltet." }
+    },
+    "frames": {
+        "pull-a": "Hier ist mein Zertifikat: Gib mir die Schlüssel meiner Gruppe",
+        "pull-b": "Hier ist mein Zertifikat: Gib mir die Schlüssel meiner Gruppe",
+        "keys-a": "Gruppenschlüssel 7, gültig bis morgen",
+        "keys-b": "Gruppenschlüssel 7, gültig bis morgen",
+        "heartbeat": "Keine Mitnahme (Heartbeat)",
+        "trip-a": "Auslösespule von Leistungsschalter A erregen",
+        "intertrip": "Mitnahme! Tr.general = TRUE",
+        "repeat": "Mitnahme, noch einmal (Kopie 1)",
+        "trip-b": "Auslösespule von Leistungsschalter B erregen"
+    },
+    "notes": {
+        "pull-a": "GDOI (RFC 6407) auf UDP 848, wie IEC 62351-9 es verlangt. Zuerst prüfen Schutzgerät und KDC in einem IKE-Austausch gegenseitig ihre Zertifikate. Dann fordert das Schutzgerät die Schlüssel seiner R-GOOSE-Gruppe an.",
+        "pull-b": "Schutzgerät B fordert dieselbe Gruppe an, mit seinem eigenen Zertifikat.",
+        "keys-a": "Der aktuelle Schlüssel, seine Key ID und wie lange er gültig ist. Jedes Mitglied der Gruppe bekommt denselben Schlüssel.",
+        "keys-b": "Derselbe Schlüssel und dieselbe Key ID wie bei Schutzgerät A.",
+        "trip-a": "Eine Kupferader zur Auslösespule des Leistungsschalters, keine Netzwerknachricht.",
+        "intertrip": "Dieselben Header wie beim Heartbeat, mit der nächsten IP-Identifikation. Darin: stNum 5, sqNum 0, Tr.general TRUE, SPDU-Nummer 20872 und eine neue Signatur.",
+        "repeat": "sqNum 1 und SPDU-Nummer 20873: Jede Nachricht bekommt eine neue SPDU-Nummer, auch eine Kopie.",
+        "trip-b": "Schutzgerät B schließt seinen Auslösekontakt. Der Fehlerstrom ist von beiden Seiten unterbrochen."
+    },
+    "fields": {
+        "e-dst": { "name": "Ziel", "note": "01-00-5E-40-00-01: die Ethernet-Adresse der IP-Gruppe 239.192.0.1. Wie sie entsteht, zeigt die Darstellung unten." },
+        "e-src": { "name": "Quelle", "note": "Die MAC-Adresse von Schutzgerät A. Beim nächsten Hop setzt der Router dort seine eigene ein." },
+        "e-type": { "name": "EtherType", "note": "0x0800: Es folgt ein IPv4-Paket. GOOSE im LAN verwendet stattdessen 0x88B8." },
+        "ip-ver": { "name": "Version", "note": "0x45: IPv4, mit einem Header von 5 × 4 = 20 Bytes." },
+        "dscp": { "name": "DSCP", "note": "0xB8: DSCP 46, Expedited Forwarding. Router, die dafür eingerichtet sind, leiten dieses Paket vor anderem Verkehr weiter." },
+        "ip-len": { "name": "Gesamtlänge", "note": "0x00C4 = 196 Bytes: dieser Header, der UDP-Header und die R-GOOSE-Nachricht." },
+        "ip-id": { "name": "Identifikation", "note": "0x2F3A, eine Nummer für dieses Paket. Dann 00 00: Es ist kein Fragment." },
+        "ttl": { "name": "TTL", "note": "16: Das Paket darf bis zu 16 Router passieren. Jeder verringert diesen Wert um eins." },
+        "proto": { "name": "Protokoll", "note": "0x11 = 17: UDP." },
+        "ip-sum": { "name": "Prüfsumme", "note": "0x806A, über die 20 Bytes des Headers. Jeder Router berechnet sie neu, nachdem er die TTL verringert hat." },
+        "ip-src": { "name": "Quell-IP", "note": "10.1.0.11: Schutzgerät A." },
+        "ip-dst": { "name": "Ziel-IP", "note": "239.192.0.1: eine Multicast-Gruppe. Jedes abonnierende Schutzgerät tritt ihr bei, und die Router leiten das Paket an jedes von ihnen weiter." },
+        "udp-src": { "name": "Quellport", "note": "0xC001 = 49153, ein Port, den Schutzgerät A gewählt hat. Entscheidend ist der Zielport." },
+        "udp-dst": { "name": "Zielport", "note": "0x0066 = 102, der Port von R-GOOSE und R-SV." },
+        "udp-len": { "name": "UDP-Länge", "note": "0x00B0 = 176: dieser Header mit 8 Bytes und 168 Bytes R-GOOSE. Hier nicht gezeigt: die UDP-Prüfsumme, dann der Session-Header (SPDU-Nummer, Key ID, Schlüsselzeiten), die GOOSE-Nachricht und die Signatur." },
+        "a-prefix": { "name": "Multicast-Präfix", "note": "Mit 01-00-5E beginnt die MAC-Adresse jeder IPv4-Multicast-Gruppe." },
+        "a-low": { "name": "Untere 23 Bits", "note": "Die letzten 23 Bits von 239.192.0.1. Die übrigen Bits fallen weg, deshalb teilen sich 32 IP-Gruppen jede MAC-Adresse, und ein Switch kann sie nicht unterscheiden." }
+    },
+    "devices": {
+        "breakera": "Leistungsschalter A",
+        "relaya": "Schutzgerät A",
+        "routera": "Router A",
+        "wan": "WAN",
+        "kdc": "KDC",
+        "routerb": "Router B",
+        "relayb": "Schutzgerät B",
+        "breakerb": "Leistungsschalter B"
+    },
+    "facts": {
+        "standard": "IEC TR 61850-90-5; seit Edition 2.1 in IEC 61850-8-1 (R-GOOSE) und IEC 61850-9-2 (R-SV)",
+        "between": "Schutzgeräte in verschiedenen Umspannwerken oder ein Umspannwerk und eine Leitstelle",
+        "transport": "UDP 102 über IP, Multicast oder Unicast: Es passiert Router",
+        "security": "Mit HMAC signiert, Verschlüsselung optional; Gruppenschlüssel von einem KDC (IEC 62351-9, GDOI)",
+        "frames": "R-GOOSE für Ereignisse und Auslösungen, R-SV für Sampled Values und Synchrophasoren"
+    },
+    "tips": [
+        "Router verwerfen Multicast, wenn sie nicht dafür eingerichtet sind (PIM oder eine statische Route für die Gruppe). Außerdem muss die TTL größer sein als die Anzahl der Router auf dem Weg. Sonst verschwinden die Pakete ohne Fehlermeldung.",
+        "Ein Subscriber mit falschem Schlüssel oder falscher Key ID verwirft jede Nachricht, und der Publisher erfährt es nie. Nach jeder Änderung den Schlüsselstatus auf beiden Seiten prüfen.",
+        "Ist das KDC nicht erreichbar, behalten die Schutzgeräte ihre Schlüssel, bis diese ablaufen. Die Gültigkeitsdauer länger wählen als den längsten KDC-Ausfall, mit dem man plant.",
+        "Die Verzögerung über das WAN messen, nicht nur seine Bandbreite. Ein Weg, der im Mittel schnell, aber zeitweise langsam ist, verzögert die Auslösung im ungünstigsten Moment."
+    ],
+    "points": {
+        "tr": "Mitnahme",
+        "stnum": "Zustandsnummer",
+        "spdu": "Nachrichtenzähler",
+        "key": "Gruppenschlüssel"
+    },
+    "anatomy": {
+        "multicast": "Wie aus einer IP-Multicast-Gruppe eine MAC-Adresse wird"
+    }
+}

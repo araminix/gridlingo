@@ -1,0 +1,88 @@
+{
+    "intro": "Il codice orario che i relè di sottostazione ricevono da decenni. Un orologio GPS invia un frame al secondo su un cavo coassiale o un doppino: 100 bit da 10 ms ciascuno. La larghezza di ogni impulso indica uno 0, un 1 o un marker, e il primo fronte del frame è l'inizio esatto del secondo.",
+    "steps": {
+        "lock": { "title": "Aggancio GPS", "text": "L'orologio di stazione sente i satelliti attraverso la sua antenna e si aggancia a UTC. Da ora inizia ogni frame IRIG-B esattamente allo scoccare del secondo." },
+        "frame": { "title": "Un frame", "text": "Alle 10:41:07.000 inizia un frame: due marker di fila, poi secondi, minuti, ore, giorno dell'anno e anno in BCD, i bit di controllo e i secondi del giorno in binario. Ogni relè sulla linea lo sente. IRIG-B non ha indirizzi né risposte." },
+        "set": { "title": "Regola l'orologio", "text": "L'ora di un frame è quella del suo primo fronte, ma un relè la conosce solo dopo aver letto il frame. Quindi il relè aspetta il frame successivo, verifica che arrivi esattamente un secondo dopo e regola il suo orologio." },
+        "event": { "title": "Uno scatto", "text": "Un guasto sulla linea F1. Il relè F1 fa scattare l'interruttore Q1 e registra l'evento con il proprio orologio: 10:52:31.283. Le registrazioni di tutti i relè su questa linea condividono la stessa scala dei tempi, quindi il loro ordine è chiaro." },
+        "holdover": { "title": "Holdover", "text": "Alle 11:40 il cavo dell'antenna viene tagliato. L'orologio prosegue con il proprio oscillatore e continua a trasmettere. Alle 14:12 stima un errore fino a 10 µs e lo dichiara nei bit di qualità del tempo: 5." }
+    },
+    "frames": {
+        "gps": "Ora dei satelliti: UTC",
+        "f07": "Sono le 10:41:07, giorno 316 del 2026",
+        "f08": "Sono le 10:41:08",
+        "trip": "Scatto Q1 (registrato come 10:52:31.283)",
+        "lost": "Nessun satellite",
+        "f-hold": "Sono le 14:12:31; la mia ora può sbagliare di 10 µs"
+    },
+    "notes": {
+        "gps": "Segnali radio GPS, non IRIG-B. Con quattro o più satelliti in vista, l'orologio conosce UTC ben entro un microsecondo.",
+        "trip": "Un filo di rame verso la bobina di apertura dell'interruttore, non IRIG-B. La registrazione dell'evento viene letta più tardi con il protocollo dati del relè, come IEC 60870-5-103.",
+        "lost": "Qui niente IRIG-B: il cavo dell'antenna è tagliato e l'orologio non sente più nessun satellite."
+    },
+    "fields": {
+        "sec-07": { "name": "Secondi", "note": "07 in BCD: la cifra delle unità 7 nei bit 1–4, bit meno significativo per primo, poi la cifra delle decine 0 nei bit 6–8. Qui mostrato in esadecimale, così si legge come l'ora." },
+        "sec-08": { "name": "Secondi", "note": "08: uno in più rispetto all'ultimo frame." },
+        "sec-31": { "name": "Secondi", "note": "31 in BCD." },
+        "min-41": { "name": "Minuti", "note": "41 in BCD: unità nei bit 10–13, decine nei bit 15–17." },
+        "min-12": { "name": "Minuti", "note": "12 in BCD." },
+        "hour-10": { "name": "Ore", "note": "10 in BCD: unità nei bit 20–23, decine nei bit 25–26. UTC, come dicono i bit di offset." },
+        "hour-14": { "name": "Ore", "note": "14 in BCD." },
+        "day-316": { "name": "Giorno dell'anno", "note": "316 = 12 novembre 2026, mostrato come 03 16. Unità nei bit 30–33, decine nei 35–38, centinaia nei 40–41." },
+        "year-26": { "name": "Anno", "note": "(20)26 in BCD, nei bit 50–58. I codici senza anno lo lasciano al relè." },
+        "cf-flags": { "name": "Secondo intercalare · ora legale", "note": "Bit 60–63 (IEEE C37.118.1): nessun secondo intercalare in arrivo, nessun cambio di ora legale in arrivo, ora legale non attiva." },
+        "cf-offset": { "name": "Offset orario", "note": "Bit 64–68 e 70: 0 ore da UTC. Questo frame porta UTC." },
+        "tq-0": { "name": "Qualità del tempo 0", "note": "Bit 71–74: agganciato al GPS, piena precisione." },
+        "tq-5": { "name": "Qualità del tempo 5", "note": "L'errore dell'orologio può arrivare a 10 µs. 4 significherebbe 1 µs, 6 significherebbe 100 µs; 15 significa che l'ora non è affidabile." },
+        "parity-0": { "name": "Parità", "note": "Bit 75: parità pari. I bit 1–74 contengono un numero pari di uni, quindi questo bit è 0." },
+        "parity-1": { "name": "Parità", "note": "Bit 75: i bit 1–74 contengono 17 uni, quindi questo bit è 1 e il conteggio torna pari." },
+        "sbs-38467": { "name": "Secondi in binario puro", "note": "0x9643 = 38467 = 10 × 3600 + 41 × 60 + 7: i secondi del giorno. 17 bit nei bit 80–88 e 90–97, bit meno significativo per primo." },
+        "sbs-38468": { "name": "Secondi in binario puro", "note": "0x9644 = 38468: un secondo dopo." },
+        "sbs-51151": { "name": "Secondi in binario puro", "note": "0xC7CF = 51151 = 14 × 3600 + 12 × 60 + 31." },
+        "a-format": { "name": "Formato", "note": "B: 100 bit al secondo, un frame al secondo." },
+        "a-modulation": { "name": "Modulazione", "note": "1: una sinusoide modulata in ampiezza. 0 è un DC level shift (larghezza d'impulso), 2 è Manchester." },
+        "a-carrier": { "name": "Portante", "note": "2: una portante a 1 kHz. 0 significa nessuna portante, come con un DC level shift." },
+        "a-content": { "name": "Contenuto", "note": "4: ora dell'anno in BCD, anno, bit di controllo e secondi in binario puro. 0 è lo stesso senza l'anno; 7 non ha bit di controllo." }
+    },
+    "devices": {
+        "antenna": "Antenna GPS",
+        "clock": "Orologio di stazione",
+        "r1": "Relè F1",
+        "r2": "Relè F2",
+        "r3": "Relè F3",
+        "q1": "Interruttore Q1"
+    },
+    "facts": {
+        "standard": "IRIG Standard 200 (codici orari); IEEE C37.118.1 per il significato dei bit di controllo",
+        "between": "Orologio GPS → relè, contatori e registratori nello stesso edificio",
+        "transport": "Coassiale o doppino: DC level shift (B00x) o sinusoide a 1 kHz (B12x)",
+        "frames": "Un frame al secondo: 100 bit da 10 ms",
+        "speed": "Un DC level shift tiene i relè entro circa un microsecondo; la sinusoide modulata è meno precisa"
+    },
+    "tips": [
+        "Decidi se l'orologio invia UTC o l'ora locale. In ora locale i bit di offset dicono di quanto, ma IEEE 1344 e IEEE C37.118 ne leggono il segno in modo opposto.",
+        "Un ingresso impostato per B00x (livello DC) non può leggere un'uscita B12x (sinusoide a 1 kHz), e viceversa. Verifica il codice a entrambe le estremità.",
+        "Un'uscita DC pilota un numero limitato di ingressi. Somma il carico di ogni relè sulla linea e controlla la polarità di ogni coppia.",
+        "Gli orologi chiamano lo stesso segnale in modi diversi: quello che uno chiama B000 con IEEE 1344 attivo, un altro lo chiama B004. Confronta i bit, non i nomi."
+    ],
+    "points": {
+        "time": "Ora del giorno",
+        "quality": "Qualità del tempo",
+        "record": "Registrazione dello scatto"
+    },
+    "timing": {
+        "title": "I primi 110 ms di un frame",
+        "note": "Il frame delle 10:41:07 inizia con due marker di fila: P0 chiude il frame precedente, Pr apre questo, e il fronte di salita di Pr è esattamente 10:41:07.000. Poi i secondi, prima le unità: 1, 1, 1, 0 = 7. B00x invia gli impulsi come livelli DC: 2 ms per uno 0, 5 ms per un 1, 8 ms per un marker. B12x mette gli stessi impulsi su una sinusoide a 1 kHz, forte durante l'impulso e debole dopo (circa 10:3). La sinusoide qui è disegnata a gradini.",
+        "bits": "Bit",
+        "b00x": "B00x · livello DC",
+        "b12x": "B12x · 1 kHz",
+        "p0": "P0",
+        "on-time": "Pr · 10:41:07.000",
+        "one": "1",
+        "zero": "0",
+        "p1": "P1"
+    },
+    "anatomy": {
+        "code": "Il nome di un codice IRIG, scomposto"
+    }
+}

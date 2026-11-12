@@ -1,0 +1,103 @@
+{
+    "intro": "A IEC 61850-7-420 leva o modelo de dados da IEC 61850 aos recursos energéticos distribuídos: baterias, inversores, geradores e as funções que os controlam. Um controlador de usina os lê e controla com os mesmos serviços MMS de um relé de subestação. Só os nomes são novos.",
+    "steps": {
+        "associate": { "title": "Associar", "text": "O controlador da usina abre a porta TCP 102 do inversor da bateria e estabelece uma associação MMS, como em qualquer conexão IEC 61850." },
+        "read": { "title": "Ler carga e potência", "text": "Um único Read pede dois valores: o estado de carga no DSTO1 e a potência ativa no MMXU1. A resposta traz os dois, na mesma ordem." },
+        "subscribe": { "title": "Pedir relatórios", "text": "O controlador habilita um relatório com os mesmos dois valores. A partir de agora, o inversor os envia quando eles mudam." },
+        "limit": { "title": "Limitar a potência", "text": "O operador da rede permite no máximo 2000 kW. O controlador opera o WMaxSpt, o setpoint do DWMX1, a função que limita a potência ativa. O inversor aceita e começa a reduzir em rampa." },
+        "report": { "title": "A potência se estabiliza", "text": "O inversor reporta enquanto o TotW cai. O último relatório diz 2000.0 kW: o limite está valendo." }
+    },
+    "frames": {
+        "tcp": "Abrir TCP com a porta 102 e depois uma conexão de transporte",
+        "initiate-req": "Vamos falar MMS: meus tamanhos e serviços",
+        "initiate-resp": "Combinado: estes são os meus",
+        "read-req": "Qual é o seu estado de carga e a sua potência ativa?",
+        "read-resp": "68.5 % e 3000.0 kW",
+        "enable": "Habilite o relatório urcbDER01",
+        "oper-req": "Limite a sua potência ativa a 2000 kW",
+        "oper-resp": "Feito",
+        "report": "TotW agora é 2000.0 kW"
+    },
+    "notes": {
+        "tcp": "TCP puro para a porta 102 e, por cima, uma conexão de transporte ISO (COTP). A lição de MMS da IEC 61850 mostra essas etapas.",
+        "initiate-req": "Um Initiate do MMS dentro das camadas de sessão, apresentação e ACSE. O controlador propõe o maior tamanho de mensagem e os serviços que quer. A autenticação, quando usada, acontece aqui (IEC 62351-4).",
+        "initiate-resp": "O inversor responde com os seus próprios tamanhos e serviços. A partir de agora, toda requisição identifica uma variável pelo dispositivo lógico e pelo item.",
+        "enable": "Um Write de TRUE no RptEna do bloco de controle de relatório LLN0$RP$urcbDER01. O data set dele, dsDER, contém DSTO1.UseSocPct e MMXU1.TotW.",
+        "report": "Um InformationReport não solicitado: o inversor o envia sem ser perguntado, sempre que um valor do dsDER muda."
+    },
+    "fields": {
+        "tpkt-110": { "name": "TPKT", "note": "Versão 3, depois o comprimento da mensagem inteira: 0x006E = 110 bytes." },
+        "tpkt-43": { "name": "TPKT", "note": "Versão 3, depois o comprimento: 0x002B = 43 bytes." },
+        "tpkt-111": { "name": "TPKT", "note": "Versão 3, depois o comprimento: 0x006F = 111 bytes." },
+        "tpkt-29": { "name": "TPKT", "note": "Versão 3, depois o comprimento: 0x001D = 29 bytes." },
+        "cotp-dt": { "name": "COTP", "note": "Uma unidade de dados (0xF0), a última da sua mensagem (0x80)." },
+        "session": { "name": "Sessão", "note": "Dois cabeçalhos curtos de sessão: give tokens, transferência de dados." },
+        "presentation": { "name": "Apresentação", "note": "Dados totalmente codificados, contexto de apresentação 3: o que vem a seguir é MMS." },
+        "confirmed-req": { "name": "Requisição confirmada", "note": "Tag A0: uma requisição que espera resposta. O byte seguinte conta os bytes dentro dela." },
+        "confirmed-resp": { "name": "Resposta confirmada", "note": "Tag A1: a resposta a uma requisição." },
+        "invoke-7": { "name": "Invoke ID 7", "note": "Um número que o controlador escolhe. A resposta traz o mesmo." },
+        "invoke-7-resp": { "name": "Invoke ID 7", "note": "O mesmo número da requisição: isto responde a ela." },
+        "invoke-8": { "name": "Invoke ID 8", "note": "Uma requisição nova, um número novo." },
+        "invoke-8-resp": { "name": "Invoke ID 8", "note": "Isto responde à requisição com o setpoint." },
+        "read": { "name": "Read", "note": "Tag A4: o serviço Read." },
+        "spec": { "name": "Lista de variáveis", "note": "Uma lista de variáveis, cada uma dada pelo nome. Aqui são duas." },
+        "var": { "name": "Variável", "note": "Uma entrada da lista. O nome dela vem em seguida." },
+        "domain-specific": { "name": "Nome específico de domínio", "note": "Um nome em duas partes: o domínio e o item." },
+        "domain": { "name": "Domínio", "note": "\"BESS1DER\": o dispositivo lógico DER do IED BESS1." },
+        "item-soc": { "name": "Item", "note": "\"DSTO1$MX$UseSocPct$mag$f\": o estado de carga da unidade de armazenamento, em porcentagem da energia utilizável." },
+        "item-totw": { "name": "Item", "note": "\"MMXU1$MX$TotW$mag$f\": a potência ativa total no lado CA do inversor." },
+        "results": { "name": "Resultados", "note": "Um resultado por variável, na ordem em que foram pedidas." },
+        "float-tag": { "name": "Ponto flutuante", "note": "Tag 0x87 (um float), 5 bytes. 08: segue um float IEEE 754 de precisão simples." },
+        "soc": { "name": "UseSocPct", "note": "68.5 (%), byte mais significativo primeiro." },
+        "totw": { "name": "TotW", "note": "3000.0. A unidade, kW, fica no atributo units (CF)." },
+        "write": { "name": "Write", "note": "Tag A5: o serviço Write. A IEC 61850 envia um comando como um Write no Oper." },
+        "write-spec": { "name": "Variável", "note": "Uma lista de uma variável, dada pelo nome." },
+        "item-oper": { "name": "Item", "note": "\"DWMX1$CO$WMaxSpt$Oper\": a estrutura Oper do setpoint WMaxSpt. CO significa controle." },
+        "data-list": { "name": "Dados", "note": "Os valores a escrever, um por variável." },
+        "oper-struct": { "name": "Oper", "note": "Uma estrutura (tag A2) de seis partes, na ordem que o modelo de dados define." },
+        "ctlval": { "name": "ctlVal", "note": "O novo valor: uma estrutura com um float, 0x44FA0000 = 2000.0 (kW)." },
+        "origin": { "name": "origin", "note": "Quem envia: orCat 5 (automatic-station: um controlador na usina) e orIdent \"PPC\"." },
+        "ctlnum": { "name": "ctlNum", "note": "1: o cliente numera os seus comandos, para que cada um possa ser distinguido." },
+        "oper-t": { "name": "T", "note": "Quando o controlador o enviou: 10:41:12.250 UTC. 4 bytes de segundos, 3 de frações de segundo, 1 de qualidade do relógio." },
+        "test": { "name": "Test", "note": "FALSE: um comando real, não um teste." },
+        "check": { "name": "Check", "note": "Dois bits: verificação de sincronismo e de intertravamento. Os dois estão desligados: um setpoint não precisa de nenhuma delas." },
+        "write-resp": { "name": "Resposta do Write", "note": "Tag A5: a resposta a um Write, um resultado por variável." },
+        "success": { "name": "Sucesso", "note": "Tag 0x81, vazia: a escrita funcionou. Com controle direto, o novo limite vale na hora." },
+        "a-ld": { "name": "Dispositivo lógico", "note": "BESS1DER: nome do IED BESS1 e instância DER." },
+        "a-ln": { "name": "Nó lógico", "note": "DWMX1: a função que limita a potência ativa, instância 1." },
+        "a-fc": { "name": "Restrição funcional", "note": "CO: controle. Um Write aqui é um comando, não um ajuste." },
+        "a-do": { "name": "Objeto de dados", "note": "WMaxSpt: o setpoint de potência ativa máxima, do tipo APC (um valor analógico controlável)." },
+        "a-da": { "name": "Atributo de dados", "note": "Oper: a estrutura que um cliente escreve para dar o comando." }
+    },
+    "devices": {
+        "meter": "Medidor de fronteira",
+        "ppc": "Controlador da usina",
+        "bess": "Inversor BESS1",
+        "battery": "Bateria"
+    },
+    "facts": {
+        "standard": "IEC 61850-7-420 edição 2 (2021), sobre a IEC 61850-7-4 e o mapeamento MMS da IEC 61850-8-1",
+        "between": "Controlador da usina, SCADA ou agregador → inversor, bateria, gerador",
+        "transport": "MMS sobre TCP 102",
+        "security": "TLS (IEC 62351-4), TCP 3782",
+        "model": "Nós lógicos de DER: DSTO, DBAT, DINV, DGEN e funções como DWMX"
+    },
+    "tips": [
+        "A edição 1 (2009) e a edição 2 (2021) usam nomes diferentes. A edição 1 tem ZINV, ZBAT e DRCT; a edição 2 tem DINV, DBAT, DSTO e funções como DWMX. Verifique qual edição o arquivo SCL do equipamento usa antes de mapear qualquer coisa.",
+        "Leia o ctlModel (CF) antes de operar. Com direct-with-normal-security, a resposta do Write encerra tudo. Com enhanced security, um CommandTermination vem depois, quando o equipamento termina.",
+        "As funções da edição 2 podem voltar aos valores padrão depois de um tempo definido em RvrtTms. Um controlador que envia um limite uma vez e nunca mais pode ver esse limite sumir.",
+        "Combinem o sinal da potência. Alguns equipamentos contam a descarga como positiva, outros como negativa. Teste primeiro com um setpoint pequeno."
+    ],
+    "points": {
+        "soc": "Estado de carga",
+        "totw": "Potência ativa",
+        "wmax": "Limite de potência"
+    },
+    "anatomy": {
+        "control": "O nome de um setpoint, e como o MMS o escreve"
+    },
+    "playground": {
+        "scl": "A descrição configurada do inversor da bateria (.cid). Abra DER, depois DSTO1 e MMXU1 para os dois valores lidos aqui, e DWMX1 para o WMaxSpt: a estrutura Oper e o ctlModel dele. Depois abra o seu próprio arquivo, se tiver um.",
+        "encoder": "O MMS envia um float com o byte mais significativo primeiro (ABCD). O limite, 2000.0, trafega como 44 FA 00 00."
+    }
+}

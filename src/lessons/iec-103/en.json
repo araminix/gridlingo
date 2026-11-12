@@ -73,7 +73,7 @@
         "dpi-on": { "name": "DPI 2", "note": "ON: protection is in service. 1 would be OFF." },
         "dpi-trip": { "name": "DPI 2", "note": "ON: the trip is active." },
         "time-gi": { "name": "CP32Time2a", "note": "0x2E10 = 11792 ms: 11.792 s, 40 min (0x28), 10 h (0x0A). Every type 1 message has a time, even in a GI answer." },
-        "time-trip": { "name": "CP32Time2a", "note": "0x1C73 = 7283 ms: 07.283 s, 41 min, 10 h. No date, no time zone." },
+        "time-trip": { "name": "CP32Time2a", "note": "0x1C73 = 7283 ms: 7.283 s, 41 min, 10 h. No date, no time zone." },
         "sin-scn": { "name": "SIN", "note": "In a GI answer, the scan number of the interrogation: 33." },
         "sin-0": { "name": "SIN", "note": "0: not used in a spontaneous message." },
         "ret": { "name": "Relative time", "note": "0x002B = 43 ms from the start of the fault to the trip." },

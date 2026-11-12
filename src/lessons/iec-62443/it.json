@@ -1,0 +1,85 @@
+{
+    "intro": "Non è un protocollo sulla linea, ma il regolamento per proteggere i sistemi di controllo di un impianto (OT). Divide un impianto in zone, gruppi di dispositivi che hanno bisogno della stessa protezione, e le lascia comunicare solo attraverso condotti con regole chiare. Ogni zona riceve un livello di sicurezza obiettivo, e sette requisiti fondamentali dicono cosa significa quel livello.",
+    "steps": {
+        "inside": { "title": "Zone e condotti", "text": "L'impianto solare ha quattro zone: l'ufficio, una DMZ, il controllo e il campo. Comunicano solo attraverso condotti, qui sorvegliati da due firewall. Lo SCADA che interroga un inverter attraversa FW-2, e una regola consente esattamente questo." },
+        "historian": { "title": "Verso la DMZ", "text": "L'historian nella DMZ raccoglie i valori dell'impianto dallo SCADA. La DMZ è la zona cuscinetto: l'ufficio e l'impianto non comunicano mai direttamente." },
+        "office": { "title": "L'ufficio legge la DMZ", "text": "Un ingegnere in ufficio apre il report di produzione di oggi. Arriva dall'historian; l'ufficio non raggiunge mai l'impianto." },
+        "blocked": { "title": "Bloccato", "text": "Un portatile in ufficio prova a raggiungere direttamente un inverter. Nessuna regola lo consente, quindi FW-1 scarta la connessione e la registra." },
+        "vendor": { "title": "Accesso del fornitore", "text": "Il costruttore dell'inverter deve aggiornare INV-07. Il suo tecnico accede al jump host con due fattori e lavora da lì, durante un intervento approvato. Tutto viene registrato." }
+    },
+    "frames": {
+        "scada-poll": "Lo SCADA legge l'inverter INV-07",
+        "historian-read": "Dammi gli ultimi valori dell'impianto",
+        "scada-values": "Eccoli",
+        "office-read": "Mostrami la produzione di oggi",
+        "blocked": "Collegami all'inverter INV-07, porta 502",
+        "vendor-login": "Accesso fornitore: password e codice monouso",
+        "vendor-session": "Apri la pagina di manutenzione di INV-07"
+    },
+    "notes": {
+        "scada-poll": "Modbus TCP dallo SCADA nella zona di controllo all'inverter nella zona di campo. La connessione attraversa FW-2, e il condotto C3 ha una regola proprio per questo: dallo SCADA, verso gli inverter, TCP 502.",
+        "historian-read": "Il condotto C2 permette all'historian, e solo all'historian, di aprire OPC UA (TCP 4840) verso lo SCADA. L'historian tiene una copia dei dati dell'impianto nella DMZ.",
+        "scada-values": "La risposta non ha bisogno di una regola propria: il firewall sa che appartiene a una connessione che ha consentito.",
+        "office-read": "Gli utenti dell'ufficio leggono l'historian nella DMZ, mai l'impianto. Se l'ufficio viene attaccato, l'attaccante trova una copia dei dati, non i comandi.",
+        "blocked": "Nessuna regola permette all'ufficio di raggiungere la zona di campo, quindi l'ultima regola di C1 la scarta. Il portatile non riceve risposta. La voce di log merita un allarme: il portatile potrebbe essere infetto, o qualcuno ci sta provando.",
+        "vendor-login": "Da internet, il fornitore raggiunge il jump host nella DMZ e nient'altro. Il jump host chiede una password e un codice monouso dal telefono del tecnico: due fattori, quindi una password rubata non basta. Registra la sessione.",
+        "vendor-session": "Dal jump host, il condotto C4 consente HTTPS verso gli inverter, solo mentre l'intervento è approvato. Il portatile del fornitore non tocca mai la rete dell'impianto."
+    },
+    "fields": {
+        "sl1": { "name": "Errori", "note": "Protegge da errori e casualità: qualcuno collega il cavo sbagliato o apre il file sbagliato." },
+        "sl2": { "name": "Attacchi semplici", "note": "Contro qualcuno che fa sul serio, con mezzi semplici: strumenti comuni, competenze IT generiche, pochi soldi." },
+        "sl3": { "name": "Attacchi esperti", "note": "Contro un attaccante che conosce i sistemi OT, con buoni strumenti e un po' di soldi." },
+        "sl4": { "name": "Attacchi ben finanziati", "note": "Contro una squadra con profonde competenze OT, molti soldi e molto tempo, come uno Stato." },
+        "fr1": { "name": "FR 1 · Identificazione e autenticazione", "note": "Sapere chi sta chiedendo, una persona, un programma o un dispositivo, prima di farlo entrare." },
+        "fr2": { "name": "FR 2 · Controllo d'uso", "note": "Una volta riconosciuto, ognuno può fare solo ciò che il suo ruolo consente. Un operatore non può caricare un nuovo firmware." },
+        "fr3": { "name": "FR 3 · Integrità del sistema", "note": "Software, impostazioni e messaggi non possono cambiare senza che qualcuno se ne accorga." },
+        "fr4": { "name": "FR 4 · Riservatezza dei dati", "note": "Tenere segreti i segreti, memorizzati o in transito: password, chiavi, alcuni dati. Qui solo 2: la maggior parte dei valori dell'impianto non è segreta." },
+        "fr5": { "name": "FR 5 · Flusso dati limitato", "note": "I dati scorrono solo dove devono: le zone, i condotti e le loro regole." },
+        "fr6": { "name": "FR 6 · Risposta tempestiva agli eventi", "note": "Log e allarmi, perché un attacco venga visto e gestito in tempo." },
+        "fr7": { "name": "FR 7 · Disponibilità delle risorse", "note": "L'impianto continua a funzionare sotto carico o sotto attacco, e si può ripristinare dai backup." }
+    },
+    "devices": {
+        "laptop": "Portatile d'ufficio",
+        "vendor": "Tecnico del fornitore",
+        "fw1": "FW-1",
+        "historian": "Historian (DMZ)",
+        "jump": "Jump host (DMZ)",
+        "fw2": "FW-2",
+        "scada": "SCADA (controllo)",
+        "fswitch": "Switch di campo",
+        "rtu": "RTU (campo)",
+        "inverter": "INV-07 (campo)"
+    },
+    "facts": {
+        "standard": "Serie ISA/IEC 62443: zone e condotti in 62443-3-2, requisiti di sistema in 62443-3-3",
+        "between": "Proprietario dell'asset, system integrator e fornitore del prodotto: ognuno ha le sue parti",
+        "transport": "Nessuno proprio: le sue regole coprono ogni protocollo dell'impianto",
+        "security": "Un livello di sicurezza obiettivo, da SL 1 a SL 4, per ogni zona",
+        "model": "Zone, condotti e 7 requisiti fondamentali"
+    },
+    "tips": [
+        "Una regola da any ad any, anche per un solo giorno, unisce due zone in una. Indica sorgente, destinazione e porta.",
+        "Fai terminare l'accesso remoto nella DMZ. Una VPN del fornitore che arriva dritta nella zona di controllo salta tutti i condotti.",
+        "Gli account condivisi violano FR 1: nessuno sa più chi ha fatto cosa. Dai a ogni persona il proprio accesso, anche ai fornitori.",
+        "Tre livelli si confondono spesso: SL-T è l'obiettivo della zona, SL-C ciò che un prodotto può raggiungere, SL-A ciò che la zona costruita raggiunge davvero. Verifica l'SL-A, non la scheda tecnica."
+    ],
+    "anatomy": {
+        "levels": "Livelli di sicurezza: a chi deve resistere una zona",
+        "vector": "L'obiettivo della zona di controllo: un livello per ogni requisito fondamentale"
+    },
+    "playground": {
+        "file": "Le zone dell'impianto e le regole dei suoi condotti. Trova la regola dietro ogni passo.",
+        "zones": "Una zona è un gruppo di dispositivi che hanno bisogno della stessa protezione. SL-T è il livello di sicurezza che la zona deve raggiungere.",
+        "enterprise": "SL 1: la rete dell'ufficio. È IT, non OT, e l'impianto la considera non affidabile.",
+        "dmz": "SL 2: il cuscinetto tra ufficio e impianto. Le connessioni finiscono qui, e quelle nuove partono da qui.",
+        "control": "SL 3: lo SCADA gestisce l'impianto, quindi deve resistere a un attaccante esperto che conosce l'OT.",
+        "field": "Anche qui SL 3: gli inverter e la RTU agiscono sulla rete elettrica.",
+        "conduits": "Un condotto raggruppa le connessioni tra due zone. Ogni regola indica una sorgente, una destinazione e un servizio; decide la prima regola che corrisponde.",
+        "office": "L'ufficio legge i dati dell'impianto dall'historian, mai dall'impianto.",
+        "vendor": "Da internet è raggiungibile solo il jump host. Il jump host chiede due fattori.",
+        "deny": "Tutto il resto viene scartato e registrato. Questa regola ferma il portatile al passo 4.",
+        "historian": "Una sorgente, una destinazione, una porta: OPC UA dall'historian allo SCADA.",
+        "scada-poll": "Lo SCADA legge gli inverter con Modbus TCP: passo 1.",
+        "job": "Le sessioni del fornitore raggiungono gli inverter solo mentre un intervento è approvato. Per il resto del tempo, questa regola è disattivata."
+    }
+}

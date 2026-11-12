@@ -1,0 +1,96 @@
+{
+    "intro": "电动汽车和直流快充桩在充电过程中如何对话。报文以电力线载波信号的形式跑在充电枪线缆的控制导引线上，上面再跑 IPv6 和 TCP。由汽车主导：它请求每一步、请求它想要的电流，充电桩回复它能给出的。",
+    "steps": {
+        "plug": { "title": "插枪配对", "text": "控制导引上 5 % 的占空比表示要进行数字通信。汽车和充电桩的电力线载波模块互相找到对方（SLAC）。然后汽车向链路上的所有设备（ff02::1，UDP 端口 15118）询问充电桩的 IP 地址和端口（SDP）。" },
+        "session": { "title": "建立会话", "text": "先 TCP，再 TLS。双方商定协议版本，充电桩开启一个会话。" },
+        "limits": { "title": "支付与限值", "text": "司机在充电桩上刷卡支付。汽车和充电桩互相告知各自的限值：电压、电流和功率。" },
+        "prepare": { "title": "检测与预充", "text": "在电流流过之前，充电桩先检测线缆的绝缘。然后把输出电压升到与电池电压一致。" },
+        "charge": { "title": "充电", "text": "汽车闭合接触器，请求电流。它不断请求，充电桩随之调整。" },
+        "stop": { "title": "停止", "text": "充到 80 % 时，汽车结束充电，然后结束会话。" }
+    },
+    "frames": {
+        "cp": "用数字方式跟我通信",
+        "slac": "我的线缆连着哪台充电桩？",
+        "sdp-req": "你在哪里？我要 TCP 上的 TLS",
+        "sdp-res": "在这里：fe80::ff:fe00:a1，端口 54321，用 TLS",
+        "tls": "证明你的身份，然后加密",
+        "app": "我支持 ISO 15118-2，或 DIN 70121",
+        "setup": "新会话 4A1F09C27B3E8D15",
+        "payment": "我在车外支付：ExternalPayment",
+        "params": "我能给 500 V、125 A、50 kW",
+        "cable-check": "绝缘良好",
+        "pre-charge": "把输出升到 396 V",
+        "power-on": "开始：我的接触器已闭合",
+        "current-demand": "给我 120 A",
+        "stop": "完成：结束会话"
+    },
+    "notes": {
+        "cp": "这还是 IEC 61851：1 kHz 方波，占空比 5 %。5 % 不提供任何电流；它的意思是“使用数字通信”。汽车的电力线载波模块被唤醒。",
+        "slac": "SLAC（ISO 15118-3）找出这根线缆另一端的充电桩。停车场里信号会在线缆之间串扰，所以汽车发出一串探测报文，每台听到的充电桩都报告收到的信号强度。汽车用 CM_SLAC_MATCH.REQ 选出最强的那一台。那台充电桩回复 CM_SLAC_MATCH.CNF，附带只属于它们两个的私有电力线网络的密钥。",
+        "tls": "汽车向 [fe80::ff:fe00:a1]:54321 建立 TCP 连接，然后是 TLS 1.2。充电桩出示证书，汽车用自己保存的 V2G 根证书来验证它。从这里开始，一切都是加密的。",
+        "app": "会话中的第一条报文列出汽车支持的协议，每个都带版本和优先级。充电桩回复 supportedAppProtocolRes，内容为 OK_SuccessfulNegotiation 和它选中的 SchemaID：1，即 ISO 15118-2。动手试试里把这条报文展示为 XML。",
+        "setup": "汽车发出 SessionSetupReq，带它的 EVCCID，即其通信模块的 MAC 地址：02-00-00-00-00-E1。充电桩回复一个新的 8 字节 SessionID、它的 EVSEID 和时间。此后每条报文的报头都带这个 SessionID。",
+        "payment": "在此之前是 ServiceDiscovery：充电桩提供直流充电和两种支付方式，Contract（即插即充）和 ExternalPayment。汽车选择 ExternalPayment：司机用卡或 App 支付。然后它反复发送 AuthorizationReq，直到充电桩回复 Finished。",
+        "params": "汽车发出了它的限值和荷电状态 54 %。充电桩回复自己的限值：最多 500 V、125 A 和 50 kW。每个值都由一个 16 位整数、一个 10 的幂和一个单位组成，所以 50 kW 以 5000 × 10^1 W 传送。",
+        "cable-check": "汽车已把控制导引设为状态 C。充电桩在直流线缆上加一个测试电压，测量对地绝缘。完成之前它一直回复 Ongoing，完成后回复 Finished，EVSEIsolationStatus 为 Valid。",
+        "pre-charge": "电池电压为 396 V，隔在汽车断开的接触器后面。汽车请充电桩把输出升到同样的电压，电流最多 2 A。充电桩回复它当前的电压 395 V：已经足够接近，接触器闭合时不会打火。",
+        "power-on": "汽车已闭合接触器。ChargeProgress Start：从现在起充电桩可以输出电流。",
+        "current-demand": "汽车请求 120 A，并附上荷电状态；应答一到，就发出下一个请求。充电桩逐一回复它实际输出的值：398 V，120 A。控制权在汽车手里：随着电池充满，它不断调整电流。",
+        "stop": "先发 PowerDeliveryReq，ChargeProgress 为 Stop：电流降到 0，汽车断开接触器。WeldingDetection 检查它们是否真的断开了。然后发 SessionStopReq，ChargingSession 为 Terminate，结束会话。"
+    },
+    "fields": {
+        "version": { "name": "V2GTP 版本", "note": "版本 0x01，然后是同一字节取反，0xFE。其他任何值的报文，接收方都会丢弃。" },
+        "sdp-req": { "name": "载荷类型", "note": "0x9000：SDP 请求。" },
+        "sdp-res": { "name": "载荷类型", "note": "0x9001：SDP 响应。" },
+        "len-2": { "name": "长度", "note": "后面跟 2 个字节的载荷。报头本身总是 8 个字节。" },
+        "len-20": { "name": "长度", "note": "后面跟 0x14 = 20 个字节：地址、端口、安全和传输方式。" },
+        "tls-req": { "name": "安全", "note": "0x00：汽车要用 TLS。0x10 表示不用 TLS。" },
+        "tls-res": { "name": "安全", "note": "0x00：充电桩同意用 TLS。" },
+        "tcp": { "name": "传输", "note": "0x00：TCP。" },
+        "ip-prefix": { "name": "IPv6 前缀", "note": "fe80::/64：链路本地地址，只在这条链路上有效。" },
+        "ip-id": { "name": "接口 ID", "note": "由充电桩的 MAC 地址 02-00-00-00-00-A1 生成：中间插入 FF FE，并翻转 0x02 位。完整地址是 fe80::ff:fe00:a1。" },
+        "port": { "name": "TCP 端口", "note": "0xD431 = 54321：充电桩为这辆车等待连接的端口。" },
+        "a-urn": { "name": "URN", "note": "统一资源名称：一个固定的标签，不是可以打开的地址。" },
+        "a-body": { "name": "机构", "note": "iso：拥有这个名称的组织。" },
+        "a-standard": { "name": "标准", "note": "15118：车辆与电网之间的通信。" },
+        "a-part": { "name": "部分", "note": "第 2 部分：网络和应用层报文。" },
+        "a-year": { "name": "年份", "note": "2013，schema 名称中的日期。标准本身 2014 年发布。" },
+        "a-schema": { "name": "Schema", "note": "MsgDef：报文定义。DIN 70121 用的是 urn:din:70121:2012:MsgDef。" }
+    },
+    "devices": {
+        "car": "汽车",
+        "charger": "直流充电桩",
+        "csms": "CSMS"
+    },
+    "facts": {
+        "standard": "报文为 ISO 15118-2（2014），电力线载波为 ISO 15118-3。ISO 15118-20 是下一代。",
+        "between": "汽车的通信控制器（EVCC）→ 充电桩的通信控制器（SECC）。汽车请求，充电桩应答。",
+        "transport": "控制导引线上的 HomePlug Green PHY、IPv6、UDP 15118 上的 SDP，然后是 TCP",
+        "security": "TLS 1.2：充电桩用证书证明身份。即插即充在车内另加一张合同证书。",
+        "frames": "EXI（压缩成比特的 XML），装在 8 字节的 V2GTP 报头里"
+    },
+    "tips": [
+        "很多充电失败根本没过 SLAC 这一关。先检查通信模块、控制导引接线和充电桩报告的信号强度，再去看报文。",
+        "每个物理量都是一个整数、一个 10 的幂和一个单位。看清 Multiplier：5000 配 Multiplier 1 是 50 kW，不是 5 kW。",
+        "耗时的工作，比如 CableCheck 或 Authorization，会立即以 EVSEProcessing Ongoing 应答。汽车会再问；如果充电桩迟迟不应答，汽车就会放弃。",
+        "很多充电桩仍然从汽车的列表里选择 DIN 70121。抓包里如果选中的是 urn:din:70121:2012:MsgDef，就能解释为什么即插即充从来没启动。"
+    ],
+    "points": {
+        "session": "会话",
+        "soc": "荷电状态",
+        "voltage": "充电桩输出",
+        "current": "请求的电流"
+    },
+    "anatomy": {
+        "namespace": "协议版本的名称，即 supportedAppProtocol 中携带的样子"
+    },
+    "playground": {
+        "file": "汽车在会话中的第一条报文，写成 XML。在线路上它以 EXI 传送，同样的内容只占几十个字节。",
+        "root": "根元素。它自己的命名空间来自 2010 年，在所有版本中都相同，所以任何充电桩都能读懂这第一条报文。",
+        "iso": "第一项：ISO 15118-2。",
+        "version": "版本 2.0。次版本号不同的充电桩可能回复 OK_SuccessfulNegotiationWithMinorDeviation。",
+        "schema-id": "汽车给这一项编的号。充电桩用它来表明自己的选择。",
+        "priority": "1 是汽车的首选。",
+        "din": "第二项：DIN 70121，较早的直流协议。它没有 TLS，也没有即插即充。"
+    }
+}

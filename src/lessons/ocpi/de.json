@@ -1,0 +1,115 @@
+{
+    "intro": "Mit Roaming lädt ein Fahrer mit einer einzigen Karte an den Ladestationen vieler Unternehmen. OCPI verbindet den Ladepunktbetreiber (CPO), der die Ladestationen betreibt, mit dem E-Mobility-Provider (eMSP), der den Fahrern ihre Karten und Apps gibt. Jede Seite bietet eine REST-API an, und die andere ruft sie auf: für Standorte, Karten, Ladevorgänge und die Abrechnung jedes Ladevorgangs.",
+    "steps": {
+        "discover": { "title": "Erkunden", "text": "Zwei Unternehmen verbinden sich einmal, bevor irgendein Fahrer roamt. Der eMSP liest, welche OCPI-Versionen der CPO anbietet und wo jeder Teil seiner API liegt." },
+        "register": { "title": "Tokens tauschen", "text": "Der eMSP registriert sich mit einem vorläufigen Token, A. Am Ende hat jede Seite ihr eigenes Token, um die andere aufzurufen: Der eMSP ruft den CPO mit Token C auf, der CPO den eMSP mit Token B." },
+        "location": { "title": "Ladestation veröffentlichen", "text": "Der CPO sendet seinen Standort mit einem EVSE, einem Ladepunkt, damit die App des eMSP ihn den Fahrern zeigen kann." },
+        "authorize": { "title": "Karte prüfen", "text": "Ein Fahrer mit einer Karte des eMSP hält sie an die Ladestation. Der CPO kennt diese Karte nicht, also fragt er den eMSP." },
+        "session": { "title": "Ladevorgang", "text": "Das Laden beginnt. Der CPO meldet den Ladevorgang und sendet dann Aktualisierungen, während das Auto lädt." },
+        "cdr": { "title": "Abrechnung", "text": "Nach dem Laden sendet der CPO den CDR, den Charge Detail Record: was der eMSP für diesen Ladevorgang schuldet." }
+    },
+    "frames": {
+        "versions": "Welche OCPI-Versionen sprichst du, und wo?",
+        "endpoints": "2.2.1, und das sind meine Endpunkte",
+        "post-credentials": "Hier sind mein Token B und meine Adresse",
+        "check": "Welche Versionen sprichst du? (mit Token B)",
+        "credentials": "Registriert. Ruf mich ab jetzt mit Token C auf",
+        "put-location": "Standort LOC-0042, mit EVSE NL*ABC*E12345*1",
+        "location-ok": "Gespeichert",
+        "authorize": "Karte 04A2B3C4D5E6F7 an LOC-0042: Darf sie laden?",
+        "allowed": "Ja: ALLOWED",
+        "put-session": "Ladevorgang SES-0187 begonnen, 0 kWh",
+        "patch-session": "SES-0187: bisher 6.25 kWh",
+        "post-cdr": "Die Abrechnung: 12.5 kWh, 6.05 EUR",
+        "cdr-ok": "Gespeichert, unter dieser Adresse"
+    },
+    "notes": {
+        "versions": "Der eMSP hat zwei Dinge per E-Mail oder über ein Portal vom CPO erhalten: die URL seiner Versionsliste und Token A. Er sendet GET mit dem Header Authorization: Token, gefolgt von Token A in Base64. Dann sendet er GET an die URL von Version 2.2.1.",
+        "endpoints": "Jede OCPI-Antwort hat dieselbe Hülle: data, status_code, status_message und timestamp. Hier listet data zuerst die Versionen auf, dann die Endpunkte von 2.2.1: eine URL pro Modul, jeweils als SENDER oder RECEIVER markiert. Der CPO ist Sender von Standorten, Ladevorgängen und CDRs und Empfänger von Tokens.",
+        "post-credentials": "Noch mit Token A sendet der eMSP seine eigenen Credentials: ein neues Token B, das der CPO verwenden soll, die URL seiner eigenen Versionsliste und seine Rolle: EMSP, country_code DE, party_id XYZ.",
+        "check": "Bevor er antwortet, prüft der CPO den eMSP auf dieselbe Weise: GET auf seine Versionen, dann auf seine Endpunkte von 2.2.1, mit Token B.",
+        "credentials": "Der CPO antwortet mit seinen Credentials: Token C, seine Versions-URL und seine Rolle: CPO, country_code NL, party_id ABC. Token A funktioniert ab jetzt nicht mehr. Der eMSP ruft künftig mit Token C auf, der CPO mit Token B.",
+        "put-location": "Der CPO legt den Standort im Locations-Endpunkt des eMSP ab. Die URL nennt seinen Eigentümer und seine ID; die Zerlegung unter „Stück für Stück“ nimmt sie auseinander, und unter „Ausprobieren“ steht der Body.",
+        "location-ok": "status_code 1000 bedeutet Erfolg. Diesen Wert lesen, nicht nur den HTTP-Status: 2xxx ist ein Client-Fehler, 3xxx ein Server-Fehler.",
+        "authorize": "Autorisierung in Echtzeit. Die Karte gehört dem eMSP, also sendet der CPO an den Tokens-Endpunkt des eMSP: die uid der Karte in der URL, ?type=RFID, und Standort und EVSE im Body.",
+        "allowed": "data.allowed ist ALLOWED, mit dem vollständigen Token-Objekt der Karte. Andere Antworten sind BLOCKED, EXPIRED, NO_CREDIT und NOT_ALLOWED. Der CPO weist seine Ladestation über OCPP an, zu starten.",
+        "put-session": "Der CPO legt den Ladevorgang beim eMSP an: start_date_time, kwh 0, die Karte als cdr_token, auth_method AUTH_REQUEST, Standort, EVSE und Anschluss, currency EUR, status ACTIVE.",
+        "patch-session": "Nur was sich geändert hat, wird übertragen: kwh 6.25 und last_updated. Die App des eMSP kann dem Fahrer jetzt die bisherige Energie zeigen.",
+        "post-cdr": "Der CDR ist die Rechnung zwischen den beiden Unternehmen: wann, wo, welche Karte, wie viel Energie und Zeit, und der Preis. Unter „Ausprobieren“ ist er zu sehen.",
+        "cdr-ok": "Der eMSP speichert den CDR und gibt im Header Location seine eigene URL dafür zurück. Jetzt kann er dem Fahrer eine Rechnung stellen."
+    },
+    "fields": {
+        "a-country": { "name": "Land", "note": "NL: der zweistellige ISO-3166-Code des Landes des Betreibers." },
+        "a-operator": { "name": "Betreiber", "note": "ABC: die ID des Betreibers, eindeutig in seinem Land. In OCPI ist sie die party_id des CPO." },
+        "a-type": { "name": "Typ", "note": "E: Diese ID bezeichnet ein EVSE." },
+        "a-evse": { "name": "EVSE", "note": "12345*1: die eigene Nummer des Betreibers für diesen Ladepunkt." },
+        "u-endpoint": { "name": "Endpunkt", "note": "Der Locations-Endpunkt des eMSP, aus seiner Endpunktliste übernommen. Nie vom CPO selbst zusammengesetzt." },
+        "u-country": { "name": "country_code", "note": "Das Land der Partei, der das Objekt gehört: des CPO." },
+        "u-party": { "name": "party_id", "note": "Die Party-ID des CPO. Zusammen mit country_code bezeichnet sie in jedem OCPI-Objekt ein Unternehmen." },
+        "u-location": { "name": "location_id", "note": "Die ID des CPO für diesen Standort. Mit angehängtem /1 wäre das EVSE mit uid 1 darin gemeint." }
+    },
+    "devices": {
+        "car": "Auto",
+        "charger": "Ladestation",
+        "cpo": "CPO-Plattform",
+        "emsp": "eMSP-Plattform"
+    },
+    "facts": {
+        "standard": "OCPI 2.2.1 (EVRoaming Foundation)",
+        "between": "CPO (betreibt Ladestationen) ↔ eMSP (gibt Fahrern Karten und Apps), direkt oder über einen Roaming-Hub",
+        "transport": "HTTPS, REST, JSON",
+        "security": "TLS. Jede Anfrage trägt Authorization: Token, gefolgt vom Token in Base64.",
+        "frames": "Module: credentials, locations, tokens, sessions, cdrs, tariffs, commands"
+    },
+    "tips": [
+        "Die URLs verwenden, die die andere Seite in ihren Endpunkten auflistet. Nie nach einem Muster zusammenbauen: Jede Plattform hat ihre eigenen.",
+        "Token A funktioniert nur zur Registrierung. Eine häufige Ursache für 401-Fehler nach der Registrierung ist eine Verwechslung von Token B und C.",
+        "HTTP 200 reicht nicht: status_code im Body lesen. 1000 ist Erfolg, 2xxx ein Client-Fehler, 3xxx ein Server-Fehler.",
+        "Ein CDR ist endgültig. Ein falscher wird nicht geändert: Der CPO sendet einen Gutschrift-CDR und dann einen neuen."
+    ],
+    "points": {
+        "to-cpo": "Token für Aufrufe beim CPO",
+        "to-emsp": "Token für Aufrufe beim eMSP",
+        "kwh": "Energie, kWh",
+        "cost": "Preis inkl. MwSt."
+    },
+    "values": {
+        "token-a": "Token A",
+        "token-b": "Token B",
+        "token-c": "Token C"
+    },
+    "anatomy": {
+        "evse-id": "Eine EVSE-ID, wie Fahrer sie an der Ladestation sehen",
+        "url": "Die Adresse eines Standorts auf der Seite des eMSP"
+    },
+    "playground": {
+        "file": "Ein Objekt, das der CPO in dieser Lektion sendet, als JSON. Wähle eine unterstrichene Zeile.",
+        "owner": "Der CPO, dem dieser Standort gehört: Land NL, Party ABC. Diese Angaben stehen in jedem Objekt und in seiner URL.",
+        "location-id": "Die eigene ID des CPO für den Standort. Zusammen mit country_code und party_id ist sie eindeutig.",
+        "publish": "true: Der eMSP darf ihn den Fahrern zeigen. false hält eine private Ladestation von öffentlichen Karten fern.",
+        "country": "Hier drei Buchstaben (ISO 3166-1 alpha-3), anders als die zwei von country_code.",
+        "coordinates": "Breiten- und Längengrad sind Strings, keine Zahlen, mit 5 bis 7 Nachkommastellen.",
+        "evse-uid": "uid: die interne ID des CPO für das EVSE, verwendet in URLs und in Ladevorgängen.",
+        "evse-id": "evse_id: die ID, die auf der Ladestation steht, für Fahrer. Die Zerlegung unter „Stück für Stück“ nimmt sie auseinander.",
+        "status": "AVAILABLE. Ändert er sich, sendet der CPO ein PATCH mit dem neuen Status.",
+        "standard": "IEC_62196_T2: eine Typ-2-Steckdose. format SOCKET bedeutet, dass der Fahrer das Kabel mitbringt.",
+        "max-voltage": "230 V: bei dreiphasigem Wechselstrom die Spannung zwischen einer Phase und dem Neutralleiter.",
+        "max-power": "22080 W = 3 × 230 V × 32 A.",
+        "tariff": "Der Tarif, der hier gilt. Der CPO veröffentlicht ihn im Modul tariffs.",
+        "time-zone": "Die lokale Zeitzone. Zeiten in OCPI sind UTC; das hier sagt der App, was die Uhr vor Ort zeigt.",
+        "last-updated": "Wann sich dieses Objekt zuletzt geändert hat. Eine Partei, die Aktualisierungen verpasst hat, fragt alles ab, was sich seit ihrem letzten Abgleich geändert hat.",
+        "cdr-id": "Die ID des CPO für diesen CDR.",
+        "session-id": "Der Ladevorgang, den dieser CDR abschließt: der, den der eMSP wachsen sah.",
+        "cdr-token": "Die Karte, die geladen hat. Sie gehört dem eMSP XYZ aus Deutschland (DE).",
+        "contract": "contract_id: der Vertrag des Fahrers mit dem eMSP. Der eMSP rechnet über diesen Vertrag ab.",
+        "auth-method": "AUTH_REQUEST: Der CPO hat den eMSP in Echtzeit gefragt. WHITELIST würde eine vorher gesendete Kartenliste bedeuten.",
+        "cdr-location": "Eine Kopie des Orts, an dem es passiert ist, damit der CDR auch nach einer Änderung des Standorts noch stimmt.",
+        "currency": "Jeder Betrag in diesem CDR ist in EUR.",
+        "periods": "Der Ladevorgang, in Zeiträume mit je einem Tarif geteilt. Dieser hat nur einen Zeitraum.",
+        "dimensions": "12.5 kWh in diesem Zeitraum. Die nächste Zeile: 1.25 h Zeit.",
+        "excl-vat": "5.00 EUR: 12.5 kWh × 0.40 EUR, vor Mehrwertsteuer.",
+        "incl-vat": "6.05 EUR: mit 21 % niederländischer Mehrwertsteuer.",
+        "total-energy": "Immer in kWh.",
+        "total-time": "In Stunden: 14:05 bis 15:20 sind 1.25 h."
+    }
+}

@@ -1,0 +1,97 @@
+{
+    "intro": "Das Klartextprotokoll der optischen Schnittstelle vorn an den meisten europäischen Stromzählern. Ein Techniker setzt einen Lesekopf auf die Schnittstelle. Laptop und Zähler tauschen kurze ASCII-Nachrichten aus, zuerst mit 300 Baud, dann schneller. Der Zähler antwortet mit Zeilen wie 1.8.0(012345.678*kWh): eine Adresse, ein Wert und eine Einheit.",
+    "steps": {
+        "signon": { "title": "Anmelden", "text": "Der Techniker setzt den optischen Lesekopf vorn auf den Zähler. Der Laptop sendet /?! mit 300 Baud, 7 Datenbits, gerader Parität. Der Zähler antwortet mit seinem Hersteller, seiner Höchstgeschwindigkeit und seinem Modell." },
+        "select": { "title": "Geschwindigkeit und Modus wählen", "text": "Der Laptop wählt das normale Protokoll, 9600 Baud und eine Datenauslesung. Nach dem letzten Byte dieser Nachricht schalten beide Seiten auf 9600 Baud um." },
+        "readout": { "title": "Auslesen", "text": "Der Zähler sendet seine Ausleseliste in einer Nachricht, abgeschlossen durch eine BCC-Prüfung. Ein Passwort ist nicht nötig: Die Liste enthält nur, was der Versorger zeigen wollte." },
+        "program": { "title": "Programmiermodus", "text": "Die Lieferenergie steht nicht in der Liste. Der Laptop meldet sich erneut an, mit 300 Baud, und verlangt den Programmiermodus. Der Zähler fragt nach einem Passwort." },
+        "password": { "title": "Passwort", "text": "Der Laptop sendet das Passwort im Klartext (P1). Der Zähler nimmt es mit einem einzelnen ACK an." },
+        "read": { "title": "Lesen und abmelden", "text": "R1 liest einen Wert über seine Adresse. Der Zähler antwortet mit Adresse, Wert und Einheit. Dann beendet B0 die Sitzung, und der Zähler kehrt zu 300 Baud zurück." }
+    },
+    "frames": {
+        "signon": "Wer bist du?",
+        "ident": "Hersteller EXA, Modell EM340, bis 9600 Baud",
+        "ack-readout": "9600 Baud, bitte Datenauslesung",
+        "data": "1.8.0 = 12 345.678 kWh, dann Tarif 1 und Tarif 2",
+        "signon-2": "Wer bist du? (noch einmal)",
+        "ident-2": "Hersteller EXA, Modell EM340, bis 9600 Baud",
+        "ack-program": "9600 Baud, bitte Programmiermodus",
+        "p0": "Bitte das Passwort",
+        "p1": "Das Passwort ist 18273645",
+        "ack-password": "Richtig",
+        "r1": "2.8.0 lesen",
+        "answer": "2.8.0 = 123.456 kWh",
+        "b0": "Auf Wiedersehen"
+    },
+    "fields": {
+        "slash": { "name": "Start", "note": "/ (0x2F) beginnt die Anmeldung und die Identifikation." },
+        "request": { "name": "Anfrage", "note": "? (0x3F): eine Gesprächsanfrage." },
+        "end-request": { "name": "Ende", "note": "! (0x21) beendet die Anfrage. An einer Leitung mit mehreren Zählern steht die Adresse des Zählers zwischen ? und !." },
+        "crlf": { "name": "CR LF", "note": "0D 0A: das Ende einer Zeile." },
+        "maker": { "name": "Hersteller", "note": "EXA: das dreibuchstabige Herstellerkürzel (hier erfunden)." },
+        "baud-5": { "name": "Höchstgeschwindigkeit", "note": "5: Im Modus C kann dieser Zähler auf 9600 Baud umschalten. 0 wären 300 Baud, 6 sind 19200." },
+        "model": { "name": "Modell", "note": "EM340: das Modell, bis zu 16 Zeichen, vom Hersteller gewählt." },
+        "ack": { "name": "ACK", "note": "ACK (0x06) beginnt die Bestätigung mit Optionsauswahl." },
+        "protocol": { "name": "Protokoll", "note": "0: das normale Protokoll. 2 würde auf HDLC und DLMS umschalten (Modus E)." },
+        "speed": { "name": "Geschwindigkeit", "note": "5: auf 9600 Baud umschalten, die Geschwindigkeit, die der Zähler angeboten hat." },
+        "mode-readout": { "name": "Modus", "note": "0: Datenauslesung. Direkt nach dieser Nachricht schalten beide Seiten auf 9600 Baud um." },
+        "mode-program": { "name": "Modus", "note": "1: Programmiermodus. Der Zähler wird nach einem Passwort fragen." },
+        "stx": { "name": "STX", "note": "STX (0x02): Die Daten beginnen. Die BCC zählt ab dem nächsten Byte." },
+        "a-180": { "name": "Adresse", "note": "1.8.0: Wirkenergie Bezug, alle Tarife. Der Teil C.D.E des OBIS-Codes." },
+        "v-180": { "name": "Wert", "note": "(012345.678*kWh): der Wert und seine Einheit, in Klammern." },
+        "a-181": { "name": "Adresse", "note": "1.8.1: dieselbe Energie, in Tarif 1." },
+        "v-181": { "name": "Wert", "note": "(008765.432*kWh)." },
+        "a-182": { "name": "Adresse", "note": "1.8.2: dieselbe Energie, in Tarif 2." },
+        "v-182": { "name": "Wert", "note": "(003580.246*kWh). Tarif 1 und Tarif 2 ergeben zusammen die Summe." },
+        "end-data": { "name": "Datenende", "note": "! CR LF: keine weiteren Zeilen." },
+        "etx": { "name": "ETX", "note": "ETX (0x03): Die Nachricht endet. Es ist das letzte Byte, das die BCC zählt." },
+        "bcc-data": { "name": "BCC", "note": "0x76: alle Bytes nach STX bis einschließlich ETX, per XOR verknüpft. Stimmt sie nicht, erneut lesen." },
+        "soh": { "name": "SOH", "note": "SOH (0x01): Eine Befehlsnachricht beginnt. Die BCC zählt ab dem nächsten Byte, STX eingeschlossen." },
+        "p0": { "name": "P0", "note": "Eine Passwortanfrage, mit Operand." },
+        "stx-command": { "name": "STX", "note": "STX (0x02): Der Datensatz beginnt." },
+        "operand": { "name": "Operand", "note": "(87654321): eine Zahl, die der Zähler wählt. Ein Zähler, der ein verschlüsseltes Passwort (P2) will, nutzt sie als Startwert. Dieser hier nimmt das Passwort im Klartext." },
+        "bcc-p0": { "name": "BCC", "note": "0x68: XOR aller Bytes nach SOH bis einschließlich ETX." },
+        "p1": { "name": "P1", "note": "Hier ist das Passwort, im Klartext." },
+        "password": { "name": "Passwort", "note": "(18273645). Jeder, der die optische Schnittstelle beobachtet, kann es lesen." },
+        "bcc-p1": { "name": "BCC", "note": "0x69." },
+        "ack-password": { "name": "ACK", "note": "ACK (0x06): Das Passwort stimmt. Lesen und Schreiben sind freigegeben." },
+        "r1": { "name": "R1", "note": "Einen Wert lesen, als ASCII-Text." },
+        "ask-280": { "name": "Adresse", "note": "2.8.0(): die zu lesende Adresse, mit leeren Klammern." },
+        "bcc-r1": { "name": "BCC", "note": "0x59." },
+        "a-280": { "name": "Adresse", "note": "2.8.0: Wirkenergie Lieferung, alle Tarife: was die Solarmodule des Gebäudes ins Netz eingespeist haben." },
+        "v-280": { "name": "Wert", "note": "(000123.456*kWh)." },
+        "bcc-answer": { "name": "BCC", "note": "0x5F: vom Byte nach STX bis einschließlich ETX." },
+        "b0": { "name": "B0", "note": "Break: Die Sitzung endet sofort." },
+        "bcc-b0": { "name": "BCC", "note": "0x71, der Buchstabe q. Ein Break sind immer dieselben 5 Bytes: 01 42 30 03 71." },
+        "l-c": { "name": "C · Messgröße", "note": "1: Wirkleistung, Bezug." },
+        "l-d": { "name": "D · Verarbeitung", "note": "8: die Summe über die Zeit, also Energie." },
+        "l-e": { "name": "E · Tarif", "note": "0: alle Tarife. 1.8.1 ist Tarif 1." },
+        "l-value": { "name": "Wert", "note": "012345.678: die Ziffern, die der Zähler führt, mit seinem Dezimalpunkt." },
+        "l-unit": { "name": "Einheit", "note": "kWh, nach einem Stern (*)." }
+    },
+    "devices": {
+        "laptop": "Laptop des Technikers",
+        "meter": "Stromzähler",
+        "house": "Gebäude"
+    },
+    "facts": {
+        "standard": "IEC 62056-21 (früher IEC 61107)",
+        "between": "Handgerät oder Laptop → Zähler, über einen optischen Lesekopf",
+        "transport": "Infrarotschnittstelle mit magnetischem Lesekopf; auch 20-mA-Stromschleife oder RS-232",
+        "security": "Keine beim Auslesen. Programmiermodus: ein Passwort, im Klartext gesendet",
+        "speed": "Beginnt mit 300 Baud, 7E1; dann bis 19200 Baud"
+    },
+    "tips": [
+        "Die serielle Schnittstelle auf 7 Datenbits und gerade Parität (7E1) einstellen. Bei 8N1 sieht der Zähler Paritätsfehler und schweigt, und seine Antworten sehen wie Datenmüll aus.",
+        "Erst auf die neue Geschwindigkeit umschalten, wenn das letzte Byte der ACK-Nachricht hinaus ist. USB-Adapter puffern Daten: Wer zu früh umschaltet, sendet das Ende der Nachricht mit der falschen Geschwindigkeit.",
+        "Die BCC beginnt nach STX oder SOH, nicht damit, und sie schließt ETX ein. Ein falsches Ende auf einer der beiden Seiten ist ein häufiger Fehler in selbst gebauten Auslesegeräten."
+    ],
+    "points": {
+        "speed": "Geschwindigkeit",
+        "import": "Energie Bezug",
+        "export": "Energie Lieferung"
+    },
+    "anatomy": {
+        "line": "Eine Zeile der Auslesung"
+    }
+}

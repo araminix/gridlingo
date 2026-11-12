@@ -1,0 +1,83 @@
+{
+    "intro": "La façon dont un gestionnaire de réseau demande aux bâtiments de consommer moins quand le réseau manque de puissance. Le serveur du gestionnaire est le VTN (virtual top node) ; le côté client est le VEN (virtual end node). Cette leçon utilise OpenADR 2.0b, la version que parlent la plupart des produits sur le terrain : du XML sur HTTPS, avec un VEN qui interroge, si bien que le bâtiment n'a besoin d'aucun port ouvert. Le VTN dit quoi et quand ; le bâtiment décide comment.",
+    "steps": {
+        "poll": { "title": "Demander des nouvelles", "text": "À 12:00 UTC, le VEN interroge le VTN, comme chaque minute. Cette fois, le VTN répond par un événement : niveau 1, de 17:00 à 18:00 UTC." },
+        "optin": { "title": "Participer", "text": "L'événement demande une réponse. Le VEN accepte d'y participer (opt-in), et le VTN confirme." },
+        "shed": { "title": "Effacer", "text": "À 17:00, selon sa propre horloge, le VEN demande à l'automate du bâtiment d'agir : les consignes de climatisation montent de 2 °C et l'éclairage des couloirs baisse. La charge passe de 420 kW à 340 kW." },
+        "report": { "title": "Rendre compte", "text": "Le VEN envoie la charge qu'il mesure, comme convenu lors de son enregistrement. Le gestionnaire de réseau voit la baisse." },
+        "end": { "title": "Retour à la normale", "text": "À 18:00, l'événement est terminé. Le VEN retire ses commandes, et le bâtiment reprend son programme horaire." }
+    },
+    "frames": {
+        "tls": "Ouvrir une connexion TLS, avec mon certificat",
+        "poll": "Du nouveau pour moi ?",
+        "distribute": "Événement de pointe : niveau 1, de 17:00 à 18:00",
+        "created": "Nous participerons",
+        "response": "Noté",
+        "shed": "Niveau 1 maintenant : monte les consignes de climatisation, baisse l'éclairage",
+        "update-report": "Notre charge est maintenant de 340 kW",
+        "updated-report": "Rapport reçu",
+        "restore": "Événement terminé : retour à la normale"
+    },
+    "notes": {
+        "tls": "C'est toujours le VEN qui ouvre la connexion. Les deux côtés présentent un certificat émis pour OpenADR. TLS 1.2, avec l'une des deux suites qu'exige OpenADR : TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 ou TLS_RSA_WITH_AES_128_CBC_SHA256.",
+        "poll": "Un POST HTTP vers /OpenADR2/Simple/2.0b/OadrPoll, portant un petit message oadrPoll : juste le venID du VEN. Le VTN a fixé la fréquence d'interrogation lors de l'enregistrement du VEN.",
+        "distribute": "La réponse à l'interrogation. Elle liste tous les événements en attente et en cours pour ce VEN, pas seulement les nouveaux. Le bac à sable montre celui-ci ligne par ligne.",
+        "created": "Un POST vers EiEvent : un oadrCreatedEvent qui nomme l'événement (eventID PEAK-20260715, modificationNumber 0), avec responseCode 200 et optType optIn. optOut dirait au gestionnaire de réseau de ne pas compter sur ce bâtiment.",
+        "response": "Un oadrResponse avec responseCode 200. Le VTN répond à une interrogation par ce même message quand il n'a rien de nouveau.",
+        "shed": "Pas de l'OpenADR : une écriture BACnet du VEN vers l'automate du bâtiment. OpenADR dit seulement niveau 1. Ce que signifie le niveau 1 est défini dans le bâtiment, pas par le gestionnaire de réseau.",
+        "update-report": "Un POST vers EiReport : un oadrUpdateReport avec un rapport TELEMETRY_USAGE, la puissance réelle du bâtiment toutes les 15 minutes. Le VTN l'a demandé par oadrCreateReport, après que le VEN a enregistré les rapports qu'il sait envoyer.",
+        "updated-report": "Un oadrUpdatedReport avec responseCode 200.",
+        "restore": "Pas de l'OpenADR non plus. Le VEN écrit NULL à sa priorité BACnet, ce qui libère ses commandes. La charge remonte à 415 kW."
+    },
+    "fields": {
+        "a-host": { "name": "VTN", "note": "Le serveur du gestionnaire de réseau. Un VTN peut placer un chemin à lui avant le reste." },
+        "a-transport": { "name": "Transport", "note": "HTTP simple. OpenADR 2.0b peut aussi fonctionner sur XMPP, où c'est le VTN qui pousse les messages." },
+        "a-profile": { "name": "Profil", "note": "2.0b : événements, rapports et calendriers de participation. 2.0a est un profil plus petit pour les équipements simples, avec les événements seulement." },
+        "a-service": { "name": "Service", "note": "OadrPoll. Chaque message va vers son service : les événements vers EiEvent, les rapports vers EiReport, l'enregistrement vers EiRegisterParty, les calendriers de participation vers EiOpt." }
+    },
+    "devices": {
+        "vtn": "VTN du gestionnaire",
+        "ven": "VEN du bâtiment",
+        "bms": "Automate GTB",
+        "building": "Immeuble de bureaux"
+    },
+    "facts": {
+        "standard": "OpenADR 2.0b (IEC 62746-10-1)",
+        "between": "Gestionnaire de réseau ou agrégateur (VTN) → bâtiments et agrégateurs (VEN)",
+        "transport": "XML sur HTTPS ; le VEN interroge (ou XMPP)",
+        "security": "TLS 1.2, un certificat de chaque côté ; signatures XML facultatives",
+        "frames": "Services : EiEvent, EiReport, EiRegisterParty, EiOpt, OadrPoll"
+    },
+    "tips": [
+        "Chaque modification d'un événement augmente son modificationNumber. Répondez à chaque nouveau numéro, sinon le VTN croit que le VEN n'a jamais reçu la modification.",
+        "Le VEN exécute l'événement selon sa propre horloge. Gardez-la synchronisée par NTP : une horloge en retard de 10 minutes efface avec 10 minutes de retard.",
+        "Le gestionnaire de réseau planifie avec chaque opt-in. Si le bâtiment ne peut pas effacer, retirez-vous tôt (opt-out), pas après le début de l'événement."
+    ],
+    "points": {
+        "status": "État de l'événement",
+        "opt": "Réponse",
+        "load": "Charge du bâtiment"
+    },
+    "anatomy": {
+        "endpoint": "L'adresse qu'interroge un VEN"
+    },
+    "playground": {
+        "file": "L'oadrDistributeEvent de l'étape 1, tel que le VEN le reçoit. Choisissez une ligne marquée pour voir ce qu'elle signifie.",
+        "payload": "Tout message OpenADR 2.0b est un oadrPayload. Les espaces de noms montrent d'où viennent ses parties : OpenADR lui-même, Energy Interoperation (ei), EMIX et iCalendar (xcal).",
+        "signed": "Ce que couvrirait une signature XML. La signature est facultative : TLS protège déjà la connexion.",
+        "distribute": "Le message : oadrDistributeEvent, venant du VTN.",
+        "vtn": "Le nom du VTN.",
+        "event-id": "Le nom de l'événement. La réponse du VEN doit le citer.",
+        "modification": "0 : la première version. Chaque modification de l'événement l'augmente, et le VEN doit répondre de nouveau.",
+        "market": "Le programme auquel appartient l'événement. Le bâtiment y a souscrit.",
+        "status": "far : l'événement est encore à des heures de distance. Les réponses suivantes le montrent active, puis completed.",
+        "test": "false : un vrai événement. Un événement de test vérifie toute la chaîne ; le VEN n'est pas tenu d'agir.",
+        "start": "L'événement commence à 17:00 UTC.",
+        "length": "PT1H : il dure une heure (une durée ISO 8601).",
+        "level": "La valeur pour cet intervalle : 1.0. Pour le signal SIMPLE, 0 est normal, 1 modéré, 2 élevé, 3 spécial.",
+        "simple": "SIMPLE : le seul signal que tout VEN OpenADR doit comprendre.",
+        "current": "La valeur actuelle : 0.0, car l'événement n'a pas commencé.",
+        "target": "L'événement ne concerne que ce VEN.",
+        "response": "always : le VEN doit répondre par oadrCreatedEvent, en acceptant ou en refusant de participer."
+    }
+}

@@ -1,0 +1,99 @@
+{
+    "intro": "일반 Modbus TCP에서는 네트워크에 있는 누구나 읽고 쓸 수 있어요. Modbus/TCP Security는 같은 프레임을 포트 802의 TLS로 감싸요. 양쪽이 인증서로 신원을 증명하고, 클라이언트 인증서에는 역할을 담을 수 있어요. 그러면 서버의 규칙이 요청 하나하나마다 그 역할이 무엇을 할 수 있는지 정해요.",
+    "steps": {
+        "connect": { "title": "연결", "text": "모니터링 서버가 인버터의 포트 802, 즉 Modbus/TCP Security용 포트로 TCP 연결을 열어요. 포트 502는 닫아 둬도 돼요." },
+        "hello": { "title": "인사", "text": "클라이언트가 TLS 1.2와 암호 스위트 하나를 제안해요. 인버터는 자기 인증서로 답하고 클라이언트의 인증서를 요구해요. 양쪽 모두 신원을 증명해야 해요: 사양이 그렇게 요구해요." },
+        "prove": { "title": "역할 보여 주기", "text": "클라이언트가 인증서를 보내요. 그 안에는 Modbus Organization이 정의한 확장에 역할 \"Viewer\"가 들어 있어요. 인버터는 신뢰하는 CA로 인증서를 검사하고, 이 연결 동안 역할을 기억해요." },
+        "read": { "title": "읽기: 허용", "text": "이제 평범한 Modbus TCP 프레임이 암호화된 TLS 레코드 안에서 오가요. 인버터는 요청마다 규칙과 대조해요: viewer는 읽을 수 있어요. 4820.5 kW라고 답해요." },
+        "write": { "title": "쓰기: 거부", "text": "클라이언트가 출력 제한을 설정하려고 해요. viewer는 쓸 수 없으니, 인버터는 사양이 이 경우에 정한 예외 코드 01로 거부해요. 제한은 5000 kW 그대로예요." }
+    },
+    "frames": {
+        "tcp": "포트 802로 TCP 연결 열기",
+        "client-hello": "TLS 1.2로 이야기해요, 이 암호 스위트로",
+        "server-hello": "제 인증서예요. 당신 것도 보여 주세요.",
+        "client-cert": "제 거예요, 역할은 Viewer, 그리고 제 것이라는 증명",
+        "server-finished": "확인했어요. 암호화를 켰어요.",
+        "read-req": "(암호화) 레지스터 100과 101을 보내 주세요",
+        "read-resp": "(암호화) 유효 전력: 4820.5 kW",
+        "write-req": "(암호화) 출력 제한을 3000 kW로 설정하세요",
+        "write-refused": "(암호화) 거부: 예외 01"
+    },
+    "notes": {
+        "tcp": "502가 아니라 포트 802로 가는 순수 TCP예요. 평문으로 이어지는 건 TLS 핸드셰이크뿐이에요.",
+        "server-hello": "핸드셰이크 메시지 다섯 개예요. ServerHello가 TLS 1.2와 0xC02F를 골라요. Certificate에는 인버터의 인증서와 그 CA의 인증서가 담겨요. ServerKeyExchange에는 인버터 몫의 키 교환이 자기 키로 서명되어 담겨요. CertificateRequest는 클라이언트의 인증서를 요구해요: Modbus/TCP Security 서버는 항상 요구해야 해요. ServerHelloDone으로 자기 차례를 끝내요.",
+        "client-cert": "Certificate에는 역할이 들어 있는 클라이언트 인증서가 담겨요. ClientKeyExchange에는 클라이언트 몫의 키 교환이 담겨요. CertificateVerify는 지금까지의 핸드셰이크에 서명해요: 클라이언트가 인증서의 개인 키를 가졌다는 증명이에요. ChangeCipherSpec과 Finished로 암호화를 켜요. TLS 1.2에서는 인증서가 평문으로 가니, 네트워크에 있는 누구나 역할을 읽을 수 있어요.",
+        "server-finished": "인버터도 암호화를 켜요. 클라이언트가 인증서를 보내지 않았거나 모르는 CA의 인증서를 보냈다면, 인버터는 경고(alert)를 보내고 연결을 끊었을 거예요."
+    },
+    "fields": {
+        "rec-handshake": { "name": "레코드 유형 22", "note": "0x16: 핸드셰이크 레코드. 핸드셰이크는 평문으로 가요." },
+        "rec-v10": { "name": "레코드 버전", "note": "0x0301. 오래된 서버가 탈 나지 않도록 클라이언트는 여기에 옛 번호를 적어요. 원하는 버전은 몇 바이트 뒤에 나와요." },
+        "rec-len-130": { "name": "길이", "note": "0x0082 = 130바이트가 이어져요." },
+        "hs-hello": { "name": "핸드셰이크 유형 1", "note": "ClientHello: 클라이언트의 제안." },
+        "hs-len-126": { "name": "길이", "note": "0x00007E = 126바이트가 이어져요." },
+        "hello-version": { "name": "버전", "note": "0x0303: TLS 1.2. Modbus/TCP Security에는 1.2 이상이 필요해요." },
+        "random": { "name": "랜덤", "note": "무작위 32바이트, 8바이트씩 나눠 표시했어요. 양쪽이 이를 세션 키에 섞어 넣어요." },
+        "random-more": { "name": "랜덤", "note": "무작위 32바이트의 나머지." },
+        "session-id": { "name": "세션 ID", "note": "길이 0: 재개가 아닌 새 세션." },
+        "suites": { "name": "암호 스위트", "note": "2바이트, 스위트 하나: 0xC02F, ECDHE 키 교환, RSA 인증서, AES-128-GCM 암호화, SHA-256. RSA 키를 쓰는 기기에는 사양이 이것을 요구해요." },
+        "compression": { "name": "압축", "note": "방법 하나: 0, 압축 없음." },
+        "ext-len": { "name": "확장", "note": "0x0053 = 확장 83바이트가 이어져요." },
+        "ext-reneg": { "name": "renegotiation_info", "note": "0xFF01, 비어 있음: 클라이언트가 사양이 요구하는 안전한 재협상을 지원해요." },
+        "ext-points": { "name": "ec_point_formats", "note": "0x000B: 타원 곡선 점을 표기하는 방식." },
+        "ext-groups": { "name": "supported_groups", "note": "0x000A, 12바이트: 10바이트짜리 목록이 이어져요." },
+        "groups": { "name": "곡선", "note": "키 교환용 곡선 다섯 개: x25519(0x001D), P-256(0x0017), x448, P-384, P-521. 타원 곡선을 쓰는 기기는 모두 P-256을 지원해야 해요." },
+        "ext-flags": { "name": "플래그 두 개", "note": "encrypt_then_mac(0x0016)과 extended_master_secret(0x0017), 둘 다 비어 있어요." },
+        "ext-sigalgs": { "name": "signature_algorithms", "note": "0x000D: 40바이트짜리 목록이 이어져요. 알고리즘 20개에 각 2바이트." },
+        "sigalgs": { "name": "서명", "note": "클라이언트가 받아들이는 서명 종류, 각 2바이트. 0x0403은 SHA-256을 쓰는 P-256 ECDSA, 더 뒤의 0x0401은 SHA-256을 쓰는 RSA예요." },
+        "sigalgs-more": { "name": "서명", "note": "서명 종류가 더 있어요, 각 2바이트." },
+        "rec-app": { "name": "레코드 유형 23", "note": "0x17: 응용 데이터. 이어지는 내용은 암호화돼 있어요." },
+        "rec-v12": { "name": "버전", "note": "0x0303: TLS 1.2." },
+        "len-read-req": { "name": "길이", "note": "36바이트가 이어지지만 보여 주지 않아요: 8바이트 논스, 암호화된 12바이트 요청, 16바이트 태그. 안에는 평범한 Modbus TCP 요청 00 01 00 00 00 06 01 03 00 64 00 02가 들어 있어요: 레지스터 100과 101 읽기." },
+        "len-read-resp": { "name": "길이", "note": "37바이트가 이어져요: 논스, 응답 13바이트, 태그. 안에는 00 01 00 00 00 07 01 03 04 A4 00 45 96, 유효 전력 4820.5 kW." },
+        "len-write-req": { "name": "길이", "note": "36바이트가 이어져요. 안에는 00 02 00 00 00 06 01 06 00 C8 0B B8, 출력 제한인 레지스터 200에 3000 쓰기." },
+        "len-refused": { "name": "길이", "note": "33바이트가 이어져요: 논스, 응답 9바이트, 태그. 안에는 00 02 00 00 00 03 01 86 01. 0x86은 0x06에 오류 비트를 켠 값이고, 01은 예외 코드예요." },
+        "a-extension": { "name": "확장", "note": "0x17 = 23바이트짜리 SEQUENCE: 인증서 확장 하나." },
+        "a-oid": { "name": "객체 ID", "note": "1.3.6.1.4.1.50316.802.1: Modbus 역할. 50316은 IANA가 Modbus Organization에 준 번호예요." },
+        "a-octets": { "name": "값", "note": "확장의 값을 담은 8바이트짜리 OCTET STRING." },
+        "a-utf8": { "name": "UTF8String", "note": "0x0C: 6바이트 길이의 UTF-8 텍스트. 사양이 이 유형을 요구해요." },
+        "a-role": { "name": "역할", "note": "\"Viewer\". 인증서 하나에 역할 하나. 무엇을 할 수 있는지는 서버의 규칙이 정해요." }
+    },
+    "devices": {
+        "monitoring": "모니터링 서버",
+        "inverter": "인버터 INV-1",
+        "pv": "PV 어레이",
+        "controller": "발전소 제어기"
+    },
+    "facts": {
+        "standard": "MODBUS/TCP Security Protocol Specification(Modbus Organization, 2018, 2021 개정)",
+        "between": "인증서를 가진 클라이언트 → 인증서를 가진 서버",
+        "transport": "TCP 802 위의 TLS 1.2 이상",
+        "security": "양쪽이 X.509 인증서로 신원을 증명해요. 클라이언트 인증서의 역할이 할 수 있는 일을 정해요.",
+        "frames": "평소의 Modbus TCP 프레임을 그대로 TLS 레코드 안에"
+    },
+    "tips": [
+        "역할이 없는 인증서도 연결은 돼요. 그러면 서버는 \"역할 없음\" 규칙을 적용해요: 이 규칙이 아무것도 허용하지 않는지 확인하세요.",
+        "거부된 요청은 예외 01을 돌려줘요. 알 수 없는 기능과 같은 코드예요. 버그를 찾기 전에 역할과 규칙부터 확인하세요.",
+        "인증서 하나에는 역할이 딱 하나 들어가요. 읽기와 쓰기를 모두 해야 하는 도구에는 둘 다 허용하는 역할 하나가 필요해요.",
+        "인증서는 만료돼요. 첫 인증서가 만료되기 전에 새 인증서를 모든 기기에 어떻게 배포할지 계획하세요. 그렇지 않으면 그날 발전소의 통신이 멈춰요."
+    ],
+    "points": {
+        "role": "클라이언트 역할",
+        "p": "유효 전력",
+        "limit": "유효 전력 제한"
+    },
+    "values": {
+        "refused": "거부(01)"
+    },
+    "anatomy": {
+        "role": "클라이언트 인증서의 역할 확장, 바이트별로"
+    },
+    "playground": {
+        "file": "openssl x509 -text가 출력한 모니터링 서버의 인증서예요. 역할은 마지막 확장이에요.",
+        "issuer": "서명한 CA. 인버터는 자기가 신뢰하는 CA의 인증서만 받아들여요.",
+        "expiry": "이 날짜가 지나면 인버터가 인증서를 거부해요.",
+        "subject": "인증서의 주인: 모니터링 서버.",
+        "client-auth": "이 인증서는 TLS 클라이언트가 쓸 수 있어요.",
+        "role-oid": "Modbus 역할 확장. openssl은 이름을 몰라서 번호를 출력해요.",
+        "role-value": "역할이에요. 점 두 개는 openssl이 출력하지 못하는 바이트 0x0C와 0x06(UTF8String, 6자)이에요."
+    }
+}

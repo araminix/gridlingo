@@ -1,0 +1,96 @@
+{
+    "intro": "충전하는 동안 전기차와 DC 급속 충전기가 대화하는 방법이에요. 메시지는 충전 케이블의 컨트롤 파일럿 선 위에 전력선 통신 신호로 실리고, 그 위에 IPv6와 TCP가 올라가요. 대화를 이끄는 건 차예요: 단계마다, 그리고 원하는 전류를 차가 요청하고, 충전기는 줄 수 있는 만큼으로 답해요.",
+    "steps": {
+        "plug": { "title": "연결과 페어링", "text": "컨트롤 파일럿의 5 % 듀티 사이클이 디지털 통신을 요청해요. 차와 충전기의 전력선 모뎀이 서로를 찾아요(SLAC). 그다음 차가 링크의 모두에게, 즉 UDP 포트 15118의 ff02::1로 충전기의 IP 주소와 포트를 물어요(SDP)." },
+        "session": { "title": "세션 열기", "text": "TCP, 이어서 TLS. 둘이 프로토콜 버전을 합의하고, 충전기가 세션을 열어요." },
+        "limits": { "title": "결제와 한계값", "text": "운전자가 충전기에서 카드로 결제해요. 차와 충전기가 서로의 한계값을 알려요: 전압, 전류, 전력." },
+        "prepare": { "title": "점검과 사전 충전", "text": "전류가 흐르기 전에 충전기가 케이블의 절연을 시험해요. 그다음 출력 전압을 배터리 전압까지 올려요." },
+        "charge": { "title": "충전", "text": "차가 접촉기를 닫고 전류를 요청해요. 계속 요청하고, 충전기는 그대로 따라요." },
+        "stop": { "title": "종료", "text": "80 %에서 차가 충전을 끝내고, 이어서 세션을 끝내요." }
+    },
+    "frames": {
+        "cp": "디지털로 대화해요",
+        "slac": "제 케이블에 연결된 충전기는 누구예요?",
+        "sdp-req": "어디 있어요? TCP 위의 TLS로 하고 싶어요",
+        "sdp-res": "여기요: fe80::ff:fe00:a1, 포트 54321, TLS 사용",
+        "tls": "신원을 증명하고 암호화해요",
+        "app": "ISO 15118-2나 DIN 70121을 써요",
+        "setup": "새 세션 4A1F09C27B3E8D15",
+        "payment": "차 밖에서 결제할게요: ExternalPayment",
+        "params": "500 V, 125 A, 50 kW까지 줄 수 있어요",
+        "cable-check": "절연 상태 양호",
+        "pre-charge": "출력을 396 V로 올려 주세요",
+        "power-on": "시작: 접촉기를 닫았어요",
+        "current-demand": "120 A를 주세요",
+        "stop": "완료: 세션을 끝내요"
+    },
+    "notes": {
+        "cp": "아직은 IEC 61851이에요: 듀티 사이클 5 %인 1 kHz 구형파. 5 %는 전류를 허용하지 않고 \"디지털 통신을 쓰라\"는 뜻이에요. 차의 전력선 모뎀이 깨어나요.",
+        "slac": "SLAC(ISO 15118-3)은 이 케이블 반대편의 충전기를 찾아요. 주차장에서는 신호가 케이블 사이로 새어 나가기 때문에, 차가 사운딩 메시지를 연달아 보내고 이를 들은 충전기마다 수신 세기를 보고해요. 차는 CM_SLAC_MATCH.REQ로 가장 센 쪽을 골라요. 그 충전기가 CM_SLAC_MATCH.CNF로 둘만의 사설 전력선 네트워크 키를 알려 줘요.",
+        "tls": "차가 [fe80::ff:fe00:a1]:54321로 TCP를 열고, 이어서 TLS 1.2를 열어요. 충전기가 인증서를 보여 주면, 차는 자기가 가진 V2G 루트 인증서로 검사해요. 여기서부터는 모두 암호화돼요.",
+        "app": "세션의 첫 메시지는 차가 쓸 수 있는 프로토콜을 버전과 우선순위와 함께 나열해요. 충전기는 OK_SuccessfulNegotiation과 고른 SchemaID 1, 즉 ISO 15118-2로 supportedAppProtocolRes를 답해요. 메시지의 XML은 '직접 해 보기'에서 볼 수 있어요.",
+        "setup": "차가 자기 모뎀의 MAC 주소인 EVCCID 02-00-00-00-00-E1과 함께 SessionSetupReq를 보냈어요. 충전기는 새 8바이트 SessionID, 자기 EVSEID, 시각으로 답해요. 이후 모든 메시지의 헤더에 SessionID가 들어가요.",
+        "payment": "그 전에 ServiceDiscovery가 있었어요: 충전기가 DC 충전과 두 가지 결제 방법, Contract(Plug & Charge)와 ExternalPayment를 제안했어요. 차는 ExternalPayment를 골라요: 운전자가 카드나 앱으로 결제해요. 그다음 충전기가 Finished로 답할 때까지 AuthorizationReq를 반복해요.",
+        "params": "차가 자기 한계값과 충전 상태 54 %를 보냈어요. 충전기는 자기 한계값으로 답해요: 최대 500 V, 125 A, 50 kW. 값마다 16비트 정수, 10의 거듭제곱, 단위로 이뤄져서 50 kW는 5000 × 10^1 W로 전송돼요.",
+        "cable-check": "차가 컨트롤 파일럿을 상태 C로 바꿨어요. 충전기가 DC 케이블에 시험 전압을 걸고 대지 절연을 측정해요. 끝날 때까지 Ongoing으로 답하다가, EVSEIsolationStatus Valid와 함께 Finished로 답해요.",
+        "pre-charge": "배터리는 차의 열린 접촉기 뒤에서 396 V예요. 차가 충전기에 최대 2 A로 출력을 같은 전압까지 올려 달라고 해요. 충전기가 현재 전압 395 V로 답해요: 불꽃 없이 접촉기를 닫기에 충분히 가까워요.",
+        "power-on": "차가 접촉기를 닫았어요. ChargeProgress Start: 이제부터 충전기가 전류를 보낼 수 있어요.",
+        "current-demand": "차가 충전 상태와 함께 120 A를 요청하고, 응답이 오자마자 다음 요청을 보내요. 충전기는 요청마다 실제로 내보내는 값으로 답해요: 398 V, 120 A. 주도권은 차에 있어요: 배터리가 차오르면 차가 전류를 바꿔요.",
+        "stop": "먼저 ChargeProgress Stop인 PowerDeliveryReq: 전류가 0으로 떨어지고 차가 접촉기를 열어요. WeldingDetection이 접촉기가 정말 열렸는지 확인해요. 그다음 ChargingSession Terminate인 SessionStopReq로 세션을 끝내요."
+    },
+    "fields": {
+        "version": { "name": "V2GTP 버전", "note": "버전 0x01, 이어서 같은 바이트를 반전한 0xFE. 다른 값이면 수신 측이 메시지를 버려요." },
+        "sdp-req": { "name": "페이로드 유형", "note": "0x9000: SDP 요청." },
+        "sdp-res": { "name": "페이로드 유형", "note": "0x9001: SDP 응답." },
+        "len-2": { "name": "길이", "note": "페이로드 2바이트가 이어져요. 헤더 자체는 항상 8바이트예요." },
+        "len-20": { "name": "길이", "note": "0x14 = 20바이트가 이어져요: 주소, 포트, 보안, 전송 방식." },
+        "tls-req": { "name": "보안", "note": "0x00: 차가 TLS를 원해요. 0x10이면 TLS 없이." },
+        "tls-res": { "name": "보안", "note": "0x00: 충전기가 TLS에 동의해요." },
+        "tcp": { "name": "전송 방식", "note": "0x00: TCP." },
+        "ip-prefix": { "name": "IPv6 접두사", "note": "fe80::/64: 이 링크에서만 유효한 링크 로컬 주소." },
+        "ip-id": { "name": "인터페이스 ID", "note": "충전기의 MAC 주소 02-00-00-00-00-A1로 만들어요: 가운데에 FF FE를 넣고 0x02 비트를 뒤집어요. 전체 주소는 fe80::ff:fe00:a1이에요." },
+        "port": { "name": "TCP 포트", "note": "0xD431 = 54321: 충전기가 이 차를 기다리는 곳." },
+        "a-urn": { "name": "URN", "note": "통합 자원 이름(uniform resource name): 접속할 주소가 아니라 고정된 이름표예요." },
+        "a-body": { "name": "기관", "note": "iso: 이름을 소유한 기관." },
+        "a-standard": { "name": "표준", "note": "15118: 차량과 전력망 사이의 통신." },
+        "a-part": { "name": "부", "note": "2부: 네트워크와 응용 메시지." },
+        "a-year": { "name": "연도", "note": "2013, 스키마 이름에 들어간 날짜. 표준 자체는 2014년에 나왔어요." },
+        "a-schema": { "name": "스키마", "note": "MsgDef: 메시지 정의. DIN 70121은 urn:din:70121:2012:MsgDef를 써요." }
+    },
+    "devices": {
+        "car": "자동차",
+        "charger": "DC 충전기",
+        "csms": "CSMS"
+    },
+    "facts": {
+        "standard": "메시지는 ISO 15118-2(2014), 전력선은 ISO 15118-3. 차세대는 ISO 15118-20.",
+        "between": "차의 제어기(EVCC) → 충전기의 제어기(SECC). 차가 묻고 충전기가 답해요.",
+        "transport": "컨트롤 파일럿 위의 HomePlug Green PHY, IPv6, UDP 15118의 SDP, 이어서 TCP",
+        "security": "TLS 1.2: 충전기가 인증서로 신원을 증명해요. Plug & Charge는 차에 계약 인증서를 더해요.",
+        "frames": "8바이트 V2GTP 헤더 안의 EXI(비트로 압축한 XML)"
+    },
+    "tips": [
+        "실패한 충전의 상당수는 SLAC을 넘지 못해요. 메시지를 보기 전에 모뎀, 컨트롤 파일럿 배선, 충전기가 보고하는 신호 세기를 확인하세요.",
+        "모든 물리량은 정수, 10의 거듭제곱, 단위로 이뤄져요. Multiplier를 읽으세요: Multiplier 1인 5000은 5 kW가 아니라 50 kW예요.",
+        "CableCheck나 Authorization처럼 오래 걸리는 작업은 EVSEProcessing Ongoing으로 바로 답해요. 차가 다시 물어요. 응답을 붙잡고 기다리게 하는 충전기는 차가 포기하게 만들어요.",
+        "많은 충전기가 여전히 차의 목록에서 DIN 70121을 골라요. 캡처에서 urn:din:70121:2012:MsgDef가 선택됐다면 Plug & Charge가 왜 시작되지 않는지 설명돼요."
+    ],
+    "points": {
+        "session": "세션",
+        "soc": "충전 상태",
+        "voltage": "충전기 출력",
+        "current": "요청 전류"
+    },
+    "anatomy": {
+        "namespace": "supportedAppProtocol에 담기는 프로토콜 버전의 이름"
+    },
+    "playground": {
+        "file": "세션에서 차가 보내는 첫 메시지를 XML로 쓴 거예요. 회선에서는 EXI로 전송되는데, 같은 내용을 수십 바이트로 압축해요.",
+        "root": "루트 요소. 자체 네임스페이스(2010)는 모든 버전에서 같아서, 어떤 충전기든 이 첫 메시지를 읽을 수 있어요.",
+        "iso": "첫 항목: ISO 15118-2.",
+        "version": "버전 2.0. 마이너 버전이 다른 충전기는 OK_SuccessfulNegotiationWithMinorDeviation으로 답할 수 있어요.",
+        "schema-id": "차가 이 항목에 붙인 번호. 충전기는 이 번호로 자기 선택을 알려요.",
+        "priority": "1이 차의 첫 번째 선택이에요.",
+        "din": "두 번째 항목: 오래된 DC 프로토콜 DIN 70121. TLS도 Plug & Charge도 없어요."
+    }
+}

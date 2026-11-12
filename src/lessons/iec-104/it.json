@@ -1,0 +1,105 @@
+{
+    "intro": "Il modo in cui una RTU di una sottostazione o di una centrale riporta i dati alla sala controllo su una normale rete IP. Ogni valore ha un indirizzo (l'IOA), un tipo e un motivo per cui è stato inviato. La RTU risponde quando viene interrogata e parla da sola quando qualcosa cambia.",
+    "steps": {
+        "connect": { "title": "Connessione", "text": "Lo SCADA apre una connessione TCP verso la RTU sulla porta 2404. Per ora non succede altro." },
+        "start": { "title": "Avvio dati", "text": "Nessun dato passa finché lo SCADA non invia STARTDT. La RTU risponde con STARTDT con." },
+        "ask": { "title": "Chiedi tutto", "text": "Un'interrogazione generale chiede alla RTU il valore attuale di ogni suo punto." },
+        "values": { "title": "Arrivano i valori", "text": "La RTU invia le misure e gli stati degli interruttori, poi dice di aver finito. Ora lo SCADA conosce l'impianto." },
+        "ack": { "title": "Conferma", "text": "Lo SCADA conferma i frame ricevuti. Senza questa conferma, la RTU smette di trasmettere dopo 12 frame non confermati." },
+        "trip": { "title": "Scatta l'interruttore", "text": "Nessuno ha chiesto nulla: la RTU invia subito la variazione, con l'ora in cui è avvenuta." }
+    },
+    "frames": {
+        "tcp": "Apri una connessione TCP verso la porta 2404",
+        "startdt-act": "Per favore, inizia a inviare dati",
+        "startdt-con": "OK, il trasferimento dati è attivo",
+        "gi-act": "Interrogazione generale: mandami tutto",
+        "gi-con": "Confermato, i valori stanno arrivando",
+        "measured": "P = 4.82 MW, Q = 0.61 Mvar",
+        "breaker": "CB-1 è chiuso",
+        "gi-term": "Era tutto",
+        "s-frame": "Ricevuti i tuoi frame da 0 a 3",
+        "trip": "CB-1 si è aperto alle 10:41:07.280"
+    },
+    "notes": {
+        "tcp": "Semplice TCP, ancora nessun byte IEC 104. La RTU accetta la connessione e aspetta."
+    },
+    "fields": {
+        "start": { "name": "Inizio", "note": "Ogni frame IEC 104 inizia con 0x68." },
+        "len4": { "name": "Lunghezza", "note": "Seguono 4 byte: solo il campo di controllo." },
+        "len14": { "name": "Lunghezza", "note": "Seguono 14 byte." },
+        "len26": { "name": "Lunghezza", "note": "Seguono 26 byte." },
+        "len21": { "name": "Lunghezza", "note": "Seguono 21 byte." },
+        "startdt-act": { "name": "Controllo · frame U", "note": "0x07 è STARTDT act: avvia il trasferimento dati." },
+        "startdt-con": { "name": "Controllo · frame U", "note": "0x0B è STARTDT con: la RTU accetta." },
+        "i-0-0": { "name": "Controllo · frame I", "note": "Numero di invio 0, numero di ricezione 0." },
+        "i-0-1": { "name": "Controllo · frame I", "note": "Numero di invio 0, numero di ricezione 1: \"ho ricevuto il tuo frame 0\". I numeri sono spostati di un bit a sinistra, quindi 1 viene inviato come 02." },
+        "i-1-1": { "name": "Controllo · frame I", "note": "Numero di invio 1, numero di ricezione 1." },
+        "i-2-1": { "name": "Controllo · frame I", "note": "Numero di invio 2, numero di ricezione 1." },
+        "i-3-1": { "name": "Controllo · frame I", "note": "Numero di invio 3, numero di ricezione 1." },
+        "i-4-1": { "name": "Controllo · frame I", "note": "Numero di invio 4, numero di ricezione 1." },
+        "s-4": { "name": "Controllo · frame S", "note": "0x01 indica un frame S. Numero di ricezione 4 (inviato come 08): \"ho i tuoi frame da 0 a 3\"." },
+        "type100": { "name": "Tipo 100", "note": "C_IC_NA_1: comando di interrogazione." },
+        "type13": { "name": "Tipo 13", "note": "M_ME_NC_1: un valore misurato in virgola mobile a 32 bit." },
+        "type3": { "name": "Tipo 3", "note": "M_DP_NA_1: un punto doppio, usato per interruttori e sezionatori." },
+        "type31": { "name": "Tipo 31", "note": "M_DP_TB_1: un punto doppio con etichetta temporale." },
+        "vsq1": { "name": "Numero", "note": "Un oggetto informativo." },
+        "vsq2": { "name": "Numero", "note": "Due oggetti, ciascuno con il proprio indirizzo." },
+        "cot6": { "name": "Causa 6", "note": "Attivazione. Il secondo byte è l'indirizzo dell'originatore, qui 0." },
+        "cot7": { "name": "Causa 7", "note": "Conferma di attivazione." },
+        "cot10": { "name": "Causa 10", "note": "Attivazione terminata: la risposta è completa." },
+        "cot20": { "name": "Causa 20", "note": "Inviato in risposta all'interrogazione di stazione." },
+        "cot3": { "name": "Causa 3", "note": "Spontanea: il valore è cambiato, nessuno l'ha chiesto." },
+        "ca": { "name": "Indirizzo comune", "note": "Stazione 1. Due byte, prima il byte meno significativo." },
+        "ioa0": { "name": "IOA 0", "note": "Il comando riguarda tutta la stazione, non un singolo punto." },
+        "ioa1001": { "name": "IOA 1001", "note": "L'indirizzo della potenza attiva: 0x0003E9, prima il byte meno significativo." },
+        "ioa1002": { "name": "IOA 1002", "note": "L'indirizzo della potenza reattiva." },
+        "ioa2001": { "name": "IOA 2001", "note": "L'indirizzo dell'interruttore CB-1: 0x0007D1." },
+        "qoi20": { "name": "QOI 20", "note": "Interrogazione di stazione: tutti i gruppi." },
+        "value-p": { "name": "Valore", "note": "Un float a 32 bit, prima il byte meno significativo: 4.82 (MW)." },
+        "value-q": { "name": "Valore", "note": "0.61 (Mvar)." },
+        "qds": { "name": "Qualità", "note": "Buona: nessun flag è attivo." },
+        "diq-on": { "name": "Stato 2", "note": "On: l'interruttore è chiuso. 1 è off; 0 e 3 indicano in movimento o guasto." },
+        "diq-off": { "name": "Stato 1", "note": "Off: l'interruttore è aperto." },
+        "cp56": { "name": "CP56Time2a", "note": "7.280 s, 41 min, 10 h, giovedì 12, novembre, (20)26. Non contiene il fuso orario." }
+    },
+    "devices": {
+        "scada": "Master SCADA",
+        "rtu": "RTU",
+        "inverter": "Inverter FV",
+        "pv": "Campo FV",
+        "battery": "Batteria",
+        "breaker": "Interruttore CB-1"
+    },
+    "facts": {
+        "standard": "IEC 60870-5-104, edizione 2 (2006)",
+        "between": "RTU o gateway → SCADA",
+        "transport": "TCP 2404",
+        "security": "TLS (IEC 62351-3), TCP 19998",
+        "frames": "I: dati · S: conferma · U: controllo"
+    },
+    "tips": [
+        "Le due parti devono concordare le dimensioni degli indirizzi: indirizzo comune di 2 byte, IOA di 3 byte. Se non coincidono si leggono dati senza senso, non un errore.",
+        "Le etichette temporali non contengono il fuso orario, solo un bit per l'ora legale. Scegli tra UTC e ora locale prima della messa in servizio.",
+        "Conferma almeno ogni 8 frame (w). Dopo 12 frame non confermati (k) la RTU smette di trasmettere."
+    ],
+    "points": {
+        "p": "Potenza attiva",
+        "q": "Potenza reattiva",
+        "cb": "Interruttore CB-1"
+    },
+    "values": {
+        "closed": "chiuso",
+        "open": "aperto"
+    },
+    "playground": {
+        "encoder": "Scrivi un valore e guarda i quattro byte con cui viaggia un float IEC 104. IEC 104 li invia partendo dal byte meno significativo (DCBA).",
+        "file": "La lista punti della RTU: cosa significa ogni indirizzo. Lo SCADA ha bisogno della stessa lista, altrimenti non può leggere i valori.",
+        "common-address": "L'indirizzo della stazione. Compare in ogni frame.",
+        "ioa": "L'indirizzo dell'oggetto informativo: uno per segnale.",
+        "type": "Come viaggia il valore: un float, senza etichetta temporale.",
+        "scale": "Un valore inviato come float non richiede scalatura. I tipi normalizzati e scalati sì.",
+        "double": "Un punto doppio: 2 bit per on, off, in movimento e guasto.",
+        "spontaneous": "Quando cambia, viene inviato subito con un'etichetta temporale.",
+        "time": "Annota quale orologio usano le etichette temporali."
+    }
+}

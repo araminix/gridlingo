@@ -1,0 +1,71 @@
+{
+    "intro": "O piloto de controle (CP) é um fio presente em todo cabo de recarga. O carregador coloca uma tensão nele, e o carro puxa essa tensão para baixo com resistores. Pelo nível, os dois lados sabem se há um carro conectado e se ele quer energia. Uma onda quadrada de 1 kHz no mesmo fio diz ao carro quanta corrente ele pode puxar.",
+    "steps": {
+        "plug": { "title": "Conectar", "text": "Antes de o plugue entrar, o carregador mantém o CP em +12 V: estado A. O resistor do carro o puxa para +9 V: estado B. O carregador também lê a capacidade do cabo pelo pino PP." },
+        "offer": { "title": "Oferecer corrente", "text": "O carregador inicia uma onda quadrada de 1 kHz no CP. A fração do tempo em que ela fica alta, o ciclo de trabalho, é a corrente que o carro pode puxar. A casa permite 24 A, então o carregador de 32 A oferece 24 A: 40 %." },
+        "charge": { "title": "Carregar", "text": "O carro liga um segundo resistor: o CP cai para +6 V, estado C. Só então o carregador fecha o contator. O carro puxa até 24 A em cada fase." },
+        "reduce": { "title": "Menos corrente", "text": "A casa precisa da sua potência em outro lugar. O gerenciador de energia dela avisa o carregador, e o carregador reduz o ciclo de trabalho para 10 %: 6 A. O carro tem 5 s para acompanhar." },
+        "stop": { "title": "Parar", "text": "A bateria está cheia. O carro abre a sua chave: o CP volta a +9 V, estado B. O carregador abre o contator." },
+        "unplug": { "title": "Desconectar", "text": "O plugue sai. O CP volta a +12 V, estado A, e o carregador para a onda quadrada." }
+    },
+    "frames": {
+        "b1": "Há um carro conectado",
+        "pp": "Este cabo suporta até 32 A",
+        "pwm": "Você pode puxar 24 A",
+        "c": "Pronto: quero energia",
+        "contactor": "A energia está ligada",
+        "limit": "Limite o carro a 6 A",
+        "pwm-10": "Agora só 6 A",
+        "b2": "Terminei",
+        "open": "A energia está desligada",
+        "a": "O carro foi embora"
+    },
+    "notes": {
+        "b1": "O carregador alimenta +12 V por um resistor de 1 kΩ. O carro liga 2.74 kΩ do CP ao terra de proteção (PE), atrás de um diodo, e a tensão cai para +9 V. B1 significa estado B com tensão contínua; B2 é o mesmo estado com a onda quadrada.",
+        "pp": "O proximity pilot (PP) não é um sinal. É um resistor no plugue do cabo, entre PP e PE, e o valor dele indica a capacidade do cabo: 1.5 kΩ é 13 A, 680 Ω é 20 A, 220 Ω é 32 A, 100 Ω é 63 A.",
+        "pwm": "Um período dura 1 ms. O CP fica em +9 V durante 40 % dele (0.4 ms) e em −12 V no resto. Entre 10 % e 85 %, a corrente é o ciclo de trabalho × 0.6 A: 40 × 0.6 = 24 A.",
+        "c": "O carro fecha a sua chave S2 e acrescenta 1.3 kΩ em paralelo com os 2.74 kΩ. O nível alto da onda quadrada cai para +6 V. Com 270 Ω, cairia para +3 V: estado D, que pede ventilação.",
+        "contactor": "Não é um sinal no CP. O contator do carregador liga L1, L2, L3 e N ao carro, e o carregador de bordo do carro converte a CA em CC para a bateria.",
+        "limit": "Não é IEC 61851: um gerenciador de energia fala Modbus, OCPP ou fecha um contato. O carro nunca vê esta mensagem, só o novo ciclo de trabalho.",
+        "pwm-10": "10 × 0.6 = 6 A, a menor corrente que um ciclo de trabalho pode oferecer. O carro precisa reduzir a sua corrente em até 5 s.",
+        "b2": "O carro abre a S2 e o nível alto volta a +9 V. Um carro bem feito reduz a corrente antes, para que o contator não abra sob carga.",
+        "open": "No estado B o carregador não pode fornecer energia, então abre o contator. A onda quadrada continua: o carro poderia pedir energia de novo.",
+        "a": "Nada mais puxa o CP para baixo: +12 V, estado A. O carregador para a onda quadrada (A1) e espera o próximo carro."
+    },
+    "fields": {},
+    "devices": {
+        "car": "Carro",
+        "charger": "Carregador",
+        "ems": "Casa · gerenciador de energia"
+    },
+    "facts": {
+        "standard": "IEC 61851-1, edição 3 (2017)",
+        "between": "Carregador (EVSE) ↔ carro, em todo plugue Tipo 1, Tipo 2 e CCS",
+        "transport": "Um fio, o CP, em relação ao terra de proteção: ±12 V e uma onda quadrada de 1 kHz",
+        "security": "Nenhuma. É um sinal analógico dentro do cabo.",
+        "frames": "Estados A +12 V · B +9 V · C +6 V · D +3 V · E 0 V · F −12 V",
+        "speed": "1 kHz. O carro acompanha um novo ciclo de trabalho em até 5 s."
+    },
+    "tips": [
+        "Verifique também o nível baixo. Uma onda quadrada que não chega a −12 V indica que o diodo do carro falta ou está em curto, e o carregador não pode ligar.",
+        "5 % não é uma corrente. Significa \"converse digitalmente primeiro\" (ISO 15118): aí o limite vem das mensagens, não do ciclo de trabalho.",
+        "O cabo também limita a corrente. Com um cabo de 20 A (680 Ω), um carregador de 32 A oferece no máximo 20 A: um ciclo de trabalho de 33.3 %.",
+        "O estado D (+3 V) pede ventilação. Um carregador sem exaustor para o ambiente não pode carregar no estado D. E (0 V) é curto-circuito ou falta de energia; F (−12 V) indica que o carregador não está disponível."
+    ],
+    "points": {
+        "state": "Estado do CP",
+        "cable": "Capacidade do cabo",
+        "offer": "Corrente oferecida",
+        "drawn": "Corrente puxada"
+    },
+    "timing": {
+        "title": "O piloto de controle, 3 ms de cada estado",
+        "note": "Cada linha é a tensão do CP: −12 V embaixo, +12 V em cima (nível = (V + 12) / 24). A onda quadrada se repete a cada 1 ms. O ciclo de trabalho dela é a corrente: 40 % é 24 A, 10 % é 6 A. Acima de 85 %, a corrente é (ciclo − 64) × 2.5 A, até 80 A em 96 %. 5 % pede comunicação digital. O nível baixo fica em −12 V, porque o diodo do carro o bloqueia.",
+        "a": "A · sem carro",
+        "b1": "B1 · carro",
+        "b2": "B2 · 40 %",
+        "c2": "C2 · 40 %",
+        "c2-low": "C2 · 10 %",
+        "digital": "B2 · 5 %"
+    }
+}

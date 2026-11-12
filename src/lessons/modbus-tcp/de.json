@@ -1,0 +1,90 @@
+{
+    "intro": "Der einfachste Weg, ein Gerät über Ethernet zu lesen und zu beschreiben. Ein Gerät hält seine Daten in nummerierten 16-Bit-Registern. Ein Client fragt einige Register über ihre Nummer an und erhält ihren Inhalt zurück. Im Protokoll steht nirgends, was ein Register bedeutet: Das steht im Handbuch des Geräts.",
+    "steps": {
+        "connect": { "title": "Verbinden", "text": "Der Parkregler baut eine TCP-Verbindung zum Wechselrichter auf Port 502 auf. Modbus TCP hat kein Login und keinen Startbefehl: Die Verbindung genügt." },
+        "read": { "title": "Leistung lesen", "text": "Laut Handbuch liegt die Wirkleistung in Register 40101. Auf der Leitung ist das Adresse 100, weil die Leitung ab 0 zählt. Die Antwort hat 4 Bytes: eine 32-Bit-Gleitkommazahl in zwei Registern, 4820.5 kW." },
+        "limit": { "title": "Grenze setzen", "text": "Der Netzbetreiber fordert weniger Leistung. Der Regler schreibt 3000 in Adresse 200, die Leistungsbegrenzung. Der Wechselrichter antwortet mit einer exakten Kopie der Anfrage: Diese Kopie heißt erledigt." },
+        "check": { "title": "Wirkung prüfen", "text": "Modbus meldet eine Änderung nie von selbst: Der Client muss erneut fragen. Sechs Sekunden später liegt die Leistung bei 2998.7 kW." },
+        "mistake": { "title": "Falsche Adresse", "text": "Ein neues Skript sendet die Nummer aus dem Handbuch, 40101, als Adresse. Dort hat der Wechselrichter kein Register, also antwortet er mit einer Exception statt mit Daten." }
+    },
+    "frames": {
+        "tcp": "TCP-Verbindung zu Port 502 aufbauen",
+        "read-req": "Schick mir die Register 100 und 101",
+        "read-resp": "Wirkleistung: 4820.5 kW",
+        "write-req": "Leistungsbegrenzung auf 3000 kW setzen",
+        "write-resp": "Erledigt: Die Grenze liegt bei 3000 kW",
+        "check-req": "Schick mir noch einmal die Register 100 und 101",
+        "check-resp": "Wirkleistung: 2998.7 kW",
+        "wrong-req": "Schick mir die Register 40101 und 40102",
+        "exception": "Fehler 02: Register gibt es nicht"
+    },
+    "notes": {
+        "tcp": "Reines TCP, noch keine Modbus-Bytes. Viele Geräte nehmen nur wenige Verbindungen gleichzeitig an, deshalb hält ein Client seine Verbindung offen und nutzt sie wieder."
+    },
+    "fields": {
+        "tid-1": { "name": "Transaction ID 1", "note": "Eine Nummer, die der Client wählt. Die Antwort trägt dieselbe, so kann der Client beide zuordnen." },
+        "tid-2": { "name": "Transaction ID 2", "note": "Die nächste Anfrage, die nächste Nummer." },
+        "tid-3": { "name": "Transaction ID 3", "note": "Die Antwort auf Anfrage 3 trägt die 3." },
+        "tid-4": { "name": "Transaction ID 4", "note": "Auch eine Fehlerantwort trägt die Nummer der Anfrage." },
+        "proto": { "name": "Protocol ID", "note": "0x0000: Modbus. Sie ist immer null." },
+        "len-6": { "name": "Länge", "note": "Es folgen 6 Bytes: die Unit ID und 5 Bytes Anfrage." },
+        "len-7": { "name": "Länge", "note": "Es folgen 7 Bytes." },
+        "len-3": { "name": "Länge", "note": "Es folgen 3 Bytes." },
+        "unit": { "name": "Unit ID 1", "note": "Wählt ein Gerät hinter einem Gateway. Dieser Wechselrichter antwortet auf 1." },
+        "fc03": { "name": "Funktion 03", "note": "0x03: Holding Register lesen." },
+        "fc06": { "name": "Funktion 06", "note": "0x06: ein Register schreiben." },
+        "fc06-echo": { "name": "Funktion 06", "note": "Die Antwort auf einen Schreibbefehl wiederholt die Anfrage Byte für Byte." },
+        "fc83": { "name": "Funktion 83", "note": "0x83 = 0x03 + 0x80. Ist das höchste Bit gesetzt, heißt das: Dies ist ein Fehler." },
+        "addr-100": { "name": "Adresse 100", "note": "0x0064 = 100: Register 40101 im Handbuch." },
+        "addr-200": { "name": "Adresse 200", "note": "0x00C8 = 200: Register 40201, die Wirkleistungsbegrenzung." },
+        "addr-40101": { "name": "Adresse 40101", "note": "0x9CA5 = 40101: die Nummer aus dem Handbuch, unverändert gesendet. Falsch: Dort hat der Wechselrichter nichts." },
+        "qty-2": { "name": "Anzahl", "note": "2 Register: ein 32-Bit-Wert." },
+        "count-4": { "name": "Byte-Anzahl", "note": "Es folgen 4 Datenbytes: 2 Register." },
+        "reg-100": { "name": "Register 100", "note": "0xA400: die untere Hälfte der Gleitkommazahl. Dieser Wechselrichter sendet das niederwertige Wort zuerst (CDAB)." },
+        "reg-101": { "name": "Register 101", "note": "0x4596: die obere Hälfte. Oben, dann unten, 0x4596A400, ergibt 4820.5 (kW)." },
+        "reg-100-later": { "name": "Register 100", "note": "0x6B33: die untere Hälfte." },
+        "reg-101-later": { "name": "Register 101", "note": "0x453B: die obere Hälfte. 0x453B6B33 ergibt 2998.7 (kW)." },
+        "limit-3000": { "name": "Wert", "note": "0x0BB8 = 3000 (kW)." },
+        "code-02": { "name": "Exception 02", "note": "Illegal Data Address: Das Register gibt es nicht. 01 hieße unbekannte Funktion, 03 ungültiger Wert." },
+        "a-table": { "name": "Tabelle", "note": "4: ein Holding Register, gelesen mit Funktion 03. 3 ist ein Input Register (Funktion 04), 1 ein Discrete Input, 0 eine Coil." },
+        "a-number": { "name": "Nummer", "note": "0101: das 101. Register. Handbücher zählen ab 1, die Leitung zählt ab 0." }
+    },
+    "devices": {
+        "controller": "Parkregler",
+        "inverter": "Wechselrichter INV-1",
+        "pv": "PV-Module",
+        "meter": "Netzzähler"
+    },
+    "facts": {
+        "standard": "Modbus Application Protocol V1.1b3 und Modbus Messaging on TCP/IP V1.0b (Modbus Organization)",
+        "between": "Client (Parkregler, SCADA, Logger) → Server (Wechselrichter, Zähler, Batterie)",
+        "transport": "TCP 502",
+        "security": "Keine. Wer Port 502 erreicht, kann lesen und schreiben. Modbus/TCP Security ergänzt TLS auf Port 802.",
+        "frames": "Ein MBAP-Header mit 7 Bytes, dann ein Funktionscode und seine Daten",
+        "since": "1979 auf seriellen Leitungen (Modicon), seit 1999 auf TCP"
+    },
+    "tips": [
+        "Herausfinden, ob das Handbuch die Register ab 0 oder ab 1 zählt. Ein Register daneben liest die Hälfte des einen Werts und die Hälfte des nächsten, und das kann fast richtig aussehen.",
+        "Die Wortreihenfolge von 32-Bit-Werten an einem bekannten Wert prüfen, etwa an der Leistung im Display des Wechselrichters. Viele Geräte senden das niederwertige Wort zuerst (CDAB).",
+        "Viele Geräte nehmen nur wenige TCP-Verbindungen an. Ein verbunden gelassenes Testtool kann den Parkregler aussperren.",
+        "Modbus hat keine Passwörter. Port 502 im Anlagennetz lassen und nie aus dem Internet erreichbar machen."
+    ],
+    "points": {
+        "p": "Wirkleistung",
+        "limit": "Wirkleistungsbegrenzung"
+    },
+    "anatomy": {
+        "register": "Eine Registernummer aus einem Handbuch und die Adresse, die auf die Leitung geht"
+    },
+    "playground": {
+        "encoder": "Dieser Wechselrichter sendet eine 32-Bit-Gleitkommazahl mit dem niederwertigen Wort zuerst (CDAB). Gib einen Wert ein, um seine Bytes zu sehen und was dieselben Bytes in einer anderen Reihenfolge bedeuten.",
+        "file": "Die Registerbelegung des Wechselrichters, aus seinem Handbuch. Der Regler muss mit denselben Adressen, Typen und derselben Wortreihenfolge eingerichtet sein.",
+        "unit": "Die Unit ID, auf die der Wechselrichter antwortet.",
+        "offset": "Wie aus einer Registernummer eine Adresse wird. In jedem Handbuch danach suchen: Manche zählen ab 0.",
+        "float": "Zwei Register, eine Gleitkommazahl, niederwertiges Wort zuerst. Der Regler muss auf CDAB eingestellt sein.",
+        "scaled": "Eine Ganzzahl mit Skalierung: 5001 bedeutet 50.01 Hz.",
+        "uint32": "Ebenfalls zwei Register, ebenfalls niederwertiges Wort zuerst.",
+        "limit": "Beschreibbar: die Grenze, die der Regler in Schritt 3 setzt.",
+        "fallback": "Schreibt der Regler so lange nicht mehr, kehrt der Wechselrichter zu seiner Rückfalleinstellung zurück. So bleibt die Anlage bei einer verlorenen Verbindung nicht auf einer alten Grenze stehen."
+    }
+}

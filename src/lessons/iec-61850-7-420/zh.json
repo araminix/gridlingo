@@ -1,0 +1,103 @@
+{
+    "intro": "IEC 61850-7-420 把 IEC 61850 数据模型带到了分布式能源：电池、逆变器、发电机，以及控制它们的功能。电站控制器用与变电站保护装置相同的 MMS 服务来读取和控制它们。只是名称是新的。",
+    "steps": {
+        "associate": { "title": "建立关联", "text": "电站控制器连接储能逆变器的 TCP 102 端口，建立 MMS 关联，与任何 IEC 61850 连接一样。" },
+        "read": { "title": "读取电量和功率", "text": "一次 Read 请求两个值：DSTO1 中的荷电状态和 MMXU1 中的有功功率。应答按同样的顺序包含这两个值。" },
+        "subscribe": { "title": "订阅报告", "text": "控制器针对这两个值使能一个报告。从现在起，值变化时逆变器就主动发送。" },
+        "limit": { "title": "限制出力", "text": "电网调度最多允许 2000 kW。控制器操作 WMaxSpt，即 DWMX1（限制有功功率上限的功能）的设定值。逆变器接受，开始降功率。" },
+        "report": { "title": "功率稳定", "text": "TotW 下降期间，逆变器不断报告。最后一份报告是 2000.0 kW：限值生效了。" }
+    },
+    "frames": {
+        "tcp": "向 102 端口建立 TCP 连接，再建立传输连接",
+        "initiate-req": "我们用 MMS 通信吧：这是我的参数和服务",
+        "initiate-resp": "同意：这是我的",
+        "read-req": "你的荷电状态和有功功率是多少？",
+        "read-resp": "68.5 % 和 3000.0 kW",
+        "enable": "使能报告 urcbDER01",
+        "oper-req": "把有功功率限制到 2000 kW",
+        "oper-resp": "完成",
+        "report": "TotW 现在是 2000.0 kW"
+    },
+    "notes": {
+        "tcp": "先普通 TCP 连接 102 端口，再在其上建立 ISO 传输连接（COTP）。IEC 61850 MMS 课程里展示了这些步骤。",
+        "initiate-req": "MMS Initiate，外面包着会话层、表示层和 ACSE 层。控制器提出它的最大报文长度和需要的服务。如果使用认证，就在这一步进行（IEC 62351-4）。",
+        "initiate-resp": "逆变器回复自己的报文大小和服务。从现在起，每个请求都用逻辑设备加条目来指定变量。",
+        "enable": "向报告控制块 LLN0$RP$urcbDER01 的 RptEna 写入 TRUE。它的数据集 dsDER 包含 DSTO1.UseSocPct 和 MMXU1.TotW。",
+        "report": "一份非请求的 InformationReport：dsDER 里的值每变化一次，逆变器就主动发送一次。"
+    },
+    "fields": {
+        "tpkt-110": { "name": "TPKT", "note": "版本 3，然后是整条报文的长度：0x006E = 110 字节。" },
+        "tpkt-43": { "name": "TPKT", "note": "版本 3，然后是长度：0x002B = 43 字节。" },
+        "tpkt-111": { "name": "TPKT", "note": "版本 3，然后是长度：0x006F = 111 字节。" },
+        "tpkt-29": { "name": "TPKT", "note": "版本 3，然后是长度：0x001D = 29 字节。" },
+        "cotp-dt": { "name": "COTP", "note": "一个数据单元（0xF0），是其报文的最后一个（0x80）。" },
+        "session": { "name": "会话层", "note": "两个简短的会话头：给出令牌、数据传送。" },
+        "presentation": { "name": "表示层", "note": "完全编码的数据，表示上下文 3：后面是 MMS。" },
+        "confirmed-req": { "name": "确认请求", "note": "标签 A0：一个需要应答的请求。下一个字节是其中的字节数。" },
+        "confirmed-resp": { "name": "确认响应", "note": "标签 A1：对请求的应答。" },
+        "invoke-7": { "name": "调用 ID 7", "note": "控制器选的一个编号。应答带同一个编号。" },
+        "invoke-7-resp": { "name": "调用 ID 7", "note": "与请求编号相同：这是对它的应答。" },
+        "invoke-8": { "name": "调用 ID 8", "note": "新的请求，新的编号。" },
+        "invoke-8-resp": { "name": "调用 ID 8", "note": "这是对设定值请求的应答。" },
+        "read": { "name": "Read", "note": "标签 A4：Read 服务。" },
+        "spec": { "name": "变量列表", "note": "变量列表，每个变量按名字给出。这里有两个。" },
+        "var": { "name": "变量", "note": "列表中的一项。后面是它的名字。" },
+        "domain-specific": { "name": "域内名称", "note": "由两部分组成的名字：域和条目。" },
+        "domain": { "name": "域", "note": "\"BESS1DER\"：IED BESS1 的逻辑设备 DER。" },
+        "item-soc": { "name": "条目", "note": "\"DSTO1$MX$UseSocPct$mag$f\"：储能单元的荷电状态，以可用能量的百分比表示。" },
+        "item-totw": { "name": "条目", "note": "\"MMXU1$MX$TotW$mag$f\"：逆变器交流侧的总有功功率。" },
+        "results": { "name": "结果", "note": "每个变量一个结果，顺序与请求相同。" },
+        "float-tag": { "name": "浮点数", "note": "标签 0x87（浮点数），5 字节。08：后面是一个 IEEE 754 单精度浮点数。" },
+        "soc": { "name": "UseSocPct", "note": "68.5（%），高字节在前。" },
+        "totw": { "name": "TotW", "note": "3000.0。单位 kW 在属性 units（CF）里。" },
+        "write": { "name": "Write", "note": "标签 A5：Write 服务。IEC 61850 把命令作为对 Oper 的 Write 发送。" },
+        "write-spec": { "name": "变量", "note": "只含一个变量的列表，按名字给出。" },
+        "item-oper": { "name": "条目", "note": "\"DWMX1$CO$WMaxSpt$Oper\"：设定值 WMaxSpt 的 Oper 结构。CO 表示控制。" },
+        "data-list": { "name": "数据", "note": "要写入的值，每个变量一个。" },
+        "oper-struct": { "name": "Oper", "note": "一个结构（标签 A2），由六部分组成，顺序由数据模型规定。" },
+        "ctlval": { "name": "ctlVal", "note": "新值：包含一个浮点数的结构，0x44FA0000 = 2000.0（kW）。" },
+        "origin": { "name": "origin", "note": "由谁发出：orCat 5（automatic-station：站内的控制器），orIdent 为 \"PPC\"。" },
+        "ctlnum": { "name": "ctlNum", "note": "1：客户端给命令计数，以便区分每一条。" },
+        "oper-t": { "name": "T", "note": "控制器发出的时间：10:41:12.250 UTC。4 字节秒，3 字节秒的小数部分，1 字节时钟品质。" },
+        "test": { "name": "Test", "note": "FALSE：真实命令，不是测试。" },
+        "check": { "name": "Check", "note": "两个位：同期检查和联锁检查。都关闭：设定值两者都不需要。" },
+        "write-resp": { "name": "Write 响应", "note": "标签 A5：对 Write 的应答，每个变量一个结果。" },
+        "success": { "name": "成功", "note": "标签 0x81，为空：写入成功。采用直接控制时，新限值立即生效。" },
+        "a-ld": { "name": "逻辑设备", "note": "BESS1DER：IED 名称 BESS1 加实例 DER。" },
+        "a-ln": { "name": "逻辑节点", "note": "DWMX1：限制有功功率上限的功能，实例 1。" },
+        "a-fc": { "name": "功能约束", "note": "CO：控制。在这里 Write 是一条命令，而不是参数设置。" },
+        "a-do": { "name": "数据对象", "note": "WMaxSpt：最大有功功率设定值，类型为 APC（可控模拟量）。" },
+        "a-da": { "name": "数据属性", "note": "Oper：客户端为下达命令而写入的结构。" }
+    },
+    "devices": {
+        "meter": "并网点电表",
+        "ppc": "电站控制器",
+        "bess": "BESS1 逆变器",
+        "battery": "电池"
+    },
+    "facts": {
+        "standard": "IEC 61850-7-420 第 2 版（2021），基于 IEC 61850-7-4 和 IEC 61850-8-1 的 MMS 映射",
+        "between": "电站控制器、SCADA 或聚合商 → 逆变器、电池、发电机",
+        "transport": "MMS over TCP 102",
+        "security": "TLS（IEC 62351-4），TCP 3782",
+        "model": "DER 逻辑节点：DSTO、DBAT、DINV、DGEN，以及 DWMX 等功能"
+    },
+    "tips": [
+        "第 1 版（2009）和第 2 版（2021）用的名称不同。第 1 版有 ZINV、ZBAT 和 DRCT；第 2 版有 DINV、DBAT、DSTO 以及 DWMX 等功能。做任何映射之前，先确认设备的 SCL 文件用的是哪一版。",
+        "操作之前先读 ctlModel（CF）。采用 direct-with-normal-security 时，Write 响应就是结束。采用增强安全时，设备执行完毕后还会发来 CommandTermination。",
+        "第 2 版的功能在 RvrtTms 设定的时间之后可能恢复默认值。控制器如果只发一次限值、之后再也不发，可能会看到它消失。",
+        "约定好功率的正负号。有些设备把放电记为正，有些记为负。先用一个小的设定值测试。"
+    ],
+    "points": {
+        "soc": "荷电状态",
+        "totw": "有功功率",
+        "wmax": "功率限值"
+    },
+    "anatomy": {
+        "control": "设定值的名称，以及 MMS 的写法"
+    },
+    "playground": {
+        "scl": "储能逆变器的配置描述文件（.cid）。打开 DER，再打开 DSTO1 和 MMXU1 查看这里读取的两个值，打开 DWMX1 查看 WMaxSpt：它的 Oper 结构和 ctlModel。如果你有自己的文件，也可以打开看看。",
+        "encoder": "MMS 发送浮点数时高字节在前（ABCD）。限值 2000.0 以 44 FA 00 00 传送。"
+    }
+}

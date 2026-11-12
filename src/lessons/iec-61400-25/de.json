@@ -1,0 +1,104 @@
+{
+    "intro": "IEC 61400-25 ist IEC 61850 für Windparks. Es ergänzt logische Knoten für die Windenergieanlage, ihren Rotor, Generator und Umrichter, das Wetter und die Regelung des ganzen Parks. IEC 61400-25-4 bildet das Modell auf Protokolle ab; mit dem MMS-Mapping spricht eine Windenergieanlage wie jeder Server nach IEC 61850.",
+    "steps": {
+        "associate": { "title": "Assoziieren", "text": "Der Parkregler baut eine Verbindung zu TCP-Port 102 an der Anlage WT01 auf und richtet eine MMS-Assoziation ein. Mit dem MMS-Mapping ist eine Windenergieanlage ein gewöhnlicher Server nach IEC 61850." },
+        "read": { "title": "Anlage lesen", "text": "Ein einziges Read fragt drei Werte ab: Wirkleistung in WTUR1, Rotordrehzahl in WROT1 und Windgeschwindigkeit in WMET1. WTUR enthält außerdem den Betriebszustand der Anlage, TurSt." },
+        "subscribe": { "title": "Reports anfordern", "text": "Der Regler aktiviert den Report urcbWTG01. Die Anlage sendet ihren Datensatz jetzt, wenn sich ein Wert ändert, und in jedem Fall alle 10 s." },
+        "limit": { "title": "Eine Grenze für den Park", "text": "Das SCADA des Netzbetreibers bedient WAPC1, die Wirkleistungsregelung des Parks: höchstens 5.4 MW für die ganze Anlage." },
+        "follow": { "title": "Anlagen folgen", "text": "Der Parkregler gibt jeder der drei Anlagen ihren Anteil: 1800 kW. WT01 verstellt den Pitch ihrer Blätter, fährt die Leistung herunter und meldet ihre neue Leistung." }
+    },
+    "frames": {
+        "initiate-req": "Lass uns MMS sprechen: meine Größen und Dienste",
+        "initiate-resp": "Einverstanden: Das sind meine",
+        "read-req": "Deine Leistung, Rotordrehzahl und Windgeschwindigkeit?",
+        "read-resp": "2350.0 kW, 12.75 rpm, 9.5 m/s",
+        "enable-req": "Report urcbWTG01 aktivieren",
+        "enable-resp": "Erledigt",
+        "oper": "Der Park darf höchstens 5.4 MW einspeisen",
+        "share": "Jede Anlage: höchstens 1800 kW",
+        "report": "W ist jetzt 1800.0 kW"
+    },
+    "notes": {
+        "initiate-req": "Zuerst TCP zu Port 102 und eine COTP-Verbindung, wie in der Lektion zu IEC 61850 MMS. Dann bietet das MMS-Initiate Größen und Dienste an.",
+        "initiate-resp": "Die Anlage antwortet mit ihren eigenen Größen und Diensten. Ihr Modell lässt sich jetzt durchsuchen oder aus ihrer SCL-Datei lesen.",
+        "oper": "Ein Steuerbefehl an WAPC, den logischen Knoten für die Wirkleistung des Parks: ein neuer Sollwert für die Leistung der Anlage. Der Parkregler antwortet mit einer Write Response.",
+        "share": "Wie die Grenze jede Anlage erreicht, entscheidet der Parkregler. Innerhalb des Parks nutzen viele dafür das eigene Protokoll des Anlagenherstellers.",
+        "report": "Ein unaufgeforderter InformationReport von urcbWTG01 mit W, RotSpd und HorWdSpd. Sein Reason Code sagt, was ihn ausgelöst hat: eine Datenänderung."
+    },
+    "fields": {
+        "tpkt-143": { "name": "TPKT", "note": "Version 3, dann die Länge der ganzen Nachricht: 0x008F = 143 Bytes." },
+        "tpkt-50": { "name": "TPKT", "note": "Version 3, dann die Länge: 0x0032 = 50 Bytes." },
+        "tpkt-75": { "name": "TPKT", "note": "Version 3, dann die Länge: 0x004B = 75 Bytes." },
+        "tpkt-29": { "name": "TPKT", "note": "Version 3, dann die Länge: 0x001D = 29 Bytes." },
+        "cotp-dt": { "name": "COTP", "note": "Eine Dateneinheit (0xF0), die letzte ihrer Nachricht (0x80)." },
+        "session": { "name": "Session", "note": "Zwei kurze Session-Header: Give Tokens, Data Transfer." },
+        "presentation": { "name": "Presentation", "note": "Fully Encoded Data, Presentation Context 3: Was folgt, ist MMS." },
+        "presentation-long": { "name": "Presentation", "note": "Fully Encoded Data, Context 3: Es folgt MMS. 81 81 ist eine lange Längenangabe: 0x81 sagt, dass ein Längenbyte folgt, und dieses Byte, 0x81, ist 129." },
+        "confirmed-req": { "name": "Confirmed Request", "note": "Tag A0: eine Anfrage, die eine Antwort erwartet. Das nächste Byte zählt die Bytes darin." },
+        "confirmed-resp": { "name": "Confirmed Response", "note": "Tag A1: die Antwort auf eine Anfrage." },
+        "invoke-3": { "name": "Invoke ID 3", "note": "Eine Nummer, die der Regler wählt. Die Antwort trägt dieselbe." },
+        "invoke-3-resp": { "name": "Invoke ID 3", "note": "Dieselbe Nummer wie in der Anfrage: Das hier beantwortet sie." },
+        "invoke-4": { "name": "Invoke ID 4", "note": "Eine neue Anfrage, eine neue Nummer." },
+        "invoke-4-resp": { "name": "Invoke ID 4", "note": "Das beantwortet das Write auf RptEna." },
+        "read": { "name": "Read", "note": "Tag A4: der Dienst Read." },
+        "spec": { "name": "Variablenliste", "note": "Eine Liste von Variablen, jede über ihren Namen angegeben. Hier sind es drei." },
+        "var": { "name": "Variable", "note": "Ein Eintrag der Liste. Sein Name folgt." },
+        "domain-specific": { "name": "Domain-spezifischer Name", "note": "Ein Name in zwei Teilen: Domain und Item." },
+        "domain": { "name": "Domain", "note": "\"WT01WTG\": das logische Gerät WTG des IED WT01." },
+        "item-w": { "name": "Item", "note": "\"WTUR1$MX$W$mag$f\": die abgegebene Wirkleistung der Anlage." },
+        "item-rotspd": { "name": "Item", "note": "\"WROT1$MX$RotSpd$mag$f\": die Rotordrehzahl." },
+        "item-wdspd": { "name": "Item", "note": "\"WMET1$MX$HorWdSpd$mag$f\": die horizontale Windgeschwindigkeit, vom Anemometer auf der Gondel." },
+        "results": { "name": "Ergebnisse", "note": "Drei Ergebnisse, in der Reihenfolge der Anfrage." },
+        "float-tag": { "name": "Gleitkommazahl", "note": "Tag 0x87 (eine Gleitkommazahl), 5 Bytes. 08: Es folgt eine Gleitkommazahl nach IEEE 754 mit einfacher Genauigkeit." },
+        "w": { "name": "W", "note": "2350.0. Die Einheit, kW, steht im Attribut units (CF)." },
+        "rotspd": { "name": "RotSpd", "note": "12.75 (rpm), höchstwertiges Byte zuerst." },
+        "wdspd": { "name": "HorWdSpd", "note": "9.5 (m/s)." },
+        "write": { "name": "Write", "note": "Tag A5: der Dienst Write." },
+        "write-spec": { "name": "Variable", "note": "Eine Liste mit einer Variable, angegeben über ihren Namen." },
+        "item-rptena": { "name": "Item", "note": "\"LLN0$RP$urcbWTG01$RptEna\": das Freigabe-Flag von urcbWTG01, der ersten Kopie des Report Control Block urcbWTG. RP kennzeichnet einen ungepufferten Report." },
+        "data-list": { "name": "Daten", "note": "Die zu schreibenden Werte, einer pro Variable." },
+        "true": { "name": "TRUE", "note": "Tag 0x83, ein Boolean, 1 Byte: TRUE. Die Reports beginnen jetzt." },
+        "write-resp": { "name": "Write Response", "note": "Tag A5: die Antwort auf ein Write, ein Ergebnis pro Variable." },
+        "success": { "name": "Erfolg", "note": "Tag 0x81, leer: Das Schreiben hat funktioniert." },
+        "a-ld": { "name": "Logisches Gerät", "note": "WT01WTG: IED-Name WT01 und Instanz WTG." },
+        "a-ln": { "name": "Logischer Knoten", "note": "WMET1: die Wettersensoren dieser Anlage. Ein Messmast hat sein eigenes WMET." },
+        "a-fc": { "name": "Functional Constraint", "note": "MX: Messwerte." },
+        "a-hor": { "name": "Horizontal", "note": "Hor. Namen von Datenobjekten werden aus kurzen Wörtern wie diesem gebildet, ohne Leerzeichen aneinandergehängt." },
+        "a-wd": { "name": "Wind", "note": "Wd. Weitere kurze Wörter: Tmp für Temperatur, Dir für Richtung." },
+        "a-spd": { "name": "Geschwindigkeit", "note": "Spd. Zusammen: HorWdSpd, die horizontale Windgeschwindigkeit." },
+        "a-da": { "name": "Datenattribut", "note": "mag.f: der Betrag, als Gleitkommazahl." }
+    },
+    "devices": {
+        "scada": "Leitstelle",
+        "met": "Messmast",
+        "ppc": "Parkregler",
+        "wt01": "WT01",
+        "wt02": "WT02",
+        "wt03": "WT03"
+    },
+    "facts": {
+        "standard": "IEC 61400-25-2 Edition 2 (2015): das Modell. IEC 61400-25-4: die Mappings",
+        "between": "Parkregler, SCADA oder Betreiber → Windenergieanlage, Messmast, Park",
+        "transport": "MMS über TCP 102, wie in IEC 61850-8-1. OPC UA in IEC 61400-25-41",
+        "security": "Mit MMS: TLS (IEC 62351-4), TCP 3782",
+        "model": "Logische Knoten für Wind: WTUR, WROT, WGEN, WCNV, WMET, WAPC …"
+    },
+    "tips": [
+        "Edition 2 (2015) hat die Wind- und Wettersensoren der Gondel von WNAC nach WMET verschoben und mehrere Abkürzungen geändert. Ein Client, der für Edition 1 geschrieben wurde, sucht an der falschen Stelle.",
+        "Ein Wert trägt keine Einheit. W kann in W oder in kW sein: units (CF) nach dem Verbinden einmal lesen und aufbewahren.",
+        "Anlagenhersteller füllen das Modell unterschiedlich: optionale Datenobjekte, Instanznummern, Datensätze. Die SCL-Datei jedes Anlagentyps lesen; nicht eine Zuordnung für alle übernehmen.",
+        "Viele Parks sprechen IEC 61400-25 zum Betreiber hin, aber das eigene Protokoll des Herstellers zu den Anlagen hin. Nachfragen, welche Schnittstelle man bekommt."
+    ],
+    "points": {
+        "w": "Wirkleistung",
+        "rotspd": "Rotordrehzahl",
+        "wdspd": "Windgeschwindigkeit"
+    },
+    "anatomy": {
+        "dataname": "Der Name eines Datenobjekts, aus kurzen Wörtern gebildet"
+    },
+    "playground": {
+        "scl": "Die konfigurierte Beschreibung der Windenergieanlage (.cid). WTG öffnen: Jeder Teil der Anlage ist ein logischer Knoten. WTUR1, WROT1 und WMET1 enthalten die drei hier gelesenen Werte. Danach kannst du deine eigene Datei öffnen, falls du eine hast.",
+        "encoder": "MMS sendet eine Gleitkommazahl mit dem höchstwertigen Byte zuerst (ABCD). 2350.0 reist als 45 12 E0 00."
+    }
+}

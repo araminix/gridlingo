@@ -60,7 +60,7 @@
         "qds": { "name": "Quality", "note": "Good: no flag is set." },
         "diq-on": { "name": "State 2", "note": "On: the breaker is closed. 1 is off; 0 and 3 mean moving or faulty." },
         "diq-off": { "name": "State 1", "note": "Off: the breaker is open." },
-        "cp56": { "name": "CP56Time2a", "note": "7.280 s, 41 min, 10 h, Thursday 12, November, (20)26. There is no time zone in it." }
+        "cp56": { "name": "CP56Time2a", "note": "7.280 s, 41 min, 10 h, Thursday 12 November (20)26. There is no time zone in it." }
     },
     "devices": {
         "scada": "SCADA master",

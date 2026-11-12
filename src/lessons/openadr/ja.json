@@ -1,0 +1,83 @@
+{
+    "intro": "電力系統の供給が足りないとき、電力会社がビルに電力を減らすよう頼むしくみです。電力会社のサーバがVTN（Virtual Top Node）、需要家の側がVEN（Virtual End Node）です。このレッスンでは、現場の製品の多くが対応するOpenADR 2.0bを使います。HTTPS上のXMLで、VENがポーリングするので、ビル側でポートを開ける必要はありません。VTNは「何を」「いつ」を伝え、「どうやるか」はビルが決めます。",
+    "steps": {
+        "poll": { "title": "新着の確認", "text": "12:00 UTC、VENはいつもどおり1分ごとのポーリングをします。今回はVTNがイベントで応えます：レベル1、17:00〜18:00 UTC。" },
+        "optin": { "title": "参加表明", "text": "このイベントは応答を求めています。VENは参加（opt in）を表明し、VTNが確認します。" },
+        "shed": { "title": "負荷削減", "text": "自分の時計で17:00になると、VENはビルのコントローラに動作を指示します。冷房の設定温度を2 °C上げ、廊下の照明を暗くします。負荷は420 kWから340 kWに下がります。" },
+        "report": { "title": "報告", "text": "VENは、登録時に取り決めたとおり、測った負荷を送ります。電力会社は負荷が下がったことを確認できます。" },
+        "end": { "title": "通常に戻る", "text": "18:00にイベントが終わります。VENは指令を取り下げ、ビルは通常のスケジュールに戻ります。" }
+    },
+    "frames": {
+        "tls": "自分の証明書でTLS接続を開く",
+        "poll": "何か新しいものはありますか？",
+        "distribute": "ピークイベント：レベル1、17:00〜18:00",
+        "created": "参加します",
+        "response": "了解",
+        "shed": "いまレベル1：冷房の設定温度を上げ、照明を暗く",
+        "update-report": "現在の負荷は340 kW",
+        "updated-report": "報告を受け取りました",
+        "restore": "イベント終了：通常に戻す"
+    },
+    "notes": {
+        "tls": "接続を開くのは常にVENです。双方がOpenADR用に発行された証明書を示します。TLS 1.2で、OpenADRが求める2つのスイートのどちらか、TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256かTLS_RSA_WITH_AES_128_CBC_SHA256を使います。",
+        "poll": "/OpenADR2/Simple/2.0b/OadrPollへのHTTP POSTで、小さなoadrPollメッセージを運びます。中身はVENのvenIDだけです。ポーリング間隔は、VENの登録時にVTNが決めました。",
+        "distribute": "ポーリングへの応答です。新しいものだけでなく、このVEN向けの予定中・実行中のイベントをすべて並べます。各行の意味は「試してみる」で見られます。",
+        "created": "EiEventへのPOSTで、イベントを名指しするoadrCreatedEvent（eventID PEAK-20260715、modificationNumber 0）、responseCode 200、optType optInを送ります。optOutなら、このビルを当てにしないよう電力会社に伝えることになります。",
+        "response": "responseCode 200のoadrResponse。新しいものがないとき、VTNはポーリングにも同じメッセージで応えます。",
+        "shed": "OpenADRではありません。VENからビルのコントローラへのBACnetの書き込みです。OpenADRが伝えるのは「レベル1」だけです。レベル1が何を意味するかは、電力会社ではなくビル側で決めます。",
+        "update-report": "EiReportへのPOSTで、TELEMETRY_USAGEレポート（15分ごとのビルの実際の電力）を入れたoadrUpdateReportを送ります。VENが送れるレポートを登録した後、VTNがoadrCreateReportで要求していたものです。",
+        "updated-report": "responseCode 200のoadrUpdatedReport。",
+        "restore": "これもOpenADRではありません。VENは自分のBACnet優先度にNULLを書き込み、指令を解除します。負荷は415 kWまで戻ります。"
+    },
+    "fields": {
+        "a-host": { "name": "VTN", "note": "電力会社のサーバ。VTNは残りの部分の前に独自のパスを置くことがあります。" },
+        "a-transport": { "name": "トランスポート", "note": "Simple HTTP。OpenADR 2.0bはXMPP上でも動き、その場合はVTNがプッシュします。" },
+        "a-profile": { "name": "プロファイル", "note": "2.0b：イベント、レポート、opt（参加可否）スケジュール。2.0aは単純な機器向けの小さなプロファイルで、イベントだけです。" },
+        "a-service": { "name": "サービス", "note": "OadrPoll。メッセージはそれぞれのサービスに送ります。イベントはEiEvent、レポートはEiReport、登録はEiRegisterParty、optスケジュールはEiOptへ。" }
+    },
+    "devices": {
+        "vtn": "電力会社のVTN",
+        "ven": "ビルのVEN",
+        "bms": "BMSコントローラ",
+        "building": "オフィスビル"
+    },
+    "facts": {
+        "standard": "OpenADR 2.0b（IEC 62746-10-1）",
+        "between": "電力会社またはアグリゲーター（VTN）→ ビルとアグリゲーター（VEN）",
+        "transport": "HTTPS上のXML。VENがポーリング（またはXMPP）",
+        "security": "TLS 1.2、双方に証明書。XML署名は任意",
+        "frames": "サービス：EiEvent、EiReport、EiRegisterParty、EiOpt、OadrPoll"
+    },
+    "tips": [
+        "イベントが変更されるたびにmodificationNumberが増えます。新しい番号にはすべて応答してください。でないとVTNは、VENが変更を受け取っていないと判断します。",
+        "VENはイベントを自分の時計で実行します。NTPで時刻を合わせておきましょう。10分遅れた時計では、負荷削減も10分遅れます。",
+        "電力会社は参加表明をすべて計画に組み込みます。ビルが負荷を減らせないなら、イベントが始まってからではなく、早めに不参加（opt out）を伝えてください。"
+    ],
+    "points": {
+        "status": "イベントの状態",
+        "opt": "応答",
+        "load": "ビルの負荷"
+    },
+    "anatomy": {
+        "endpoint": "VENがポーリングするアドレス"
+    },
+    "playground": {
+        "file": "ステップ1のoadrDistributeEventを、VENが受け取ったままの形で示しています。印の付いた行を選ぶと意味がわかります。",
+        "payload": "OpenADR 2.0bのメッセージはすべてoadrPayloadです。名前空間を見れば各部分の出どころがわかります。OpenADR自身、Energy Interoperation（ei）、EMIX、iCalendar（xcal）です。",
+        "signed": "XML署名をかける場合の対象範囲。署名は任意です。接続はすでにTLSが守っています。",
+        "distribute": "メッセージ：VTNからのoadrDistributeEvent。",
+        "vtn": "VTNの名前。",
+        "event-id": "イベントの名前。VENの応答はこれを名指ししなければなりません。",
+        "modification": "0：最初の版。イベントが変更されるたびに増え、VENはそのたびに応答し直す必要があります。",
+        "market": "イベントが属するプログラム。ビルはこれに加入しています。",
+        "status": "far：イベントはまだ何時間も先です。後の応答ではactive、次にcompletedと示されます。",
+        "test": "false：本番のイベント。テストイベントは全体の流れを確認するためのもので、VENは動作しなくてかまいません。",
+        "start": "イベントは17:00 UTCに始まります。",
+        "length": "PT1H：1時間続きます（ISO 8601の期間表記）。",
+        "level": "この区間の値：1.0。SIMPLEシグナルでは、0が通常、1が中程度、2が高、3が特別です。",
+        "simple": "SIMPLE：どのOpenADR VENも理解しなければならない唯一のシグナル。",
+        "current": "現在の値：0.0。イベントがまだ始まっていないためです。",
+        "target": "このイベントはこのVENだけが対象です。",
+        "response": "always：VENは参加か不参加かをoadrCreatedEventで必ず応答します。"
+    }
+}

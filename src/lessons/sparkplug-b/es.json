@@ -1,0 +1,98 @@
+{
+    "intro": "Sparkplug B es un conjunto de reglas sobre MQTT para SCADA. Unos nombres de topic fijos dicen quién envía qué. Un mensaje de nacimiento enumera cada métrica una vez, con un nombre, un alias y un tipo de dato; después solo viajan los cambios, por alias. Un mensaje de muerte avisa al SCADA en cuanto un gateway desaparece.",
+    "steps": {
+        "host": { "title": "SCADA en línea", "text": "El SCADA, el host principal, se conecta al broker con una última voluntad, se suscribe a todos los topics de Sparkplug y después publica su STATE: online, retenido." },
+        "connect": { "title": "Se conecta el nodo de borde", "text": "El nodo de borde GW1 se conecta con su propia última voluntad, NDEATH, numerada bdSeq 0. Lee el STATE retenido del SCADA: el SCADA está en línea, así que puede empezar." },
+        "birth": { "title": "Nacimiento", "text": "NBIRTH enumera todas las métricas del nodo de borde; DBIRTH, todas las del inversor que tiene detrás: nombre, alias, tipo de dato y valor. Ahora el SCADA conoce el modelo completo." },
+        "data": { "title": "Informe por excepción", "text": "Solo cambió la potencia del inversor. DDATA lleva solo esa métrica, por su alias, con el siguiente número de secuencia." },
+        "rebirth": { "title": "Renacimiento", "text": "El SCADA recibe seq 4 después de seq 2: el mensaje 3 se perdió. El SCADA ya no puede fiarse de su copia, así que pide un renacimiento (rebirth). El nodo de borde vuelve a enviar NBIRTH y DBIRTH." },
+        "death": { "title": "Muerte", "text": "El enlace del nodo de borde falla a los 300 s. 45 s después (1.5 × su keep alive de 30 s) el broker publica su última voluntad, NDEATH. El SCADA marca GW1 como offline y sus valores como STALE." }
+    },
+    "frames": {
+        "host-connect": "Soy SCADA1. Si desaparezco, publica que estoy offline",
+        "state": "SCADA1 está en línea",
+        "edge-connect": "Soy GW1. Si desaparezco, publica mi muerte, bdSeq 0",
+        "state-seen": "SCADA1 está en línea (guardado por el broker)",
+        "nbirth": "GW1 está vivo: aquí están todas sus métricas",
+        "dbirth": "INV1 está vivo: aquí están todas sus métricas",
+        "ddata": "INV1: alias 2 = 4820.5",
+        "ddata-gap": "INV1: seq 4 (¿dónde está el 3?)",
+        "ncmd": "GW1, envíalo todo otra vez",
+        "nbirth-again": "GW1: todas sus métricas, otra vez",
+        "dbirth-again": "INV1: todas sus métricas, otra vez",
+        "ndeath": "GW1 ha muerto (bdSeq 0)"
+    },
+    "notes": {
+        "host-connect": "Un CONNECT de MQTT con clean session. Su última voluntad va a spBv1.0/STATE/SCADA1: {\"online\":false,\"timestamp\":1794480000000}, QoS 1, retenida. Después el SCADA se suscribe a spBv1.0/#, todos los mensajes de Sparkplug.",
+        "edge-connect": "Un CONNECT de MQTT con clean session y un keep alive de 30 s. Su última voluntad es NDEATH en spBv1.0/SolarPark/NDEATH/GW1, QoS 1, no retenida, con una métrica: bdSeq = 0. Después el nodo de borde se suscribe a sus propios topics NCMD y DCMD y a spBv1.0/STATE/SCADA1.",
+        "state-seen": "El broker envía el STATE retenido en cuanto el nodo de borde se suscribe. Si el SCADA estuviera offline, el nodo de borde esperaría sin publicar nada.",
+        "nbirth": "En spBv1.0/SolarPark/NBIRTH/GW1, QoS 0, seq 0. Contiene todas las métricas del propio nodo de borde, cada una con nombre, alias, tipo de dato y valor. Dos deben estar siempre: bdSeq = 0, el mismo número que en la última voluntad, y Node Control/Rebirth = false.",
+        "dbirth": "En spBv1.0/SolarPark/DBIRTH/GW1/INV1, seq 1: todas las métricas del inversor, que el nodo de borde lee por Modbus. AC/Power recibe el alias 2 y el tipo Float. La zona de pruebas muestra este mensaje decodificado.",
+        "ddata-gap": "Este DDATA tiene seq 4, pero el SCADA esperaba el 3. Espera un momento (el reorder timeout) por si el 3 llega tarde. No llega.",
+        "ncmd": "En spBv1.0/SolarPark/NCMD/GW1, con una métrica: Node Control/Rebirth = true. El SCADA lo envía siempre que duda de lo que sabe.",
+        "nbirth-again": "La misma sesión MQTT, así que el mismo bdSeq 0. El nodo de borde deja de enviar datos hasta que salen sus nacimientos.",
+        "dbirth-again": "Todas las métricas de INV1 otra vez, con la potencia ahora en 4835.0 kW. La copia del SCADA vuelve a estar completa.",
+        "ndeath": "La última voluntad del CONNECT del nodo de borde. Su bdSeq 0 coincide con el último NBIRTH, así que pertenece a la sesión actual. El SCADA marca GW1 e INV1 como offline y todas sus métricas como STALE: los últimos valores siguen en pantalla, marcados como antiguos."
+    },
+    "fields": {
+        "publish-q1-retain": { "name": "MQTT PUBLISH", "note": "0x33: QoS 1 y retenido. El broker lo guarda para cada nodo de borde que se suscriba después." },
+        "rl-65": { "name": "Longitud restante", "note": "Siguen 65 bytes." },
+        "state-topic": { "name": "Topic", "note": "spBv1.0/STATE/SCADA1: el topic STATE del host con el ID SCADA1." },
+        "packet-id": { "name": "Id de paquete 1", "note": "Para el PUBACK del broker, como en cualquier mensaje QoS 1." },
+        "state-online": { "name": "online", "note": "{\"online\":true, el SCADA está en línea. STATE es el único mensaje de Sparkplug en JSON; todos los demás son protobuf." },
+        "state-time": { "name": "timestamp", "note": "1794480000000 ms desde 1970 = 10:40:00.000 UTC. El mismo valor que en la última voluntad de su CONNECT: los nodos de borde lo usan para distinguir esta sesión de una anterior." },
+        "publish-q0": { "name": "MQTT PUBLISH", "note": "0x30: QoS 0, no retenido. Un host que se conecta más tarde conoce los valores por un nacimiento, no por datos viejos." },
+        "rl-59": { "name": "Longitud restante", "note": "Siguen 59 bytes: el topic y la carga útil." },
+        "ddata-topic": { "name": "Topic", "note": "spBv1.0/SolarPark/DDATA/GW1/INV1, 32 bytes (0x0020). A partir de aquí, los bytes son un Payload de protobuf." },
+        "payload-time": { "name": "timestamp", "note": "Etiqueta 0x08: campo 1, un varint. Cuándo se envió el mensaje: 1794480067280 ms desde 1970 = 10:41:07.280 UTC. Un varint lleva 7 bits por byte, los más bajos primero; un bit superior a 1 significa que siguen más." },
+        "metric": { "name": "metrics", "note": "Etiqueta 0x12: campo 2, una métrica. 0x0E = siguen 14 bytes." },
+        "alias": { "name": "alias", "note": "Etiqueta 0x10: campo 2 de la métrica, el alias 2. El nacimiento dijo que 2 es AC/Power, así que el nombre no se envía." },
+        "metric-time": { "name": "timestamp", "note": "Etiqueta 0x18: campo 3 de la métrica, cuándo se leyó el valor: 1794480067250, 30 ms antes de enviar el mensaje." },
+        "float": { "name": "float_value", "note": "Etiqueta 0x65: campo 12, 4 bytes, el byte bajo primero: 4820.5 (kW). No se envía el tipo de dato: lo dio el nacimiento." },
+        "seq": { "name": "seq", "note": "Otra vez la etiqueta 0x18, ahora fuera de la métrica: campo 3 del payload, seq 2. Dentro de una métrica, el campo 3 es el timestamp." },
+        "a-namespace": { "name": "Espacio de nombres", "note": "spBv1.0: Sparkplug B, versión 1.0 de la estructura de topics." },
+        "a-group": { "name": "group_id", "note": "Un grupo de nodos de borde, aquí una planta." },
+        "a-type": { "name": "message_type", "note": "Qué es el mensaje. NBIRTH, NDATA, NCMD y NDEATH tratan del nodo de borde; DBIRTH, DDATA, DCMD y DDEATH, de un equipo." },
+        "a-node": { "name": "edge_node_id", "note": "El gateway. Debe ser único en su grupo." },
+        "a-device": { "name": "device_id", "note": "Un equipo detrás del nodo de borde. Un topic sobre el propio nodo de borde termina en GW1." }
+    },
+    "devices": {
+        "inv1": "Inversor INV1",
+        "gw": "Nodo de borde GW1",
+        "broker": "Broker MQTT",
+        "scada": "SCADA (SCADA1)"
+    },
+    "facts": {
+        "standard": "Eclipse Sparkplug 3.0 (2022), también ISO/IEC 20237:2023",
+        "between": "Nodos de borde → broker MQTT → aplicaciones host (SCADA, historian)",
+        "transport": "MQTT 3.1.1 o 5.0, en TCP 1883 o TLS 8883",
+        "security": "Solo la de MQTT: TLS y credenciales del broker. Sparkplug no añade ninguna.",
+        "frames": "NBIRTH, DBIRTH, NDATA, DDATA, NCMD, DCMD, NDEATH, DDEATH, STATE",
+        "model": "Métricas con nombre, alias, tipo de dato y valor, en Protocol Buffers"
+    },
+    "tips": [
+        "Cada nodo de borde necesita un edge_node_id único en su grupo y su propio ID de cliente MQTT. Dos gateways con los mismos ID se echan mutuamente, y el SCADA ve nacimientos y muertes todo el día.",
+        "Un alias solo vale hasta el siguiente nacimiento. Una herramienta que conserva alias antiguos tras un renacimiento guarda valores en la métrica equivocada.",
+        "Una métrica que no está en el nacimiento no existe para el SCADA. Después de añadir una, publica un nuevo nacimiento.",
+        "Configura el ID del host principal en cada nodo de borde. Así espera el STATE del SCADA antes de su nacimiento. Sin él, los nacimientos salen mientras el SCADA no está, y el SCADA tiene que pedir renacimientos."
+    ],
+    "points": {
+        "node": "Estado del nodo de borde",
+        "power": "Potencia del inversor"
+    },
+    "values": {
+        "online": "online",
+        "offline": "offline"
+    },
+    "anatomy": {
+        "topic": "Un topic de Sparkplug: quién envía qué, sobre qué equipo"
+    },
+    "playground": {
+        "file": "El DBIRTH de INV1, decodificado de protobuf a JSON para leerlo. En el cable es binario, como el DDATA de arriba.",
+        "payload-time": "Cuándo se envió el mensaje, en milisegundos desde 1970, UTC.",
+        "metric": "Una métrica: su nombre, su alias, cuándo se leyó, su tipo de dato y su valor. Sparkplug no tiene campo de unidad: la planta acuerda que AC/Power va en kW.",
+        "double": "La energía total en MWh, como Double. Una métrica conserva su tipo de dato hasta el siguiente nacimiento.",
+        "string": "El texto también funciona. DDATA enviaría solo el alias 5 y el texto nuevo.",
+        "seq": "seq 1: el NBIRTH tenía 0. Cada mensaje del nodo de borde sigue contando hasta 255 y después vuelve a empezar en 0."
+    }
+}

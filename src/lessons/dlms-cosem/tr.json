@@ -1,0 +1,122 @@
+{
+    "intro": "Avrupa, Asya ve Afrika'daki akıllı sayaçların çoğunun dili. Bir sayaç nesneler barındırır: her birinin bir sınıfı, OBIS kodu denen bir adı ve numaralı öznitelikleri vardır. İstemci önce bir parola ya da anahtarlarla bir ilişkilendirme (association) açar, sonra GET, SET ve ACTION ile öznitelikleri okur ve yazar.",
+    "steps": {
+        "connect": { "title": "Bağlan", "text": "Gece yarısı head-end sistemi sayaçta 4059 portuna TCP açar. Sayacın modeminin, elektrik şirketinin kendi mobil ağında (özel bir APN) özel bir adresi var." },
+        "associate": { "title": "İlişkilen", "text": "İlişkilendirmeden önce hiçbir şey okunamaz. AARQ kuralları belirler (logical name, şifreleme yok) ve parolayı taşır. AARE kabul eder ve sayacın izin verdiği servisleri listeler." },
+        "value": { "title": "Değeri oku", "text": "GET, sınıfı ve OBIS koduyla adlandırılan bir nesnenin bir özniteliğini okur. Yanıt çıplak bir sayıdır: 1234567. Birimi içinde yoktur." },
+        "scale": { "title": "Ölçek ve birimi oku", "text": "Öznitelik 3 sayının ne anlama geldiğini söyler: Wh cinsinden, 10 ile çarp. Artık head-end'in elinde okuma var: 12 345.67 kWh." },
+        "release": { "title": "Bırak", "text": "Head-end ilişkilendirmeyi bırakır ve TCP'yi kapatır. Sıradaki sayaç bekliyor." }
+    },
+    "frames": {
+        "tcp": "4059 portuna TCP aç",
+        "aarq": "Beni içeri al: okuyucu istemci, parola 12345678",
+        "aare": "Kabul edildi. GET, SET ve ACTION kullanabilirsin",
+        "get-value": "1-0:1.8.0*255'in değeri ne?",
+        "value": "1234567",
+        "get-scaler": "Ya ölçeği ve birimi?",
+        "scaler": "Wh cinsinden, 10 ile çarp",
+        "rlrq": "Bitti: ilişkilendirmeyi bırak",
+        "rlre": "Bırakıldı"
+    },
+    "notes": {
+        "tcp": "Düz TCP. 4059 portu DLMS/COSEM için kayıtlıdır. Seri hatta ya da optik portta aynı mesajlar bu sarmalayıcı yerine HDLC çerçeveleri içinde taşınır."
+    },
+    "fields": {
+        "version": { "name": "Sürüm", "note": "0x0001: sarmalayıcının (wrapper) sürümü. TCP ya da UDP üzerindeki her DLMS mesajı bununla başlar." },
+        "src-client": { "name": "Kaynak wPort", "note": "0x0011: istemci adresi. Bu sayaç, istemci 0x11'in bir paroladan sonra okumasına izin verecek şekilde ayarlanmış. Public istemci 0x10'un parolaya ihtiyacı yoktur ama az şey okuyabilir." },
+        "dst-meter": { "name": "Hedef wPort", "note": "0x0001: yönetim mantıksal cihazı. Her sayaçta bulunur." },
+        "src-meter": { "name": "Kaynak wPort", "note": "0x0001: yanıt veren mantıksal cihaz." },
+        "dst-client": { "name": "Hedef wPort", "note": "0x0011: soran istemciye geri." },
+        "len-56": { "name": "Uzunluk", "note": "Ardından 0x0038 = 56 bayt gelir." },
+        "len-43": { "name": "Uzunluk", "note": "Ardından 0x002B = 43 bayt gelir." },
+        "len-13": { "name": "Uzunluk", "note": "Ardından 0x000D = 13 bayt gelir." },
+        "len-9": { "name": "Uzunluk", "note": "Ardından 9 bayt gelir." },
+        "len-10": { "name": "Uzunluk", "note": "Ardından 0x000A = 10 bayt gelir." },
+        "len-5": { "name": "Uzunluk", "note": "Ardından 5 bayt gelir." },
+        "aarq": { "name": "AARQ", "note": "Etiket 0x60: bir ilişkilendirme açma isteği. Ardından 0x36 = 54 bayt gelir. Bu kısım BER'dir: bir etiket, bir uzunluk, bir değer." },
+        "context": { "name": "Uygulama bağlamı", "note": "2.16.756.5.8.1.1 nesne tanımlayıcısı: logical name ile adresleme, şifreleme yok. Şifrelemeyle .3 ile biterdi." },
+        "acse-req": { "name": "ACSE gereksinimleri", "note": "Tek bir bit kurulu: kimlik doğrulama. Ardından bir parola ya da bir challenge gelir." },
+        "mech-lls": { "name": "Mekanizma", "note": "2.16.756.5.8.2.1: düşük seviye güvenlik (LLS), bir parola. Yüksek seviye güvenlik (HLS, örneğin …2.5) bunun yerine her yöne rastgele bir challenge gönderir: her taraf, hattan hiç geçmeyen gizli bir anahtarı bildiğini kanıtlar." },
+        "password": { "name": "Parola", "note": "Etiket 0x80, 8 karakter: \"12345678\". Açık metin olarak taşınır." },
+        "user-info": { "name": "Kullanıcı bilgisi", "note": "Etiket 0xBE, ardından xDLMS kısmını içeren 0x0E = 14 baytlık bir octet string. Bunun içinde kodlama BER değil, A-XDR'dir." },
+        "initiate-req": { "name": "InitiateRequest", "note": "0x01, ardından atlanmış üç seçenek (00 00 00): özel anahtar yok, varsayılan yanıt modu, hizmet kalitesi yok." },
+        "dlms-version": { "name": "DLMS sürümü", "note": "Sürüm 6." },
+        "conformance-req": { "name": "Uyumluluk", "note": "İstemcinin kullanmak istediği her servis için bir tane olmak üzere 24 bit: GET, SET, ACTION, seçici erişim, blok aktarımı ve dahası." },
+        "pdu-client": { "name": "Maks. PDU boyutu", "note": "0xFFFF: istemci 65535 bayta kadar yanıt alır." },
+        "aare": { "name": "AARE", "note": "Etiket 0x61: AARQ'nun yanıtı. Ardından 0x29 = 41 bayt gelir." },
+        "result": { "name": "Sonuç", "note": "0: kabul edildi. Ret 1 ya da 2'dir." },
+        "diagnostic": { "name": "Tanılama", "note": "0: bildirilecek bir şey yok. Yanlış bir parola sonuç 1 ve tanılama 13'ü (kimlik doğrulama hatası) verir." },
+        "initiate-resp": { "name": "InitiateResponse", "note": "0x08, ardından hizmet kalitesi yok (0x00)." },
+        "conformance-resp": { "name": "Uyumluluk", "note": "Sayacın izin verdiği servisler: başka şeylerin yanı sıra GET, SET, ACTION, seçici erişim ve GET ile blok aktarımı. Artık yalnızca bunlar kullanılabilir." },
+        "pdu-meter": { "name": "Maks. PDU boyutu", "note": "0x01F4: sayaç 500 bayta kadar mesaj alır." },
+        "vaa": { "name": "VAA adı", "note": "0x0007: logical name ile adreslenen bir ilişkilendirmenin sabit adı." },
+        "get-req": { "name": "GET-Request", "note": "0xC0: GET-Request. 0x01: normal, tek öznitelik." },
+        "invoke-1": { "name": "Invoke ID ve öncelik", "note": "0xC1: invoke ID 1, onaylı bir servis, yüksek öncelik. Yanıt da aynı baytı taşır." },
+        "invoke-2": { "name": "Invoke ID ve öncelik", "note": "0xC2: invoke ID 2." },
+        "class-3": { "name": "Sınıf 3", "note": "Register: ölçeği ve birimi olan bir değer." },
+        "obis": { "name": "OBIS kodu", "note": "1-0:1.8.0*255: çekilen aktif enerji, tüm tarifeler. Aşağıda parça parça açılıyor." },
+        "attr-2": { "name": "Öznitelik 2", "note": "Değer. Her nesnenin öznitelik 1'i kendi OBIS kodudur." },
+        "attr-3": { "name": "Öznitelik 3", "note": "Ölçek ve birim." },
+        "no-selection": { "name": "Seçici erişim", "note": "0x00: yok, özniteliğin tamamını gönder. Bir yük profili bunu bir zaman aralığı istemek için kullanır." },
+        "get-resp": { "name": "GET-Response", "note": "0xC4: GET-Response. 0x01: normal." },
+        "invoke-1-resp": { "name": "Invoke ID", "note": "0xC1, istekteki ile aynı: bu, o isteğin yanıtı." },
+        "invoke-2-resp": { "name": "Invoke ID", "note": "0xC2: ikinci GET'in yanıtı." },
+        "data": { "name": "Sonuç", "note": "0x00: ardından veri gelir. 0x01 olsaydı ardından bir hata kodu gelirdi." },
+        "uint32": { "name": "Tür", "note": "0x06: double-long-unsigned, işaretsiz 32 bitlik bir sayı." },
+        "raw": { "name": "Değer", "note": "0x0012D687 = 1234567, en anlamlı bayt önce. Ölçek ve birim olmadan henüz bir anlamı yoktur." },
+        "structure": { "name": "Yapı", "note": "0x02: 2 öğeli bir yapı." },
+        "scaler": { "name": "Ölçek", "note": "0x0F: 8 bitlik bir tam sayı. 1: değeri 10'un 1. kuvvetiyle çarp." },
+        "unit": { "name": "Birim", "note": "0x16: bir enum. 30 (0x1E), Wh'tir. Yani 1234567 × 10 Wh = 12 345.67 kWh." },
+        "rlrq": { "name": "RLRQ", "note": "Etiket 0x62: ilişkilendirmeyi bırak. Ardından 3 bayt gelir." },
+        "rlre": { "name": "RLRE", "note": "Etiket 0x63: ilişkilendirme bırakıldı." },
+        "reason": { "name": "Neden", "note": "0: normal." },
+        "o-a": { "name": "A · ortam", "note": "1: elektrik. 6 ısı, 7 gaz, 8 soğuk sudur. 0, saat gibi bir ortama ait olmayan nesneler içindir." },
+        "o-b": { "name": "B · kanal", "note": "0: belirli bir kanal yok. Birkaç girişi olan bir sayaç onları 1, 2 … diye numaralar." },
+        "o-c": { "name": "C · büyüklük", "note": "1: aktif güç, çekiş (+P). 2 veriş, 32 ise L1'in gerilimidir." },
+        "o-d": { "name": "D · işleme", "note": "8: zaman içindeki toplam, yani enerji. 7 anlık değerdir." },
+        "o-e": { "name": "E · tarife", "note": "0: tüm tarifeler bir arada. 1 ve 2, tarife 1 ve tarife 2'dir." },
+        "o-f": { "name": "F · faturalama dönemi", "note": "255: kullanılmıyor, güncel değer. Diğer değerler saklanmış faturalama dönemlerini gösterir." }
+    },
+    "devices": {
+        "headend": "Head-end sistemi",
+        "apn": "Mobil ağ",
+        "meter": "Akıllı sayaç",
+        "meter2": "Sıradaki sayaç"
+    },
+    "facts": {
+        "standard": "IEC 62056-5-3 (uygulama katmanı), -6-1 (OBIS), -6-2 (sınıflar), -9-7 (TCP ve UDP)",
+        "between": "Head-end sistemi (istemci) → sayaç (sunucu)",
+        "transport": "Sarmalayıcıyla TCP ya da UDP 4059; seri hatlarda ve optik portta HDLC",
+        "security": "LLS: açık metin parola. HLS: her yöne bir challenge ve mesajlar için AES-GCM-128",
+        "model": "Nesneler: bir sınıf, bir OBIS kodu, numaralı öznitelikler ve metotlar"
+    },
+    "tips": [
+        "Ölçeği ve birimi olmayan bir değer okuma değildir. Her register için öznitelik 3'ü bir kez okuyun ve saklayın: aynı 1234567; Wh, onlarca Wh ya da kWh olabilir.",
+        "İstemci adresi ilişkilendirmeyi seçer, ilişkilendirme de hakları belirler. Doğru parola yanlış istemci adresiyle yine reddedilir.",
+        "LLS parolayı açık metin olarak gönderir. Tam olarak kontrol etmediğiniz her ağda HLS ve şifreleme kullanın.",
+        "Anlaşılan mesaj boyutundan büyük bir yanıt bloklar hâlinde gelir. İstemci her sonraki bloğu istemelidir (GET-Request-Next); yoksa yalnızca ilk kısmı alır."
+    ],
+    "points": {
+        "association": "İlişkilendirme",
+        "raw": "Değer",
+        "scaler": "Ölçek ve birim",
+        "energy": "Okuma"
+    },
+    "values": {
+        "none": "yok",
+        "lls": "açık, LLS"
+    },
+    "anatomy": {
+        "obis": "Enerji register'ının OBIS kodu"
+    },
+    "playground": {
+        "file": "Head-end'in bu sayacın gece yarısı okuması için planı: nerede olduğu, nasıl giriş yapılacağı ve hangi nesnelerin okunacağı.",
+        "client": "İstemci 17 = 0x11, her istekteki wPort.",
+        "low": "Low = LLS: sonraki satırdaki parola, açık metin olarak AARQ'ya girer.",
+        "clock": "Önce saati okuyun. Saat yanlışsa yük profilinin zaman damgaları da yanlıştır.",
+        "register": "Bu dersin register'ı: sınıf 3, öznitelik 2.",
+        "keep": "Ölçek ve birim yalnızca sayaç yeniden ayarlandığında değişir. Bir kez okuyun ve saklayın.",
+        "profile": "Seçici erişimli bir profil (sınıf 7): sayaç yalnızca iki zaman arasındaki satırları gönderir.",
+        "encoder": "DLMS sayıları en anlamlı bayt önce gönderir (ABCD). Sayacın gönderdiği baytları görmek için bir değer yazın."
+    }
+}
