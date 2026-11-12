@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { DeviceKind } from "@/lessons/types";
-import { faces, points, project, round, type Box } from "./iso";
+import { faces, project, round, type Box } from "./iso";
 
 /** Each kind's footprint (w along x, d along y) and height, in plan units. */
 const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
@@ -56,6 +56,12 @@ function inverterParts(cx: number, cy: number) {
     return { body, posts };
 }
 
+/** A PV array: three tables of panels side by side, each tilted toward the viewer (h at the back, 4 in front). */
+function pvParts(cx: number, cy: number): Box[] {
+    const { w, d, h } = SIZE.pv;
+    return [0, 1, 2].map((row) => ({ cx: cx - w / 2 + row * (w / 3) + (w / 3 - 8) / 2, cy, w: w / 3 - 8, d, h }));
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -72,6 +78,7 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         const { desk, screens } = scadaParts(cx, cy);
         return [desk, ...screens];
     }
+    if (kind === "pv") return pvParts(cx, cy);
     if (kind === "battery") {
         const { pad, container } = batteryParts(cx, cy);
         return [pad, container];
@@ -444,18 +451,36 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             );
         }
         case "pv": {
-            // Three rows of panels, tilted towards the viewer
-            const rows = [0, 1, 2].map((row) => {
-                const x0 = cx - size.w / 2 + row * (size.w / 3);
-                const x1 = x0 + size.w / 3 - 8;
-                const [y0, y1] = [cy - size.d / 2, cy + size.d / 2];
-                return points([x0, y0, size.h], [x1, y0, size.h], [x1, y1, 4], [x0, y1, 4]);
-            });
+            // Each table stands on two tall posts at the back and two short ones in front; dark cells in light frames,
+            // with a soft sheen of the sky across them
+            const low = 4;
             return (
                 <g>
-                    {rows.map((row) => (
-                        <polygon key={row} points={row} fill="var(--viz-pv)" stroke={tone.edge} strokeWidth={tone.width} strokeLinejoin="round" />
-                    ))}
+                    {pvParts(cx, cy).map((table) => {
+                        const [x0, y0] = [table.cx - table.w / 2, table.cy - table.d / 2];
+                        // u along the table, v down its slope, from the back (0) to the front (1)
+                        const at = (u: number, v: number) => project(x0 + u * table.w, y0 + v * table.d, table.h - v * (table.h - low));
+                        const posts = [3, table.d - 3].flatMap((dy) =>
+                            [3, table.w - 3].map((dx): Box => ({ cx: x0 + dx, cy: y0 + dy, w: 1.6, d: 1.6, h: table.h - (dy / table.d) * (table.h - low) })),
+                        );
+                        return (
+                            <g key={table.cx}>
+                                {posts.map((post) => (
+                                    <Solid key={`${post.cx}${post.cy}`} box={post} active={active} fine />
+                                ))}
+                                <polygon points={quad(at(0, 0), at(1, 0), at(1, 1), at(0, 1))} fill="var(--viz-cell)" stroke={tone.edge} strokeWidth={tone.width} strokeLinejoin="round" />
+                                <Lines
+                                    list={[
+                                        [at(0.5, 0), at(0.5, 1)],
+                                        ...[0.25, 0.5, 0.75].map((v) => [at(0, v), at(1, v)]),
+                                    ]}
+                                    stroke="var(--viz-cell-line)"
+                                    width={0.7}
+                                />
+                                <polygon points={quad(at(0.55, 0), at(0.8, 0), at(0.45, 1), at(0.2, 1))} fill="#fff" fillOpacity={0.12} />
+                            </g>
+                        );
+                    })}
                 </g>
             );
         }
