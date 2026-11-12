@@ -75,6 +75,15 @@ test("choosing a frame shows its bytes, and the sequence view lists the frames s
     await expect(page.getByRole("tabpanel").getByRole("listitem")).toHaveCount(5);
 });
 
+test("a beginner finds plain words, and what an abbreviation means", async ({ page }) => {
+    await open(page, "/p/iec-104");
+    await expect(page.getByText("In plain words")).toBeVisible();
+    await page.getByRole("button", { name: "RTU", exact: true }).first().click();
+    await expect(page.getByRole("dialog").getByText("Remote terminal unit")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toBeHidden();
+});
+
 test("the theme and the language are kept, and Arabic reads right to left", async ({ page }) => {
     await open(page, "/p/iec-104");
     await page.getByRole("button", { name: "Theme" }).click();
