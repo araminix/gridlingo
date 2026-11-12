@@ -1,0 +1,129 @@
+{
+    "intro": "सबस्टेशन अपनी हर मर्जिंग यूनिट और रिले को एक ही क्लॉक पर, एक माइक्रोसेकंड के अंदर, कैसे रखता है, और वह भी उसी ईथरनेट पर जिस पर sampled values चलते हैं। GPS ग्रैंडमास्टर हर सेकंड अपना समय भेजता है। हर स्विच मापता है कि उसने मैसेज को कितनी देर रोका और यह समय उसमें जोड़ देता है, ताकि हर क्लॉक रास्ते की हर देरी को सुधार सके।",
+    "steps": {
+        "announce": { "title": "बेस्ट मास्टर", "text": "GPS क्लॉक सेकंड में एक बार ख़ुद को ग्रैंडमास्टर घोषित करती है: GPS से लॉक (clock class 6), प्रायोरिटी 128। हर क्लॉक सुने गए Announce मैसेज की तुलना करती है और सबसे अच्छे को फ़ॉलो करती है।" },
+        "pdelay": { "title": "केबल मापें", "text": "हर पोर्ट सेकंड में एक बार अपनी केबल की देरी मापता है। MU, t1 पर Pdelay_Req भेजती है; स्विच को यह t2 पर मिलता है, वह t3 पर जवाब देता है, और MU को जवाब t4 पर मिलता है। देरी = ((t4 − t1) − (t3 − t2)) / 2 = 1486 ns। दोनों क्लॉक का आपस में मिलना ज़रूरी नहीं: हर एक सिर्फ़ एक अंतर मापती है।" },
+        "sync": { "title": "Sync", "text": "ग्रैंडमास्टर Sync भेजता है और वह सटीक पल नोट करता है जब यह निकला। two-step मोड में यह समय एक Follow_Up में बाद में आता है। स्विच Sync आगे बढ़ाता है, और नोट करता है कि वह कब आया और कब निकला।" },
+        "correct": { "title": "देरियाँ जोड़ें", "text": "स्विच, Sync को रोकने का समय (7.436 µs) और ग्रैंडमास्टर से अपनी केबल की देरी (0.412 µs), Follow_Up के correction फ़ील्ड में जोड़ता है। ऑफ़सेट = पहुँचने का समय − origin − correction − MU की अपनी केबल की देरी = +2.461318 ms।" },
+        "lock": { "title": "लॉक", "text": "MU अपनी क्लॉक 2.461318 ms पीछे करती है, फिर हर Sync के साथ अपनी रफ़्तार ठीक करती है। कुछ सेकंड बाद उसका ऑफ़सेट 1 µs से नीचे रहता है।" },
+        "sv": { "title": "सैंपल ताल में", "text": "MU अपने sampled values पर सिंक्रोनाइज़्ड समय की मुहर लगाती है और smpSynch में यह बताती है। अब रिले इन्हें दूसरी मर्जिंग यूनिट के सैंपल के साथ मिला सकता है।" }
+    },
+    "frames": {
+        "announce": "मैं ग्रैंडमास्टर हूँ: class 6, GPS से लॉक",
+        "pdelay-req": "हमारी केबल कितनी लंबी है? (मैंने t1 नोट कर लिया)",
+        "pdelay-resp": "आपकी रिक्वेस्ट t2 पर पहुँची",
+        "pdelay-fup": "मेरा जवाब t3 पर निकला",
+        "sync": "नोट करें कि यह कब पहुँचा",
+        "fup-gm": "वह Sync 10:41:07.000 000 120 UTC पर निकला",
+        "fup-tc": "वही, और रास्ते में लगे 7848 ns",
+        "lock": "फिर से Sync और Follow_Up, हर सेकंड",
+        "sv": "सैंपल, अब सिंक्रोनाइज़्ड के निशान के साथ"
+    },
+    "notes": {
+        "lock": "पहले वाली ही जोड़ी, बड़े सीक्वेंस नंबर के साथ। स्विच हर बार Sync को अलग समय तक रोकता है, इसलिए correction फ़ील्ड भी अलग होता है। MU का ऑफ़सेट अब +38 ns है।",
+        "sv": "एक sampled-values स्ट्रीम, PTP नहीं: इसके बाइट IEC 61850 Sampled Values वाले पाठ में हैं। smpSynch = 2 बताता है कि सैंपल एक ग्लोबल क्लॉक पर चलते हैं, यहाँ PTP के ज़रिए GPS।"
+    },
+    "fields": {
+        "dst-all": { "name": "डेस्टिनेशन", "note": "01-1B-19-00-00-00: ईथरनेट पर PTP का मल्टीकास्ट एड्रेस। ट्रांसपेरेंट क्लॉक इसे हर पोर्ट पर आगे भेजती हैं।" },
+        "dst-peer": { "name": "डेस्टिनेशन", "note": "01-80-C2-00-00-0E: एक लिंक-लोकल मल्टीकास्ट एड्रेस। कोई स्विच इसे आगे नहीं भेजता, इसलिए Pdelay एक ही केबल पर रहता है।" },
+        "src-gm": { "name": "सोर्स", "note": "ग्रैंडमास्टर का MAC एड्रेस। फ़्रेम आगे बढ़ाते समय स्विच इसे वैसा ही रखता है।" },
+        "src-sw": { "name": "सोर्स", "note": "स्विच के पोर्ट 3 का MAC एड्रेस।" },
+        "src-mu": { "name": "सोर्स", "note": "मर्जिंग यूनिट का MAC एड्रेस।" },
+        "ethertype": { "name": "EtherType", "note": "0x88F7 यानी PTP। न IP, न UDP।" },
+        "type-announce": { "name": "Announce", "note": "नीचे के 4 बिट: मैसेज टाइप 0xB, Announce। ऊपर के 4 बिट: transportSpecific 0।" },
+        "type-sync": { "name": "Sync", "note": "मैसेज टाइप 0x0: Sync।" },
+        "type-fup": { "name": "Follow_Up", "note": "मैसेज टाइप 0x8: Follow_Up।" },
+        "type-preq": { "name": "Pdelay_Req", "note": "मैसेज टाइप 0x2: peer delay रिक्वेस्ट।" },
+        "type-presp": { "name": "Pdelay_Resp", "note": "मैसेज टाइप 0x3: peer delay रिस्पॉन्स।" },
+        "type-pfup": { "name": "Pdelay_Resp_Follow_Up", "note": "मैसेज टाइप 0xA: रिस्पॉन्स का follow-up।" },
+        "version": { "name": "versionPTP", "note": "2: PTP वर्ज़न 2 (IEEE 1588-2008)।" },
+        "len64": { "name": "messageLength", "note": "64 बाइट, हेडर से मैसेज के आख़िर तक।" },
+        "len54": { "name": "messageLength", "note": "54 बाइट। तीनों Pdelay मैसेज की यही लंबाई है।" },
+        "len44": { "name": "messageLength", "note": "44 बाइट: हेडर और एक टाइमस्टैम्प।" },
+        "domain": { "name": "domainNumber", "note": "0, IEC 61850-9-3 का डिफ़ॉल्ट। क्लॉक दूसरे domain के मैसेज अनदेखा करती है।" },
+        "reserved1": { "name": "Reserved", "note": "0।" },
+        "reserved4": { "name": "Reserved", "note": "0।" },
+        "flags-announce": { "name": "flagField", "note": "0x003C: UTC ऑफ़सेट वैलिड है, PTP टाइमस्केल इस्तेमाल हो रहा है, समय और फ़्रीक्वेंसी (GPS तक) ट्रेस की जा सकती हैं।" },
+        "flags-two-step": { "name": "flagField", "note": "0x0200: twoStepFlag। भेजने का सटीक समय एक दूसरे मैसेज में आता है।" },
+        "flags-0": { "name": "flagField", "note": "कोई फ़्लैग सेट नहीं।" },
+        "corr-0": { "name": "correctionField", "note": "0: अभी जोड़ने को कुछ नहीं।" },
+        "corr-tc": { "name": "correctionField", "note": "0x1EA80000, नैनोसेकंड × 2^16 में: 7848 ns = स्विच में 7436 ns + ग्रैंडमास्टर से केबल के 412 ns।" },
+        "port-gm": { "name": "sourcePortIdentity", "note": "ग्रैंडमास्टर की clockIdentity, उसके MAC एड्रेस से बनी, और पोर्ट 1।" },
+        "port-sw": { "name": "sourcePortIdentity", "note": "स्विच की clockIdentity और पोर्ट 3।" },
+        "port-mu": { "name": "sourcePortIdentity", "note": "MU की clockIdentity और पोर्ट 1।" },
+        "seq-announce": { "name": "sequenceId", "note": "0x02A7 = 679। हर मैसेज टाइप अपनी गिनती अलग रखता है।" },
+        "seq-sync": { "name": "sequenceId", "note": "0x2C1B = 11291।" },
+        "seq-fup": { "name": "sequenceId", "note": "0x2C1B: उसी Sync जैसा, जिसका यह हिस्सा है।" },
+        "seq-pdelay": { "name": "sequenceId", "note": "0x0151 = 337। दोनों जवाबों में रिक्वेस्ट का नंबर होता है।" },
+        "control-other": { "name": "controlField", "note": "0x05: कोई और मैसेज। PTP वर्ज़न 1 वाले डिवाइस के लिए रखा गया फ़ील्ड।" },
+        "control-sync": { "name": "controlField", "note": "0x00: Sync।" },
+        "control-fup": { "name": "controlField", "note": "0x02: Follow_Up।" },
+        "interval-1s": { "name": "logMessageInterval", "note": "0: हर 2^0 = 1 s पर एक।" },
+        "interval-none": { "name": "logMessageInterval", "note": "0x7F: इस मैसेज का कोई इंटरवल नहीं।" },
+        "origin-announce": { "name": "originTimestamp", "note": "0: Announce इसे ख़ाली छोड़ सकता है।" },
+        "utc-offset": { "name": "currentUtcOffset", "note": "0x0025 = 37 s। PTP, TAI समय गिनता है: UTC = TAI − 37 s।" },
+        "priority1": { "name": "priority1", "note": "128, सबसे पहले इसकी तुलना होती है। कम वैल्यू जीतती है।" },
+        "class6": { "name": "clockClass", "note": "6: एक प्राइमरी रेफ़रेंस से लॉक, यहाँ GPS।" },
+        "accuracy": { "name": "clockAccuracy", "note": "0x21: 100 ns के अंदर।" },
+        "variance": { "name": "offsetScaledLogVariance", "note": "0x4E5D: क्लॉक कितनी स्थिर है। कम यानी ज़्यादा स्थिर।" },
+        "priority2": { "name": "priority2", "note": "128, क्लॉक क्वालिटी के बाद इसकी तुलना होती है।" },
+        "gm-id": { "name": "grandmasterIdentity", "note": "इस क्लॉक की जानकारी में सबसे अच्छी क्लॉक: ख़ुद यही।" },
+        "steps-removed": { "name": "stepsRemoved", "note": "0: सीधे ग्रैंडमास्टर से। ट्रांसपेरेंट क्लॉक इसमें कुछ नहीं जोड़तीं।" },
+        "source-gps": { "name": "timeSource", "note": "0x20: GPS।" },
+        "origin-preq": { "name": "originTimestamp", "note": "0। रिक्वेस्ट कब निकली, यानी t1, MU अपने पास रखती है।" },
+        "reserved10": { "name": "Reserved", "note": "10 ख़ाली बाइट: रिक्वेस्ट भी जवाबों जितनी लंबी होती है।" },
+        "t2": { "name": "requestReceiptTimestamp", "note": "t2: रिक्वेस्ट कब पहुँची, स्विच की क्लॉक पर। 0x6AF597E7 s और 0x2BC1CA3A = 734120506 ns: 10:41:06.734 120 506 UTC।" },
+        "t3": { "name": "responseOriginTimestamp", "note": "t3: Pdelay_Resp स्विच से कब निकला, t2 के 48216 ns बाद।" },
+        "requesting": { "name": "requestingPortIdentity", "note": "MU का पोर्ट: यह जवाब उसी के लिए है।" },
+        "origin-sync": { "name": "originTimestamp", "note": "0। two-step मोड में सटीक समय Follow_Up में आता है।" },
+        "t-origin": { "name": "preciseOriginTimestamp", "note": "Sync कब निकला: 6 बाइट सेकंड के (0x6AF597E8 = 1794480104) और 4 नैनोसेकंड के (0x78 = 120)। TAI में, इसलिए 10:41:07.000 000 120 UTC से 37 s आगे।" },
+        "padding": { "name": "Padding", "note": "2 बाइट: ईथरनेट फ़्रेम कम से कम 60 बाइट का होना चाहिए।" },
+        "a-oui": { "name": "MAC, पहला आधा", "note": "02-00-00: MAC एड्रेस के पहले 3 बाइट।" },
+        "a-fffe": { "name": "FF FE", "note": "बीच में डाला जाता है: 6-बाइट का MAC, 8-बाइट की clockIdentity बन जाता है।" },
+        "a-nic": { "name": "MAC, दूसरा आधा", "note": "00-01-01: MAC एड्रेस के आख़िरी 3 बाइट।" },
+        "a-port": { "name": "portNumber", "note": "1: इस क्लॉक का पहला पोर्ट।" }
+    },
+    "devices": {
+        "antenna": "GPS एंटीना",
+        "gm": "GPS क्लॉक",
+        "switch": "स्विच (TC)",
+        "mu": "मर्जिंग यूनिट MU1",
+        "relay": "फ़ीडर रिले"
+    },
+    "facts": {
+        "standard": "IEC/IEEE 61850-9-3 (2016) और IEEE C37.238-2017, IEEE 1588-2008 (PTP वर्ज़न 2) की प्रोफ़ाइल",
+        "between": "ग्रैंडमास्टर → ट्रांसपेरेंट-क्लॉक स्विच → मर्जिंग यूनिट, रिले, PMU",
+        "transport": "ईथरनेट मल्टीकास्ट, EtherType 0x88F7, बिना IP",
+        "security": "अंदर कोई नहीं: कोई भी डिवाइस ख़ुद को बेहतर क्लॉक घोषित कर सकता है",
+        "speed": "Sync, Announce और Pdelay सेकंड में एक बार; हर क्लॉक पर 1 µs से कम"
+    },
+    "tips": [
+        "ग्रैंडमास्टर और किसी क्लॉक के बीच का हर स्विच PTP ट्रांसपेरेंट क्लॉक (या बाउंड्री क्लॉक) होना चाहिए। साधारण स्विच ऐसी देरी जोड़ता है जो ट्रैफ़िक के साथ बदलती है, और उसे कोई ठीक नहीं करता।",
+        "PTP, TAI समय गिनता है, जो UTC से 37 s आगे है। जो डिवाइस currentUtcOffset को अनदेखा करता है, वह हर इवेंट पर 37 s ग़लत मुहर लगाता है।",
+        "हर डिवाइस पर domain नंबर जाँचें। IEC 61850-9-3 डिफ़ॉल्ट रूप से 0 इस्तेमाल करता है, IEEE C37.238-2017, 254, और क्लॉक दूसरे domain के मैसेज अनदेखा करती है।",
+        "PTP मानता है कि केबल दोनों दिशाओं में बराबर तेज़ है। एक लिंक में अलग-अलग लंबाई के दो फ़ाइबर हों, तो उनके अंतर का आधा सीधा ऑफ़सेट में जुड़ जाता है।"
+    ],
+    "points": {
+        "class": "Clock class",
+        "utc": "UTC ऑफ़सेट",
+        "delay": "अपनी केबल की देरी",
+        "offset": "क्लॉक ऑफ़सेट"
+    },
+    "values": {
+        "reference": "रेफ़रेंस"
+    },
+    "timing": {
+        "title": "रास्ते में एक Sync",
+        "note": "समय उस पल से है जब Sync ग्रैंडमास्टर से निकलता है। स्विच तक की केबल 0.412 µs लेती है, स्विच Sync को 7.436 µs रोकता है, MU तक की केबल 1.486 µs लेती है। Follow_Up, origin समय और 7.848 µs का correction लाता है; अपनी केबल MU ख़ुद जानती है। पहुँचने के समय − origin में से जो बचता है, वही उसकी क्लॉक की ग़लती है।",
+        "gm": "GPS क्लॉक",
+        "switch": "स्विच (TC)",
+        "mu": "MU1",
+        "leave": "Sync निकलता है: origin समय",
+        "in": "अंदर",
+        "out": "बाहर, 7.436 µs बाद",
+        "arrive": "Sync पहुँचता है: पहुँचने का समय"
+    },
+    "anatomy": {
+        "port": "पोर्ट की पहचान, MAC एड्रेस से बनी"
+    }
+}

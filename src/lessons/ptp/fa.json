@@ -1,0 +1,129 @@
+{
+    "intro": "یک پست چگونه همه مرجینگ یونیت‌ها و رله‌ها را با دقت یک میکروثانیه روی یک ساعت نگه می‌دارد، آن هم روی همان Ethernetی که Sampled Values از آن می‌گذرند. یک گرندمستر GPS هر ثانیه زمانش را می‌فرستد. هر سوئیچ اندازه می‌گیرد که پیام را چه مدت نگه داشته و همین را به پیام اضافه می‌کند، تا هر ساعت بتواند هر تأخیر سر راه را جبران کند.",
+    "steps": {
+        "announce": { "title": "بهترین مستر", "text": "ساعت GPS هر ثانیه خودش را به عنوان گرندمستر اعلام می‌کند: قفل‌شده روی GPS (clock class 6)، اولویت 128. هر ساعت پیام‌های Announce را که می‌شنود مقایسه می‌کند و از بهترین پیروی می‌کند." },
+        "pdelay": { "title": "اندازه‌گیری کابل", "text": "هر پورت هر ثانیه تأخیر کابل خودش را اندازه می‌گیرد. MU در t1 پیام Pdelay_Req را می‌فرستد؛ سوئیچ آن را در t2 می‌گیرد، در t3 جواب می‌دهد و MU جواب را در t4 می‌گیرد. تأخیر = ((t4 − t1) − (t3 − t2)) / 2 = 1486 ns. لازم نیست دو ساعت با هم یکی باشند: هر کدام فقط یک اختلاف را اندازه می‌گیرد." },
+        "sync": { "title": "Sync", "text": "گرندمستر Sync را می‌فرستد و لحظه دقیق خروجش را یادداشت می‌کند. در حالت two-step این زمان در یک Follow_Up می‌آید. سوئیچ Sync را رد می‌کند و یادداشت می‌کند کی وارد و کی خارج شد." },
+        "correct": { "title": "جمع کردن تأخیرها", "text": "سوئیچ مدتی را که Sync را نگه داشته (7.436 µs) و تأخیر کابلش از گرندمستر (0.412 µs) را به فیلد correction در Follow_Up اضافه می‌کند. آفست = زمان رسیدن − زمان مبدأ − correction − تأخیر کابل خود MU = +2.461318 ms." },
+        "lock": { "title": "قفل شدن", "text": "MU ساعتش را یک‌باره 2.461318 ms عقب می‌کشد و بعد با هر Sync سرعت آن را تنظیم می‌کند. پس از چند ثانیه آفست آن زیر 1 µs می‌ماند." },
+        "sv": { "title": "نمونه‌های همگام", "text": "MU نمونه‌های Sampled Values را با زمان همگام‌شده مهر می‌زند و این را در smpSynch اعلام می‌کند. حالا رله می‌تواند آن‌ها را با نمونه‌های مرجینگ یونیت‌های دیگر ترکیب کند." }
+    },
+    "frames": {
+        "announce": "من گرندمستر هستم: کلاس 6، قفل‌شده روی GPS",
+        "pdelay-req": "کابل ما چقدر طول می‌کشد؟ (t1 را یادداشت کردم)",
+        "pdelay-resp": "درخواستت در t2 رسید",
+        "pdelay-fup": "جوابم در t3 خارج شد",
+        "sync": "یادداشت کن این کی می‌رسد",
+        "fup-gm": "آن Sync در 10:41:07.000 000 120 UTC خارج شد",
+        "fup-tc": "همان، به‌اضافه 7848 ns که در راه گذشت",
+        "lock": "باز هم Sync و Follow_Up، هر ثانیه",
+        "sv": "نمونه‌ها، حالا با علامت همگام"
+    },
+    "notes": {
+        "lock": "همان جفت قبلی، با شماره ترتیب بالاتر. مدتی که سوئیچ Sync را نگه می‌دارد هر بار فرق می‌کند، پس فیلد correction هم فرق می‌کند. آفست MU حالا +38 ns است.",
+        "sv": "یک جریان Sampled Values است، نه PTP: درس IEC 61850 Sampled Values بایت‌هایش را نشان می‌دهد. smpSynch = 2 می‌گوید نمونه‌ها از یک ساعت سراسری پیروی می‌کنند، اینجا GPS از طریق PTP."
+    },
+    "fields": {
+        "dst-all": { "name": "مقصد", "note": "01-1B-19-00-00-00: آدرس multicast برای PTP روی Ethernet. ساعت‌های شفاف (transparent clock) آن را به همه پورت‌ها می‌دهند." },
+        "dst-peer": { "name": "مقصد", "note": "01-80-C2-00-00-0E: یک آدرس multicast محدود به لینک. هیچ سوئیچی آن را جلو نمی‌فرستد، پس Pdelay روی یک کابل می‌ماند." },
+        "src-gm": { "name": "مبدأ", "note": "آدرس MAC گرندمستر. سوئیچ وقتی فریم را رد می‌کند آن را نگه می‌دارد." },
+        "src-sw": { "name": "مبدأ", "note": "آدرس MAC پورت 3 سوئیچ." },
+        "src-mu": { "name": "مبدأ", "note": "آدرس MAC مرجینگ یونیت." },
+        "ethertype": { "name": "EtherType", "note": "0x88F7 یعنی PTP. بدون IP، بدون UDP." },
+        "type-announce": { "name": "Announce", "note": "4 بیت پایین: نوع پیام 0xB، یعنی Announce. 4 بیت بالا: transportSpecific 0." },
+        "type-sync": { "name": "Sync", "note": "نوع پیام 0x0: Sync." },
+        "type-fup": { "name": "Follow_Up", "note": "نوع پیام 0x8: Follow_Up." },
+        "type-preq": { "name": "Pdelay_Req", "note": "نوع پیام 0x2: درخواست تأخیر همسایه (peer delay)." },
+        "type-presp": { "name": "Pdelay_Resp", "note": "نوع پیام 0x3: پاسخ تأخیر همسایه." },
+        "type-pfup": { "name": "Pdelay_Resp_Follow_Up", "note": "نوع پیام 0xA: پیام تکمیلی پاسخ." },
+        "version": { "name": "versionPTP", "note": "2: نسخه 2 از PTP (IEEE 1588-2008)." },
+        "len64": { "name": "messageLength", "note": "64 بایت، از هدر تا پایان پیام." },
+        "len54": { "name": "messageLength", "note": "54 بایت. هر سه پیام Pdelay همین طول را دارند." },
+        "len44": { "name": "messageLength", "note": "44 بایت: هدر و یک برچسب زمانی." },
+        "domain": { "name": "domainNumber", "note": "0، مقدار پیش‌فرض IEC 61850-9-3. هر ساعت پیام‌های دامنه دیگر را نادیده می‌گیرد." },
+        "reserved1": { "name": "رزرو", "note": "0." },
+        "reserved4": { "name": "رزرو", "note": "0." },
+        "flags-announce": { "name": "flagField", "note": "0x003C: آفست UTC معتبر است، مقیاس زمانی PTP به کار رفته، و زمان و فرکانس (به GPS) قابل ردیابی‌اند." },
+        "flags-two-step": { "name": "flagField", "note": "0x0200: twoStepFlag. زمان دقیق ارسال در پیام دوم می‌آید." },
+        "flags-0": { "name": "flagField", "note": "هیچ فلگی فعال نیست." },
+        "corr-0": { "name": "correctionField", "note": "0: هنوز چیزی برای اضافه کردن نیست." },
+        "corr-tc": { "name": "correctionField", "note": "0x1EA80000، بر حسب نانوثانیه × 2^16: 7848 ns = 7436 ns درون سوئیچ + 412 ns کابل از گرندمستر." },
+        "port-gm": { "name": "sourcePortIdentity", "note": "clockIdentity گرندمستر، ساخته‌شده از آدرس MAC آن، و پورت 1." },
+        "port-sw": { "name": "sourcePortIdentity", "note": "clockIdentity سوئیچ و پورت 3." },
+        "port-mu": { "name": "sourcePortIdentity", "note": "clockIdentity مربوط به MU و پورت 1." },
+        "seq-announce": { "name": "sequenceId", "note": "0x02A7 = 679. هر نوع پیام شمارش خودش را دارد." },
+        "seq-sync": { "name": "sequenceId", "note": "0x2C1B = 11291." },
+        "seq-fup": { "name": "sequenceId", "note": "0x2C1B: همان شماره Syncی که به آن تعلق دارد." },
+        "seq-pdelay": { "name": "sequenceId", "note": "0x0151 = 337. هر دو جواب شماره درخواست را دارند." },
+        "control-other": { "name": "controlField", "note": "0x05: هر پیام دیگر. فیلدی که برای دستگاه‌های PTP نسخه 1 نگه داشته شده است." },
+        "control-sync": { "name": "controlField", "note": "0x00: Sync." },
+        "control-fup": { "name": "controlField", "note": "0x02: Follow_Up." },
+        "interval-1s": { "name": "logMessageInterval", "note": "0: یکی هر 2^0 = 1 s." },
+        "interval-none": { "name": "logMessageInterval", "note": "0x7F: این پیام بازه زمانی ندارد." },
+        "origin-announce": { "name": "originTimestamp", "note": "0: پیام Announce می‌تواند آن را خالی بگذارد." },
+        "utc-offset": { "name": "currentUtcOffset", "note": "0x0025 = 37 s. PTP زمان TAI را می‌شمارد: UTC = TAI − 37 s." },
+        "priority1": { "name": "priority1", "note": "128، که اول مقایسه می‌شود. مقدار کمتر برنده است." },
+        "class6": { "name": "clockClass", "note": "6: قفل‌شده روی یک مرجع اصلی، اینجا GPS." },
+        "accuracy": { "name": "clockAccuracy", "note": "0x21: با خطای کمتر از 100 ns." },
+        "variance": { "name": "offsetScaledLogVariance", "note": "0x4E5D: ساعت چقدر پایدار است. کمتر یعنی پایدارتر." },
+        "priority2": { "name": "priority2", "note": "128، که بعد از کیفیت ساعت مقایسه می‌شود." },
+        "gm-id": { "name": "grandmasterIdentity", "note": "بهترین ساعتی که این ساعت می‌شناسد: خودش." },
+        "steps-removed": { "name": "stepsRemoved", "note": "0: مستقیم از گرندمستر. ساعت‌های شفاف چیزی به آن اضافه نمی‌کنند." },
+        "source-gps": { "name": "timeSource", "note": "0x20: GPS." },
+        "origin-preq": { "name": "originTimestamp", "note": "0. MU زمان t1، یعنی لحظه خروج درخواست، را پیش خودش نگه می‌دارد." },
+        "reserved10": { "name": "رزرو", "note": "10 بایت خالی: درخواست هم‌اندازه جواب‌ها است." },
+        "t2": { "name": "requestReceiptTimestamp", "note": "t2: زمان رسیدن درخواست، با ساعت سوئیچ. 0x6AF597E7 s و 0x2BC1CA3A = 734120506 ns: 10:41:06.734 120 506 UTC." },
+        "t3": { "name": "responseOriginTimestamp", "note": "t3: زمان خروج Pdelay_Resp از سوئیچ، 48216 ns بعد از t2." },
+        "requesting": { "name": "requestingPortIdentity", "note": "پورت MU: این جواب برای اوست." },
+        "origin-sync": { "name": "originTimestamp", "note": "0. در حالت two-step زمان دقیق در Follow_Up می‌آید." },
+        "t-origin": { "name": "preciseOriginTimestamp", "note": "زمان خروج Sync: 6 بایت ثانیه (0x6AF597E8 = 1794480104) و 4 بایت نانوثانیه (0x78 = 120). به وقت TAI، پس 37 s جلوتر از 10:41:07.000 000 120 UTC." },
+        "padding": { "name": "پرکننده", "note": "2 بایت: هر فریم Ethernet دست‌کم 60 بایت لازم دارد." },
+        "a-oui": { "name": "MAC، نیمه اول", "note": "02-00-00: 3 بایت اول آدرس MAC." },
+        "a-fffe": { "name": "FF FE", "note": "در وسط گذاشته می‌شود: یک MAC با 6 بایت به یک clockIdentity با 8 بایت تبدیل می‌شود." },
+        "a-nic": { "name": "MAC، نیمه دوم", "note": "00-01-01: 3 بایت آخر آدرس MAC." },
+        "a-port": { "name": "portNumber", "note": "1: اولین پورت این ساعت." }
+    },
+    "devices": {
+        "antenna": "آنتن GPS",
+        "gm": "ساعت GPS",
+        "switch": "سوئیچ (TC)",
+        "mu": "مرجینگ یونیت MU1",
+        "relay": "رله فیدر"
+    },
+    "facts": {
+        "standard": "IEC/IEEE 61850-9-3 (2016) و IEEE C37.238-2017، پروفایل‌هایی از IEEE 1588-2008 (PTP نسخه 2)",
+        "between": "گرندمستر ← سوئیچ‌های transparent clock ← مرجینگ یونیت‌ها، رله‌ها، PMUها",
+        "transport": "Ethernet multicast، EtherType 0x88F7، بدون IP",
+        "security": "امنیت داخلی ندارد: هر دستگاهی می‌تواند خودش را ساعت بهتری اعلام کند",
+        "speed": "Sync، Announce و Pdelay ثانیه‌ای یک بار؛ خطای کمتر از 1 µs در هر ساعت"
+    },
+    "tips": [
+        "هر سوئیچی میان گرندمستر و یک ساعت باید transparent clock از نوع PTP باشد (یا boundary clock). یک سوئیچ معمولی تأخیری اضافه می‌کند که با ترافیک تغییر می‌کند، و کسی آن را جبران نمی‌کند.",
+        "PTP زمان TAI را می‌شمارد که 37 s جلوتر از UTC است. دستگاهی که currentUtcOffset را نادیده بگیرد، هر رویداد را با 37 s اختلاف مهر می‌زند.",
+        "شماره دامنه را روی همه دستگاه‌ها بررسی کنید. IEC 61850-9-3 به طور پیش‌فرض 0 را به کار می‌برد، IEEE C37.238-2017 عدد 254 را، و هر ساعت پیام‌های دامنه دیگر را نادیده می‌گیرد.",
+        "PTP فرض می‌کند کابل در هر دو جهت به یک اندازه سریع است. دو فیبر با طول متفاوت در یک لینک، نصف اختلاف را مستقیم وارد آفست می‌کنند."
+    ],
+    "points": {
+        "class": "کلاس ساعت",
+        "utc": "آفست UTC",
+        "delay": "تأخیر کابل خودش",
+        "offset": "آفست ساعت"
+    },
+    "values": {
+        "reference": "مرجع"
+    },
+    "timing": {
+        "title": "یک Sync در مسیرش",
+        "note": "زمان‌ها از لحظه خروج Sync از گرندمستر حساب شده‌اند. کابل تا سوئیچ 0.412 µs طول می‌کشد، سوئیچ Sync را 7.436 µs نگه می‌دارد و کابل تا MU هم 1.486 µs طول می‌کشد. Follow_Up زمان مبدأ و یک correction برابر 7.848 µs را می‌آورد؛ MU تأخیر کابل خودش را می‌داند. آنچه از «زمان رسیدن − زمان مبدأ» باقی می‌ماند، خطای ساعت آن است.",
+        "gm": "ساعت GPS",
+        "switch": "سوئیچ (TC)",
+        "mu": "MU1",
+        "leave": "خروج Sync: زمان مبدأ",
+        "in": "ورود",
+        "out": "خروج، 7.436 µs بعد",
+        "arrive": "رسیدن Sync: زمان رسیدن"
+    },
+    "anatomy": {
+        "port": "شناسه یک پورت، ساخته‌شده از آدرس MAC"
+    }
+}

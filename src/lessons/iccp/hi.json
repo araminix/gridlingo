@@ -1,0 +1,112 @@
+{
+    "intro": "कंट्रोल सेंटर आपस में लाइव डेटा कैसे बदलते हैं: एक ट्रांसमिशन ऑपरेटर (TSO), डिस्ट्रिब्यूशन ऑपरेटरों, पावर प्लांट और पड़ोसी TSO के साथ। ICCP, जिसे TASE.2 भी कहते हैं, MMS पर चलता है। एक bilateral table, जिस पर दोनों कंपनियाँ सहमत होती हैं, ठीक-ठीक बताती है कि हर पार्टनर क्या पढ़ सकता है, और सर्वर इसे लागू करता है।",
+    "steps": {
+        "connect": { "title": "कनेक्ट और एसोसिएशन", "text": "DSO का ICCP क्लाइंट एक VPN के ज़रिए TSO के सर्वर पर TCP 102 खोलता है। फिर MMS एसोसिएशन होता है: क्लाइंट एक AP title से अपना नाम बताता है, और सर्वर सिर्फ़ वही नाम स्वीकार करता है जो उसकी किसी bilateral table में हैं।" },
+        "check": { "title": "टेबल ID जाँचें", "text": "क्लाइंट सर्वर पर अपने domain से Bilateral_Table_ID पढ़ता है और उसे अपनी कॉपी से मिलाता है। दोनों मेल खाते हैं: दोनों तरफ़ एक ही समझौते पर काम कर रही हैं।" },
+        "subscribe": { "title": "रिपोर्ट माँगें", "text": "क्लाइंट अपने domain में एक डेटा सेट, DS_TIELINES, बनाता है: वे वैल्यू जो उसे एक साथ चाहिए। एक transfer set सर्वर को बताता है कि इसे कब भेजना है। क्लाइंट एक ख़ाली transfer set माँगता है (Next_DSTransfer_Set), फिर उसमें लिखता है: हर 4 s पर, और किसी भी बदलाव पर तुरंत।" },
+        "interval": { "title": "हर 4 s पर रिपोर्ट", "text": "सर्वर हर 4 सेकंड पर पूरा डेटा सेट एक InformationReport के रूप में भेजता है। न कोई इसे माँगता है, न कोई इसका जवाब देता है।" },
+        "change": { "title": "बदलाव पर रिपोर्ट", "text": "सबस्टेशन में टाई लाइन 2 का ब्रेकर ओपन होता है। सर्वर अगले इंटरवल का इंतज़ार नहीं करता: वह तुरंत रिपोर्ट करता है। फ़्लो टाई लाइन 1 पर चला गया है।" },
+        "denied": { "title": "टेबल के बाहर", "text": "DSO का एक ऑपरेटर GEN_K1_MW माँगता है, जो TSO के एक जनरेटर का आउटपुट है। यह DSO_EAST की bilateral table में नहीं है, इसलिए सर्वर वैल्यू की जगह access error से जवाब देता है।" }
+    },
+    "frames": {
+        "connect": "TCP 102 और एक ISO ट्रांसपोर्ट कनेक्शन खोलें",
+        "initiate-req": "मैं DSO_EAST हूँ: चलो MMS में बात करें",
+        "initiate-resp": "स्वीकार: आप मेरी bilateral tables में हैं",
+        "blt-req": "मेरे लिए आपके पास कौन-सी bilateral table ID है?",
+        "blt-resp": "DSOEAST-2026-03",
+        "define-ds": "डेटा सेट DS_TIELINES बनाएँ: TIE1_MW, TIE2_MW, TIE2_CB",
+        "define-ok": "डेटा सेट बन गया",
+        "next-ts": "मुझे एक ख़ाली transfer set दें",
+        "next-ts-resp": "DSTS_07 इस्तेमाल करें",
+        "ts-start": "DSTS_07: DS_TIELINES हर 4 s पर और बदलाव पर भेजें",
+        "report-interval": "TIE1 212.4 MW, TIE2 36.2 MW, TIE2 ब्रेकर क्लोज़",
+        "report-change": "TIE2 ब्रेकर ओपन: TIE1 248.9 MW, TIE2 0.0 MW",
+        "denied-req": "GEN_K1_MW कितना है?",
+        "denied-resp": "Access error: आपकी टेबल में नहीं है"
+    },
+    "notes": {
+        "connect": "पोर्ट 102 पर TCP, फिर उसके ऊपर एक COTP कनेक्शन, ठीक IEC 61850 MMS की तरह। दो कंपनियों के बीच यह आमतौर पर एक IPsec VPN के अंदर चलता है, क्योंकि ICCP ख़ुद कुछ भी एन्क्रिप्ट नहीं करता।",
+        "initiate-req": "session, presentation और ACSE लेयर MMS Initiate को लपेटती हैं। ACSE दोनों तरफ़ के AP title ले जाता है। सर्वर कॉल करने वाले का AP title देखकर पता करता है कि कौन-सी bilateral table, और इसलिए कौन-सा domain, इस क्लाइंट का है।",
+        "initiate-resp": "जो AP title किसी bilateral table में नहीं है, उसे यहीं मना कर दिया जाता है, कोई डेटा पढ़े जाने से पहले। MMS वाला हिस्सा मैसेज साइज़ और सर्विस पर सहमति बनाता है।",
+        "define-ds": "domain DSO_EAST में MMS DefineNamedVariableList। transfer set वाला डेटा सेट तीन ख़ास सदस्यों से शुरू हो सकता है, Transfer_Set_Name, Transfer_Set_Time_Stamp और DSConditions_Detected, ताकि हर रिपोर्ट बताए कि उसे किस transfer set ने, कब और क्यों भेजा।",
+        "define-ok": "लिस्ट बनाने से पहले सर्वर हर नाम को bilateral table से जाँचता है। कोई ऐसा नाम हो जिसे क्लाइंट पढ़ नहीं सकता, तो रिक्वेस्ट फ़ेल हो जाती है।",
+        "next-ts": "domain DSO_EAST में ख़ास वेरिएबल Next_DSTransfer_Set का एक Read। हर Read सर्वर के पूल से एक ख़ाली transfer set देता है।",
+        "next-ts-resp": "उस transfer set का नाम जिसे क्लाइंट अब इस्तेमाल कर सकता है: DSTS_07।",
+        "ts-start": "transfer set के एट्रिब्यूट का एक Write: DataSetName DSO_EAST/DS_TIELINES, Interval 4 s, conditions IntervalTimeOut और ObjectChange, Status enabled। सर्वर write की पुष्टि करता है, फिर रिपोर्ट करना शुरू करता है।",
+        "report-interval": "एक unconfirmed MMS InformationReport, डेटा सेट के नाम पर। इसमें transfer set का नाम, समय, कारण (interval timeout) और हर वैल्यू होती है, हर एक क्वालिटी फ़्लैग के साथ: valid, held, suspect या not valid।",
+        "report-change": "दो इंटरवल रिपोर्ट के बीच भेजा गया, क्योंकि एक वैल्यू बदली (कारण: object change)। इसका भी कोई जवाब नहीं आता, जब तक transfer set को critical मार्क न किया गया हो: तब क्लाइंट को इसकी पुष्टि करनी होती है।",
+        "denied-req": "TSO के अपने दायरे (VCC) की एक वैल्यू का Read, domain DSO_EAST का नहीं। हो सकता है दूसरे पार्टनर इसे पढ़ सकें; DSO_EAST नहीं पढ़ सकता।",
+        "denied-resp": "Read का नतीजा वैल्यू की जगह एक MMS access error है। इसका हल सॉफ़्टवेयर में नहीं: दोनों कंपनियाँ वैल्यू को टेबल में जोड़ती हैं और उसकी ID बढ़ाती हैं।"
+    },
+    "fields": {
+        "tpkt-67": { "name": "TPKT", "note": "वर्ज़न 3, फिर पूरे मैसेज की लंबाई: 0x0043 = 67 बाइट।" },
+        "tpkt-46": { "name": "TPKT", "note": "वर्ज़न 3, फिर लंबाई: 0x002E = 46 बाइट।" },
+        "cotp-dt": { "name": "COTP", "note": "एक डेटा यूनिट (0xF0), अपने मैसेज की आख़िरी (0x80)।" },
+        "session": { "name": "Session", "note": "दो छोटे session हेडर: give tokens, data transfer।" },
+        "presentation": { "name": "Presentation", "note": "Fully encoded data, presentation context 3: आगे जो है, वह MMS है।" },
+        "confirmed-req": { "name": "Confirmed request", "note": "टैग A0, 45 बाइट: ऐसी रिक्वेस्ट जिसे जवाब चाहिए।" },
+        "confirmed-resp": { "name": "Confirmed response", "note": "टैग A1, 24 बाइट: जवाब।" },
+        "invoke": { "name": "Invoke ID 1", "note": "एक नंबर जो क्लाइंट चुनता है। जवाब में यही नंबर आता है।" },
+        "invoke-resp": { "name": "Invoke ID 1", "note": "रिक्वेस्ट वाला ही नंबर: यह उसी का जवाब है।" },
+        "read": { "name": "Read", "note": "टैग A4: MMS Read सर्विस।" },
+        "spec": { "name": "वेरिएबल लिस्ट", "note": "एक वेरिएबल की लिस्ट, उसके नाम से।" },
+        "domain-specific": { "name": "Domain-specific name", "note": "दो हिस्सों वाला नाम: domain और item।" },
+        "domain": { "name": "Domain", "note": "\"DSO_EAST\": सर्वर पर इस क्लाइंट का domain, उसकी bilateral table के नाम पर। सिर्फ़ इसी पार्टनर के लिए बनी वैल्यू (ICC scope) यहीं रहती हैं।" },
+        "item": { "name": "Item", "note": "\"Bilateral_Table_ID\": एक वेरिएबल जो ICCP सर्वर हर क्लाइंट के domain में रखता है।" },
+        "results": { "name": "Results", "note": "नतीजों की लिस्ट, माँगे गए हर वेरिएबल का एक।" },
+        "blt-value": { "name": "Visible string", "note": "टैग 0x8A, 15 कैरेक्टर: DSOEAST-2026-03। क्लाइंट इसे अपनी टेबल की ID से मिलाता है। अलग हो, तो उसे एसोसिएशन बंद करना होता है।" }
+    },
+    "devices": {
+        "dso": "DSO कंट्रोल सेंटर",
+        "dsovpn": "DSO VPN राउटर",
+        "tsovpn": "TSO VPN राउटर",
+        "tso": "TSO कंट्रोल सेंटर",
+        "sub": "टाई सबस्टेशन"
+    },
+    "facts": {
+        "standard": "IEC 60870-6-503 (सर्विस) और IEC 60870-6-802 (ऑब्जेक्ट): TASE.2",
+        "between": "कंट्रोल सेंटर ↔ कंट्रोल सेंटर: TSO, DSO, पावर प्लांट, मार्केट ऑपरेटर",
+        "transport": "TCP 102 पर ISO के ऊपर MMS (RFC 1006), आमतौर पर एक IPsec VPN के अंदर",
+        "security": "इसकी अपनी कोई नहीं। Secure ICCP सर्टिफ़िकेट के साथ TLS जोड़ता है (IEC 62351-3 और -4)।",
+        "model": "Bilateral tables, data values, data sets, transfer sets"
+    },
+    "tips": [
+        "bilateral table दोनों तरफ़ एक साथ बदलें। Bilateral_Table_ID अलग हो, तो क्लाइंट एसोसिएशन बंद कर देता है और कोई डेटा नहीं आता।",
+        "सिर्फ़ वैल्यू नहीं, क्वालिटी फ़्लैग भी जाँचें। held या suspect मार्क की गई वैल्यू पुराना या संदिग्ध नंबर है, जो डिस्प्ले पर फिर भी सामान्य दिखता है।",
+        "यूनिट और साइन पर सहमति बना लें। TSO से DSO की ओर 212.4 MW, DSO के अपने SCADA में −212.4 MW हो सकता है। दिशा टेबल में लिख दें।",
+        "ICCP की अपनी कोई सुरक्षा नहीं है। इसे VPN के अंदर रखें या Secure ICCP इस्तेमाल करें, और पोर्ट 102 कभी इंटरनेट पर न खोलें।"
+    ],
+    "points": {
+        "blt": "टेबल ID",
+        "tie1": "टाई 1 फ़्लो",
+        "tie2": "टाई 2 फ़्लो",
+        "cb2": "टाई 2 ब्रेकर"
+    },
+    "values": {
+        "closed": "क्लोज़",
+        "open": "ओपन"
+    },
+    "timing": {
+        "title": "transfer set कब रिपोर्ट करता है",
+        "note": "सर्वर DS_TIELINES हर 4 s पर (interval) और किसी वैल्यू के बदलते ही तुरंत (object change) रिपोर्ट करता है। transfer set एक integrity check भी माँग सकता है: हर कुछ मिनट में एक पूरी रिपोर्ट, चाहे कुछ हो या न हो। transfer set शुरू करने के बाद क्लाइंट फिर कभी नहीं पूछता।",
+        "dso": "DSO क्लाइंट",
+        "interval": "इंटरवल रिपोर्ट",
+        "change": "बदलाव रिपोर्ट",
+        "start": "Status = enabled",
+        "every-4s": "हर 4 s",
+        "tie2-open": "TIE2_CB ओपन होता है"
+    },
+    "playground": {
+        "file": "एक bilateral table, जैसी कोई एक तरफ़ उसे रख सकती है (काल्पनिक: हर वेंडर का अपना फ़ॉर्मेट होता है)। दोनों कंपनियों के पास एक ही कंटेंट होता है।",
+        "table": "टेबल का नाम। सर्वर पर यही क्लाइंट का domain भी है: DSO_EAST।",
+        "table-id": "वह वर्ज़न जिस पर दोनों तरफ़ सहमत हैं। क्लाइंट हर एसोसिएशन के बाद इसे सर्वर से पढ़ता है।",
+        "client-ap": "क्लाइंट का AP title (नीचे उसके AE qualifier के साथ): सर्वर इसी से जानता है कि कौन कॉल कर रहा है।",
+        "blocks": "पार्टनर जो conformance blocks इस्तेमाल करते हैं: 1, बुनियादी सर्विस, और 2, बदलाव पर रिपोर्ट।",
+        "read": "वे वैल्यू जो DSO पढ़ सकता है। ये उसके domain, DSO_EAST (ICC scope) में रहती हैं। बाक़ी कुछ भी access error है।",
+        "data-value": "Data_RealQ: क्वालिटी फ़्लैग के साथ एक फ़्लोट।",
+        "state": "Data_State: ओपन या क्लोज़ जैसी एक स्थिति, क्वालिटी फ़्लैग के साथ।",
+        "write": "कुछ भी नहीं लिखा जा सकता: DSO, TSO की कोई वैल्यू नहीं बदल सकता।",
+        "devices": "Device control (block 5) की इजाज़त नहीं: कोई डिवाइस लिस्ट में नहीं, इसलिए DSO, TSO का कोई ब्रेकर ऑपरेट नहीं कर सकता।",
+        "transfer-sets": "यह क्लाइंट एक साथ कितने transfer set इस्तेमाल कर सकता है।"
+    }
+}

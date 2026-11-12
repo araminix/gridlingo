@@ -1,0 +1,98 @@
+{
+    "intro": "Sparkplug B مجموعه‌ای از قواعد روی MQTT برای SCADA است. نام‌های ثابت تاپیک‌ها می‌گویند چه کسی چه چیزی می‌فرستد. پیام تولد (birth) هر متریک را یک بار، با نام، alias و نوع داده، فهرست می‌کند؛ بعد از آن فقط تغییرات، با alias، منتقل می‌شوند. پیام مرگ (death) بلافاصله به SCADA خبر می‌دهد که یک گیت‌وی از دست رفته است.",
+    "steps": {
+        "host": { "title": "آنلاین شدن SCADA", "text": "SCADA، یعنی میزبان اصلی (primary host)، با یک وصیت به بروکر وصل می‌شود، مشترک همه تاپیک‌های Sparkplug می‌شود و بعد STATE خودش را منتشر می‌کند: online، به صورت retain‌شده." },
+        "connect": { "title": "اتصال edge node", "text": "edge node یعنی GW1 با وصیت خودش، NDEATH با شماره bdSeq 0، وصل می‌شود. STATE retain‌شده SCADA را می‌خواند: SCADA آنلاین است، پس می‌تواند شروع کند." },
+        "birth": { "title": "تولد", "text": "NBIRTH همه متریک‌های edge node و DBIRTH همه متریک‌های اینورتر پشت آن را فهرست می‌کند: نام، alias، نوع داده و مقدار. حالا SCADA کل مدل را می‌داند." },
+        "data": { "title": "گزارش بر اساس استثنا", "text": "فقط توان اینورتر تغییر کرده است. DDATA فقط همان متریک را، با alias آن و شماره ترتیب بعدی، می‌برد." },
+        "rebirth": { "title": "تولد دوباره", "text": "SCADA بعد از seq 2، شماره seq 4 را می‌گیرد: پیام 3 گم شده است. SCADA دیگر نمی‌تواند به نسخه خودش اعتماد کند، پس تولد دوباره (rebirth) می‌خواهد. edge node دوباره NBIRTH و DBIRTH را می‌فرستد." },
+        "death": { "title": "مرگ", "text": "لینک edge node در ثانیه 300، درست بعد از آخرین بسته‌اش، قطع می‌شود. 45 s بعد (1.5 × keep alive آن که 30 s است، از آخرین بسته‌ای که بروکر شنیده) بروکر وصیت آن، NDEATH، را منتشر می‌کند. SCADA گیت‌وی GW1 را آفلاین و مقادیرش را STALE علامت می‌زند." }
+    },
+    "frames": {
+        "host-connect": "من SCADA1 هستم. اگر ناپدید شدم، اعلام کن که آفلاینم",
+        "state": "SCADA1 آنلاین است",
+        "edge-connect": "من GW1 هستم. اگر ناپدید شدم، مرگم را اعلام کن، bdSeq 0",
+        "state-seen": "SCADA1 آنلاین است (نگه‌داشته‌شده در بروکر)",
+        "nbirth": "GW1 زنده است: این همه متریک‌های آن",
+        "dbirth": "INV1 زنده است: این همه متریک‌های آن",
+        "ddata": "INV1: alias 2 = 4820.5",
+        "ddata-gap": "INV1: seq 4 (پس 3 کجاست؟)",
+        "ncmd": "GW1، همه‌چیز را دوباره بفرست",
+        "nbirth-again": "GW1: همه متریک‌ها، دوباره",
+        "dbirth-again": "INV1: همه متریک‌ها، دوباره",
+        "ndeath": "GW1 مرده است (bdSeq 0)"
+    },
+    "notes": {
+        "host-connect": "یک CONNECT از MQTT با clean session. وصیت آن به spBv1.0/STATE/SCADA1 می‌رود: {\"online\":false,\"timestamp\":1794480000000}، با QoS 1 و retain‌شده. بعد SCADA مشترک spBv1.0/# می‌شود، یعنی همه پیام‌های Sparkplug.",
+        "edge-connect": "یک CONNECT از MQTT با clean session و keep alive برابر 30 s. وصیت آن NDEATH روی spBv1.0/SolarPark/NDEATH/GW1 است، با QoS 1، بدون retain، و یک متریک: bdSeq = 0. بعد edge node مشترک تاپیک‌های NCMD و DCMD خودش و spBv1.0/STATE/SCADA1 می‌شود.",
+        "state-seen": "بروکر به محض اینکه edge node مشترک شود، STATE retain‌شده را می‌فرستد. اگر SCADA آفلاین بود، edge node منتظر می‌ماند و چیزی منتشر نمی‌کرد.",
+        "nbirth": "روی spBv1.0/SolarPark/NBIRTH/GW1، با QoS 0 و seq 0. همه متریک‌های خود edge node را دارد، هر کدام با نام، alias، نوع داده و مقدار. دو متریک همیشه باید باشند: bdSeq = 0، همان شماره وصیت، و Node Control/Rebirth = false.",
+        "dbirth": "روی spBv1.0/SolarPark/DBIRTH/GW1/INV1، با seq 1: همه متریک‌های اینورتر، که edge node آن‌ها را با Modbus می‌خواند. AC/Power شماره alias 2 و نوع Float می‌گیرد. بخش محیط آزمایش این پیام را رمزگشایی‌شده نشان می‌دهد.",
+        "ddata-gap": "این DDATA شماره seq 4 دارد، اما SCADA منتظر 3 بود. لحظه‌ای صبر می‌کند (reorder timeout) شاید 3 دیر برسد. نمی‌رسد.",
+        "ncmd": "روی spBv1.0/SolarPark/NCMD/GW1، با یک متریک: Node Control/Rebirth = true. SCADA هر وقت به دانسته‌هایش شک کند این را می‌فرستد.",
+        "nbirth-again": "همان نشست MQTT، پس همان bdSeq 0. edge node تا وقتی پیام‌های تولدش فرستاده نشده‌اند، ارسال داده را متوقف می‌کند.",
+        "dbirth-again": "دوباره همه متریک‌های INV1، با توانی که حالا 4835.0 kW است. نسخه SCADA دوباره کامل است.",
+        "ndeath": "وصیتی که در CONNECT مربوط به edge node آمده بود. bdSeq 0 آن با آخرین NBIRTH یکی است، پس به نشست فعلی تعلق دارد. SCADA گیت‌وی GW1 و INV1 را آفلاین و همه متریک‌هایشان را STALE علامت می‌زند: آخرین مقادیر روی صفحه می‌مانند، با علامت قدیمی."
+    },
+    "fields": {
+        "publish-q1-retain": { "name": "MQTT PUBLISH", "note": "0x33: با QoS 1 و retain‌شده. بروکر آن را برای هر edge nodeی که بعداً مشترک شود نگه می‌دارد." },
+        "rl-65": { "name": "طول باقی‌مانده", "note": "65 بایت در ادامه می‌آید." },
+        "state-topic": { "name": "تاپیک", "note": "spBv1.0/STATE/SCADA1: تاپیک STATE میزبانی که شناسه‌اش SCADA1 است." },
+        "packet-id": { "name": "Packet id 1", "note": "برای PUBACK بروکر، مثل هر پیام QoS 1." },
+        "state-online": { "name": "online", "note": "{\"online\":true، یعنی SCADA آنلاین است. STATE تنها پیام Sparkplug به صورت JSON است؛ بقیه همه protobuf هستند." },
+        "state-time": { "name": "timestamp", "note": "1794480000000 ms از 1970 = 10:40:00.000 UTC. همان مقدار وصیت در CONNECT آن: edge nodeها با آن این نشست را از نشست‌های قدیمی‌تر تشخیص می‌دهند." },
+        "publish-q0": { "name": "MQTT PUBLISH", "note": "0x30: با QoS 0، بدون retain. میزبانی که بعداً وصل شود، مقادیر را از یک پیام تولد یاد می‌گیرد، نه از داده قدیمی." },
+        "rl-59": { "name": "طول باقی‌مانده", "note": "59 بایت در ادامه می‌آید: تاپیک و payload." },
+        "ddata-topic": { "name": "تاپیک", "note": "spBv1.0/SolarPark/DDATA/GW1/INV1، به طول 32 بایت (0x0020). از اینجا به بعد، بایت‌ها یک Payload از نوع protobuf هستند." },
+        "payload-time": { "name": "timestamp", "note": "تگ 0x08: فیلد 1، یک varint. زمان ارسال پیام: 1794480067280 ms از 1970 = 10:41:07.280 UTC. هر بایت varint 7 بیت را نگه می‌دارد، کم‌ارزش‌ترین اول؛ بیت بالایی 1 یعنی بایت‌های بیشتری در ادامه می‌آیند." },
+        "metric": { "name": "metrics", "note": "تگ 0x12: فیلد 2، یک متریک. 0x0E = 14 بایت در ادامه می‌آید." },
+        "alias": { "name": "alias", "note": "تگ 0x10: فیلد 2 متریک، alias 2. پیام تولد گفته بود که 2 یعنی AC/Power، پس نام فرستاده نمی‌شود." },
+        "metric-time": { "name": "timestamp", "note": "تگ 0x18: فیلد 3 متریک، زمان خواندن مقدار: 1794480067250، یعنی 30 ms پیش از ارسال پیام." },
+        "float": { "name": "float_value", "note": "تگ 0x65: فیلد 12، 4 بایت، بایت کم‌ارزش اول: 4820.5 (kW). نوع داده فرستاده نمی‌شود: پیام تولد آن را داده است." },
+        "seq": { "name": "seq", "note": "باز هم تگ 0x18، این بار بیرون از متریک: فیلد 3 از payload، یعنی seq 2. درون یک متریک، فیلد 3 همان timestamp است." },
+        "a-namespace": { "name": "Namespace", "note": "spBv1.0: یعنی Sparkplug B، نسخه 1.0 از ساختار تاپیک‌ها." },
+        "a-group": { "name": "group_id", "note": "گروهی از edge nodeها، اینجا یک نیروگاه." },
+        "a-type": { "name": "message_type", "note": "پیام چیست. NBIRTH، NDATA، NCMD و NDEATH درباره edge node هستند؛ DBIRTH، DDATA، DCMD و DDEATH درباره یک دستگاه." },
+        "a-node": { "name": "edge_node_id", "note": "گیت‌وی. باید در گروه خودش یکتا باشد." },
+        "a-device": { "name": "device_id", "note": "دستگاهی پشت edge node. تاپیکی که درباره خود edge node است، با GW1 تمام می‌شود." }
+    },
+    "devices": {
+        "inv1": "اینورتر INV1",
+        "gw": "Edge node GW1",
+        "broker": "بروکر MQTT",
+        "scada": "SCADA (SCADA1)"
+    },
+    "facts": {
+        "standard": "Eclipse Sparkplug 3.0 (2022)، همچنین ISO/IEC 20237:2023",
+        "between": "edge nodeها ← بروکر MQTT ← برنامه‌های میزبان (SCADA، هیستورین)",
+        "transport": "MQTT 3.1.1 یا 5.0، روی TCP 1883 یا TLS 8883",
+        "security": "فقط امنیت خود MQTT: TLS و ورود به بروکر. Sparkplug چیزی اضافه نمی‌کند.",
+        "frames": "NBIRTH، DBIRTH، NDATA، DDATA، NCMD، DCMD، NDEATH، DDEATH، STATE",
+        "model": "متریک‌هایی با نام، alias، نوع داده و مقدار، در Protocol Buffers"
+    },
+    "tips": [
+        "هر edge node یک edge_node_id لازم دارد که در گروهش یکتا باشد، و Client ID مخصوص خودش در MQTT. دو گیت‌وی با شناسه‌های یکسان همدیگر را بیرون می‌اندازند و SCADA تمام روز تولد و مرگ می‌بیند.",
+        "یک alias فقط تا تولد بعدی اعتبار دارد. ابزاری که بعد از rebirth همان aliasهای قدیمی را نگه دارد، مقادیر را زیر متریک اشتباه ثبت می‌کند.",
+        "متریکی که در پیام تولد نیست، برای SCADA وجود ندارد. بعد از اضافه کردن یک متریک، تولد تازه‌ای منتشر کنید.",
+        "شناسه میزبان اصلی (primary host ID) را روی همه edge nodeها تنظیم کنید. آن وقت پیش از تولد منتظر STATE مربوط به SCADA می‌مانند. بدون آن، پیام‌های تولد وقتی SCADA نیست فرستاده می‌شوند و SCADA باید rebirth بخواهد."
+    ],
+    "points": {
+        "node": "وضعیت edge node",
+        "power": "توان اینورتر"
+    },
+    "values": {
+        "online": "آنلاین",
+        "offline": "آفلاین"
+    },
+    "anatomy": {
+        "topic": "یک تاپیک Sparkplug: چه کسی چه چیزی را درباره کدام دستگاه می‌فرستد"
+    },
+    "playground": {
+        "file": "DBIRTH مربوط به INV1، که برای خواندن از protobuf به JSON رمزگشایی شده است. روی سیم دودویی است، مثل DDATA بالا.",
+        "payload-time": "زمان ارسال پیام، بر حسب میلی‌ثانیه از 1970، به وقت UTC.",
+        "metric": "یک متریک: نامش، alias، زمان خواندنش، نوع داده و مقدارش. Sparkplug فیلد واحد ندارد: نیروگاه توافق می‌کند که AC/Power بر حسب kW است.",
+        "double": "انرژی کل بر حسب MWh، از نوع Double. هر متریک نوع داده‌اش را تا تولد بعدی نگه می‌دارد.",
+        "string": "متن هم کار می‌کند. DDATA فقط alias 5 و متن تازه را می‌فرستاد.",
+        "seq": "seq 1: پیام NBIRTH شماره 0 را داشت. هر پیام edge node شمارش را ادامه می‌دهد، تا 255، و بعد دوباره از 0 شروع می‌شود."
+    }
+}
