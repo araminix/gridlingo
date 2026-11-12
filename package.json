@@ -11,6 +11,8 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:watch": "nodemon --watch src --exec \"vite\" --ext json,ts",
+    "dw": "pnpm dev:watch",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
