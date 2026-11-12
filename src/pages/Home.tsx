@@ -128,7 +128,7 @@ export function Home() {
                                     <li key={meta.id}>
                                         <Link
                                             to={`/p/${meta.id}`}
-                                            className="relative flex h-full min-h-36 flex-col gap-2 overflow-hidden rounded-xl border bg-card p-4 pt-5 outline-none transition hover:-translate-y-0.5 hover:border-[var(--g)] hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring"
+                                            className="relative flex h-full min-h-36 flex-col gap-2 overflow-hidden rounded-xl border bg-[linear-gradient(180deg,color-mix(in_oklab,var(--g)_7%,var(--card)),var(--card)_60%)] p-4 pt-5 outline-none transition hover:-translate-y-0.5 hover:border-[var(--g)] hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring"
                                         >
                                             <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-[var(--g)]" />
                                             <span className="flex items-start justify-between gap-2">
