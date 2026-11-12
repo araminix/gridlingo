@@ -187,7 +187,31 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
                 </g>
             );
         }
-        case "rtu":
+        case "rtu": {
+            // A steel cabinet on a plinth under a small roof; through the window in its door, the I/O cards in their rack
+            const body: Box = { cx, cy, w: size.w, d: size.d, h: size.h - 6, z: 4 };
+            const door = faces(body).onLeft;
+            const side = faces(body).onRight;
+            const cards = [0.26, 0.38, 0.5, 0.62, 0.74];
+            const seam = [door(0.07, 0.05), door(0.93, 0.05), door(0.93, 0.95), door(0.07, 0.95), door(0.07, 0.05)];
+            return (
+                <g>
+                    <Solid box={{ cx, cy, w: size.w, d: size.d, h: 4 }} active={active} fine />
+                    <Solid box={body} active={active} />
+                    <Solid box={{ cx, cy, w: size.w + 2.5, d: size.d + 2.5, h: 2, z: size.h - 2 }} active={active} fine />
+                    <Lines list={[seam]} width={0.7} />
+                    <Panel on={door} u0={0.18} v0={0.5} u1={0.82} v1={0.88} fill="var(--viz-screen)" />
+                    <Lines list={cards.map((u) => [door(u, 0.54), door(u, 0.79)])} stroke="var(--viz-pv)" width={2} />
+                    {cards.map((u, i) => {
+                        const [x, y] = door(u, 0.84);
+                        return <circle key={u} cx={round(x)} cy={round(y)} r={1.1} fill={i === 3 ? "var(--viz-token)" : "var(--viz-ok)"} />;
+                    })}
+                    <Lines list={[[door(0.84, 0.34), door(0.84, 0.44)]]} width={1.6} />
+                    <Lines list={[0.12, 0.17, 0.22].map((v) => [door(0.3, v), door(0.7, v)])} width={0.7} />
+                    <Lines list={[0.72, 0.77, 0.82].map((v) => [side(0.25, v), side(0.75, v)])} width={0.7} />
+                </g>
+            );
+        }
         case "gateway":
         case "controller":
         case "pmu":
