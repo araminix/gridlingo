@@ -193,40 +193,40 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
     );
 
     return (
-        <div className="mx-auto grid max-w-[1600px] gap-4 px-3 py-3 sm:px-4 lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[14rem_minmax(0,1fr)_22rem]">
+        // The full width of the screen: the protocol list and the right-hand column grow with it, within bounds; the
+        // middle takes the rest. Narrow gaps between the panels.
+        <div className="grid gap-2 px-2 py-2 sm:px-3 lg:grid-cols-[clamp(13rem,14vw,17rem)_minmax(0,1fr)] xl:grid-cols-[clamp(13rem,14vw,17rem)_minmax(0,1fr)_clamp(20rem,22vw,28rem)]">
             <aside className="hidden lg:block">
-                <div className="sticky top-17 max-h-[calc(100vh-5rem)] overflow-y-auto pe-1 pb-4">
+                <div className="sticky top-16 max-h-[calc(100vh-4.5rem)] overflow-y-auto pe-1 pb-4">
                     <ProtocolNav current={meta.id} />
                 </div>
             </aside>
 
-            <main id="main" className="min-w-0 space-y-4">
-                <header className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <Sheet open={navOpen} onOpenChange={setNavOpen}>
-                            <SheetTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-9 lg:hidden">
-                                    <ListTree />
-                                    {t("nav.all")}
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent side={dir === "rtl" ? "right" : "left"} className="w-80 overflow-y-auto p-4">
-                                <SheetHeader className="p-0">
-                                    <SheetTitle>{t("nav.protocols")}</SheetTitle>
-                                    <SheetDescription className="sr-only">{t("nav.all")}</SheetDescription>
-                                </SheetHeader>
-                                <ProtocolNav current={meta.id} onPick={() => setNavOpen(false)} />
-                            </SheetContent>
-                        </Sheet>
-                        <span
-                            style={groupVars(meta.group)}
-                            className="inline-flex items-center gap-2 rounded-sm bg-[color-mix(in_oklab,var(--g)_12%,transparent)] py-1 ps-1 pe-3 text-xs font-semibold tracking-wider text-[var(--g)] uppercase"
-                        >
-                            <GroupIcon group={meta.group} className="size-6" />
-                            {t(`group.${meta.group}` as MessageKey)}
-                        </span>
-                    </div>
+            <main id="main" className="min-w-0 space-y-2">
+                <header className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                    <Sheet open={navOpen} onOpenChange={setNavOpen}>
+                        <SheetTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-9 lg:hidden">
+                                <ListTree />
+                                {t("nav.all")}
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side={dir === "rtl" ? "right" : "left"} className="w-80 overflow-y-auto p-4">
+                            <SheetHeader className="p-0">
+                                <SheetTitle>{t("nav.protocols")}</SheetTitle>
+                                <SheetDescription className="sr-only">{t("nav.all")}</SheetDescription>
+                            </SheetHeader>
+                            <ProtocolNav current={meta.id} onPick={() => setNavOpen(false)} />
+                        </SheetContent>
+                    </Sheet>
                     <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{meta.name}</h1>
+                    <span
+                        style={groupVars(meta.group)}
+                        className="inline-flex items-center gap-2 rounded-sm bg-[color-mix(in_oklab,var(--g)_12%,transparent)] py-1 ps-1 pe-3 text-xs font-semibold tracking-wider text-[var(--g)] uppercase"
+                    >
+                        <GroupIcon group={meta.group} className="size-6" />
+                        {t(`group.${meta.group}` as MessageKey)}
+                    </span>
                 </header>
 
                 <Card className="gap-0 overflow-hidden py-0" data-testid="stage">
@@ -325,14 +325,14 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                     </Section>
                 )}
 
-                <div className="space-y-4 xl:hidden">
+                <div className="space-y-2 xl:hidden">
                     {facts}
                     <Tips words={words} />
                     <Related ids={lesson.related ?? []} />
                 </div>
             </main>
 
-            <aside className="hidden space-y-4 xl:block">
+            <aside className="hidden space-y-2 xl:block">
                 {wide && intro}
                 {facts}
                 {devices}

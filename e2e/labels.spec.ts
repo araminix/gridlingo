@@ -57,10 +57,14 @@ function findClashes(svg: SVGSVGElement): string[] {
     const parts = devices.flatMap((device) =>
         [...device.querySelectorAll<SVGGraphicsElement>(":scope > g :is(polygon, path, ellipse, circle, rect)")].map((el) => ({ device: nameOf(device), shape: outline(el) })),
     );
+    // Overlaps count in the drawing's own units, not the screen's: the picture grows with the screen, the answer must not
+    const frame = svg.getBoundingClientRect();
+    const view = svg.viewBox.baseVal;
+    const unit = Math.min(frame.width / view.width, frame.height / view.height);
     const clashes = new Set<string>();
     for (const [i, label] of labels.entries()) {
-        for (const other of labels.slice(i + 1)) if (depth(label.shape, other.shape) > 1) clashes.add(`"${label.name}" covers the label "${other.name}"`);
-        for (const part of parts) if (depth(label.shape, part.shape) > 1) clashes.add(`"${label.name}" covers part of ${part.device}`);
+        for (const other of labels.slice(i + 1)) if (depth(label.shape, other.shape) > unit) clashes.add(`"${label.name}" covers the label "${other.name}"`);
+        for (const part of parts) if (depth(label.shape, part.shape) > unit) clashes.add(`"${label.name}" covers part of ${part.device}`);
     }
     return [...clashes];
 }

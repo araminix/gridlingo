@@ -68,7 +68,7 @@ export function SiteScene({ scene, frame, words, plate = false }: { scene: Scene
                 // Along which axis the cable leaves each device: a straight cable keeps its one axis
                 const axis = (end: 0 | 1): "x" | "y" => (from[0] === to[0] ? "y" : from[1] === to[1] ? "x" : (end === 0) === (link.via !== "y") ? "x" : "y");
                 const kind = (id: string) => scene.devices.find((device) => device.id === id)!.kind;
-                const reach = [reachOf(kind(link.from), axis(0)) + 8, reachOf(kind(link.to), axis(1)) + 8] as const;
+                const reach = [reachOf(kind(link.from), axis(0)) + 12, reachOf(kind(link.to), axis(1)) + 12] as const;
                 return [{ link, path: groundPath(from, to, link.via, reach) }];
             }),
         [scene, place],
@@ -130,7 +130,7 @@ export function SiteScene({ scene, frame, words, plate = false }: { scene: Scene
     return (
         <svg
             viewBox={`${round(view.minX)} ${round(view.minY)} ${round(view.width)} ${round(view.height)}`}
-            className={plate ? "block h-auto w-full overflow-visible" : "block h-auto max-h-[30rem] w-full"}
+            className={plate ? "block h-auto max-h-[70vh] w-full overflow-visible" : "block h-auto max-h-[max(20rem,calc(100vh-21rem))] w-full"}
             role="img"
             aria-label={scene.devices.map((device) => words.device(device.id)).join(", ")}
         >

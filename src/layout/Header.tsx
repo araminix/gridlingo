@@ -21,7 +21,7 @@ export function Header({ search = true }: { search?: boolean }) {
     const { t } = useI18n();
     return (
         <header className="sticky top-0 z-30 border-b bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/75">
-            <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-3 sm:gap-3 sm:px-5">
+            <div className="flex h-14 items-center gap-2 px-3 sm:gap-3 sm:px-5">
                 <Link to="/" className="flex shrink-0 items-center gap-2.5 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
                     <Logo className="size-7" />
                     <span className="flex flex-col leading-tight">
@@ -49,7 +49,7 @@ export function Footer() {
     const { t } = useI18n();
     return (
         <footer className="border-t">
-            <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-5 py-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-sm text-muted-foreground">
                 <p>{t("footer.note")}</p>
                 <p>
                     <a href={REPOSITORY} className="font-medium text-foreground underline-offset-4 hover:underline">
