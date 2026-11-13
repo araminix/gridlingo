@@ -1,0 +1,98 @@
+{
+    "intro": "O Zigbee Smart Energy (SE) é a língua da rede doméstica em torno de um medidor inteligente. O medidor, ou um hub de comunicação ao lado dele, mantém uma pequena rede de rádio Zigbee na casa. Displays domésticos, termostatos, controladores de carga e carregadores de veículos elétricos entram nela para ler a energia e a demanda do medidor, receber preços e mensagens e participar da resposta da demanda. Funciona sobre rádio IEEE 802.15.4 e está em milhões de medidores inteligentes, sobretudo nos medidores SMETS2 da Grã-Bretanha e em programas de distribuidoras dos EUA.",
+    "plain": "Um medidor inteligente sabe exatamente quanta eletricidade a casa usa, segundo a segundo. O Zigbee Smart Energy permite que ele compartilhe isso com aparelhos da casa por uma pequena rede de rádio: um display na cozinha, um termostato ou o carregador do carro. Quando a rede elétrica está apertada, a distribuidora pode pedir, pelo medidor, que o carregador vá mais devagar por umas duas horas.",
+    "steps": {
+        "join": { "title": "Entrando na rede da casa", "text": "O novo carregador tem um código de instalação na etiqueta. O instalador o registra na distribuidora, que manda o medidor inteligente aceitá-lo. O carregador encontra a rede Zigbee do medidor, pede para entrar e recebe a chave de rede, criptografada com uma chave obtida do seu código de instalação. Ele se anuncia como 0x3B91. A casa está consumindo 2.148 kW." },
+        "keys": { "title": "Uma chave só dele", "text": "A chave de rede é compartilhada por todos os aparelhos da casa. Para as suas próprias mensagens com o medidor, o carregador faz Key Establishment (CBKE): os dois mostram certificados da autoridade certificadora Smart Energy e combinam uma chave de enlace que só eles dois conhecem." },
+        "units": { "title": "Primeiro as unidades", "text": "Antes de ler qualquer número, o carregador pergunta como lê-los: unidade kW, multiplicador 1, divisor 1000. Assim, um valor bruto de 9348 significa 9.348 kW." },
+        "read": { "title": "Lendo o medidor", "text": "O carro agora carrega a 7.2 kW, 30 A em 240 V. O carregador lê o medidor: 4821.337 kWh até agora, e a casa toda puxando 9.348 kW neste momento. Ele pode usar isso para ficar abaixo do limite da entrada de energia." },
+        "event": { "title": "Resposta da demanda", "text": "No horário de pico, a distribuidora envia pelo medidor um evento de resposta da demanda para carregadores: reduzir a carga média em 50 % por 2 horas, a partir de agora. O carregador participa, cai para 15 A, 3.6 kW, e informa que o evento começou. O medidor agora marca 5.748 kW." }
+    },
+    "frames": {
+        "associate": "Posso entrar na sua rede?",
+        "transport-key": "Aqui está a chave de rede, trancada com o seu código de instalação",
+        "announce": "Sou o 0x3B91, estou aqui",
+        "ke-initiate": "Aqui está o meu certificado; vamos combinar uma chave",
+        "ke-confirm": "Aqui está o meu; agora compartilhamos uma chave de enlace",
+        "units": "Que unidade, multiplicador e divisor você usa?",
+        "units-res": "kW, × 1, ÷ 1000",
+        "read": "Energia total e demanda, por favor",
+        "read-res": "4821.337 kWh até agora, 9.348 kW agora",
+        "dr": "Carregadores: meia carga por 2 horas",
+        "lce": "Reduza a sua carga média em 50 % por 2 horas, a partir de agora",
+        "status": "Evento iniciado",
+        "read2": "A demanda, por favor",
+        "read2-res": "5.748 kW agora"
+    },
+    "notes": {
+        "associate": "O carregador varre os canais com pedidos de beacon, e o medidor responde com um beacon que diz que a entrada está aberta. Um pedido e uma resposta de associação IEEE 802.15.4 dão então ao carregador o seu endereço curto, 0x3B91.",
+        "transport-key": "O medidor é o trust center. Ele envia a chave de rede criptografada com uma chave de enlace obtida do código de instalação por um hash, de modo que só um aparelho que conhece o código consegue lê-la.",
+        "announce": "Um anúncio de dispositivo ZDO: o endereço curto do carregador, 0x3B91, e o seu endereço IEEE de 64 bits, para que qualquer aparelho da casa o encontre.",
+        "ke-initiate": "O carregador abre o Key Establishment (cluster 0x0800) com o seu certificado ECC implícito, emitido para o seu endereço de 64 bits pela autoridade certificadora Smart Energy.",
+        "ke-confirm": "O medidor responde com o seu próprio certificado. Os dois enviam chaves efêmeras novas, calculam a mesma chave de enlace com ECMQV e provam isso com uma mensagem de confirmação em cada sentido. A chave de enlace agora protege as suas mensagens na camada APS.",
+        "dr": "Pela rede de medição da distribuidora (AMI), o sistema central avisa o medidor de um evento de resposta da demanda para carregadores.",
+        "lce": "Um LoadControlEvent do cluster Demand Response and Load Control: o ID do evento, a classe de dispositivo (carregador de VE), hora de início 0 (agora), 120 minutos, ajuste de carga média −50 %. Os campos que ele não usa levam o seu valor de \"ignorar\".",
+        "status": "Um ReportEventStatus: o ID do evento, o estado \"evento iniciado\", a hora e o ajuste de carga aplicado, com uma assinatura ECDSA feita com a chave do certificado do carregador."
+    },
+    "fields": {
+        "fc-request": { "name": "Controle de quadro 0x00", "note": "Um comando global, que todo cluster entende, do cliente para o servidor, não específico de fabricante." },
+        "fc-response": { "name": "Controle de quadro 0x18", "note": "Um comando global do servidor para o cliente; não se quer resposta padrão. O detalhamento abaixo o separa." },
+        "tsn": { "name": "Número de sequência da transação", "note": "Escolhido pelo carregador; a resposta traz o mesmo número." },
+        "cmd-read": { "name": "Comando 0x00: Read Attributes", "note": "Vem uma lista de IDs de atributo, de 2 bytes cada." },
+        "cmd-read-response": { "name": "Comando 0x01: Read Attributes Response", "note": "Um registro por atributo: o seu ID, um estado e depois o seu tipo e valor." },
+        "attr-unit": { "name": "Atributo 0x0300: UnitofMeasure", "note": "Os IDs vêm com o byte menos significativo primeiro: 00 03 é 0x0300. Cluster Metering 0x0702, perfil Smart Energy 0x0109." },
+        "attr-multiplier": { "name": "Atributo 0x0301: Multiplier", "note": "Cada valor bruto é multiplicado por ele." },
+        "attr-divisor": { "name": "Atributo 0x0302: Divisor", "note": "Depois cada valor bruto é dividido por ele." },
+        "attr-summation": { "name": "Atributo 0x0000: CurrentSummationDelivered", "note": "Toda a energia que o medidor entregou à casa." },
+        "attr-demand": { "name": "Atributo 0x0400: InstantaneousDemand", "note": "A potência que a casa puxa agora; negativa quando exporta." },
+        "status-ok": { "name": "Estado 0x00: SUCCESS", "note": "O atributo existe e pode ser lido; vêm o seu tipo e valor." },
+        "type-enum8": { "name": "Tipo 0x30: enumeração de 8 bits", "note": "Um byte, um código de uma lista." },
+        "type-uint24": { "name": "Tipo 0x22: inteiro sem sinal de 24 bits", "note": "Três bytes, o menos significativo primeiro." },
+        "type-uint48": { "name": "Tipo 0x25: inteiro sem sinal de 48 bits", "note": "Seis bytes: o bastante para o medidor nunca estourar." },
+        "type-int24": { "name": "Tipo 0x2A: inteiro com sinal de 24 bits", "note": "Três bytes, o menos significativo primeiro; pode ser negativo." },
+        "unit-kw": { "name": "0x00: kW e kWh", "note": "Binário puro, em quilowatts para potência e quilowatts-hora para energia." },
+        "multiplier-1": { "name": "Multiplicador: 1", "note": "01 00 00 = 1." },
+        "divisor-1000": { "name": "Divisor: 1000", "note": "E8 03 00 = 0x0003E8 = 1000. Cada valor bruto é multiplicado por 1 e dividido por 1000." },
+        "summation": { "name": "4821337: 4821.337 kWh", "note": "59 91 49 00 00 00 = 0x499159 = 4821337; ÷ 1000 = 4821.337 kWh." },
+        "demand-9348": { "name": "9348: 9.348 kW", "note": "84 24 00 = 0x002484 = 9348; ÷ 1000 = 9.348 kW: a casa, 2.148 kW, mais o carregador, 7.2 kW." },
+        "demand-5748": { "name": "5748: 5.748 kW", "note": "74 16 00 = 0x001674 = 5748: a casa, 2.148 kW, mais o carregador a meia potência, 3.6 kW." },
+        "fc-reserved": { "name": "Bits 7–5, reservados: 000", "note": "Sempre 0." },
+        "fc-no-default": { "name": "Bit 4, desativar resposta padrão: 1", "note": "1: não enviar uma Default Response a este quadro." },
+        "fc-direction": { "name": "Bit 3, sentido: 1", "note": "1: do servidor para o cliente, aqui a partir do medidor. 0: do cliente para o servidor." },
+        "fc-manufacturer": { "name": "Bit 2, específico de fabricante: 0", "note": "0: um comando padrão. 1: um comando próprio do fabricante, com um código de fabricante depois deste byte." },
+        "fc-type": { "name": "Bits 1–0, tipo de quadro: 00", "note": "00: um comando global, igual em todo cluster. 01: um comando só deste cluster." }
+    },
+    "devices": {
+        "meter": "Medidor inteligente (ESI)",
+        "charger": "Carregador de VE",
+        "car": "Carro elétrico",
+        "cloud": "Sistema central da distribuidora"
+    },
+    "facts": {
+        "standard": "Zigbee Smart Energy 1.x (até 1.4), da Connectivity Standards Alliance, antiga Zigbee Alliance. O Smart Energy 2.0 virou IEEE 2030.5, outro protocolo sobre IP",
+        "between": "O medidor inteligente ou o hub de comunicação (a interface de serviços de energia, ESI) e os aparelhos da casa: displays domésticos, termostatos, controladores de carga, carregadores de VE e medidores de gás",
+        "transport": "Rádio IEEE 802.15.4 a 2.4 GHz, 250 kbit/s, quadros de no máximo 127 bytes, em malha; o SE 1.4 acrescenta faixas abaixo de 1 GHz. Dados em clusters ZCL, perfil 0x0109",
+        "security": "Um aparelho só entra com um código de instalação registrado antes. Cada quadro é criptografado com AES-128 (CCM*) sob a chave de rede, e cada aparelho combina a sua própria chave de enlace com o medidor por CBKE, com certificados ECC",
+        "speed": "Uma pergunta e a sua resposta levam algumas dezenas de milissegundos; os displays costumam perguntar a cada poucos segundos. Medidores de gás a bateria dormem e acordam mais ou menos a cada meia hora"
+    },
+    "tips": [
+        "Um aparelho só entra se o seu código de instalação foi registrado antes no medidor. Um caractere errado no formulário, e ele nunca entra.",
+        "Os 2.4 GHz são divididos com o Wi-Fi. Os canais Zigbee 15, 20 e 25 ficam entre os canais Wi-Fi comuns 1, 6 e 11; um canal ao lado de um Wi-Fi movimentado perde quadros.",
+        "Leia primeiro as unidades: 9348 significa 9.348 kW só com multiplicador 1 e divisor 1000. Outro medidor pode usar outros valores.",
+        "Paredes de concreto e caixas metálicas de medidor enfraquecem os 2.4 GHz. Um medidor no porão ou num armário externo muitas vezes precisa de um roteador Zigbee, um repetidor, entre ele e a casa."
+    ],
+    "points": {
+        "key": "Chave de enlace",
+        "demand": "Demanda da casa",
+        "charging": "Potência de carga"
+    },
+    "values": {
+        "agreed": "combinada"
+    },
+    "anatomy": {
+        "frame-control": "O controle de quadro 0x18, bit a bit"
+    },
+    "playground": {
+        "encoder": "O Zigbee escreve os números com o byte menos significativo primeiro (DCBA). Digite um valor para ver os seus bytes. A demanda é um número de 24 bits, então só os três primeiros viajam: 9348 vai como 84 24 00."
+    }
+}

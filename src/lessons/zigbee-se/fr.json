@@ -1,0 +1,98 @@
+{
+    "intro": "Zigbee Smart Energy (SE) est la langue du réseau domestique autour d'un compteur communicant. Le compteur, ou un concentrateur de communication à côté de lui, anime un petit réseau radio Zigbee dans la maison. Afficheurs domestiques, thermostats, gestionnaires de charge et bornes de recharge s'y joignent pour lire l'énergie et la puissance du compteur, recevoir prix et messages, et participer à l'effacement. Il fonctionne sur la radio IEEE 802.15.4 et équipe des millions de compteurs, surtout les compteurs SMETS2 de Grande-Bretagne et des programmes de distributeurs américains.",
+    "plain": "Un compteur communicant sait exactement combien d'électricité la maison consomme, seconde après seconde. Zigbee Smart Energy lui permet de le partager avec des appareils de la maison par un petit réseau radio : un afficheur dans la cuisine, un thermostat ou une borne pour la voiture. Quand le réseau électrique est tendu, le distributeur peut demander, par le compteur, que la borne ralentisse pendant quelques heures.",
+    "steps": {
+        "join": { "title": "Rejoindre le réseau de la maison", "text": "La nouvelle borne de recharge porte un code d'installation sur son étiquette. L'installateur l'enregistre auprès du distributeur, qui demande au compteur communicant de l'accepter. La borne trouve le réseau Zigbee du compteur, demande à le rejoindre et reçoit la clé réseau, chiffrée avec une clé tirée de son code d'installation. Elle s'annonce comme 0x3B91. La maison consomme 2.148 kW." },
+        "keys": { "title": "Une clé à elle", "text": "La clé réseau est partagée par tous les appareils de la maison. Pour ses propres messages avec le compteur, la borne exécute Key Establishment (CBKE) : tous deux montrent des certificats de l'autorité de certification Smart Energy et conviennent d'une clé de lien qu'eux seuls connaissent." },
+        "units": { "title": "D'abord les unités", "text": "Avant de lire le moindre nombre, la borne demande comment les lire : unité kW, multiplicateur 1, diviseur 1000. Une valeur brute de 9348 signifie donc 9.348 kW." },
+        "read": { "title": "Lire le compteur", "text": "La voiture charge maintenant à 7.2 kW, 30 A sous 240 V. La borne lit le compteur : 4821.337 kWh jusqu'ici, et toute la maison qui tire 9.348 kW en ce moment. Elle peut s'en servir pour rester sous la limite de l'abonnement." },
+        "event": { "title": "Effacement", "text": "En heure de pointe, le distributeur envoie par le compteur un événement d'effacement pour les bornes de recharge : réduire la charge moyenne de 50 % pendant 2 heures, dès maintenant. La borne participe, descend à 15 A, 3.6 kW, et signale que l'événement a commencé. Le compteur indique maintenant 5.748 kW." }
+    },
+    "frames": {
+        "associate": "Puis-je rejoindre ton réseau ?",
+        "transport-key": "Voici la clé réseau, verrouillée avec ton code d'installation",
+        "announce": "Je suis 0x3B91, me voici",
+        "ke-initiate": "Voici mon certificat ; convenons d'une clé",
+        "ke-confirm": "Voici le mien ; nous partageons maintenant une clé de lien",
+        "units": "Quels unité, multiplicateur et diviseur utilises-tu ?",
+        "units-res": "kW, × 1, ÷ 1000",
+        "read": "L'énergie totale et la puissance, s'il te plaît",
+        "read-res": "4821.337 kWh jusqu'ici, 9.348 kW maintenant",
+        "dr": "Bornes de recharge : demi-charge pendant 2 heures",
+        "lce": "Réduis ta charge moyenne de 50 % pendant 2 heures, dès maintenant",
+        "status": "Événement commencé",
+        "read2": "La puissance, s'il te plaît",
+        "read2-res": "5.748 kW maintenant"
+    },
+    "notes": {
+        "associate": "La borne balaie les canaux avec des requêtes de balise, et le compteur répond par une balise indiquant que l'adhésion est ouverte. Une requête et une réponse d'association IEEE 802.15.4 donnent ensuite à la borne son adresse courte, 0x3B91.",
+        "transport-key": "Le compteur est le centre de confiance. Il envoie la clé réseau chiffrée avec une clé de lien tirée du code d'installation par un hachage : seul un appareil qui connaît le code peut la lire.",
+        "announce": "Une annonce d'appareil ZDO : l'adresse courte de la borne, 0x3B91, et son adresse IEEE de 64 bits, pour que tout appareil de la maison la trouve.",
+        "ke-initiate": "La borne ouvre Key Establishment (cluster 0x0800) avec son certificat ECC implicite, émis pour son adresse de 64 bits par l'autorité de certification Smart Energy.",
+        "ke-confirm": "Le compteur répond avec son propre certificat. Tous deux envoient de nouvelles clés éphémères, calculent la même clé de lien avec ECMQV et le prouvent par un message de confirmation dans chaque sens. La clé de lien protège désormais leurs messages à la couche APS.",
+        "dr": "Par le réseau de comptage du distributeur (AMI), le système central signale au compteur un événement d'effacement pour les bornes de recharge.",
+        "lce": "Un LoadControlEvent du cluster Demand Response and Load Control : l'identifiant de l'événement, la classe d'appareil (borne de recharge), heure de début 0 (maintenant), 120 minutes, ajustement de charge moyen −50 %. Les champs qu'il n'utilise pas portent leur valeur « ignorer ».",
+        "status": "Un ReportEventStatus : l'identifiant de l'événement, l'état « événement commencé », l'heure et l'ajustement de charge appliqué, avec une signature ECDSA faite avec la clé du certificat de la borne."
+    },
+    "fields": {
+        "fc-request": { "name": "Contrôle de trame 0x00", "note": "Une commande globale, que tout cluster comprend, du client vers le serveur, non propre à un fabricant." },
+        "fc-response": { "name": "Contrôle de trame 0x18", "note": "Une commande globale du serveur vers le client ; pas de réponse par défaut souhaitée. La décomposition ci-dessous la détaille." },
+        "tsn": { "name": "Numéro de séquence de transaction", "note": "Choisi par la borne ; la réponse porte le même numéro." },
+        "cmd-read": { "name": "Commande 0x00 : Read Attributes", "note": "Suit une liste d'identifiants d'attribut, de 2 octets chacun." },
+        "cmd-read-response": { "name": "Commande 0x01 : Read Attributes Response", "note": "Un enregistrement par attribut : son identifiant, un état, puis son type et sa valeur." },
+        "attr-unit": { "name": "Attribut 0x0300 : UnitofMeasure", "note": "Les identifiants commencent par l'octet de poids faible : 00 03 vaut 0x0300. Cluster Metering 0x0702, profil Smart Energy 0x0109." },
+        "attr-multiplier": { "name": "Attribut 0x0301 : Multiplier", "note": "Chaque valeur brute est multipliée par lui." },
+        "attr-divisor": { "name": "Attribut 0x0302 : Divisor", "note": "Chaque valeur brute est ensuite divisée par lui." },
+        "attr-summation": { "name": "Attribut 0x0000 : CurrentSummationDelivered", "note": "Toute l'énergie que le compteur a livrée à la maison." },
+        "attr-demand": { "name": "Attribut 0x0400 : InstantaneousDemand", "note": "La puissance que la maison tire en ce moment ; négative quand elle injecte." },
+        "status-ok": { "name": "État 0x00 : SUCCESS", "note": "L'attribut existe et peut être lu ; son type et sa valeur suivent." },
+        "type-enum8": { "name": "Type 0x30 : énumération sur 8 bits", "note": "Un octet, un code tiré d'une liste." },
+        "type-uint24": { "name": "Type 0x22 : entier non signé sur 24 bits", "note": "Trois octets, poids faible en premier." },
+        "type-uint48": { "name": "Type 0x25 : entier non signé sur 48 bits", "note": "Six octets : assez pour que le compteur ne déborde jamais." },
+        "type-int24": { "name": "Type 0x2A : entier signé sur 24 bits", "note": "Trois octets, poids faible en premier ; il peut être négatif." },
+        "unit-kw": { "name": "0x00 : kW et kWh", "note": "Binaire pur, en kilowatts pour la puissance et en kilowattheures pour l'énergie." },
+        "multiplier-1": { "name": "Multiplicateur : 1", "note": "01 00 00 = 1." },
+        "divisor-1000": { "name": "Diviseur : 1000", "note": "E8 03 00 = 0x0003E8 = 1000. Chaque valeur brute est multipliée par 1 et divisée par 1000." },
+        "summation": { "name": "4821337 : 4821.337 kWh", "note": "59 91 49 00 00 00 = 0x499159 = 4821337 ; ÷ 1000 = 4821.337 kWh." },
+        "demand-9348": { "name": "9348 : 9.348 kW", "note": "84 24 00 = 0x002484 = 9348 ; ÷ 1000 = 9.348 kW : la maison, 2.148 kW, plus la borne, 7.2 kW." },
+        "demand-5748": { "name": "5748 : 5.748 kW", "note": "74 16 00 = 0x001674 = 5748 : la maison, 2.148 kW, plus la borne à mi-puissance, 3.6 kW." },
+        "fc-reserved": { "name": "Bits 7–5, réservés : 000", "note": "Toujours 0." },
+        "fc-no-default": { "name": "Bit 4, désactiver la réponse par défaut : 1", "note": "1 : ne pas envoyer de Default Response à cette trame." },
+        "fc-direction": { "name": "Bit 3, sens : 1", "note": "1 : du serveur vers le client, ici depuis le compteur. 0 : du client vers le serveur." },
+        "fc-manufacturer": { "name": "Bit 2, propre au fabricant : 0", "note": "0 : une commande standard. 1 : une commande propre au fabricant, avec un code fabricant après cet octet." },
+        "fc-type": { "name": "Bits 1–0, type de trame : 00", "note": "00 : une commande globale, la même dans tous les clusters. 01 : une commande propre à ce cluster." }
+    },
+    "devices": {
+        "meter": "Compteur communicant (ESI)",
+        "charger": "Borne de recharge",
+        "car": "Voiture électrique",
+        "cloud": "Système central du distributeur"
+    },
+    "facts": {
+        "standard": "Zigbee Smart Energy 1.x (jusqu'à 1.4), de la Connectivity Standards Alliance, anciennement Zigbee Alliance. Smart Energy 2.0 est devenu IEEE 2030.5, un autre protocole sur IP",
+        "between": "Le compteur communicant ou le concentrateur de communication (l'interface de services énergétiques, ESI) et les appareils de la maison : afficheurs, thermostats, gestionnaires de charge, bornes de recharge et compteurs de gaz",
+        "transport": "Radio IEEE 802.15.4 à 2.4 GHz, 250 kbit/s, trames de 127 octets au plus, en maillage ; SE 1.4 ajoute des bandes sous le GHz. Données dans des clusters ZCL, profil 0x0109",
+        "security": "Un appareil ne rejoint le réseau qu'avec un code d'installation enregistré au préalable. Chaque trame est chiffrée en AES-128 (CCM*) sous la clé réseau, et chaque appareil convient de sa propre clé de lien avec le compteur par CBKE, avec des certificats ECC",
+        "speed": "Une question et sa réponse prennent quelques dizaines de millisecondes ; les afficheurs interrogent en général toutes les quelques secondes. Les compteurs de gaz à pile dorment et se réveillent environ toutes les demi-heures"
+    },
+    "tips": [
+        "Un appareil ne rejoint le réseau que si son code d'installation a d'abord été enregistré auprès du compteur. Un caractère faux dans le formulaire, et il ne le rejoindra jamais.",
+        "La bande des 2.4 GHz est partagée avec le Wi-Fi. Les canaux Zigbee 15, 20 et 25 tombent entre les canaux Wi-Fi courants 1, 6 et 11 ; un canal voisin d'un Wi-Fi chargé perd des trames.",
+        "Lisez d'abord les unités : 9348 ne vaut 9.348 kW qu'avec un multiplicateur 1 et un diviseur 1000. Un autre compteur peut utiliser d'autres valeurs.",
+        "Les murs en béton et les coffrets de compteur métalliques affaiblissent les 2.4 GHz. Un compteur en sous-sol ou dans un coffret extérieur a souvent besoin d'un routeur Zigbee, un répéteur, entre lui et le logement."
+    ],
+    "points": {
+        "key": "Clé de lien",
+        "demand": "Puissance de la maison",
+        "charging": "Puissance de charge"
+    },
+    "values": {
+        "agreed": "convenue"
+    },
+    "anatomy": {
+        "frame-control": "Le contrôle de trame 0x18, bit par bit"
+    },
+    "playground": {
+        "encoder": "Zigbee écrit les nombres octet de poids faible en premier (DCBA). Saisissez une valeur pour voir ses octets. La puissance est un nombre sur 24 bits, seuls les trois premiers voyagent donc : 9348 part sous la forme 84 24 00."
+    }
+}

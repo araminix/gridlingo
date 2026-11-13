@@ -1,0 +1,98 @@
+{
+    "intro": "Zigbee Smart Energy (SE) è la lingua della rete domestica attorno a un contatore intelligente. Il contatore, o un hub di comunicazione accanto a lui, gestisce in casa una piccola rete radio Zigbee. Display domestici, termostati, controllori di carico e caricatori per auto elettriche vi entrano per leggere l'energia e la potenza del contatore, ricevere prezzi e messaggi e partecipare alla gestione della domanda. Funziona sulla radio IEEE 802.15.4 ed è in milioni di contatori intelligenti, soprattutto nei contatori SMETS2 della Gran Bretagna e nei programmi dei distributori statunitensi.",
+    "plain": "Un contatore intelligente sa esattamente quanta elettricità usa la casa, secondo per secondo. Zigbee Smart Energy gli permette di condividerlo con gli apparecchi di casa su una piccola rete radio: un display in cucina, un termostato o il caricatore dell'auto. Quando la rete elettrica è sotto sforzo, il distributore può chiedere, attraverso il contatore, che il caricatore rallenti per un paio d'ore.",
+    "steps": {
+        "join": { "title": "Entrare nella rete di casa", "text": "Il nuovo caricatore ha un codice di installazione sull'etichetta. L'installatore lo registra presso il distributore, che dice al contatore intelligente di accettarlo. Il caricatore trova la rete Zigbee del contatore, chiede di entrare e riceve la chiave di rete, cifrata con una chiave ricavata dal suo codice di installazione. Si annuncia come 0x3B91. La casa assorbe 2.148 kW." },
+        "keys": { "title": "Una chiave tutta sua", "text": "La chiave di rete è condivisa da tutti i dispositivi di casa. Per i propri messaggi con il contatore, il caricatore esegue Key Establishment (CBKE): entrambi mostrano certificati dell'autorità di certificazione Smart Energy e concordano una chiave di collegamento che conoscono solo loro due." },
+        "units": { "title": "Prima le unità", "text": "Prima di leggere qualsiasi numero, il caricatore chiede come leggerlo: unità kW, moltiplicatore 1, divisore 1000. Così un valore grezzo di 9348 significa 9.348 kW." },
+        "read": { "title": "Leggere il contatore", "text": "L'auto ora si carica a 7.2 kW, 30 A a 240 V. Il caricatore legge il contatore: 4821.337 kWh finora, e tutta la casa che assorbe 9.348 kW in questo momento. Può usarlo per restare sotto il limite della fornitura." },
+        "event": { "title": "Gestione della domanda", "text": "Nell'ora di punta, il distributore invia attraverso il contatore un evento di gestione della domanda per i caricatori: ridurre il carico medio del 50 % per 2 ore, da subito. Il caricatore partecipa, scende a 15 A, 3.6 kW, e segnala che l'evento è iniziato. Il contatore ora segna 5.748 kW." }
+    },
+    "frames": {
+        "associate": "Posso entrare nella tua rete?",
+        "transport-key": "Ecco la chiave di rete, chiusa con il tuo codice di installazione",
+        "announce": "Sono 0x3B91, eccomi",
+        "ke-initiate": "Ecco il mio certificato; concordiamo una chiave",
+        "ke-confirm": "Ecco il mio; ora condividiamo una chiave di collegamento",
+        "units": "Che unità, moltiplicatore e divisore usi?",
+        "units-res": "kW, × 1, ÷ 1000",
+        "read": "Energia totale e potenza, per favore",
+        "read-res": "4821.337 kWh finora, 9.348 kW adesso",
+        "dr": "Caricatori: metà carico per 2 ore",
+        "lce": "Riduci il tuo carico medio del 50 % per 2 ore, da adesso",
+        "status": "Evento iniziato",
+        "read2": "La potenza, per favore",
+        "read2-res": "5.748 kW adesso"
+    },
+    "notes": {
+        "associate": "Il caricatore scandisce i canali con richieste di beacon, e il contatore risponde con un beacon che dice che l'ingresso è aperto. Una richiesta e una risposta di associazione IEEE 802.15.4 danno poi al caricatore il suo indirizzo corto, 0x3B91.",
+        "transport-key": "Il contatore è il trust center. Invia la chiave di rete cifrata con una chiave di collegamento ricavata dal codice di installazione tramite un hash, così solo un dispositivo che conosce il codice può leggerla.",
+        "announce": "Un annuncio di dispositivo ZDO: l'indirizzo corto del caricatore, 0x3B91, e il suo indirizzo IEEE a 64 bit, perché ogni dispositivo di casa lo trovi.",
+        "ke-initiate": "Il caricatore apre Key Establishment (cluster 0x0800) con il suo certificato ECC implicito, emesso per il suo indirizzo a 64 bit dall'autorità di certificazione Smart Energy.",
+        "ke-confirm": "Il contatore risponde con il proprio certificato. Entrambi inviano nuove chiavi effimere, calcolano la stessa chiave di collegamento con ECMQV e lo dimostrano con un messaggio di conferma in ogni senso. La chiave di collegamento ora protegge i loro messaggi al livello APS.",
+        "dr": "Attraverso la rete di misura del distributore (AMI), il sistema centrale segnala al contatore un evento di gestione della domanda per i caricatori.",
+        "lce": "Un LoadControlEvent del cluster Demand Response and Load Control: l'ID dell'evento, la classe di dispositivo (caricatore per auto elettriche), ora di inizio 0 (subito), 120 minuti, regolazione del carico medio −50 %. I campi che non usa portano il loro valore «ignora».",
+        "status": "Un ReportEventStatus: l'ID dell'evento, lo stato «evento iniziato», l'ora e la regolazione del carico applicata, con una firma ECDSA fatta con la chiave del certificato del caricatore."
+    },
+    "fields": {
+        "fc-request": { "name": "Controllo di frame 0x00", "note": "Un comando globale, che ogni cluster capisce, dal client al server, non specifico di un costruttore." },
+        "fc-response": { "name": "Controllo di frame 0x18", "note": "Un comando globale dal server al client; non si vuole una risposta predefinita. La scomposizione qui sotto lo separa." },
+        "tsn": { "name": "Numero di sequenza della transazione", "note": "Scelto dal caricatore; la risposta porta lo stesso numero." },
+        "cmd-read": { "name": "Comando 0x00: Read Attributes", "note": "Segue un elenco di ID di attributo, di 2 byte ciascuno." },
+        "cmd-read-response": { "name": "Comando 0x01: Read Attributes Response", "note": "Un record per attributo: il suo ID, uno stato, poi il tipo e il valore." },
+        "attr-unit": { "name": "Attributo 0x0300: UnitofMeasure", "note": "Gli ID vanno con il byte meno significativo per primo: 00 03 è 0x0300. Cluster Metering 0x0702, profilo Smart Energy 0x0109." },
+        "attr-multiplier": { "name": "Attributo 0x0301: Multiplier", "note": "Ogni valore grezzo viene moltiplicato per esso." },
+        "attr-divisor": { "name": "Attributo 0x0302: Divisor", "note": "Poi ogni valore grezzo viene diviso per esso." },
+        "attr-summation": { "name": "Attributo 0x0000: CurrentSummationDelivered", "note": "Tutta l'energia che il contatore ha fornito alla casa." },
+        "attr-demand": { "name": "Attributo 0x0400: InstantaneousDemand", "note": "La potenza che la casa assorbe adesso; negativa quando immette in rete." },
+        "status-ok": { "name": "Stato 0x00: SUCCESS", "note": "L'attributo esiste e si può leggere; seguono tipo e valore." },
+        "type-enum8": { "name": "Tipo 0x30: enumerazione a 8 bit", "note": "Un byte, un codice preso da un elenco." },
+        "type-uint24": { "name": "Tipo 0x22: intero senza segno a 24 bit", "note": "Tre byte, il meno significativo per primo." },
+        "type-uint48": { "name": "Tipo 0x25: intero senza segno a 48 bit", "note": "Sei byte: abbastanza perché il contatore non trabocchi mai." },
+        "type-int24": { "name": "Tipo 0x2A: intero con segno a 24 bit", "note": "Tre byte, il meno significativo per primo; può essere negativo." },
+        "unit-kw": { "name": "0x00: kW e kWh", "note": "Binario puro, in kilowatt per la potenza e kilowattora per l'energia." },
+        "multiplier-1": { "name": "Moltiplicatore: 1", "note": "01 00 00 = 1." },
+        "divisor-1000": { "name": "Divisore: 1000", "note": "E8 03 00 = 0x0003E8 = 1000. Ogni valore grezzo viene moltiplicato per 1 e diviso per 1000." },
+        "summation": { "name": "4821337: 4821.337 kWh", "note": "59 91 49 00 00 00 = 0x499159 = 4821337; ÷ 1000 = 4821.337 kWh." },
+        "demand-9348": { "name": "9348: 9.348 kW", "note": "84 24 00 = 0x002484 = 9348; ÷ 1000 = 9.348 kW: la casa, 2.148 kW, più il caricatore, 7.2 kW." },
+        "demand-5748": { "name": "5748: 5.748 kW", "note": "74 16 00 = 0x001674 = 5748: la casa, 2.148 kW, più il caricatore a metà potenza, 3.6 kW." },
+        "fc-reserved": { "name": "Bit 7–5, riservati: 000", "note": "Sempre 0." },
+        "fc-no-default": { "name": "Bit 4, disattiva la risposta predefinita: 1", "note": "1: non inviare una Default Response a questo frame." },
+        "fc-direction": { "name": "Bit 3, direzione: 1", "note": "1: dal server al client, qui dal contatore. 0: dal client al server." },
+        "fc-manufacturer": { "name": "Bit 2, specifico del costruttore: 0", "note": "0: un comando standard. 1: un comando proprio del costruttore, con un codice costruttore dopo questo byte." },
+        "fc-type": { "name": "Bit 1–0, tipo di frame: 00", "note": "00: un comando globale, uguale in ogni cluster. 01: un comando solo di questo cluster." }
+    },
+    "devices": {
+        "meter": "Contatore intelligente (ESI)",
+        "charger": "Caricatore per auto elettriche",
+        "car": "Auto elettrica",
+        "cloud": "Sistema centrale del distributore"
+    },
+    "facts": {
+        "standard": "Zigbee Smart Energy 1.x (fino a 1.4), della Connectivity Standards Alliance, già Zigbee Alliance. Smart Energy 2.0 è diventato IEEE 2030.5, un altro protocollo su IP",
+        "between": "Il contatore intelligente o l'hub di comunicazione (l'interfaccia dei servizi energetici, ESI) e i dispositivi di casa: display domestici, termostati, controllori di carico, caricatori per auto elettriche e contatori del gas",
+        "transport": "Radio IEEE 802.15.4 a 2.4 GHz, 250 kbit/s, frame di al massimo 127 byte, a maglia; SE 1.4 aggiunge bande sotto il GHz. Dati in cluster ZCL, profilo 0x0109",
+        "security": "Un dispositivo entra solo con un codice di installazione registrato prima. Ogni frame è cifrato con AES-128 (CCM*) sotto la chiave di rete, e ogni dispositivo concorda la propria chiave di collegamento con il contatore tramite CBKE, con certificati ECC",
+        "speed": "Una domanda e la sua risposta richiedono qualche decina di millisecondi; i display di solito chiedono ogni pochi secondi. I contatori del gas a batteria dormono e si svegliano circa ogni mezz'ora"
+    },
+    "tips": [
+        "Un dispositivo entra solo se il suo codice di installazione è stato prima registrato presso il contatore. Un carattere sbagliato nel modulo, e non entrerà mai.",
+        "I 2.4 GHz sono condivisi con il Wi-Fi. I canali Zigbee 15, 20 e 25 cadono tra i canali Wi-Fi comuni 1, 6 e 11; un canale accanto a un Wi-Fi trafficato perde frame.",
+        "Leggete prima le unità: 9348 significa 9.348 kW solo con moltiplicatore 1 e divisore 1000. Un altro contatore può usare altri valori.",
+        "I muri di cemento e le cassette metalliche dei contatori indeboliscono i 2.4 GHz. Un contatore in cantina o in un armadio esterno spesso ha bisogno di un router Zigbee, un ripetitore, tra sé e l'abitazione."
+    ],
+    "points": {
+        "key": "Chiave di collegamento",
+        "demand": "Potenza della casa",
+        "charging": "Potenza di ricarica"
+    },
+    "values": {
+        "agreed": "concordata"
+    },
+    "anatomy": {
+        "frame-control": "Il controllo di frame 0x18, bit per bit"
+    },
+    "playground": {
+        "encoder": "Zigbee scrive i numeri con il byte meno significativo per primo (DCBA). Inserite un valore per vederne i byte. La potenza è un numero a 24 bit, quindi viaggiano solo i primi tre: 9348 parte come 84 24 00."
+    }
+}

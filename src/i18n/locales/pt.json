@@ -259,6 +259,8 @@
     "lesson.ansi-c12.where": "Medidores de energia elétrica",
     "lesson.g3-plc.summary": "Dados de medidores pelo cabo de energia",
     "lesson.g3-plc.where": "Medidores inteligentes, concentradores",
+    "lesson.zigbee-se.summary": "O rádio do medidor inteligente para os aparelhos da casa",
+    "lesson.zigbee-se.where": "Medidores inteligentes, displays domésticos, carregadores de VE",
     "lesson.mqtt.summary": "Publicação e assinatura para telemetria",
     "lesson.mqtt.where": "Gateways de borda, plataformas em nuvem",
     "lesson.sparkplug-b.summary": "MQTT com mensagens de nascimento e morte, e um modelo de dados",

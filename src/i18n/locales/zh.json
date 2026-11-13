@@ -259,6 +259,8 @@
     "lesson.ansi-c12.where": "电表",
     "lesson.g3-plc.summary": "经电力电缆传送电表数据",
     "lesson.g3-plc.where": "智能电表、数据集中器",
+    "lesson.zigbee-se.summary": "智能电表与家中设备之间的无线通信",
+    "lesson.zigbee-se.where": "智能电表、家用显示器、电动汽车充电桩",
     "lesson.mqtt.summary": "用于遥测的发布与订阅",
     "lesson.mqtt.where": "边缘网关、云平台",
     "lesson.sparkplug-b.summary": "带上线/离线消息和数据模型的 MQTT",

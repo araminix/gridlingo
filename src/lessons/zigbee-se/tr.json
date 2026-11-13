@@ -1,0 +1,98 @@
+{
+    "intro": "Zigbee Smart Energy (SE), bir akıllı sayacın çevresindeki ev ağının dilidir. Sayaç ya da yanındaki bir iletişim merkezi, evde küçük bir Zigbee telsiz ağı işletir. Ev içi ekranlar, termostatlar, yük denetleyicileri ve elektrikli araç şarj cihazları bu ağa katılarak sayaçtan enerjiyi ve talebi okur, fiyat ve mesaj alır ve talep tarafı katılımına katılır. IEEE 802.15.4 telsizi üzerinde çalışır ve milyonlarca akıllı sayaçta, en çok da İngiltere'nin SMETS2 sayaçlarında ve ABD dağıtım şirketlerinin programlarında kullanılır.",
+    "plain": "Akıllı sayaç evin ne kadar elektrik kullandığını saniye saniye bilir. Zigbee Smart Energy, bunu küçük bir telsiz ağı üzerinden evdeki cihazlarla paylaşmasını sağlar: mutfaktaki bir ekran, bir termostat ya da araba şarj cihazı. Şebeke zorlandığında, dağıtım şirketi sayaç üzerinden şarj cihazından birkaç saat yavaşlamasını isteyebilir.",
+    "steps": {
+        "join": { "title": "Ev ağına katılmak", "text": "Yeni şarj cihazının etiketinde bir kurulum kodu var. Kurulumcu kodu dağıtım şirketine kaydeder, şirket de akıllı sayaca cihazı kabul etmesini söyler. Şarj cihazı sayacın Zigbee ağını bulur, katılmak ister ve kurulum kodundan türetilen bir anahtarla şifrelenmiş ağ anahtarını alır. Kendini 0x3B91 olarak duyurur. Ev 2.148 kW kullanıyor." },
+        "keys": { "title": "Kendine ait bir anahtar", "text": "Ağ anahtarını evdeki tüm cihazlar paylaşır. Sayaçla kendi mesajları için şarj cihazı Key Establishment (CBKE) çalıştırır: ikisi de Smart Energy sertifika otoritesinden sertifikalarını gösterir ve yalnızca ikisinin bildiği bir bağlantı anahtarında anlaşır." },
+        "units": { "title": "Önce birimler", "text": "Herhangi bir sayıyı okumadan önce şarj cihazı onları nasıl okuyacağını sorar: birim kW, çarpan 1, bölen 1000. Yani 9348 ham değeri 9.348 kW demektir." },
+        "read": { "title": "Sayacı okumak", "text": "Araç şimdi 7.2 kW ile, 240 V'ta 30 A ile şarj oluyor. Şarj cihazı sayacı okur: şimdiye kadar 4821.337 kWh ve bütün ev şu anda 9.348 kW çekiyor. Bunu evin bağlantı sınırının altında kalmak için kullanabilir." },
+        "event": { "title": "Talep tarafı katılımı", "text": "Puant saatte dağıtım şirketi sayaç üzerinden şarj cihazları için bir talep tarafı olayı gönderir: ortalama yükü 2 saat boyunca %50 azalt, hemen şimdi. Şarj cihazı katılır, 15 A'e, 3.6 kW'a iner ve olayın başladığını bildirir. Sayaç şimdi 5.748 kW gösteriyor." }
+    },
+    "frames": {
+        "associate": "Ağına katılabilir miyim?",
+        "transport-key": "İşte ağ anahtarı, kurulum kodunla kilitlenmiş",
+        "announce": "Ben 0x3B91, buradayım",
+        "ke-initiate": "İşte sertifikam; bir anahtarda anlaşalım",
+        "ke-confirm": "İşte benimki; artık bir bağlantı anahtarını paylaşıyoruz",
+        "units": "Hangi birimi, çarpanı ve böleni kullanıyorsun?",
+        "units-res": "kW, × 1, ÷ 1000",
+        "read": "Toplam enerji ve talep lütfen",
+        "read-res": "Şimdiye kadar 4821.337 kWh, şu an 9.348 kW",
+        "dr": "Şarj cihazları: 2 saat yarım yük",
+        "lce": "Ortalama yükünü 2 saat boyunca %50 azalt, şimdiden",
+        "status": "Olay başladı",
+        "read2": "Talep lütfen",
+        "read2-res": "Şu an 5.748 kW"
+    },
+    "notes": {
+        "associate": "Şarj cihazı kanalları beacon istekleriyle tarar, sayaç da katılımın açık olduğunu söyleyen bir beacon ile cevap verir. Ardından bir IEEE 802.15.4 ilişkilendirme isteği ve cevabı şarj cihazına kısa adresini, 0x3B91'i verir.",
+        "transport-key": "Sayaç güven merkezidir. Ağ anahtarını, kurulum kodundan bir hash ile türetilen bir bağlantı anahtarıyla şifreleyerek gönderir; böylece onu yalnızca kodu bilen bir cihaz okuyabilir.",
+        "announce": "Bir ZDO cihaz duyurusu: şarj cihazının kısa adresi 0x3B91 ve 64 bitlik IEEE adresi, evdeki her cihaz onu bulabilsin diye.",
+        "ke-initiate": "Şarj cihazı Key Establishment'ı (küme 0x0800) Smart Energy sertifika otoritesinin 64 bitlik adresi için verdiği örtük ECC sertifikasıyla başlatır.",
+        "ke-confirm": "Sayaç kendi sertifikasıyla cevap verir. İkisi de yeni geçici anahtarlar gönderir, ECMQV ile aynı bağlantı anahtarını hesaplar ve bunu her yönde bir onay mesajıyla kanıtlar. Bağlantı anahtarı artık APS katmanında mesajlarını korur.",
+        "dr": "Dağıtım şirketinin sayaç ağı (AMI) üzerinden merkez sistem, sayaca şarj cihazları için bir talep tarafı olayını bildirir.",
+        "lce": "Demand Response and Load Control kümesinden bir LoadControlEvent: olay kimliği, cihaz sınıfı (EV şarj cihazı), başlangıç zamanı 0 (şimdi), 120 dakika, ortalama yük ayarı −%50. Kullanmadığı alanlar \"yok say\" değerlerini taşır.",
+        "status": "Bir ReportEventStatus: olay kimliği, \"olay başladı\" durumu, zaman ve uygulanan yük ayarı; şarj cihazının sertifika anahtarıyla atılmış bir ECDSA imzasıyla."
+    },
+    "fields": {
+        "fc-request": { "name": "Çerçeve denetimi 0x00", "note": "Her kümenin anladığı genel bir komut; istemciden sunucuya, üreticiye özgü değil." },
+        "fc-response": { "name": "Çerçeve denetimi 0x18", "note": "Sunucudan istemciye genel bir komut; varsayılan cevap istenmiyor. Aşağıdaki çözümleme onu bit bit ayırır." },
+        "tsn": { "name": "İşlem sıra numarası", "note": "Şarj cihazı seçer; cevap aynı numarayı taşır." },
+        "cmd-read": { "name": "Komut 0x00: Read Attributes", "note": "Ardından her biri 2 bayt olan bir öznitelik kimliği listesi gelir." },
+        "cmd-read-response": { "name": "Komut 0x01: Read Attributes Response", "note": "Her öznitelik için bir kayıt: kimliği, bir durum, sonra tipi ve değeri." },
+        "attr-unit": { "name": "Öznitelik 0x0300: UnitofMeasure", "note": "Kimlikler en anlamsız bayt önce gelir: 00 03, 0x0300'dür. Metering kümesi 0x0702, Smart Energy profili 0x0109." },
+        "attr-multiplier": { "name": "Öznitelik 0x0301: Multiplier", "note": "Her ham değer bununla çarpılır." },
+        "attr-divisor": { "name": "Öznitelik 0x0302: Divisor", "note": "Sonra her ham değer buna bölünür." },
+        "attr-summation": { "name": "Öznitelik 0x0000: CurrentSummationDelivered", "note": "Sayacın eve verdiği bütün enerji." },
+        "attr-demand": { "name": "Öznitelik 0x0400: InstantaneousDemand", "note": "Evin şu an çektiği güç; şebekeye verirken negatif." },
+        "status-ok": { "name": "Durum 0x00: SUCCESS", "note": "Öznitelik var ve okunabilir; tipi ve değeri ardından gelir." },
+        "type-enum8": { "name": "Tip 0x30: 8 bitlik numaralandırma", "note": "Bir bayt, bir listeden bir kod." },
+        "type-uint24": { "name": "Tip 0x22: işaretsiz 24 bitlik tam sayı", "note": "Üç bayt, en anlamsızı önce." },
+        "type-uint48": { "name": "Tip 0x25: işaretsiz 48 bitlik tam sayı", "note": "Altı bayt: sayacın asla taşmayacağı kadar." },
+        "type-int24": { "name": "Tip 0x2A: işaretli 24 bitlik tam sayı", "note": "Üç bayt, en anlamsızı önce; negatif olabilir." },
+        "unit-kw": { "name": "0x00: kW ve kWh", "note": "Düz ikili biçim; güç için kilovat, enerji için kilovatsaat." },
+        "multiplier-1": { "name": "Çarpan: 1", "note": "01 00 00 = 1." },
+        "divisor-1000": { "name": "Bölen: 1000", "note": "E8 03 00 = 0x0003E8 = 1000. Her ham değer 1 ile çarpılır ve 1000'e bölünür." },
+        "summation": { "name": "4821337: 4821.337 kWh", "note": "59 91 49 00 00 00 = 0x499159 = 4821337; ÷ 1000 = 4821.337 kWh." },
+        "demand-9348": { "name": "9348: 9.348 kW", "note": "84 24 00 = 0x002484 = 9348; ÷ 1000 = 9.348 kW: ev, 2.148 kW, artı şarj cihazı, 7.2 kW." },
+        "demand-5748": { "name": "5748: 5.748 kW", "note": "74 16 00 = 0x001674 = 5748: ev, 2.148 kW, artı yarım güçteki şarj cihazı, 3.6 kW." },
+        "fc-reserved": { "name": "Bit 7–5, ayrılmış: 000", "note": "Her zaman 0." },
+        "fc-no-default": { "name": "Bit 4, varsayılan cevabı kapat: 1", "note": "1: bu çerçeveye Default Response gönderme." },
+        "fc-direction": { "name": "Bit 3, yön: 1", "note": "1: sunucudan istemciye, burada sayaçtan. 0: istemciden sunucuya." },
+        "fc-manufacturer": { "name": "Bit 2, üreticiye özgü: 0", "note": "0: standart bir komut. 1: üreticinin kendi komutu, bu bayttan sonra bir üretici koduyla." },
+        "fc-type": { "name": "Bit 1–0, çerçeve tipi: 00", "note": "00: her kümede aynı olan genel bir komut. 01: yalnızca bu kümenin komutu." }
+    },
+    "devices": {
+        "meter": "Akıllı sayaç (ESI)",
+        "charger": "EV şarj cihazı",
+        "car": "Elektrikli araç",
+        "cloud": "Dağıtım şirketi merkez sistemi"
+    },
+    "facts": {
+        "standard": "Connectivity Standards Alliance'tan (eski adıyla Zigbee Alliance) Zigbee Smart Energy 1.x (1.4'e kadar). Smart Energy 2.0, IP üzerinde başka bir protokol olan IEEE 2030.5 oldu",
+        "between": "Akıllı sayaç ya da iletişim merkezi (enerji hizmet arayüzü, ESI) ile evdeki cihazlar: ev içi ekranlar, termostatlar, yük denetleyicileri, EV şarj cihazları ve gaz sayaçları",
+        "transport": "2.4 GHz'te IEEE 802.15.4 telsizi, 250 kbit/s, en fazla 127 baytlık çerçeveler, örgü ağ; SE 1.4, GHz altı bantları ekler. Veriler ZCL kümelerinde, profil 0x0109",
+        "security": "Bir cihaz yalnızca önceden kaydedilmiş bir kurulum koduyla katılır. Her çerçeve ağ anahtarıyla AES-128 (CCM*) ile şifrelenir ve her cihaz ECC sertifikalarıyla CBKE üzerinden sayaçla kendi bağlantı anahtarında anlaşır",
+        "speed": "Bir soru ve cevabı birkaç on milisaniye sürer; ekranlar genelde birkaç saniyede bir sorar. Pille çalışan gaz sayaçları uyur ve yaklaşık yarım saatte bir uyanır"
+    },
+    "tips": [
+        "Bir cihaz yalnızca kurulum kodu önceden sayaca kaydedildiyse katılır. Formda tek bir yanlış karakter, ve asla katılmaz.",
+        "2.4 GHz, Wi-Fi ile paylaşılır. Zigbee kanalları 15, 20 ve 25, yaygın Wi-Fi kanalları 1, 6 ve 11'in arasına düşer; yoğun bir Wi-Fi ağının yanındaki kanal çerçeve kaybeder.",
+        "Önce birimleri okuyun: 9348 ancak çarpan 1 ve bölen 1000 ile 9.348 kW demektir. Başka bir sayaç başka değerler kullanabilir.",
+        "Beton duvarlar ve metal sayaç kutuları 2.4 GHz'i zayıflatır. Bodrumdaki ya da dış dolaptaki bir sayaç, kendisiyle konut arasında çoğu zaman bir Zigbee yönlendiricisine, bir tekrarlayıcıya ihtiyaç duyar."
+    ],
+    "points": {
+        "key": "Bağlantı anahtarı",
+        "demand": "Evin talebi",
+        "charging": "Şarj gücü"
+    },
+    "values": {
+        "agreed": "anlaşıldı"
+    },
+    "anatomy": {
+        "frame-control": "Çerçeve denetimi 0x18, bit bit"
+    },
+    "playground": {
+        "encoder": "Zigbee sayıları en anlamsız bayt önce gelecek şekilde yazar (DCBA). Baytlarını görmek için bir değer girin. Talep 24 bitlik bir sayıdır, bu yüzden yalnızca ilk üçü gider: 9348, 84 24 00 olarak gider."
+    }
+}

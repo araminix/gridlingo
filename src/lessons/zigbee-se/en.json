@@ -1,0 +1,98 @@
+{
+    "intro": "Zigbee Smart Energy (SE) is the language of the home area network around a smart meter. The meter, or a communications hub beside it, runs a small Zigbee radio network in the home. In-home displays, thermostats, load controllers and EV chargers join it to read the meter's energy and demand, receive prices and messages, and take part in demand response. It runs on IEEE 802.15.4 radio and is used in millions of smart meters, most of all in Great Britain's SMETS2 meters and in US utility programmes.",
+    "plain": "A smart meter knows exactly how much electricity the home is using, second by second. Zigbee Smart Energy lets it share that with gadgets in the home over a small radio network: a display in the kitchen, a thermostat or a car charger. When the grid is under strain, the utility can ask, through the meter, for the charger to slow down for a couple of hours.",
+    "steps": {
+        "join": { "title": "Joining the home network", "text": "The new EV charger has an install code on its label. The installer registers it with the utility, which tells the smart meter to accept it. The charger finds the meter's Zigbee network, asks to join and receives the network key, encrypted with a key worked out from its install code. It announces itself as 0x3B91. The house is using 2.148 kW." },
+        "keys": { "title": "A key of its own", "text": "The network key is shared by every device in the home. For its own messages with the meter, the charger runs Key Establishment (CBKE): both show certificates from the Smart Energy certificate authority and agree on a link key that only the two of them know." },
+        "units": { "title": "Units first", "text": "Before reading any number, the charger asks how to read them: unit kW, multiplier 1, divisor 1000. So a raw value of 9348 means 9.348 kW." },
+        "read": { "title": "Reading the meter", "text": "The car is now charging at 7.2 kW, 30 A at 240 V. The charger reads the meter: 4821.337 kWh so far, and the whole house drawing 9.348 kW right now. It can use this to stay under the home's supply limit." },
+        "event": { "title": "Demand response", "text": "At peak time, the utility sends a demand response event for EV chargers through the meter: cut the average load by 50 % for 2 hours, starting now. The charger takes part, drops to 15 A, 3.6 kW, and reports that the event has started. The meter now reads 5.748 kW." }
+    },
+    "frames": {
+        "associate": "May I join your network?",
+        "transport-key": "Here is the network key, locked with your install code",
+        "announce": "I am 0x3B91, here",
+        "ke-initiate": "Here is my certificate; let's agree on a key",
+        "ke-confirm": "Here is mine; we now share a link key",
+        "units": "What unit, multiplier and divisor do you use?",
+        "units-res": "kW, × 1, ÷ 1000",
+        "read": "Total energy and demand, please",
+        "read-res": "4821.337 kWh so far, 9.348 kW now",
+        "dr": "EV chargers: half load for 2 hours",
+        "lce": "Cut your average load by 50 % for 2 hours, from now",
+        "status": "Event started",
+        "read2": "Demand, please",
+        "read2-res": "5.748 kW now"
+    },
+    "notes": {
+        "associate": "The charger scans the channels with beacon requests, and the meter answers with a beacon that says joining is open. An IEEE 802.15.4 association request and response then give the charger its short address, 0x3B91.",
+        "transport-key": "The meter is the trust center. It sends the network key encrypted with a link key worked out from the install code with a hash, so only a device that knows the code can read it.",
+        "announce": "A ZDO device announce: the charger's short address 0x3B91 and its 64-bit IEEE address, so every device in the home can find it.",
+        "ke-initiate": "The charger opens Key Establishment (cluster 0x0800) with its implicit ECC certificate, issued for its 64-bit address by the Smart Energy certificate authority.",
+        "ke-confirm": "The meter answers with its own certificate. Both send fresh ephemeral keys, work out the same link key with ECMQV and prove it with a confirm message each way. The link key now protects their messages at the APS layer.",
+        "dr": "Over the utility's metering network (AMI), the head-end tells the meter about a demand response event for EV chargers.",
+        "lce": "A LoadControlEvent of the Demand Response and Load Control cluster: the event ID, the device class (EV charger), start time 0 (now), 120 minutes, average load adjustment −50 %. The fields it does not use carry their 'ignore' values.",
+        "status": "A ReportEventStatus: the event ID, the status 'event started', the time and the load adjustment applied, with an ECDSA signature from the charger's certificate key."
+    },
+    "fields": {
+        "fc-request": { "name": "Frame control 0x00", "note": "A global command, one that every cluster understands, from client to server, not maker-specific." },
+        "fc-response": { "name": "Frame control 0x18", "note": "A global command from server to client; no default response wanted. The breakdown below takes it apart." },
+        "tsn": { "name": "Transaction sequence number", "note": "Chosen by the charger; the answer carries the same number." },
+        "cmd-read": { "name": "Command 0x00: Read Attributes", "note": "A list of attribute IDs follows, 2 bytes each." },
+        "cmd-read-response": { "name": "Command 0x01: Read Attributes Response", "note": "One record per attribute: its ID, a status, then its type and value." },
+        "attr-unit": { "name": "Attribute 0x0300: UnitofMeasure", "note": "IDs go least significant byte first: 00 03 is 0x0300. Metering cluster 0x0702, Smart Energy profile 0x0109." },
+        "attr-multiplier": { "name": "Attribute 0x0301: Multiplier", "note": "Each raw value is multiplied by it." },
+        "attr-divisor": { "name": "Attribute 0x0302: Divisor", "note": "Each raw value is then divided by it." },
+        "attr-summation": { "name": "Attribute 0x0000: CurrentSummationDelivered", "note": "All the energy the meter has delivered to the home." },
+        "attr-demand": { "name": "Attribute 0x0400: InstantaneousDemand", "note": "The power the home draws right now; negative when it exports." },
+        "status-ok": { "name": "Status 0x00: SUCCESS", "note": "The attribute exists and can be read; its type and value follow." },
+        "type-enum8": { "name": "Type 0x30: 8-bit enumeration", "note": "One byte, a code from a list." },
+        "type-uint24": { "name": "Type 0x22: unsigned 24-bit integer", "note": "Three bytes, least significant first." },
+        "type-uint48": { "name": "Type 0x25: unsigned 48-bit integer", "note": "Six bytes: enough that the meter never runs out." },
+        "type-int24": { "name": "Type 0x2A: signed 24-bit integer", "note": "Three bytes, least significant first; it can be negative." },
+        "unit-kw": { "name": "0x00: kW and kWh", "note": "Plain binary, in kilowatts for power and kilowatt-hours for energy." },
+        "multiplier-1": { "name": "Multiplier: 1", "note": "01 00 00 = 1." },
+        "divisor-1000": { "name": "Divisor: 1000", "note": "E8 03 00 = 0x0003E8 = 1000. Every raw value is multiplied by 1 and divided by 1000." },
+        "summation": { "name": "4821337: 4821.337 kWh", "note": "59 91 49 00 00 00 = 0x499159 = 4821337; ÷ 1000 = 4821.337 kWh." },
+        "demand-9348": { "name": "9348: 9.348 kW", "note": "84 24 00 = 0x002484 = 9348; ÷ 1000 = 9.348 kW: the house, 2.148 kW, plus the charger, 7.2 kW." },
+        "demand-5748": { "name": "5748: 5.748 kW", "note": "74 16 00 = 0x001674 = 5748: the house, 2.148 kW, plus the charger at half power, 3.6 kW." },
+        "fc-reserved": { "name": "Bits 7–5, reserved: 000", "note": "Always 0." },
+        "fc-no-default": { "name": "Bit 4, disable default response: 1", "note": "1: do not send a Default Response to this frame." },
+        "fc-direction": { "name": "Bit 3, direction: 1", "note": "1: from server to client, here from the meter. 0: from client to server." },
+        "fc-manufacturer": { "name": "Bit 2, manufacturer specific: 0", "note": "0: a standard command. 1: a maker's own, with a manufacturer code after this byte." },
+        "fc-type": { "name": "Bits 1–0, frame type: 00", "note": "00: a global command, the same in every cluster. 01: a command of this cluster only." }
+    },
+    "devices": {
+        "meter": "Smart meter (ESI)",
+        "charger": "EV charger",
+        "car": "Electric car",
+        "cloud": "Utility head-end"
+    },
+    "facts": {
+        "standard": "Zigbee Smart Energy 1.x (up to 1.4), from the Connectivity Standards Alliance, formerly the Zigbee Alliance. Smart Energy 2.0 became IEEE 2030.5, a different protocol over IP",
+        "between": "The smart meter or communications hub (the energy service interface, ESI) and devices in the home: in-home displays, thermostats, load controllers, EV chargers and gas meters",
+        "transport": "IEEE 802.15.4 radio at 2.4 GHz, 250 kbit/s, frames of at most 127 bytes, in a mesh; SE 1.4 adds sub-GHz bands. Data in ZCL clusters, profile 0x0109",
+        "security": "A device joins only with an install code registered beforehand. Every frame is encrypted with AES-128 (CCM*) under the network key, and each device agrees its own link key with the meter through CBKE, with ECC certificates",
+        "speed": "A question and its answer take a few tens of milliseconds; displays usually ask every few seconds. Battery gas meters sleep and wake about every half hour"
+    },
+    "tips": [
+        "A device joins only if its install code was registered with the meter first. One wrong character on the form, and it never joins.",
+        "2.4 GHz is shared with Wi-Fi. Zigbee channels 15, 20 and 25 sit between the common Wi-Fi channels 1, 6 and 11; a channel next to a busy Wi-Fi network loses frames.",
+        "Read the units first: 9348 means 9.348 kW only with multiplier 1 and divisor 1000. Another meter may use other values.",
+        "Concrete walls and metal meter boxes weaken 2.4 GHz. A meter in a basement or an outside cabinet often needs a Zigbee router, a repeater, between it and the home."
+    ],
+    "points": {
+        "key": "Link key",
+        "demand": "Home demand",
+        "charging": "Charging power"
+    },
+    "values": {
+        "agreed": "agreed"
+    },
+    "anatomy": {
+        "frame-control": "The frame control 0x18, bit by bit"
+    },
+    "playground": {
+        "encoder": "Zigbee writes numbers least significant byte first (DCBA). Enter a value to see its bytes. The demand is a 24-bit number, so only the first three travel: 9348 goes as 84 24 00."
+    }
+}

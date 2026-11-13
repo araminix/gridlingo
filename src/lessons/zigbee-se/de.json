@@ -1,0 +1,98 @@
+{
+    "intro": "Zigbee Smart Energy (SE) ist die Sprache des Heimnetzes rund um einen Smart Meter. Der Zähler, oder ein Kommunikations-Hub daneben, betreibt im Haus ein kleines Zigbee-Funknetz. Hausdisplays, Thermostate, Laststeuergeräte und Wallboxen treten ihm bei, um Energie und Leistung vom Zähler zu lesen, Preise und Nachrichten zu empfangen und bei Demand Response mitzumachen. Es läuft auf IEEE-802.15.4-Funk und steckt in Millionen Smart Metern, vor allem in den britischen SMETS2-Zählern und in Programmen US-amerikanischer Versorger.",
+    "plain": "Ein Smart Meter weiß genau, wie viel Strom das Haus gerade verbraucht, Sekunde für Sekunde. Mit Zigbee Smart Energy teilt er das über ein kleines Funknetz mit Geräten im Haus: einem Display in der Küche, einem Thermostat oder einer Ladestation fürs Auto. Wenn das Netz unter Druck steht, kann der Versorger über den Zähler bitten, dass die Ladestation für ein paar Stunden langsamer lädt.",
+    "steps": {
+        "join": { "title": "Dem Heimnetz beitreten", "text": "Die neue Wallbox hat einen Installationscode auf dem Typenschild. Der Installateur meldet ihn beim Versorger an, der den Smart Meter anweist, sie aufzunehmen. Die Wallbox findet das Zigbee-Netz des Zählers, bittet um Beitritt und erhält den Netzwerkschlüssel, verschlüsselt mit einem Schlüssel, der aus ihrem Installationscode abgeleitet ist. Sie meldet sich als 0x3B91. Das Haus verbraucht 2.148 kW." },
+        "keys": { "title": "Ein eigener Schlüssel", "text": "Den Netzwerkschlüssel teilen alle Geräte im Haus. Für ihre eigenen Nachrichten mit dem Zähler führt die Wallbox Key Establishment (CBKE) aus: Beide zeigen Zertifikate der Smart-Energy-Zertifizierungsstelle und vereinbaren einen Link-Schlüssel, den nur sie beide kennen." },
+        "units": { "title": "Zuerst die Einheiten", "text": "Bevor sie eine Zahl liest, fragt die Wallbox, wie sie zu lesen ist: Einheit kW, Multiplikator 1, Divisor 1000. Ein Rohwert von 9348 bedeutet also 9.348 kW." },
+        "read": { "title": "Den Zähler lesen", "text": "Das Auto lädt jetzt mit 7.2 kW, 30 A bei 240 V. Die Wallbox liest den Zähler: bisher 4821.337 kWh, und das ganze Haus bezieht gerade 9.348 kW. Damit kann sie unter der Anschlussgrenze des Hauses bleiben." },
+        "event": { "title": "Demand Response", "text": "Zur Spitzenzeit sendet der Versorger über den Zähler ein Demand-Response-Ereignis für Wallboxen: die durchschnittliche Last 2 Stunden lang um 50 % senken, ab sofort. Die Wallbox macht mit, geht auf 15 A herunter, 3.6 kW, und meldet, dass das Ereignis begonnen hat. Der Zähler zeigt jetzt 5.748 kW." }
+    },
+    "frames": {
+        "associate": "Darf ich deinem Netz beitreten?",
+        "transport-key": "Hier ist der Netzwerkschlüssel, verschlossen mit deinem Installationscode",
+        "announce": "Ich bin 0x3B91, hier",
+        "ke-initiate": "Hier ist mein Zertifikat; vereinbaren wir einen Schlüssel",
+        "ke-confirm": "Hier ist meins; wir teilen jetzt einen Link-Schlüssel",
+        "units": "Welche Einheit, welchen Multiplikator und Divisor verwendest du?",
+        "units-res": "kW, × 1, ÷ 1000",
+        "read": "Gesamtenergie und Leistung, bitte",
+        "read-res": "Bisher 4821.337 kWh, jetzt 9.348 kW",
+        "dr": "Wallboxen: 2 Stunden halbe Last",
+        "lce": "Senke deine durchschnittliche Last 2 Stunden lang um 50 %, ab jetzt",
+        "status": "Ereignis begonnen",
+        "read2": "Die Leistung, bitte",
+        "read2-res": "Jetzt 5.748 kW"
+    },
+    "notes": {
+        "associate": "Die Wallbox durchsucht die Kanäle mit Beacon-Anfragen, und der Zähler antwortet mit einem Beacon, der sagt, dass der Beitritt offen ist. Eine IEEE-802.15.4-Association-Anfrage und -Antwort geben der Wallbox dann ihre Kurzadresse, 0x3B91.",
+        "transport-key": "Der Zähler ist das Trust Center. Er sendet den Netzwerkschlüssel, verschlüsselt mit einem Link-Schlüssel, der per Hash aus dem Installationscode abgeleitet ist, sodass nur ein Gerät, das den Code kennt, ihn lesen kann.",
+        "announce": "Ein ZDO Device Announce: die Kurzadresse der Wallbox, 0x3B91, und ihre 64-Bit-IEEE-Adresse, damit jedes Gerät im Haus sie findet.",
+        "ke-initiate": "Die Wallbox eröffnet Key Establishment (Cluster 0x0800) mit ihrem impliziten ECC-Zertifikat, das die Smart-Energy-Zertifizierungsstelle für ihre 64-Bit-Adresse ausgestellt hat.",
+        "ke-confirm": "Der Zähler antwortet mit seinem eigenen Zertifikat. Beide senden frische Einmalschlüssel, berechnen mit ECMQV denselben Link-Schlüssel und beweisen das mit je einer Bestätigung in jede Richtung. Der Link-Schlüssel schützt nun ihre Nachrichten auf der APS-Schicht.",
+        "dr": "Über das Messnetz des Versorgers (AMI) meldet das Head-End dem Zähler ein Demand-Response-Ereignis für Wallboxen.",
+        "lce": "Ein LoadControlEvent des Clusters Demand Response and Load Control: die Ereignis-ID, die Geräteklasse (Wallbox), Startzeit 0 (sofort), 120 Minuten, durchschnittliche Laständerung −50 %. Felder, die es nicht nutzt, tragen ihre Werte für „ignorieren“.",
+        "status": "Ein ReportEventStatus: die Ereignis-ID, der Status „Ereignis begonnen“, die Zeit und die angewandte Laständerung, mit einer ECDSA-Signatur vom Zertifikatsschlüssel der Wallbox."
+    },
+    "fields": {
+        "fc-request": { "name": "Frame Control 0x00", "note": "Ein globales Kommando, das jeder Cluster versteht, vom Client zum Server, nicht herstellerspezifisch." },
+        "fc-response": { "name": "Frame Control 0x18", "note": "Ein globales Kommando vom Server zum Client; keine Default Response erwünscht. Die Aufschlüsselung unten zerlegt es." },
+        "tsn": { "name": "Transaktionsnummer", "note": "Von der Wallbox gewählt; die Antwort trägt dieselbe Nummer." },
+        "cmd-read": { "name": "Kommando 0x00: Read Attributes", "note": "Es folgt eine Liste von Attribut-IDs, je 2 Bytes." },
+        "cmd-read-response": { "name": "Kommando 0x01: Read Attributes Response", "note": "Ein Datensatz pro Attribut: seine ID, ein Status, dann sein Typ und Wert." },
+        "attr-unit": { "name": "Attribut 0x0300: UnitofMeasure", "note": "IDs kommen mit dem niederwertigsten Byte zuerst: 00 03 ist 0x0300. Metering-Cluster 0x0702, Smart-Energy-Profil 0x0109." },
+        "attr-multiplier": { "name": "Attribut 0x0301: Multiplier", "note": "Jeder Rohwert wird damit multipliziert." },
+        "attr-divisor": { "name": "Attribut 0x0302: Divisor", "note": "Jeder Rohwert wird danach dadurch geteilt." },
+        "attr-summation": { "name": "Attribut 0x0000: CurrentSummationDelivered", "note": "Die gesamte Energie, die der Zähler ans Haus geliefert hat." },
+        "attr-demand": { "name": "Attribut 0x0400: InstantaneousDemand", "note": "Die Leistung, die das Haus gerade bezieht; negativ bei Einspeisung." },
+        "status-ok": { "name": "Status 0x00: SUCCESS", "note": "Das Attribut existiert und ist lesbar; Typ und Wert folgen." },
+        "type-enum8": { "name": "Typ 0x30: 8-Bit-Aufzählung", "note": "Ein Byte, ein Code aus einer Liste." },
+        "type-uint24": { "name": "Typ 0x22: vorzeichenlose 24-Bit-Ganzzahl", "note": "Drei Bytes, niederwertigstes zuerst." },
+        "type-uint48": { "name": "Typ 0x25: vorzeichenlose 48-Bit-Ganzzahl", "note": "Sechs Bytes: genug, dass der Zähler nie überläuft." },
+        "type-int24": { "name": "Typ 0x2A: vorzeichenbehaftete 24-Bit-Ganzzahl", "note": "Drei Bytes, niederwertigstes zuerst; kann negativ sein." },
+        "unit-kw": { "name": "0x00: kW und kWh", "note": "Reines Binärformat, in Kilowatt für Leistung und Kilowattstunden für Energie." },
+        "multiplier-1": { "name": "Multiplikator: 1", "note": "01 00 00 = 1." },
+        "divisor-1000": { "name": "Divisor: 1000", "note": "E8 03 00 = 0x0003E8 = 1000. Jeder Rohwert wird mit 1 multipliziert und durch 1000 geteilt." },
+        "summation": { "name": "4821337: 4821.337 kWh", "note": "59 91 49 00 00 00 = 0x499159 = 4821337; ÷ 1000 = 4821.337 kWh." },
+        "demand-9348": { "name": "9348: 9.348 kW", "note": "84 24 00 = 0x002484 = 9348; ÷ 1000 = 9.348 kW: das Haus, 2.148 kW, plus die Wallbox, 7.2 kW." },
+        "demand-5748": { "name": "5748: 5.748 kW", "note": "74 16 00 = 0x001674 = 5748: das Haus, 2.148 kW, plus die Wallbox mit halber Leistung, 3.6 kW." },
+        "fc-reserved": { "name": "Bits 7–5, reserviert: 000", "note": "Immer 0." },
+        "fc-no-default": { "name": "Bit 4, Default Response abschalten: 1", "note": "1: auf diesen Frame keine Default Response senden." },
+        "fc-direction": { "name": "Bit 3, Richtung: 1", "note": "1: vom Server zum Client, hier vom Zähler. 0: vom Client zum Server." },
+        "fc-manufacturer": { "name": "Bit 2, herstellerspezifisch: 0", "note": "0: ein Standardkommando. 1: ein eigenes des Herstellers, mit einem Herstellercode nach diesem Byte." },
+        "fc-type": { "name": "Bits 1–0, Frame-Typ: 00", "note": "00: ein globales Kommando, in jedem Cluster gleich. 01: ein Kommando nur dieses Clusters." }
+    },
+    "devices": {
+        "meter": "Smart Meter (ESI)",
+        "charger": "Wallbox",
+        "car": "Elektroauto",
+        "cloud": "Head-End des Versorgers"
+    },
+    "facts": {
+        "standard": "Zigbee Smart Energy 1.x (bis 1.4), von der Connectivity Standards Alliance, früher Zigbee Alliance. Smart Energy 2.0 wurde zu IEEE 2030.5, einem anderen Protokoll über IP",
+        "between": "Der Smart Meter oder Kommunikations-Hub (das Energy Service Interface, ESI) und Geräte im Haus: Hausdisplays, Thermostate, Laststeuergeräte, Wallboxen und Gaszähler",
+        "transport": "IEEE-802.15.4-Funk bei 2.4 GHz, 250 kbit/s, Frames von höchstens 127 Bytes, als Mesh; SE 1.4 bringt Sub-GHz-Bänder dazu. Daten in ZCL-Clustern, Profil 0x0109",
+        "security": "Ein Gerät tritt nur mit einem vorher angemeldeten Installationscode bei. Jeder Frame ist mit AES-128 (CCM*) unter dem Netzwerkschlüssel verschlüsselt, und jedes Gerät vereinbart per CBKE mit ECC-Zertifikaten einen eigenen Link-Schlüssel mit dem Zähler",
+        "speed": "Eine Frage und ihre Antwort dauern einige zehn Millisekunden; Displays fragen meist alle paar Sekunden. Batteriebetriebene Gaszähler schlafen und wachen etwa jede halbe Stunde auf"
+    },
+    "tips": [
+        "Ein Gerät tritt nur bei, wenn sein Installationscode vorher beim Zähler angemeldet wurde. Ein falsches Zeichen im Formular, und es tritt nie bei.",
+        "2.4 GHz teilt sich Zigbee mit WLAN. Die Zigbee-Kanäle 15, 20 und 25 liegen zwischen den üblichen WLAN-Kanälen 1, 6 und 11; ein Kanal neben einem vielbenutzten WLAN verliert Frames.",
+        "Zuerst die Einheiten lesen: 9348 bedeutet nur mit Multiplikator 1 und Divisor 1000 9.348 kW. Ein anderer Zähler kann andere Werte nutzen.",
+        "Betonwände und metallene Zählerschränke dämpfen 2.4 GHz. Ein Zähler im Keller oder in einem Außenschrank braucht oft einen Zigbee-Router, einen Repeater, zwischen sich und der Wohnung."
+    ],
+    "points": {
+        "key": "Link-Schlüssel",
+        "demand": "Leistung des Hauses",
+        "charging": "Ladeleistung"
+    },
+    "values": {
+        "agreed": "vereinbart"
+    },
+    "anatomy": {
+        "frame-control": "Das Frame Control 0x18, Bit für Bit"
+    },
+    "playground": {
+        "encoder": "Zigbee schreibt Zahlen mit dem niederwertigsten Byte zuerst (DCBA). Gib einen Wert ein und sieh seine Bytes. Die Leistung ist eine 24-Bit-Zahl, also gehen nur die ersten drei auf die Reise: 9348 geht als 84 24 00."
+    }
+}

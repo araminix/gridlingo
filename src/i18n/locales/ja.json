@@ -259,6 +259,8 @@
     "lesson.ansi-c12.where": "電力量計",
     "lesson.g3-plc.summary": "電力ケーブルで運ぶ計量データ",
     "lesson.g3-plc.where": "スマートメーター、データ集約装置",
+    "lesson.zigbee-se.summary": "スマートメーターと家の中の機器をつなぐ無線",
+    "lesson.zigbee-se.where": "スマートメーター、宅内ディスプレイ、EV充電器",
     "lesson.mqtt.summary": "テレメトリのためのパブリッシュ／サブスクライブ",
     "lesson.mqtt.where": "エッジゲートウェイ、クラウドプラットフォーム",
     "lesson.sparkplug-b.summary": "BIRTH・DEATHメッセージとデータモデルを加えたMQTT",

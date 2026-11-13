@@ -259,6 +259,8 @@
     "lesson.ansi-c12.where": "बिजली के मीटर",
     "lesson.g3-plc.summary": "बिजली की केबल पर मीटर डेटा",
     "lesson.g3-plc.where": "स्मार्ट मीटर, डेटा कंसन्ट्रेटर",
+    "lesson.zigbee-se.summary": "स्मार्ट मीटर का घर के उपकरणों से रेडियो संपर्क",
+    "lesson.zigbee-se.where": "स्मार्ट मीटर, घरेलू डिस्प्ले, EV चार्जर",
     "lesson.mqtt.summary": "टेलीमेट्री के लिए पब्लिश और सब्सक्राइब",
     "lesson.mqtt.where": "एज गेटवे, क्लाउड प्लेटफ़ॉर्म",
     "lesson.sparkplug-b.summary": "बर्थ और डेथ मैसेज और डेटा मॉडल वाला MQTT",

@@ -259,6 +259,8 @@
     "lesson.ansi-c12.where": "Elektrik sayaçları",
     "lesson.g3-plc.summary": "Elektrik kablosu üzerinden sayaç verisi",
     "lesson.g3-plc.where": "Akıllı sayaçlar, veri yoğunlaştırıcılar",
+    "lesson.zigbee-se.summary": "Akıllı sayacın evdeki cihazlarla telsiz bağlantısı",
+    "lesson.zigbee-se.where": "Akıllı sayaçlar, ev içi ekranlar, EV şarj cihazları",
     "lesson.mqtt.summary": "Telemetri için yayınla ve abone ol",
     "lesson.mqtt.where": "Saha ağ geçitleri, bulut platformları",
     "lesson.sparkplug-b.summary": "Doğum ve ölüm mesajları ve bir veri modeliyle MQTT",

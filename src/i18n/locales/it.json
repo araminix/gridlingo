@@ -259,6 +259,8 @@
     "lesson.ansi-c12.where": "Contatori elettrici",
     "lesson.g3-plc.summary": "Dati dei contatori sul cavo elettrico",
     "lesson.g3-plc.where": "Contatori intelligenti, concentratori",
+    "lesson.zigbee-se.summary": "La radio del contatore intelligente verso i dispositivi di casa",
+    "lesson.zigbee-se.where": "Contatori intelligenti, display domestici, caricatori per auto elettriche",
     "lesson.mqtt.summary": "Publish e subscribe per la telemetria",
     "lesson.mqtt.where": "Gateway di campo, piattaforme cloud",
     "lesson.sparkplug-b.summary": "MQTT con messaggi di birth e death e un modello dati",

@@ -259,6 +259,8 @@
     "lesson.ansi-c12.where": "Electricity meters",
     "lesson.g3-plc.summary": "Meter data over the power cable",
     "lesson.g3-plc.where": "Smart meters, data concentrators",
+    "lesson.zigbee-se.summary": "The smart meter's radio to devices in the home",
+    "lesson.zigbee-se.where": "Smart meters, in-home displays, EV chargers",
     "lesson.mqtt.summary": "Publish and subscribe for telemetry",
     "lesson.mqtt.where": "Edge gateways, cloud platforms",
     "lesson.sparkplug-b.summary": "MQTT with birth and death messages and a data model",

@@ -259,6 +259,8 @@
     "lesson.ansi-c12.where": "Compteurs d'électricité",
     "lesson.g3-plc.summary": "Les données des compteurs par le câble électrique",
     "lesson.g3-plc.where": "Compteurs communicants, concentrateurs",
+    "lesson.zigbee-se.summary": "La radio du compteur communicant vers les appareils de la maison",
+    "lesson.zigbee-se.where": "Compteurs communicants, afficheurs domestiques, bornes de recharge",
     "lesson.mqtt.summary": "Publication et abonnement pour la télémesure",
     "lesson.mqtt.where": "Passerelles edge, plateformes cloud",
     "lesson.sparkplug-b.summary": "MQTT avec des messages de naissance et de mort, et un modèle de données",
