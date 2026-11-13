@@ -96,5 +96,15 @@
     "anatomy": {
         "maker": "The maker's code, packed into two bytes",
         "dif": "DIF 0x4C, bit by bit"
+    },
+    "playground": {
+        "file": "Try it: the heat meter's records as the collector decodes them, one per line.",
+        "layout": "Each record: the DIF says how the data is stored, the VIF what it measures and in which unit, then the data, least significant byte first.",
+        "energy": "DIF 0C: 8 digits in BCD. VIF 06: energy in kWh. Read the bytes backwards: 00 01 23 45, so 12345.",
+        "volume": "VIF 14: volume in steps of 0.01 m³: 00045678 × 0.01 = 456.78 m³.",
+        "flow": "DIF 0A: 4 digits in BCD. VIF 5A: flow temperature in steps of 0.1 °C: 0702, so 70.2 °C.",
+        "return": "VIF 5E: return temperature, also in 0.1 °C. The difference with the flow, times the water that passed, is the heat delivered.",
+        "due": "DIF 4C: storage 1, the value saved on the due date: the one the bill uses.",
+        "encoder": "Some meters send a binary integer (DIF 04, 32 bits) instead of BCD: its bytes too come least significant first (DCBA). Type a value to see them."
     }
 }

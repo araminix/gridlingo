@@ -1,0 +1,8 @@
+# Heat meter, primary address 5: its records, decoded
+DIF VIF  DATA          VALUE
+0C  06   45 23 01 00   12345 kWh    energy
+0C  14   78 56 04 00   456.78 m³    volume
+0A  5A   02 07         70.2 °C      flow temperature
+0A  5E   53 04         45.3 °C      return temperature
+4C  06   76 98 00 00   9876 kWh     energy on the due date
+4C  14   23 81 03 00   381.23 m³    volume on the due date

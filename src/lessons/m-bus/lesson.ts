@@ -1,4 +1,5 @@
 import type { Field, Lesson } from "../types";
+import records from "./heat-meter-records.txt?raw";
 
 /** One bit at 2400 baud, in ms. */
 const BIT = 1000 / 2400;
@@ -167,6 +168,10 @@ export const lesson: Lesson = {
             ],
             also: "DIF 0x4C = 0100 1100  ·  then VIF 0x06: energy in kWh",
         },
+    ],
+    playground: [
+        { kind: "file", sample: "heat-meter-records.txt", file: records, notes: { 2: "layout", 3: "energy", 4: "volume", 5: "flow", 6: "return", 7: "due" } },
+        { kind: "encoder", type: "uint32", order: "DCBA", value: 12345 },
     ],
     related: ["dlms-cosem", "iec-62056-21", "lorawan"],
 };

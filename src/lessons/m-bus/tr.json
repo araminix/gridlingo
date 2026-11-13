@@ -96,5 +96,15 @@
     "anatomy": {
         "maker": "İki bayta sıkıştırılmış üretici kodu",
         "dif": "DIF 0x4C, bit bit"
+    },
+    "playground": {
+        "file": "Deneyin: ısı sayacının kayıtları, toplayıcının çözdüğü şekliyle, her satırda bir tane.",
+        "layout": "Her kayıt: DIF verinin nasıl saklandığını, VIF neyi ve hangi birimde ölçtüğünü söyler, sonra veri gelir, en düşük anlamlı bayt önce.",
+        "energy": "DIF 0C: BCD'de 8 basamak. VIF 06: kWh cinsinden enerji. Baytları tersten okuyun: 00 01 23 45, yani 12345.",
+        "volume": "VIF 14: 0,01 m³ adımlarla hacim: 00045678 × 0,01 = 456,78 m³.",
+        "flow": "DIF 0A: BCD'de 4 basamak. VIF 5A: 0,1 °C adımlarla gidiş sıcaklığı: 0702, yani 70,2 °C.",
+        "return": "VIF 5E: dönüş sıcaklığı, o da 0,1 °C. Gidişle farkı, geçen suyla çarpılınca verilen ısıyı verir.",
+        "due": "DIF 4C: depo 1, kesim tarihinde kaydedilen değer: faturanın kullandığı.",
+        "encoder": "Bazı sayaçlar BCD yerine ikili bir tamsayı (DIF 04, 32 bit) gönderir: onun baytları da en düşük anlamlı önce gelir (DCBA). Görmek için bir değer yazın."
     }
 }

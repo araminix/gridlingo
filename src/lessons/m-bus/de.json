@@ -96,5 +96,15 @@
     "anatomy": {
         "maker": "Das Herstellerkürzel, in zwei Bytes gepackt",
         "dif": "DIF 0x4C, Bit für Bit"
+    },
+    "playground": {
+        "file": "Probieren Sie es aus: die Datensätze des Wärmezählers, wie der Sammler sie entschlüsselt, einer pro Zeile.",
+        "layout": "Jeder Datensatz: Das DIF sagt, wie die Daten gespeichert sind, das VIF, was gemessen wird und in welcher Einheit, dann die Daten, niederwertigstes Byte zuerst.",
+        "energy": "DIF 0C: 8 Ziffern in BCD. VIF 06: Energie in kWh. Die Bytes rückwärts lesen: 00 01 23 45, also 12345.",
+        "volume": "VIF 14: Volumen in Schritten von 0,01 m³: 00045678 × 0,01 = 456,78 m³.",
+        "flow": "DIF 0A: 4 Ziffern in BCD. VIF 5A: Vorlauftemperatur in Schritten von 0,1 °C: 0702, also 70,2 °C.",
+        "return": "VIF 5E: Rücklauftemperatur, ebenfalls in 0,1 °C. Die Differenz zum Vorlauf mal das durchgeflossene Wasser ist die gelieferte Wärme.",
+        "due": "DIF 4C: Speicher 1, der am Stichtag gespeicherte Wert: der, den die Rechnung verwendet.",
+        "encoder": "Manche Zähler senden statt BCD eine binäre Ganzzahl (DIF 04, 32 Bit): Auch ihre Bytes kommen niederwertigstes zuerst (DCBA). Geben Sie einen Wert ein, um sie zu sehen."
     }
 }

@@ -96,5 +96,15 @@
     "anatomy": {
         "maker": "Le code du fabricant, compacté sur deux octets",
         "dif": "DIF 0x4C, bit par bit"
+    },
+    "playground": {
+        "file": "Essayez : les enregistrements du compteur de chaleur tels que le concentrateur les décode, un par ligne.",
+        "layout": "Chaque enregistrement : le DIF dit comment les données sont stockées, le VIF ce qui est mesuré et dans quelle unité, puis les données, octet de poids faible en premier.",
+        "energy": "DIF 0C : 8 chiffres en BCD. VIF 06 : énergie en kWh. On lit les octets à l'envers : 00 01 23 45, donc 12345.",
+        "volume": "VIF 14 : volume par pas de 0,01 m³ : 00045678 × 0,01 = 456,78 m³.",
+        "flow": "DIF 0A : 4 chiffres en BCD. VIF 5A : température aller par pas de 0,1 °C : 0702, donc 70,2 °C.",
+        "return": "VIF 5E : température retour, aussi en 0,1 °C. L'écart avec l'aller, multiplié par l'eau passée, donne la chaleur livrée.",
+        "due": "DIF 4C : mémoire 1, la valeur enregistrée à la date de relève : celle qu'utilise la facture.",
+        "encoder": "Certains compteurs envoient un entier binaire (DIF 04, 32 bits) au lieu du BCD : ses octets aussi arrivent poids faible en premier (DCBA). Tapez une valeur pour les voir."
     }
 }

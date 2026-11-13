@@ -96,5 +96,15 @@
     "anatomy": {
         "maker": "O código do fabricante, compactado em dois bytes",
         "dif": "DIF 0x4C, bit a bit"
+    },
+    "playground": {
+        "file": "Experimente: os registros do medidor de calor como o concentrador os decodifica, um por linha.",
+        "layout": "Cada registro: o DIF diz como os dados são guardados, o VIF o que mede e em que unidade, e depois vêm os dados, com o byte menos significativo primeiro.",
+        "energy": "DIF 0C: 8 dígitos em BCD. VIF 06: energia em kWh. Leia os bytes de trás para a frente: 00 01 23 45, ou seja, 12345.",
+        "volume": "VIF 14: volume em passos de 0,01 m³: 00045678 × 0,01 = 456,78 m³.",
+        "flow": "DIF 0A: 4 dígitos em BCD. VIF 5A: temperatura de ida em passos de 0,1 °C: 0702, ou seja, 70,2 °C.",
+        "return": "VIF 5E: temperatura de retorno, também em 0,1 °C. A diferença em relação à ida, vezes a água que passou, é o calor entregue.",
+        "due": "DIF 4C: armazenamento 1, o valor guardado na data de corte: o que a conta usa.",
+        "encoder": "Alguns medidores enviam um inteiro binário (DIF 04, 32 bits) em vez de BCD: os bytes dele também vêm com o menos significativo primeiro (DCBA). Digite um valor para vê-los."
     }
 }

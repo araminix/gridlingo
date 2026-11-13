@@ -96,5 +96,15 @@
     "anatomy": {
         "maker": "Il codice del costruttore, compresso in due byte",
         "dif": "DIF 0x4C, bit per bit"
+    },
+    "playground": {
+        "file": "Provalo: i record del contatore di calore come li decodifica il concentratore, uno per riga.",
+        "layout": "Ogni record: il DIF dice come sono memorizzati i dati, il VIF cosa misura e in quale unità, poi i dati, byte meno significativo per primo.",
+        "energy": "DIF 0C: 8 cifre in BCD. VIF 06: energia in kWh. Si leggono i byte al contrario: 00 01 23 45, cioè 12345.",
+        "volume": "VIF 14: volume a passi di 0,01 m³: 00045678 × 0,01 = 456,78 m³.",
+        "flow": "DIF 0A: 4 cifre in BCD. VIF 5A: temperatura di mandata a passi di 0,1 °C: 0702, cioè 70,2 °C.",
+        "return": "VIF 5E: temperatura di ritorno, sempre in 0,1 °C. La differenza con la mandata, per l'acqua passata, è il calore fornito.",
+        "due": "DIF 4C: memoria 1, il valore salvato alla data di lettura: quello usato in bolletta.",
+        "encoder": "Alcuni contatori inviano un intero binario (DIF 04, 32 bit) invece del BCD: anche i suoi byte arrivano dal meno significativo (DCBA). Scrivi un valore per vederli."
     }
 }
