@@ -47,7 +47,7 @@ export const lesson: Lesson = {
             { id: "bus2", from: "f2prot", to: "switch", via: "y" },
             { id: "bus3", from: "hmi", to: "switch" },
             { id: "bus4", from: "gateway", to: "switch", via: "y" },
-            { id: "wan", from: "gateway", to: "scada", label: "IEC 104" },
+            { id: "wan", from: "gateway", to: "scada", label: "IEC 104", via: "y" },
         ],
     },
     steps: [{ id: "heartbeat" }, { id: "fault" }, { id: "publish" }, { id: "repeat" }, { id: "act" }, { id: "open" }],

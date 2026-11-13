@@ -59,7 +59,7 @@ export const lesson: Lesson = {
     actors: ["scada", "attacker", "rtu", "breaker"],
     scene: {
         devices: [
-            { id: "scada", kind: "scada", at: [0, 4.5], address: "master 1", active: true },
+            { id: "scada", kind: "scada", at: [-0.5, 4.5], address: "master 1", active: true },
             { id: "switch", kind: "switch", at: [4, 2.5] },
             { id: "attacker", kind: "laptop", at: [4, -1], address: "10.0.0.66" },
             { id: "rtu", kind: "rtu", at: [7.5, 2.5], address: "outstation 10", active: true },

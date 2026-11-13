@@ -1,7 +1,7 @@
 import { Fragment, useId, useMemo, useSyncExternalStore } from "react";
 import type { Frame, Scene } from "@/lessons/types";
 import type { Words } from "@/lessons/words";
-import { bodyOf, DeviceShape, extentOf, labelAt } from "./devices";
+import { bodyOf, DeviceShape, extentOf, labelAt, reachOf } from "./devices";
 import { faces, GRID, groundPath, project, round, shadowOf } from "./iso";
 
 const reducedQuery = () => (typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null);
@@ -64,7 +64,12 @@ export function SiteScene({ scene, frame, words, plate = false }: { scene: Scene
             scene.links.flatMap((link) => {
                 const from = place.get(link.from);
                 const to = place.get(link.to);
-                return from && to ? [{ link, path: groundPath(from, to, link.via) }] : [];
+                if (!from || !to) return [];
+                // Along which axis the cable leaves each device: a straight cable keeps its one axis
+                const axis = (end: 0 | 1): "x" | "y" => (from[0] === to[0] ? "y" : from[1] === to[1] ? "x" : (end === 0) === (link.via !== "y") ? "x" : "y");
+                const kind = (id: string) => scene.devices.find((device) => device.id === id)!.kind;
+                const reach = [reachOf(kind(link.from), axis(0)) + 8, reachOf(kind(link.to), axis(1)) + 8] as const;
+                return [{ link, path: groundPath(from, to, link.via, reach) }];
             }),
         [scene, place],
     );

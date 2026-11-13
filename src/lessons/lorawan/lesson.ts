@@ -17,7 +17,7 @@ export const lesson: Lesson = {
         ],
         links: [
             { id: "air1", from: "sensor", to: "gw1", radio: true, via: "y" },
-            { id: "air2", from: "sensor", to: "gw2", label: "LoRa · 868.1 MHz · SF7", radio: true },
+            { id: "air2", from: "sensor", to: "gw2", label: "LoRa · 868.1 MHz · SF7", radio: true, via: "y" },
             { id: "ip1", from: "gw1", to: "ns", label: "UDP 1700" },
             { id: "ip2", from: "gw2", to: "ns", via: "y" },
             { id: "app", from: "ns", to: "as" },

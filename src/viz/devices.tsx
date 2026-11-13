@@ -320,14 +320,21 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
     return [{ cx, cy, ...SIZE[kind] }];
 }
 
+/** How far a device spreads from its centre along x or y on the ground, from the boxes it fills. */
+export function reachOf(kind: DeviceKind, axis: "x" | "y"): number {
+    return Math.max(...bodyOf(kind, 0, 0).map((part) => (axis === "x" ? Math.abs(part.cx) + part.w / 2 : Math.abs(part.cy) + part.d / 2)));
+}
+
 /** How high a device reaches above the ground. */
 export const heightOf = (kind: DeviceKind) => (kind === "turbine" ? SIZE.turbine.h + 44 : kind === "sensor" ? SIZE.sensor.h + 10 : SIZE[kind].h);
 
-/** Where a device's label goes: above its highest point on the screen (the top's back corner). */
+/** Where a device's label goes: above its highest point on the screen, the top's back corner, in perspective. */
 export function labelAt(kind: DeviceKind, cx: number, cy: number): [number, number] {
     const { w, d } = SIZE[kind];
     const [x, y] = project(cx, cy, heightOf(kind));
-    return [x, y - (kind === "turbine" ? 0 : kind === "sensor" ? 7 : (w + d) / 4) - 6];
+    if (kind === "turbine") return [x, y - 6];
+    if (kind === "sensor") return [x, y - 13];
+    return [x, project(cx - w / 2, cy - d / 2, heightOf(kind))[1] - 6];
 }
 
 /** The plan points a device covers, so a scene can fit around it. */

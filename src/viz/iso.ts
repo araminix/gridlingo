@@ -69,14 +69,28 @@ export function faces({ cx, cy, w, d, h, z = 0 }: Box) {
     };
 }
 
-/** A path on the ground from one point to another along the grid's axes: along x first, or along y first. */
-export function groundPath(from: readonly [number, number], to: readonly [number, number], via: "x" | "y" = "x") {
+/**
+ * A path on the ground from one point to another along the grid's axes: along x first, or along y first. `reach` is how
+ * far the devices at its two ends spread along it, so that its label sits on the free part of the cable, not under them.
+ */
+export function groundPath(from: readonly [number, number], to: readonly [number, number], via: "x" | "y" = "x", reach: readonly [number, number] = [0, 0]) {
     const corner: [number, number] = via === "x" ? [to[0], from[1]] : [from[0], to[1]];
     const list = [from, corner, to].map(([x, y]) => project(x, y));
     const d = (pts: [number, number][]) => pts.map(([x, y], i) => `${i ? "L" : "M"}${round(x)},${round(y)}`).join(" ");
-    // The label goes in the middle of the longer leg, along it, turned so that it never reads upside down
-    const [a, b, c] = list as [[number, number], [number, number], [number, number]];
-    const [p, q] = Math.hypot(b[0] - a[0], b[1] - a[1]) >= Math.hypot(c[0] - b[0], c[1] - b[1]) ? [a, b] : [b, c];
+    // The label goes in the middle of the longer free leg, along it, turned so that it never reads upside down
+    const legs = [
+        [from, corner],
+        [corner, to],
+    ].filter(([p, q]) => p![0] !== q![0] || p![1] !== q![1]);
+    const free = legs.map(([p, q], i) => {
+        const length = Math.hypot(q![0] - p![0], q![1] - p![1]);
+        const [ux, uy] = [(q![0] - p![0]) / length, (q![1] - p![1]) / length];
+        const [start, end] = [i === 0 ? reach[0] : 0, i === legs.length - 1 ? reach[1] : 0];
+        const [a, b] = start + end < length ? [[p![0] + ux * start, p![1] + uy * start], [q![0] - ux * end, q![1] - uy * end]] : [p!, q!];
+        return [project(a![0]!, a![1]!), project(b![0]!, b![1]!)] as const;
+    });
+    const span = ([a, b]: readonly [[number, number], [number, number]]) => Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const [p, q] = free.reduce((best, leg) => (span(leg) > span(best) ? leg : best));
     let angle = (Math.atan2(q[1] - p[1], q[0] - p[0]) * 180) / Math.PI;
     if (angle > 90) angle -= 180;
     if (angle <= -90) angle += 180;
