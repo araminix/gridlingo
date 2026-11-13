@@ -98,6 +98,12 @@ test("the theme and the language are kept, and Arabic reads right to left", asyn
     await page.getByRole("combobox", { name: "Language" }).click();
     await page.getByRole("listbox").locator('[lang="ar"]').click();
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    // The step's text inside the stage's tabs reads right to left too, not only the page around it
+    await expect(page.getByTestId("stage").locator("[aria-live=polite] p").nth(1)).toHaveCSS("direction", "rtl");
+    // The language list opens from its top, even with a language far down it chosen
+    await page.getByRole("combobox").first().click();
+    await expect(page.getByRole("option").first()).toBeInViewport();
+    await page.keyboard.press("Escape");
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");

@@ -11,7 +11,7 @@ export function LanguageMenu() {
             <SelectTrigger aria-label={t("lang.label")} className="h-10 gap-2 px-3">
                 <SelectValue />
             </SelectTrigger>
-            <SelectContent align="end">
+            <SelectContent position="popper" align="end">
                 {LANGUAGES.map((language) => (
                     <SelectItem key={language.code} value={language.code} lang={language.code}>
                         <Flag code={language.code} />
