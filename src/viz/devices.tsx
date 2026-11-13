@@ -136,6 +136,12 @@ function controllerParts(cx: number, cy: number) {
     return { plinth: { cx, cy, w, d, h: 3 } satisfies Box, body: { cx, cy, w, d, h: 36, z: 3 } satisfies Box, light: [cx + 9, cy - 6, 39] as const };
 }
 
+/** A PMU: a low cabinet on a plinth with the unit's chassis standing out from its front. */
+function pmuParts(cx: number, cy: number) {
+    const { w, d } = SIZE.pmu;
+    return { plinth: { cx, cy, w, d, h: 3 } satisfies Box, body: { cx, cy, w, d, h: 18, z: 3 } satisfies Box, chassis: { cx, cy: cy + d / 2 + 0.75, w: w - 4, d: 1.5, h: 10, z: 8 } satisfies Box };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -153,6 +159,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "pmu") {
+        const { plinth, body, chassis } = pmuParts(cx, cy);
+        return [plinth, body, chassis];
+    }
     if (kind === "controller") {
         const { plinth, body } = controllerParts(cx, cy);
         return [plinth, body];
@@ -436,14 +446,47 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
                 </g>
             );
         }
-        case "pmu":
-        case "merging-unit":
-            detail = (
-                <>
-                    {kind !== "merging-unit" && <Panel on={f.onLeft} u0={0.18} v0={0.5} u1={0.82} v1={0.68} fill="var(--viz-screen)" />}
-                    <Leds on={f.onLeft} v={kind === "merging-unit" ? 0.55 : 0.84} />
-                </>
+        case "pmu": {
+            // Its screen shows the three phases as arrows a third of a turn apart; beside it the time inputs and lights;
+            // a GPS antenna on its roof
+            const { plinth, body, chassis } = pmuParts(cx, cy);
+            const unit = faces(chassis).onLeft;
+            const [ru, rv] = [3.2 / chassis.w, 3.2 / chassis.h];
+            const at = (deg: number, k: number) => unit(0.25 + k * ru * Math.cos((deg * Math.PI) / 180), 0.52 + k * rv * Math.sin((deg * Math.PI) / 180));
+            const dial = Array.from({ length: 13 }, (_, i) => at(i * 30, 1));
+            const [gx, gy] = project(cx - 6, cy - 4, body.z + body.h);
+            return (
+                <g>
+                    <Solid box={plinth} active={active} fine />
+                    <Solid box={body} active={active} />
+                    <Solid box={chassis} active={active} fine />
+                    <Panel on={unit} u0={0.06} v0={0.12} u1={0.44} v1={0.92} fill="var(--viz-screen)" />
+                    <Lines list={[dial]} stroke="var(--viz-pv)" width={0.5} />
+                    {[
+                        [90, "var(--destructive)"],
+                        [210, "var(--viz-token)"],
+                        [330, "var(--primary)"],
+                    ].map(([deg, color]) => (
+                        <Lines key={deg} list={[[at(0, 0), at(deg as number, 0.9)]]} stroke={color as string} width={0.9} />
+                    ))}
+                    {[0.56, 0.68, 0.8].map((u) => {
+                        const [x, y] = unit(u, 0.36);
+                        return <circle key={u} cx={round(x)} cy={round(y)} r={1.1} fill={tone.top} stroke={tone.edge} strokeWidth={0.5} />;
+                    })}
+                    {[
+                        [0.56, "var(--viz-ok)"],
+                        [0.68, "var(--viz-token)"],
+                    ].map(([u, fill]) => {
+                        const [x, y] = unit(u as number, 0.74);
+                        return <circle key={u} cx={round(x)} cy={round(y)} r={0.8} fill={fill as string} />;
+                    })}
+                    <path d={`M${round(gx - 3)},${round(gy)} a3,2.4 0 0 1 6,0 Z`} fill={tone.top} stroke={tone.edge} strokeWidth={0.6} />
+                    <ellipse cx={round(gx)} cy={round(gy)} rx={3} ry={1.2} fill={tone.right} stroke={tone.edge} strokeWidth={0.5} />
+                </g>
             );
+        }
+        case "merging-unit":
+            detail = <Leds on={f.onLeft} v={0.55} />;
             break;
         case "relay": {
             // A relay panel: the relay's faceplate stands out from its front (screen, a column of lights with the trip
