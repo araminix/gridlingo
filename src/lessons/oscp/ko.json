@@ -1,0 +1,83 @@
+{
+    "intro": "Open Charge Alliance의 OSCP(Open Smart Charging Protocol)는 케이블이나 변압기가 과부하되기 전에, 충전기 묶음이 블록마다 얼마의 전력을 쓸 수 있는지 배전 사업자가 충전 사업자에게 알려 주는 방법이에요. 배전 사업자가 Capacity Provider, 충전 사업자의 중앙 시스템이 Capacity Optimizer예요. 중앙 시스템은 그 용량을 차들에 나누고 각 충전기를 OCPP로 제어해요. 버전 2.0은 HTTPS 위의 JSON으로, 예측, 측정, 하트비트, 그리고 연결이 끊겼을 때 쓸 예비 값을 다뤄요.",
+    "plain": "충전기가 가득한 주차장은 모두가 요리하고 난방하는 저녁 6시에 거리의 변압기가 줄 수 있는 것보다 많은 전력을 쓸 수 있어요. OSCP로 배전 회사는 충전 회사에게 하루 전에 15분마다 쓸 수 있는 양을 알려 줘요. 충전 회사는 그 양을 차들에 나눠서, 차들은 계속 충전돼요. 가장 붐비는 시간에는 조금 느리게요. 둘의 연락이 끊기면 충전기는 안전한 양으로 내려가요.",
+    "steps": {
+        "register": { "title": "토큰 교환하기", "text": "충전 사업자의 중앙 시스템이 배전 사업자에 등록해요. 배전 사업자가 자기를 부를 때 쓸 토큰, OSCP 버전 2.0, 기본 URL을 보내요. 핸드셰이크에서 배전 사업자는 300 s마다 하트비트를 요청해요." },
+        "forecast": { "title": "용량 보내기", "text": "배전 사업자는 변압기 한 대 뒤에 충전기 12대가 있는 충전 허브, 그룹 hub-17의 내일 용량 예측을 보내요. 15분 블록 96개예요. 하루 대부분은 400 kW, 저녁 피크인 17:00~20:00Z는 250 kW예요." },
+        "plan": { "title": "차들에 나누기", "text": "17:00Z에 중앙 시스템은 OCPP SetChargingProfile로 충전기마다 한도를 낮춰요. 상당 30 A, 한 대에 약 20.7 kW, 12대로 248 kW예요. 차들은 계속 충전되고, 조금 느려져요." },
+        "measure": { "title": "쓴 양 보고하기", "text": "블록마다 중앙 시스템은 허브가 쓴 에너지를 보고해요. 17:00~17:15Z에 61.8 kWh, 평균 247 kW로 허용된 250 kW 아래예요. 배전 사업자는 예측이 지켜졌는지 확인할 수 있어요." },
+        "offline": { "title": "연결 잃기", "text": "20:30Z에 배전 사업자의 마지막 하트비트가 말해요. 20:35Z까지 소식이 없으면 오프라인으로 전환하라고요. 아무것도 오지 않아요. 중앙 시스템은 배전 사업자가 미리 보낸 예비 용량 150 kW로 돌아가 연결이 돌아올 때까지 유지해요." }
+    },
+    "frames": {
+        "register": "이게 제 토큰과 연락처예요",
+        "handshake": "300 s마다 하트비트를 보내 주세요",
+        "forecast": "내일 hub-17은 400 kW, 저녁 피크에는 250 kW까지",
+        "accepted": "받았어요",
+        "profile1": "17:00Z부터 상당 최대 30 A",
+        "profile2": "17:00Z부터 상당 최대 30 A",
+        "measurements": "17:00~17:15Z에 허브는 61.8 kWh를 썼어요",
+        "heartbeat": "여기 있어요. 20:35Z까지 소식이 없으면 오프라인으로",
+        "fallback": "예비: 상당 최대 18 A"
+    },
+    "notes": {
+        "register": "Register 메시지예요. 배전 사업자가 자기 Authorization 헤더에 넣을 토큰과, 버전 2.0용 중앙 시스템 URL을 담아요. 배전 사업자는 자기 토큰을 미리 건넸어요.",
+        "handshake": "요구하는 동작을 담은 Handshake: 하트비트 간격 300 s. 중앙 시스템이 이를 확인해요.",
+        "forecast": "그룹 hub-17에 대한 CONSUMPTION 형식의 UpdateGroupCapacityForecast예요. 예측 블록 96개가 있고, 각각 용량, 상, 단위, 시작·종료 시각이 있어요. 플레이그라운드에 일부가 있어요.",
+        "accepted": "HTTP 응답: 204, 받음, 내용 없음. 모든 게 괜찮으면 OSCP 메시지마다 이렇게 답해요.",
+        "profile1": "OSCP가 아니에요. 허브의 충전기마다 보내는 OCPP SetChargingProfile이에요(OCPP 레슨 참고). 12 × 30 A × 3 × 230 V ≈ 248 kW.",
+        "profile2": "보이는 두 번째 충전기와 허브의 나머지 10대에도 같은 프로파일.",
+        "measurements": "블록 동안 hub-17이 쓴 에너지를 담은 UpdateGroupMeasurements: 15분에 61.8 kWh, 평균 247 kW.",
+        "heartbeat": "offline_mode_at 20:35Z를 담은 Heartbeat예요. 그때까지 중앙 시스템은 가진 예측을 믿어도 돼요. 이게 마지막이에요.",
+        "fallback": "20:35Z까지 하트비트가 없어요. 중앙 시스템은 FALLBACK_CONSUMPTION 용량 150 kW를 적용해요. 충전기 12대를 상당 18 A로, 한 대에 약 12.4 kW."
+    },
+    "fields": {
+        "a-capacity": { "name": "capacity", "note": "250: 쓸 수 있는 양." },
+        "a-phase": { "name": "phase", "note": "ALL: 모든 상을 합쳐서. ONE, TWO, THREE면 한 상만 제한해요." },
+        "a-unit": { "name": "unit", "note": "KW: 킬로와트. A면 상당 암페어로, 전혀 다른 한도예요." },
+        "a-start": { "name": "start_time", "note": "블록 시작 시각(UTC): 11월의 17:00Z는 중앙유럽 18:00이에요." },
+        "a-end": { "name": "end_time", "note": "끝나는 시각, 15분 뒤. 다음 블록은 여기서 시작해요." }
+    },
+    "devices": {
+        "dso": "배전 사업자(Capacity Provider)",
+        "cpo": "CPO 중앙 시스템(Capacity Optimizer)",
+        "charger1": "충전기 1/12",
+        "charger2": "충전기 2/12",
+        "transformer": "허브 변압기"
+    },
+    "facts": {
+        "standard": "Open Charge Alliance의 OSCP 2.0(2020). OSCP 1.0은 2015년",
+        "between": "배전 사업자(Capacity Provider)와 충전 사업자의 중앙 시스템(Capacity Optimizer). 중앙 시스템은 이후 OCPP로 충전기를 제어해요",
+        "transport": "HTTPS 위의 JSON, REST: 서로 상대의 URL을 불러요",
+        "security": "TLS와, 등록할 때 서로 주고받는 Authorization 헤더의 토큰",
+        "speed": "다음 날을 위한 블록 단위(흔히 15분) 예측을 보내고 당일에도 갱신해요. 정한 간격으로 하트비트"
+    },
+    "tips": [
+        "블록마다 상과 단위를 정하세요. 모든 상에 대한 KW 250과 상당 A 250은 아주 다른 한도예요.",
+        "예비 용량이 꼭 정해져 있게 하세요. 예측이나 하트비트가 멈추면 옵티마이저는 계약 용량 전부가 아니라 그 값으로 돌아가야 해요.",
+        "시각은 ISO 8601의 UTC예요. 현지 시각으로 쓴 예측은 모든 블록을 한두 시간 밀어요.",
+        "OSCP는 충전기가 아니라 그룹을 제한해요. 옵티마이저는 용량을 차들에 나누고 충전기마다 자기 한도를 OCPP로 보내야 해요."
+    ],
+    "points": {
+        "capacity": "허용 용량",
+        "load": "허브 부하",
+        "link": "연결"
+    },
+    "values": {
+        "fallback": "150 kW(예비)",
+        "ok": "살아 있음",
+        "lost": "끊김"
+    },
+    "anatomy": {
+        "block": "예측 블록 하나: 얼마나, 어느 상에, 어떤 단위로, 언제"
+    },
+    "playground": {
+        "file": "해 보세요: 배전 사업자가 보낸 hub-17 용량 예측의 일부(JSON)예요. 실제 메시지에는 15분마다 하나씩, 블록이 96개 있어요.",
+        "group": "그룹: 변압기 한 대 뒤에 있는 허브의 충전기들로, 양쪽이 정한 이름으로 불러요.",
+        "type": "CONSUMPTION: 그룹이 쓰는 전력의 한도. GENERATION이면 내보내는 전력을 제한하고, FALLBACK 형식은 연결이 끊겼을 때 써요.",
+        "blocks": "블록 목록, 시간 순서.",
+        "before": "피크 전: 400 kW.",
+        "peak": "17:00Z(중앙유럽 18:00)부터: 250 kW.",
+        "same": "다음 15분도 같은 한도. 20:00Z까지의 블록은 여기서 생략했어요.",
+        "after": "20:00Z에 피크가 끝나요: 다시 400 kW."
+    }
+}

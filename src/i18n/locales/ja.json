@@ -243,6 +243,8 @@
     "lesson.openadr.where": "電力会社、アグリゲーター、ビル",
     "lesson.eebus.summary": "家庭のエネルギー機器が電力を調整する",
     "lesson.eebus.where": "ウォールボックス、ヒートポンプ、エネルギー管理装置",
+    "lesson.oscp.summary": "充電拠点の系統容量を、ブロックごとに",
+    "lesson.oscp.where": "充電事業者、配電事業者",
     "lesson.dlms-cosem.summary": "スマートメーターのデータモデル",
     "lesson.dlms-cosem.where": "電気・ガス・水道のメーター",
     "lesson.iec-62056-21.summary": "光ポートからメーターを読む",

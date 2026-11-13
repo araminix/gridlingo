@@ -243,6 +243,8 @@
     "lesson.openadr.where": "Compañías eléctricas, agregadores, edificios",
     "lesson.eebus.summary": "Los equipos de energía de casa se ponen de acuerdo",
     "lesson.eebus.where": "Cargadores, bombas de calor, gestores de energía",
+    "lesson.oscp.summary": "Capacidad de red para un centro de carga, bloque a bloque",
+    "lesson.oscp.where": "Operadores de carga, distribuidoras",
     "lesson.dlms-cosem.summary": "El modelo de datos de los medidores inteligentes",
     "lesson.dlms-cosem.where": "Medidores de electricidad, gas y agua",
     "lesson.iec-62056-21.summary": "Leer un medidor por su puerto óptico",

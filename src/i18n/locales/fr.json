@@ -243,6 +243,8 @@
     "lesson.openadr.where": "Gestionnaires de réseau, agrégateurs, bâtiments",
     "lesson.eebus.summary": "Les équipements d'énergie de la maison s'accordent",
     "lesson.eebus.where": "Bornes, pompes à chaleur, gestionnaires d'énergie",
+    "lesson.oscp.summary": "La capacité du réseau pour un hub de recharge, bloc par bloc",
+    "lesson.oscp.where": "Opérateurs de recharge, gestionnaires de réseau",
     "lesson.dlms-cosem.summary": "Le modèle de données des compteurs communicants",
     "lesson.dlms-cosem.where": "Compteurs d'électricité, de gaz et d'eau",
     "lesson.iec-62056-21.summary": "Relever un compteur par son port optique",

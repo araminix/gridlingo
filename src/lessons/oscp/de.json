@@ -1,0 +1,83 @@
+{
+    "intro": "OSCP (Open Smart Charging Protocol) der Open Charge Alliance lässt einen Netzbetreiber einem Ladepunktbetreiber sagen, wie viel Leistung eine Gruppe von Ladepunkten ziehen darf, Block für Block, bevor Kabel oder Transformator überlastet werden. Der Netzbetreiber ist der Capacity Provider; das Backend des Ladepunktbetreibers ist der Capacity Optimizer. Es teilt diese Kapazität auf die Autos auf und steuert jeden Ladepunkt mit OCPP. Version 2.0 ist JSON über HTTPS: Prognosen, Messwerte, Heartbeats und ein Rückfallwert für den Fall, dass die Verbindung ausfällt.",
+    "plain": "Ein Parkplatz voller Ladestationen kann um sechs Uhr abends, wenn alle kochen und heizen, mehr Strom ziehen, als der Trafo der Straße hergibt. Mit OSCP sagt der Netzbetreiber dem Ladebetreiber einen Tag im Voraus, wie viel er in jeder Viertelstunde nutzen darf. Der Ladebetreiber teilt diese Menge auf die Autos auf, sodass sie weiter laden, in den vollsten Stunden etwas langsamer. Reden die beiden nicht mehr miteinander, fallen die Ladestationen auf eine sichere Menge zurück.",
+    "steps": {
+        "register": { "title": "Tokens austauschen", "text": "Das Backend des Ladepunktbetreibers meldet sich beim Netzbetreiber an: Es sendet das Token, mit dem der Netzbetreiber es aufrufen muss, die OSCP-Version 2.0 und seine Basis-URL. Im Handshake verlangt der Netzbetreiber alle 300 s einen Heartbeat." },
+        "forecast": { "title": "Die Kapazität senden", "text": "Der Netzbetreiber sendet die Kapazitätsprognose für morgen für die Gruppe hub-17, einen Ladepark mit 12 Ladepunkten hinter einem Transformator: 96 Blöcke zu 15 Minuten. Fast den ganzen Tag 400 kW, von 17:00 bis 20:00Z, in der Abendspitze, 250 kW." },
+        "plan": { "title": "Sie auf die Autos verteilen", "text": "Um 17:00Z senkt das Backend die Grenze jedes Ladepunkts mit OCPP SetChargingProfile: 30 A pro Phase, je etwa 20,7 kW, 248 kW für die 12 Ladepunkte. Die Autos laden weiter, langsamer." },
+        "measure": { "title": "Den Verbrauch melden", "text": "Nach jedem Block meldet das Backend die Energie, die der Ladepark bezogen hat: 61,8 kWh von 17:00 bis 17:15Z, im Mittel 247 kW, unter den erlaubten 250 kW. Der Netzbetreiber kann prüfen, ob die Prognose eingehalten wurde." },
+        "offline": { "title": "Die Verbindung verlieren", "text": "Um 20:30Z sagt der letzte Heartbeat des Netzbetreibers: Wenn du bis 20:35Z nichts von mir hörst, geh offline. Es kommt nichts. Das Backend fällt auf die Rückfallkapazität zurück, die der Netzbetreiber vorher gesendet hat, 150 kW, bis die Verbindung zurückkommt." }
+    },
+    "frames": {
+        "register": "Hier ist mein Token und wo du mich erreichst",
+        "handshake": "Schick mir alle 300 s einen Heartbeat",
+        "forecast": "Morgen darf hub-17 400 kW ziehen, in der Abendspitze 250 kW",
+        "accepted": "Erhalten",
+        "profile1": "Ab 17:00Z höchstens 30 A pro Phase",
+        "profile2": "Ab 17:00Z höchstens 30 A pro Phase",
+        "measurements": "Von 17:00 bis 17:15Z hat der Ladepark 61,8 kWh bezogen",
+        "heartbeat": "Ich bin da; hörst du bis 20:35Z nichts, geh offline",
+        "fallback": "Rückfall: höchstens 18 A pro Phase"
+    },
+    "notes": {
+        "register": "Eine Register-Nachricht mit dem Token, das der Netzbetreiber in seinen Authorization-Header setzen wird, und der URL des Backends für Version 2.0. Der Netzbetreiber hat sein eigenes Token vorher übergeben.",
+        "handshake": "Ein Handshake mit dem geforderten Verhalten: ein Heartbeat-Intervall von 300 s. Das Backend bestätigt es.",
+        "forecast": "Ein UpdateGroupCapacityForecast vom Typ CONSUMPTION für die Gruppe hub-17, mit 96 Prognoseblöcken, jeder mit Kapazität, Phase, Einheit, Start- und Endzeit. Die Spielwiese zeigt einen Teil davon.",
+        "accepted": "Die HTTP-Antwort: 204, erhalten, kein Inhalt. Jede OSCP-Nachricht wird so beantwortet, wenn alles in Ordnung ist.",
+        "profile1": "Kein OSCP: ein OCPP SetChargingProfile an jeden Ladepunkt des Ladeparks (siehe die Lektion OCPP). 12 × 30 A × 3 × 230 V ≈ 248 kW.",
+        "profile2": "Dasselbe Profil für den zweiten gezeigten Ladepunkt und die 10 anderen des Ladeparks.",
+        "measurements": "Ein UpdateGroupMeasurements mit der Energie, die hub-17 im Block bezogen hat: 61,8 kWh in 15 Minuten, im Mittel 247 kW.",
+        "heartbeat": "Ein Heartbeat mit offline_mode_at 20:35Z: Bis dahin darf das Backend den Prognosen trauen, die es hat. Dies ist der letzte.",
+        "fallback": "Kein Heartbeat bis 20:35Z: Das Backend wendet die Kapazität FALLBACK_CONSUMPTION an, 150 kW: 12 Ladepunkte mit 18 A pro Phase, je etwa 12,4 kW."
+    },
+    "fields": {
+        "a-capacity": { "name": "capacity", "note": "250: wie viel bezogen werden darf." },
+        "a-phase": { "name": "phase", "note": "ALL: für alle Phasen zusammen. ONE, TWO oder THREE würden eine einzelne Phase begrenzen." },
+        "a-unit": { "name": "unit", "note": "KW: Kilowatt. A hieße Ampere pro Phase, eine ganz andere Grenze." },
+        "a-start": { "name": "start_time", "note": "Wann der Block beginnt, in UTC: 17:00Z ist im November 18:00 in Mitteleuropa." },
+        "a-end": { "name": "end_time", "note": "Wann er endet, 15 Minuten später. Hier beginnt der nächste Block." }
+    },
+    "devices": {
+        "dso": "Netzbetreiber (Capacity Provider)",
+        "cpo": "Backend des CPO (Capacity Optimizer)",
+        "charger1": "Ladepunkt 1 von 12",
+        "charger2": "Ladepunkt 2 von 12",
+        "transformer": "Trafo des Ladeparks"
+    },
+    "facts": {
+        "standard": "OSCP 2.0 (2020) der Open Charge Alliance; OSCP 1.0 stammt von 2015",
+        "between": "Ein Netzbetreiber (Capacity Provider) und das Backend eines Ladepunktbetreibers (Capacity Optimizer), das dann seine Ladepunkte mit OCPP steuert",
+        "transport": "JSON über HTTPS, REST: Jede Seite ruft die URLs der anderen auf",
+        "security": "TLS und ein Token im Authorization-Header, das jede Seite der anderen bei der Anmeldung gibt",
+        "speed": "Prognosen in Blöcken, oft 15 Minuten, für den nächsten Tag und im Lauf des Tages aktualisiert; ein Heartbeat im vereinbarten Abstand"
+    },
+    "tips": [
+        "Einigen Sie sich auf Phase und Einheit jedes Blocks. 250 in KW für alle Phasen und 250 in A pro Phase sind sehr verschiedene Grenzen.",
+        "Sorgen Sie dafür, dass eine Rückfallkapazität gesetzt ist. Bleiben Prognosen oder Heartbeats aus, muss der Optimizer auf sie zurückfallen, nicht auf den vollen Anschluss.",
+        "Zeiten sind UTC, nach ISO 8601. Eine Prognose in Ortszeit verschiebt jeden Block um eine oder zwei Stunden.",
+        "OSCP begrenzt eine Gruppe, keinen Ladepunkt: Der Optimizer muss die Kapazität auf die Autos aufteilen und jedem Ladepunkt seine eigene Grenze über OCPP senden."
+    ],
+    "points": {
+        "capacity": "Erlaubte Kapazität",
+        "load": "Last des Ladeparks",
+        "link": "Verbindung"
+    },
+    "values": {
+        "fallback": "150 kW (Rückfall)",
+        "ok": "lebt",
+        "lost": "verloren"
+    },
+    "anatomy": {
+        "block": "Ein Prognoseblock: wie viel, auf welchen Phasen, in welcher Einheit, wann"
+    },
+    "playground": {
+        "file": "Probieren Sie es aus: ein Teil der Kapazitätsprognose des Netzbetreibers für hub-17, als JSON. Die echte Nachricht hat 96 Blöcke, einen pro Viertelstunde.",
+        "group": "Die Gruppe: die Ladepunkte des Ladeparks hinter einem Transformator, unter dem Namen, auf den sich beide Seiten geeinigt haben.",
+        "type": "CONSUMPTION: eine Grenze für das, was die Gruppe bezieht. GENERATION würde begrenzen, was sie einspeist; die FALLBACK-Typen gelten, wenn die Verbindung verloren geht.",
+        "blocks": "Die Liste der Blöcke, nach Zeit geordnet.",
+        "before": "Vor der Spitze: 400 kW.",
+        "peak": "Ab 17:00Z, 18:00 in Mitteleuropa: 250 kW.",
+        "same": "Die nächste Viertelstunde, dieselbe Grenze. Die Blöcke bis 20:00Z sind hier weggelassen.",
+        "after": "Um 20:00Z ist die Spitze vorbei: wieder 400 kW."
+    }
+}

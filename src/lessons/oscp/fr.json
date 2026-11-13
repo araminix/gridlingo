@@ -1,0 +1,83 @@
+{
+    "intro": "OSCP (Open Smart Charging Protocol), de l'Open Charge Alliance, permet à un gestionnaire de réseau de dire à un opérateur de points de recharge quelle puissance un groupe de bornes peut tirer, bloc par bloc, avant que les câbles ou le transformateur ne soient surchargés. Le gestionnaire de réseau est le Capacity Provider ; le système central de l'opérateur de recharge est le Capacity Optimizer. Il répartit cette capacité entre les voitures et pilote chaque borne avec OCPP. La version 2.0, c'est du JSON sur HTTPS : prévisions, mesures, battements de cœur et une valeur de repli pour quand la liaison tombe.",
+    "plain": "Un parking plein de bornes peut tirer plus de puissance que le transformateur de la rue n'en donne à six heures du soir, quand tout le monde cuisine et chauffe. Avec OSCP, le gestionnaire de réseau dit à l'opérateur de recharge, la veille, combien il peut utiliser chaque quart d'heure. L'opérateur de recharge partage cette quantité entre les voitures, qui continuent de charger, un peu moins vite aux heures les plus chargées. Si les deux ne se parlent plus, les bornes descendent à une quantité sûre.",
+    "steps": {
+        "register": { "title": "Échanger les jetons", "text": "Le système central de l'opérateur de recharge s'enregistre auprès du gestionnaire de réseau : il envoie le jeton que le gestionnaire devra utiliser pour l'appeler, la version d'OSCP, 2.0, et son URL de base. Dans le handshake, le gestionnaire demande un battement de cœur toutes les 300 s." },
+        "forecast": { "title": "Envoyer la capacité", "text": "Le gestionnaire de réseau envoie la prévision de capacité du lendemain pour le groupe hub-17, un hub de 12 bornes derrière un transformateur : 96 blocs de 15 minutes. 400 kW presque toute la journée, 250 kW de 17:00 à 20:00Z, la pointe du soir." },
+        "plan": { "title": "La partager entre les voitures", "text": "À 17:00Z, le système central baisse la limite de chaque borne avec OCPP SetChargingProfile : 30 A par phase, environ 20,7 kW chacune, 248 kW pour les 12 bornes. Les voitures continuent de charger, plus lentement." },
+        "measure": { "title": "Déclarer ce qui a été utilisé", "text": "Après chaque bloc, le système central déclare l'énergie utilisée par le hub : 61,8 kWh de 17:00 à 17:15Z, soit 247 kW en moyenne, sous les 250 kW permis. Le gestionnaire de réseau peut vérifier que la prévision a été respectée." },
+        "offline": { "title": "Perdre la liaison", "text": "À 20:30Z, le dernier battement de cœur du gestionnaire dit : si tu n'as rien de moi d'ici 20:35Z, passe hors ligne. Rien ne vient. Le système central revient à la capacité de repli que le gestionnaire a envoyée plus tôt, 150 kW, jusqu'au retour de la liaison." }
+    },
+    "frames": {
+        "register": "Voici mon jeton et où me joindre",
+        "handshake": "Envoie-moi un battement de cœur toutes les 300 s",
+        "forecast": "Demain, hub-17 peut tirer 400 kW, 250 kW à la pointe du soir",
+        "accepted": "Reçu",
+        "profile1": "À partir de 17:00Z, au plus 30 A par phase",
+        "profile2": "À partir de 17:00Z, au plus 30 A par phase",
+        "measurements": "De 17:00 à 17:15Z, le hub a utilisé 61,8 kWh",
+        "heartbeat": "Je suis là ; si tu n'as rien de moi d'ici 20:35Z, passe hors ligne",
+        "fallback": "Repli : au plus 18 A par phase"
+    },
+    "notes": {
+        "register": "Un message Register avec le jeton que le gestionnaire mettra dans son en-tête Authorization, et l'URL du système central pour la version 2.0. Le gestionnaire a remis son propre jeton auparavant.",
+        "handshake": "Un Handshake avec le comportement exigé : un intervalle de battement de cœur de 300 s. Le système central l'acquitte.",
+        "forecast": "Un UpdateGroupCapacityForecast de type CONSUMPTION pour le groupe hub-17, avec 96 blocs prévus, chacun avec une capacité, une phase, une unité, une heure de début et de fin. Le bac à sable en montre une partie.",
+        "accepted": "La réponse HTTP : 204, reçu, pas de contenu. Chaque message OSCP est acquitté ainsi quand tout va bien.",
+        "profile1": "Pas de l'OSCP : un OCPP SetChargingProfile vers chaque borne du hub (voir la leçon OCPP). 12 × 30 A × 3 × 230 V ≈ 248 kW.",
+        "profile2": "Le même profil pour la deuxième borne montrée et pour les 10 autres du hub.",
+        "measurements": "Un UpdateGroupMeasurements avec l'énergie soutirée par hub-17 pendant le bloc : 61,8 kWh en 15 minutes, 247 kW en moyenne.",
+        "heartbeat": "Un Heartbeat avec offline_mode_at 20:35Z : jusque-là, le système central peut se fier aux prévisions qu'il a. C'est le dernier.",
+        "fallback": "Pas de battement de cœur d'ici 20:35Z : le système central applique la capacité FALLBACK_CONSUMPTION, 150 kW : 12 bornes à 18 A par phase, environ 12,4 kW chacune."
+    },
+    "fields": {
+        "a-capacity": { "name": "capacity", "note": "250 : ce qui peut être tiré." },
+        "a-phase": { "name": "phase", "note": "ALL : pour toutes les phases ensemble. ONE, TWO ou THREE limiteraient une seule phase." },
+        "a-unit": { "name": "unit", "note": "KW : kilowatts. A voudrait dire ampères par phase, une limite très différente." },
+        "a-start": { "name": "start_time", "note": "Quand le bloc commence, en UTC : 17:00Z, c'est 18:00 en Europe centrale en novembre." },
+        "a-end": { "name": "end_time", "note": "Quand il finit, 15 minutes plus tard. Le bloc suivant commence ici." }
+    },
+    "devices": {
+        "dso": "Gestionnaire de réseau (Capacity Provider)",
+        "cpo": "Système central du CPO (Capacity Optimizer)",
+        "charger1": "Borne 1 sur 12",
+        "charger2": "Borne 2 sur 12",
+        "transformer": "Transformateur du hub"
+    },
+    "facts": {
+        "standard": "OSCP 2.0 (2020) de l'Open Charge Alliance ; OSCP 1.0 date de 2015",
+        "between": "Un gestionnaire de réseau (Capacity Provider) et le système central d'un opérateur de recharge (Capacity Optimizer), qui pilote ensuite ses bornes avec OCPP",
+        "transport": "JSON sur HTTPS, REST : chaque côté appelle les URL de l'autre",
+        "security": "TLS, et un jeton dans l'en-tête Authorization que chaque côté donne à l'autre à l'enregistrement",
+        "speed": "Des prévisions par blocs, souvent de 15 minutes, pour le lendemain et mises à jour en cours de journée ; un battement de cœur à l'intervalle convenu"
+    },
+    "tips": [
+        "Mettez-vous d'accord sur la phase et l'unité de chaque bloc. 250 en KW pour toutes les phases et 250 en A par phase sont des limites très différentes.",
+        "Veillez à ce qu'une capacité de repli soit fixée. Quand les prévisions ou les battements de cœur s'arrêtent, l'optimiseur doit revenir à elle, pas à la pleine puissance du raccordement.",
+        "Les heures sont en UTC, au format ISO 8601. Une prévision écrite en heure locale décale chaque bloc d'une ou deux heures.",
+        "OSCP limite un groupe, pas une borne : l'optimiseur doit répartir la capacité entre les voitures et envoyer à chaque borne sa propre limite par OCPP."
+    ],
+    "points": {
+        "capacity": "Capacité permise",
+        "load": "Charge du hub",
+        "link": "Liaison"
+    },
+    "values": {
+        "fallback": "150 kW (repli)",
+        "ok": "active",
+        "lost": "perdue"
+    },
+    "anatomy": {
+        "block": "Un bloc prévu : combien, sur quelles phases, dans quelle unité, quand"
+    },
+    "playground": {
+        "file": "Essayez : une partie de la prévision de capacité du gestionnaire pour hub-17, en JSON. Le vrai message a 96 blocs, un par quart d'heure.",
+        "group": "Le groupe : les bornes du hub derrière un transformateur, sous le nom convenu par les deux côtés.",
+        "type": "CONSUMPTION : une limite sur ce que le groupe soutire. GENERATION limiterait ce qu'il injecte ; les types FALLBACK s'appliquent quand la liaison est perdue.",
+        "blocks": "La liste des blocs, dans l'ordre du temps.",
+        "before": "Avant la pointe : 400 kW.",
+        "peak": "À partir de 17:00Z, 18:00 en Europe centrale : 250 kW.",
+        "same": "Le quart d'heure suivant, la même limite. Les blocs jusqu'à 20:00Z sont omis ici.",
+        "after": "À 20:00Z, la pointe est passée : retour à 400 kW."
+    }
+}

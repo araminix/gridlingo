@@ -270,6 +270,7 @@
     "OPC UA": { "full": "OPC Unified Architecture (OPC 통합 아키텍처)", "plain": "산업용 시스템이 데이터를 주고받는 프로토콜로, 보안이 내장돼 있어요." },
     "openssl": { "full": "OpenSSL", "plain": "인증서, 키, 암호화를 다루는 무료 명령줄 도구이자 라이브러리예요." },
     "OPN": { "full": "OpenSecureChannel (보안 채널 열기)", "plain": "보안 채널을 열거나 갱신하는 OPC UA 메시지예요." },
+    "OSCP": { "full": "Open Smart Charging Protocol (개방형 스마트 충전 프로토콜)", "plain": "배전 회사가 충전 사업자에게 충전기 묶음이 15분마다 얼마의 전력을 쓸 수 있는지 알려 주는 방법이에요." },
     "OT": { "full": "Operational Technology (운영 기술)", "plain": "발전소나 전력망 같은 실제 설비를 움직이는 컴퓨터와 제어기예요." },
     "OTAA": { "full": "Over-the-air activation (무선 활성화)", "plain": "무선으로 LoRaWAN 네트워크에 조인하는 방식이에요: 센서와 네트워크가 매번 새 세션 키를 만들어요." },
     "P-256": { "full": "NIST P-256 타원 곡선(secp256r1)", "plain": "키 교환과 서명에 가장 널리 지원되는 타원 곡선이에요." },

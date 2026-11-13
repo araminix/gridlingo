@@ -243,6 +243,8 @@
     "lesson.openadr.where": "Aziende elettriche, aggregatori, edifici",
     "lesson.eebus.summary": "I dispositivi energetici di casa si accordano",
     "lesson.eebus.where": "Wallbox, pompe di calore, gestori dell'energia",
+    "lesson.oscp.summary": "Capacità di rete per un hub di ricarica, blocco per blocco",
+    "lesson.oscp.where": "Operatori di ricarica, gestori di rete",
     "lesson.dlms-cosem.summary": "Il modello dati dei contatori intelligenti",
     "lesson.dlms-cosem.where": "Contatori di elettricità, gas e acqua",
     "lesson.iec-62056-21.summary": "Leggere un contatore dalla sua porta ottica",

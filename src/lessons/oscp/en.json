@@ -1,0 +1,83 @@
+{
+    "intro": "OSCP (Open Smart Charging Protocol), from the Open Charge Alliance, lets a grid operator tell a charge point operator how much power a group of chargers may draw, block by block, before the cables or the transformer overload. The grid operator is the Capacity Provider; the charge point operator's back office is the Capacity Optimizer. It shares that capacity among the cars and steers each charger with OCPP. Version 2.0 is JSON over HTTPS: forecasts, measurements, heartbeats, and a fallback for when the link fails.",
+    "plain": "A car park full of chargers can draw more power than the street's transformer can give at six in the evening, when everyone cooks and heats. OSCP is how the grid company tells the charging company, a day ahead, how much it may use each quarter of an hour. The charging company shares that amount among the cars, so they still charge, a little slower at the busiest hours. If the two stop talking, the chargers drop to a safe amount.",
+    "steps": {
+        "register": { "title": "Exchange tokens", "text": "The charge point operator's back office registers with the grid operator: it sends the token the grid operator must use to call it, the OSCP version, 2.0, and its base URL. In the handshake the grid operator asks for a heartbeat every 300 s." },
+        "forecast": { "title": "Send the capacity", "text": "The grid operator sends tomorrow's capacity forecast for group hub-17, a charging hub of 12 chargers behind one transformer: 96 blocks of 15 minutes. 400 kW most of the day, 250 kW from 17:00 to 20:00Z, the evening peak." },
+        "plan": { "title": "Share it among the cars", "text": "At 17:00Z the back office lowers each charger's limit with OCPP SetChargingProfile: 30 A per phase, about 20.7 kW each, 248 kW for the 12 chargers. The cars keep charging, more slowly." },
+        "measure": { "title": "Report what was used", "text": "After each block the back office reports the energy the hub used: 61.8 kWh from 17:00 to 17:15Z, an average of 247 kW, under the 250 kW allowed. The grid operator can check that the forecast was kept." },
+        "offline": { "title": "Lose the link", "text": "At 20:30Z the grid operator's last heartbeat says: if you hear nothing from me by 20:35Z, go offline. Nothing comes. The back office falls back to the fallback capacity the grid operator sent earlier, 150 kW, until the link returns." }
+    },
+    "frames": {
+        "register": "Here is my token and where to reach me",
+        "handshake": "Send me a heartbeat every 300 s",
+        "forecast": "Tomorrow hub-17 may draw 400 kW, 250 kW in the evening peak",
+        "accepted": "Received",
+        "profile1": "From 17:00Z, at most 30 A per phase",
+        "profile2": "From 17:00Z, at most 30 A per phase",
+        "measurements": "From 17:00 to 17:15Z the hub used 61.8 kWh",
+        "heartbeat": "I am here; if you hear nothing by 20:35Z, go offline",
+        "fallback": "Fallback: at most 18 A per phase"
+    },
+    "notes": {
+        "register": "A Register message with the token the grid operator will put in its Authorization header, and the URL of the back office for version 2.0. The grid operator gave its own token beforehand.",
+        "handshake": "A Handshake with the required behaviour: a heartbeat interval of 300 s. The back office acknowledges it.",
+        "forecast": "An UpdateGroupCapacityForecast of type CONSUMPTION for group hub-17, with 96 forecasted blocks, each with a capacity, a phase, a unit and a start and end time. The playground shows part of it.",
+        "accepted": "The HTTP answer: 204, received, no content. Every OSCP message is answered like this when all is well.",
+        "profile1": "Not OSCP: an OCPP SetChargingProfile to each charger of the hub (see the OCPP lesson). 12 × 30 A × 3 × 230 V ≈ 248 kW.",
+        "profile2": "The same profile for the second charger shown, and for the 10 others of the hub.",
+        "measurements": "An UpdateGroupMeasurements with the energy imported by hub-17 in the block: 61.8 kWh in 15 minutes, 247 kW on average.",
+        "heartbeat": "A Heartbeat with offline_mode_at 20:35Z: until then, the back office may trust the forecasts it has. This is the last one.",
+        "fallback": "No heartbeat by 20:35Z: the back office applies the FALLBACK_CONSUMPTION capacity, 150 kW: 12 chargers at 18 A per phase, about 12.4 kW each."
+    },
+    "fields": {
+        "a-capacity": { "name": "capacity", "note": "250: how much may be drawn." },
+        "a-phase": { "name": "phase", "note": "ALL: for all phases together. ONE, TWO or THREE would limit a single phase." },
+        "a-unit": { "name": "unit", "note": "KW: kilowatts. A would mean amperes per phase, a very different limit." },
+        "a-start": { "name": "start_time", "note": "When the block starts, in UTC: 17:00Z is 18:00 in Central Europe in November." },
+        "a-end": { "name": "end_time", "note": "When it ends, 15 minutes later. The next block starts here." }
+    },
+    "devices": {
+        "dso": "Grid operator (Capacity Provider)",
+        "cpo": "CPO back office (Capacity Optimizer)",
+        "charger1": "Charger 1 of 12",
+        "charger2": "Charger 2 of 12",
+        "transformer": "Hub transformer"
+    },
+    "facts": {
+        "standard": "OSCP 2.0 (2020) of the Open Charge Alliance; OSCP 1.0 dates from 2015",
+        "between": "A grid operator (Capacity Provider) and a charge point operator's back office (Capacity Optimizer), which then steers its chargers with OCPP",
+        "transport": "JSON over HTTPS, REST: each side calls the other's URLs",
+        "security": "TLS, and a token in the Authorization header that each side gives the other when it registers",
+        "speed": "Forecasts in blocks, often 15 minutes, for the next day and updated during it; a heartbeat at the agreed interval"
+    },
+    "tips": [
+        "Agree on the phase and the unit of each block. 250 in KW for all phases and 250 in A per phase are very different limits.",
+        "Make sure a fallback capacity is set. When forecasts or heartbeats stop, the optimizer must fall back to it, not to the full connection.",
+        "Times are UTC, in ISO 8601. A forecast written in local time shifts every block by one or two hours.",
+        "OSCP limits a group, not a charger: the optimizer must share the capacity among the cars and send each charger its own limit through OCPP."
+    ],
+    "points": {
+        "capacity": "Capacity allowed",
+        "load": "Hub load",
+        "link": "Link"
+    },
+    "values": {
+        "fallback": "150 kW (fallback)",
+        "ok": "alive",
+        "lost": "lost"
+    },
+    "anatomy": {
+        "block": "One forecasted block: how much, on which phases, in which unit, when"
+    },
+    "playground": {
+        "file": "Try it: part of the grid operator's capacity forecast for hub-17, as JSON. The real message has 96 blocks, one for each quarter of an hour.",
+        "group": "The group: the hub's chargers behind one transformer, by the name both sides agreed.",
+        "type": "CONSUMPTION: a limit on what the group draws. GENERATION would limit what it feeds in; the FALLBACK types apply when the link is lost.",
+        "blocks": "The list of blocks, in time order.",
+        "before": "Before the peak: 400 kW.",
+        "peak": "From 17:00Z, 18:00 in Central Europe: 250 kW.",
+        "same": "The next quarter of an hour, the same limit. The blocks up to 20:00Z are left out here.",
+        "after": "At 20:00Z the peak is over: back to 400 kW."
+    }
+}

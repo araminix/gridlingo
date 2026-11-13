@@ -243,6 +243,8 @@
     "lesson.openadr.where": "شركات الكهرباء والمجمِّعون والمباني",
     "lesson.eebus.summary": "أجهزة الطاقة المنزلية تتفق على القدرة",
     "lesson.eebus.where": "الشواحن الجدارية، مضخات الحرارة، مديرو الطاقة",
+    "lesson.oscp.summary": "سعة الشبكة لمركز شحن، كتلة بعد كتلة",
+    "lesson.oscp.where": "مشغلو الشحن، مشغلو الشبكات",
     "lesson.dlms-cosem.summary": "نموذج بيانات العدّادات الذكية",
     "lesson.dlms-cosem.where": "عدّادات الكهرباء والغاز والمياه",
     "lesson.iec-62056-21.summary": "قراءة العدّاد عبر منفذه البصري",

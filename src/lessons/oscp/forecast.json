@@ -1,0 +1,10 @@
+{
+    "group_id": "hub-17",
+    "type": "CONSUMPTION",
+    "forecasted_blocks": [
+        { "capacity": 400, "phase": "ALL", "unit": "KW", "start_time": "2026-11-13T16:45:00Z", "end_time": "2026-11-13T17:00:00Z" },
+        { "capacity": 250, "phase": "ALL", "unit": "KW", "start_time": "2026-11-13T17:00:00Z", "end_time": "2026-11-13T17:15:00Z" },
+        { "capacity": 250, "phase": "ALL", "unit": "KW", "start_time": "2026-11-13T17:15:00Z", "end_time": "2026-11-13T17:30:00Z" },
+        { "capacity": 400, "phase": "ALL", "unit": "KW", "start_time": "2026-11-13T20:00:00Z", "end_time": "2026-11-13T20:15:00Z" }
+    ]
+}

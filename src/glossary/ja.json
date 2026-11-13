@@ -270,6 +270,7 @@
     "OPC UA": { "full": "OPC Unified Architecture（OPC統合アーキテクチャ）", "plain": "産業システムどうしがデータを交換するプロトコル。セキュリティを内蔵しています。" },
     "openssl": { "full": "OpenSSL", "plain": "証明書、鍵、暗号化を扱う無料のコマンドラインツールとライブラリ。" },
     "OPN": { "full": "OpenSecureChannel（セキュアチャネルを開く）", "plain": "セキュアチャネルを開く、または更新するOPC UAのメッセージ。" },
+    "OSCP": { "full": "Open Smart Charging Protocol（オープン・スマート充電プロトコル）", "plain": "配電会社が充電事業者に、充電器のグループが15分ごとにどれだけの電力を使えるかを伝えるしくみ。" },
     "OT": { "full": "Operational Technology（制御・運用技術）", "plain": "発電所や電力網など、物理的な設備を動かすコンピュータとコントローラ。" },
     "OTAA": { "full": "Over-the-air activation（無線経由のアクティベーション）", "plain": "無線でLoRaWANに参加する方式。参加のたびに新しいセッション鍵を作ります。" },
     "P-256": { "full": "NIST P-256 elliptic curve (secp256r1)（NIST P-256楕円曲線）", "plain": "鍵交換と署名用に、最も広く対応されている楕円曲線。" },

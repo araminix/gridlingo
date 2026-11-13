@@ -1,0 +1,83 @@
+{
+    "intro": "Open Charge Alliance'ın OSCP'si (Open Smart Charging Protocol), bir şebeke işletmecisinin bir şarj noktası işletmecisine, kablolar ya da trafo aşırı yüklenmeden önce bir grup şarj cihazının blok blok ne kadar güç çekebileceğini söylemesini sağlar. Şebeke işletmecisi Capacity Provider'dır; şarj işletmecisinin merkezi sistemi Capacity Optimizer'dır. Bu kapasiteyi arabalar arasında paylaştırır ve her şarj cihazını OCPP ile yönetir. Sürüm 2.0, HTTPS üzerinden JSON'dır: tahminler, ölçümler, kalp atışları ve bağlantı koptuğunda kullanılacak bir yedek değer.",
+    "plain": "Şarj cihazlarıyla dolu bir otopark, herkesin yemek yaptığı ve ısındığı akşam altıda, sokağın trafosunun verebileceğinden fazla güç çekebilir. OSCP ile şebeke şirketi şarj şirketine, bir gün önceden, her çeyrek saatte ne kadar kullanabileceğini söyler. Şarj şirketi bu miktarı arabalar arasında paylaştırır; arabalar şarj olmaya devam eder, en yoğun saatlerde biraz daha yavaş. İkisi konuşmayı keserse şarj cihazları güvenli bir miktara iner.",
+    "steps": {
+        "register": { "title": "Token değiş tokuşu", "text": "Şarj işletmecisinin merkezi sistemi şebeke işletmecisine kaydolur: şebeke işletmecisinin onu çağırırken kullanacağı token'ı, OSCP sürümünü (2.0) ve temel URL'sini gönderir. El sıkışmada şebeke işletmecisi her 300 s'de bir kalp atışı ister." },
+        "forecast": { "title": "Kapasiteyi gönder", "text": "Şebeke işletmecisi, bir trafonun arkasında 12 şarj cihazı olan hub-17 grubu için yarının kapasite tahminini gönderir: 15 dakikalık 96 blok. Günün çoğunda 400 kW, akşam zirvesinde 17:00 ile 20:00Z arasında 250 kW." },
+        "plan": { "title": "Arabalar arasında paylaştır", "text": "17:00Z'de merkezi sistem her şarj cihazının sınırını OCPP SetChargingProfile ile düşürür: faz başına 30 A, her biri yaklaşık 20,7 kW, 12 cihaz için 248 kW. Arabalar şarj olmaya devam eder, daha yavaş." },
+        "measure": { "title": "Kullanılanı bildir", "text": "Her bloktan sonra merkezi sistem merkezin kullandığı enerjiyi bildirir: 17:00 ile 17:15Z arasında 61,8 kWh, ortalama 247 kW, izin verilen 250 kW'ın altında. Şebeke işletmecisi tahmine uyulup uyulmadığını denetleyebilir." },
+        "offline": { "title": "Bağlantıyı kaybet", "text": "20:30Z'de şebeke işletmecisinin son kalp atışı şunu söyler: 20:35Z'ye kadar benden haber alamazsan çevrimdışı moda geç. Hiçbir şey gelmez. Merkezi sistem, şebeke işletmecisinin önceden gönderdiği 150 kW'lık yedek kapasiteye döner ve bağlantı gelene kadar orada kalır." }
+    },
+    "frames": {
+        "register": "İşte token'ım ve bana nereden ulaşılacağı",
+        "handshake": "Her 300 s'de bir kalp atışı gönder",
+        "forecast": "Yarın hub-17 400 kW, akşam zirvesinde 250 kW çekebilir",
+        "accepted": "Alındı",
+        "profile1": "17:00Z'den itibaren faz başına en çok 30 A",
+        "profile2": "17:00Z'den itibaren faz başına en çok 30 A",
+        "measurements": "17:00 ile 17:15Z arasında merkez 61,8 kWh kullandı",
+        "heartbeat": "Buradayım; 20:35Z'ye kadar haber alamazsan çevrimdışı moda geç",
+        "fallback": "Yedek: faz başına en çok 18 A"
+    },
+    "notes": {
+        "register": "Şebeke işletmecisinin Authorization başlığına koyacağı token'ı ve merkezi sistemin sürüm 2.0 için URL'sini taşıyan bir Register mesajı. Şebeke işletmecisi kendi token'ını daha önce vermişti.",
+        "handshake": "İstenen davranışı taşıyan bir Handshake: 300 s'lik bir kalp atışı aralığı. Merkezi sistem bunu onaylar.",
+        "forecast": "hub-17 grubu için CONSUMPTION türünde bir UpdateGroupCapacityForecast; her birinde kapasite, faz, birim, başlangıç ve bitiş zamanı olan 96 tahmin bloğuyla. Deneme alanı bir kısmını gösterir.",
+        "accepted": "HTTP yanıtı: 204, alındı, içerik yok. Her şey yolundayken her OSCP mesajı böyle yanıtlanır.",
+        "profile1": "OSCP değil: merkezdeki her şarj cihazına bir OCPP SetChargingProfile (OCPP dersine bakın). 12 × 30 A × 3 × 230 V ≈ 248 kW.",
+        "profile2": "Gösterilen ikinci şarj cihazı ve merkezdeki diğer 10 cihaz için aynı profil.",
+        "measurements": "hub-17'nin blokta çektiği enerjiyi taşıyan bir UpdateGroupMeasurements: 15 dakikada 61,8 kWh, ortalama 247 kW.",
+        "heartbeat": "offline_mode_at 20:35Z içeren bir Heartbeat: o zamana kadar merkezi sistem elindeki tahminlere güvenebilir. Bu sonuncusu.",
+        "fallback": "20:35Z'ye kadar kalp atışı yok: merkezi sistem FALLBACK_CONSUMPTION kapasitesini, 150 kW'ı uygular: faz başına 18 A'da 12 şarj cihazı, her biri yaklaşık 12,4 kW."
+    },
+    "fields": {
+        "a-capacity": { "name": "capacity", "note": "250: ne kadar çekilebileceği." },
+        "a-phase": { "name": "phase", "note": "ALL: tüm fazlar birlikte. ONE, TWO ya da THREE tek bir fazı sınırlardı." },
+        "a-unit": { "name": "unit", "note": "KW: kilovat. A, faz başına amper anlamına gelirdi; çok farklı bir sınır." },
+        "a-start": { "name": "start_time", "note": "Bloğun başladığı an, UTC olarak: Kasım'da 17:00Z, Orta Avrupa'da 18:00'dir." },
+        "a-end": { "name": "end_time", "note": "Bittiği an, 15 dakika sonra. Bir sonraki blok burada başlar." }
+    },
+    "devices": {
+        "dso": "Şebeke işletmecisi (Capacity Provider)",
+        "cpo": "CPO merkezi sistemi (Capacity Optimizer)",
+        "charger1": "Şarj cihazı 1 / 12",
+        "charger2": "Şarj cihazı 2 / 12",
+        "transformer": "Merkezin trafosu"
+    },
+    "facts": {
+        "standard": "Open Charge Alliance'ın OSCP 2.0'ı (2020); OSCP 1.0, 2015'ten",
+        "between": "Bir şebeke işletmecisi (Capacity Provider) ile bir şarj işletmecisinin merkezi sistemi (Capacity Optimizer); bu sistem sonra şarj cihazlarını OCPP ile yönetir",
+        "transport": "HTTPS üzerinden JSON, REST: her taraf ötekinin URL'lerini çağırır",
+        "security": "TLS ve her tarafın kayıt sırasında ötekine verdiği, Authorization başlığındaki bir token",
+        "speed": "Ertesi gün için, çoğu zaman 15 dakikalık bloklarla tahminler, gün içinde güncellenir; kararlaştırılan aralıkta bir kalp atışı"
+    },
+    "tips": [
+        "Her bloğun fazı ve birimi üzerinde anlaşın. Tüm fazlar için KW cinsinden 250 ile faz başına A cinsinden 250 çok farklı sınırlardır.",
+        "Bir yedek kapasite ayarlandığından emin olun. Tahminler ya da kalp atışları durunca optimizasyoncu bağlantının tamamına değil, ona dönmelidir.",
+        "Zamanlar ISO 8601 biçiminde UTC'dir. Yerel saatle yazılmış bir tahmin her bloğu bir ya da iki saat kaydırır.",
+        "OSCP bir şarj cihazını değil, bir grubu sınırlar: optimizasyoncu kapasiteyi arabalar arasında paylaştırmalı ve her cihaza kendi sınırını OCPP ile göndermelidir."
+    ],
+    "points": {
+        "capacity": "İzin verilen kapasite",
+        "load": "Merkezin yükü",
+        "link": "Bağlantı"
+    },
+    "values": {
+        "fallback": "150 kW (yedek)",
+        "ok": "canlı",
+        "lost": "kayıp"
+    },
+    "anatomy": {
+        "block": "Bir tahmin bloğu: ne kadar, hangi fazlarda, hangi birimde, ne zaman"
+    },
+    "playground": {
+        "file": "Deneyin: şebeke işletmecisinin hub-17 için kapasite tahmininin bir kısmı, JSON olarak. Gerçek mesajda her çeyrek saat için bir tane olmak üzere 96 blok vardır.",
+        "group": "Grup: bir trafonun arkasındaki merkezin şarj cihazları, iki tarafın anlaştığı adla.",
+        "type": "CONSUMPTION: grubun çektiğine bir sınır. GENERATION verdiğini sınırlardı; FALLBACK türleri bağlantı kopunca geçerlidir.",
+        "blocks": "Zaman sırasıyla blokların listesi.",
+        "before": "Zirveden önce: 400 kW.",
+        "peak": "17:00Z'den, yani Orta Avrupa'da 18:00'den itibaren: 250 kW.",
+        "same": "Bir sonraki çeyrek saat, aynı sınır. 20:00Z'ye kadarki bloklar burada atlanmıştır.",
+        "after": "20:00Z'de zirve geçer: yeniden 400 kW."
+    }
+}

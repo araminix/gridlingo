@@ -36,6 +36,7 @@ export const CATALOG: readonly Meta[] = [
     { id: "ieee-2030-5", name: "IEEE 2030.5", group: "ev", devices: ["inverter", "cloud"], wire: "HTTPS · TLS" },
     { id: "openadr", name: "OpenADR", group: "ev", devices: ["cloud", "building"], wire: "HTTPS" },
     { id: "eebus", name: "EEBus", group: "ev", devices: ["charger", "controller"], wire: "SHIP · TLS · mDNS" },
+    { id: "oscp", name: "OSCP", group: "ev", devices: ["charger", "cloud", "transformer"], wire: "HTTPS · JSON" },
 
     { id: "dlms-cosem", name: "DLMS/COSEM", group: "metering", devices: ["meter"], wire: "HDLC · TCP 4059" },
     { id: "iec-62056-21", name: "IEC 62056-21", group: "metering", devices: ["meter", "laptop"], wire: "Optical port" },

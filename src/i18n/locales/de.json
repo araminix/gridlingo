@@ -243,6 +243,8 @@
     "lesson.openadr.where": "Versorger, Aggregatoren, Gebäude",
     "lesson.eebus.summary": "Energiegeräte im Haus stimmen sich ab",
     "lesson.eebus.where": "Wallboxen, Wärmepumpen, Energiemanager",
+    "lesson.oscp.summary": "Netzkapazität für einen Ladepark, Block für Block",
+    "lesson.oscp.where": "Ladepunktbetreiber, Netzbetreiber",
     "lesson.dlms-cosem.summary": "Das Datenmodell intelligenter Zähler",
     "lesson.dlms-cosem.where": "Strom-, Gas- und Wasserzähler",
     "lesson.iec-62056-21.summary": "Einen Zähler über seine optische Schnittstelle auslesen",

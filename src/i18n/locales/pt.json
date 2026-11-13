@@ -243,6 +243,8 @@
     "lesson.openadr.where": "Concessionárias, agregadores, edifícios",
     "lesson.eebus.summary": "Os equipamentos de energia da casa se entendem",
     "lesson.eebus.where": "Carregadores, bombas de calor, gerenciadores de energia",
+    "lesson.oscp.summary": "Capacidade da rede para um hub de recarga, bloco a bloco",
+    "lesson.oscp.where": "Operadores de recarga, distribuidoras",
     "lesson.dlms-cosem.summary": "O modelo de dados dos medidores inteligentes",
     "lesson.dlms-cosem.where": "Medidores de energia elétrica, gás e água",
     "lesson.iec-62056-21.summary": "A leitura de um medidor pela porta óptica",

@@ -243,6 +243,8 @@
     "lesson.openadr.where": "전력 회사, 애그리게이터, 건물",
     "lesson.eebus.summary": "집 안의 에너지 기기가 전력을 맞추기",
     "lesson.eebus.where": "월박스, 히트펌프, 에너지 관리기",
+    "lesson.oscp.summary": "충전 허브의 계통 용량을 블록마다",
+    "lesson.oscp.where": "충전 사업자, 배전 사업자",
     "lesson.dlms-cosem.summary": "스마트 미터의 데이터 모델",
     "lesson.dlms-cosem.where": "전기, 가스, 수도 계량기",
     "lesson.iec-62056-21.summary": "광 포트로 계량기 읽기",

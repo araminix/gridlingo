@@ -243,6 +243,8 @@
     "lesson.openadr.where": "电网公司、聚合商、楼宇",
     "lesson.eebus.summary": "家中能源设备协商用电",
     "lesson.eebus.where": "壁挂充电桩、热泵、能量管理器",
+    "lesson.oscp.summary": "按时段分配给充电站的电网容量",
+    "lesson.oscp.where": "充电运营商、电网运营商",
     "lesson.dlms-cosem.summary": "智能电表的数据模型",
     "lesson.dlms-cosem.where": "电表、燃气表和水表",
     "lesson.iec-62056-21.summary": "通过光学口读取电表",

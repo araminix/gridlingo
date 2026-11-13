@@ -270,6 +270,7 @@
     "OPC UA": { "full": "OPC Unified Architecture (OPC birleşik mimarisi)", "plain": "Endüstriyel sistemlerin veri alışverişi yapması için, güvenliği yerleşik bir protokol." },
     "openssl": { "full": "OpenSSL aracı", "plain": "Sertifikalar, anahtarlar ve şifreleme için ücretsiz bir komut satırı aracı ve kütüphane." },
     "OPN": { "full": "OpenSecureChannel (güvenli kanal aç)", "plain": "Bir güvenli kanalı açan ya da yenileyen OPC UA mesajı." },
+    "OSCP": { "full": "Open Smart Charging Protocol (açık akıllı şarj protokolü)", "plain": "Bir şebeke şirketinin bir şarj şirketine, bir grup şarj cihazının her çeyrek saatte ne kadar güç çekebileceğini söyleme yolu." },
     "OT": { "full": "Operational Technology (operasyonel teknoloji)", "plain": "Bir santral ya da şebeke gibi fiziksel makineleri çalıştıran bilgisayarlar ve kontrolörler." },
     "OTAA": { "full": "Over-the-air activation (havadan aktivasyon)", "plain": "Bir LoRaWAN ağına telsizle katılma: sensör ve ağ her seferinde yeni oturum anahtarları üretir." },
     "P-256": { "full": "NIST P-256 eliptik eğrisi (secp256r1)", "plain": "Anahtar değişimi ve imzalar için en yaygın desteklenen eliptik eğri." },

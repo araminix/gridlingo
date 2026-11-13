@@ -1,0 +1,83 @@
+{
+    "intro": "OSCP (Open Smart Charging Protocol), de la Open Charge Alliance, permite que una distribuidora le diga a un operador de puntos de recarga cuánta potencia puede tomar un grupo de cargadores, bloque a bloque, antes de que se sobrecarguen los cables o el transformador. La distribuidora es el Capacity Provider; el sistema central del operador de recarga es el Capacity Optimizer. Este reparte esa capacidad entre los coches y gobierna cada cargador con OCPP. La versión 2.0 es JSON sobre HTTPS: previsiones, medidas, latidos y un valor de respaldo para cuando falla el enlace.",
+    "plain": "Un aparcamiento lleno de cargadores puede tomar más potencia de la que da el transformador de la calle a las seis de la tarde, cuando todos cocinan y ponen la calefacción. Con OSCP la distribuidora le dice a la empresa de recarga, con un día de antelación, cuánto puede usar cada cuarto de hora. La empresa de recarga reparte esa cantidad entre los coches, que siguen cargando, algo más despacio en las horas de más demanda. Si las dos dejan de hablarse, los cargadores bajan a una cantidad segura.",
+    "steps": {
+        "register": { "title": "Intercambiar tokens", "text": "El sistema central del operador de recarga se registra ante la distribuidora: envía el token con el que la distribuidora debe llamarlo, la versión de OSCP, 2.0, y su URL base. En el handshake la distribuidora pide un latido cada 300 s." },
+        "forecast": { "title": "Enviar la capacidad", "text": "La distribuidora envía la previsión de capacidad de mañana para el grupo hub-17, un centro de recarga de 12 cargadores tras un transformador: 96 bloques de 15 minutos. 400 kW casi todo el día y 250 kW de 17:00 a 20:00Z, la punta de la tarde." },
+        "plan": { "title": "Repartirla entre los coches", "text": "A las 17:00Z el sistema central baja el límite de cada cargador con OCPP SetChargingProfile: 30 A por fase, unos 20,7 kW cada uno, 248 kW para los 12 cargadores. Los coches siguen cargando, más despacio." },
+        "measure": { "title": "Informar de lo usado", "text": "Tras cada bloque el sistema central informa de la energía que usó el centro: 61,8 kWh de 17:00 a 17:15Z, una media de 247 kW, por debajo de los 250 kW permitidos. La distribuidora puede comprobar que se respetó la previsión." },
+        "offline": { "title": "Perder el enlace", "text": "A las 20:30Z el último latido de la distribuidora dice: si no sabes nada de mí antes de las 20:35Z, pasa a modo sin conexión. No llega nada. El sistema central vuelve a la capacidad de respaldo que la distribuidora envió antes, 150 kW, hasta que vuelva el enlace." }
+    },
+    "frames": {
+        "register": "Este es mi token y dónde encontrarme",
+        "handshake": "Envíame un latido cada 300 s",
+        "forecast": "Mañana hub-17 puede tomar 400 kW, 250 kW en la punta de la tarde",
+        "accepted": "Recibido",
+        "profile1": "Desde las 17:00Z, como máximo 30 A por fase",
+        "profile2": "Desde las 17:00Z, como máximo 30 A por fase",
+        "measurements": "De 17:00 a 17:15Z el centro usó 61,8 kWh",
+        "heartbeat": "Aquí estoy; si no sabes nada antes de las 20:35Z, pasa a modo sin conexión",
+        "fallback": "Respaldo: como máximo 18 A por fase"
+    },
+    "notes": {
+        "register": "Un mensaje Register con el token que la distribuidora pondrá en su cabecera Authorization, y la URL del sistema central para la versión 2.0. La distribuidora entregó antes su propio token.",
+        "handshake": "Un Handshake con el comportamiento exigido: un intervalo de latido de 300 s. El sistema central lo confirma.",
+        "forecast": "Un UpdateGroupCapacityForecast de tipo CONSUMPTION para el grupo hub-17, con 96 bloques previstos, cada uno con capacidad, fase, unidad y horas de inicio y fin. El área de pruebas muestra una parte.",
+        "accepted": "La respuesta HTTP: 204, recibido, sin contenido. Cada mensaje OSCP se responde así cuando todo va bien.",
+        "profile1": "No es OSCP: un OCPP SetChargingProfile a cada cargador del centro (vea la lección OCPP). 12 × 30 A × 3 × 230 V ≈ 248 kW.",
+        "profile2": "El mismo perfil para el segundo cargador que se muestra y para los otros 10 del centro.",
+        "measurements": "Un UpdateGroupMeasurements con la energía que hub-17 tomó en el bloque: 61,8 kWh en 15 minutos, 247 kW de media.",
+        "heartbeat": "Un Heartbeat con offline_mode_at 20:35Z: hasta entonces el sistema central puede fiarse de las previsiones que tiene. Es el último.",
+        "fallback": "Ningún latido antes de las 20:35Z: el sistema central aplica la capacidad FALLBACK_CONSUMPTION, 150 kW: 12 cargadores a 18 A por fase, unos 12,4 kW cada uno."
+    },
+    "fields": {
+        "a-capacity": { "name": "capacity", "note": "250: cuánto se puede tomar." },
+        "a-phase": { "name": "phase", "note": "ALL: para todas las fases juntas. ONE, TWO o THREE limitarían una sola fase." },
+        "a-unit": { "name": "unit", "note": "KW: kilovatios. A significaría amperios por fase, un límite muy distinto." },
+        "a-start": { "name": "start_time", "note": "Cuándo empieza el bloque, en UTC: las 17:00Z son las 18:00 en Europa Central en noviembre." },
+        "a-end": { "name": "end_time", "note": "Cuándo termina, 15 minutos después. Aquí empieza el bloque siguiente." }
+    },
+    "devices": {
+        "dso": "Distribuidora (Capacity Provider)",
+        "cpo": "Sistema central del CPO (Capacity Optimizer)",
+        "charger1": "Cargador 1 de 12",
+        "charger2": "Cargador 2 de 12",
+        "transformer": "Transformador del centro"
+    },
+    "facts": {
+        "standard": "OSCP 2.0 (2020) de la Open Charge Alliance; OSCP 1.0 es de 2015",
+        "between": "Una distribuidora (Capacity Provider) y el sistema central de un operador de recarga (Capacity Optimizer), que luego gobierna sus cargadores con OCPP",
+        "transport": "JSON sobre HTTPS, REST: cada lado llama a las URL del otro",
+        "security": "TLS y un token en la cabecera Authorization que cada lado da al otro al registrarse",
+        "speed": "Previsiones por bloques, a menudo de 15 minutos, para el día siguiente y actualizadas durante él; un latido al intervalo acordado"
+    },
+    "tips": [
+        "Acuerden la fase y la unidad de cada bloque. 250 en KW para todas las fases y 250 en A por fase son límites muy distintos.",
+        "Asegúrese de que haya una capacidad de respaldo. Cuando se detienen las previsiones o los latidos, el optimizador debe volver a ella, no a la conexión completa.",
+        "Las horas van en UTC, en ISO 8601. Una previsión escrita en hora local desplaza cada bloque una o dos horas.",
+        "OSCP limita un grupo, no un cargador: el optimizador debe repartir la capacidad entre los coches y enviar a cada cargador su propio límite por OCPP."
+    ],
+    "points": {
+        "capacity": "Capacidad permitida",
+        "load": "Carga del centro",
+        "link": "Enlace"
+    },
+    "values": {
+        "fallback": "150 kW (respaldo)",
+        "ok": "activo",
+        "lost": "perdido"
+    },
+    "anatomy": {
+        "block": "Un bloque previsto: cuánto, en qué fases, en qué unidad, cuándo"
+    },
+    "playground": {
+        "file": "Pruébelo: parte de la previsión de capacidad de la distribuidora para hub-17, en JSON. El mensaje real tiene 96 bloques, uno por cada cuarto de hora.",
+        "group": "El grupo: los cargadores del centro tras un transformador, con el nombre que acordaron ambos lados.",
+        "type": "CONSUMPTION: un límite a lo que toma el grupo. GENERATION limitaría lo que inyecta; los tipos FALLBACK se aplican cuando se pierde el enlace.",
+        "blocks": "La lista de bloques, en orden de tiempo.",
+        "before": "Antes de la punta: 400 kW.",
+        "peak": "Desde las 17:00Z, las 18:00 en Europa Central: 250 kW.",
+        "same": "El cuarto de hora siguiente, el mismo límite. Aquí se omiten los bloques hasta las 20:00Z.",
+        "after": "A las 20:00Z pasa la punta: de nuevo 400 kW."
+    }
+}

@@ -243,6 +243,8 @@
     "lesson.openadr.where": "Utilities, aggregators, buildings",
     "lesson.eebus.summary": "Home energy devices agreeing on power",
     "lesson.eebus.where": "Wallboxes, heat pumps, energy managers",
+    "lesson.oscp.summary": "Grid capacity for a charging hub, block by block",
+    "lesson.oscp.where": "Charge point operators, grid operators",
     "lesson.dlms-cosem.summary": "The data model of smart meters",
     "lesson.dlms-cosem.where": "Electricity, gas and water meters",
     "lesson.iec-62056-21.summary": "Reading a meter through its optical port",

@@ -270,6 +270,7 @@
     "OPC UA": { "full": "OPC Unified Architecture（OPC 统一架构）", "plain": "工业系统之间交换数据的协议，自带安全机制。" },
     "openssl": { "full": "OpenSSL（开源加密工具）", "plain": "处理证书、密钥和加密的免费命令行工具和程序库。" },
     "OPN": { "full": "OpenSecureChannel（打开安全通道）", "plain": "打开或续期安全通道的 OPC UA 报文。" },
+    "OSCP": { "full": "Open Smart Charging Protocol（开放智能充电协议）", "plain": "电网公司告诉充电运营商一组充电桩每 15 分钟最多可用多少功率的方式。" },
     "OT": { "full": "Operational Technology（运营技术）", "plain": "控制实际机器（如电站或电网）运行的计算机和控制器。" },
     "OTAA": { "full": "Over-the-air activation（空中激活）", "plain": "通过无线电加入 LoRaWAN 网络：每次都由传感器和网络生成新的会话密钥。" },
     "P-256": { "full": "NIST P-256 椭圆曲线（secp256r1）", "plain": "支持最广的椭圆曲线，用于密钥交换和签名。" },

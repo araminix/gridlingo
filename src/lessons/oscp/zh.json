@@ -1,0 +1,83 @@
+{
+    "intro": "Open Charge Alliance 的 OSCP（Open Smart Charging Protocol）让电网运营商告诉充电运营商：一组充电桩在电缆或变压器过载之前，每个时段最多能用多少功率。电网运营商是 Capacity Provider，充电运营商的中央系统是 Capacity Optimizer。中央系统把这份容量分给各辆车，并用 OCPP 控制每个充电桩。2.0 版是基于 HTTPS 的 JSON：预测、计量、心跳，以及链路中断时使用的后备值。",
+    "plain": "停满充电桩的停车场，在晚上六点大家做饭、开暖气的时候，可能用掉比街道变压器能给的更多的电。有了 OSCP，电网公司提前一天告诉充电公司每 15 分钟能用多少。充电公司把这个量分给各辆车，车照样充电，只是在最忙的时段慢一点。要是双方断了联系，充电桩就降到一个安全的量。",
+    "steps": {
+        "register": { "title": "交换令牌", "text": "充电运营商的中央系统向电网运营商注册：发送电网运营商调用它时要用的令牌、OSCP 版本 2.0，以及它的基础 URL。握手时，电网运营商要求每 300 s 发一次心跳。" },
+        "forecast": { "title": "发送容量", "text": "电网运营商发送 hub-17 组明天的容量预测，这是一台变压器后面有 12 个充电桩的充电站：96 个 15 分钟的时段。全天大部分时间 400 kW，晚高峰 17:00 到 20:00Z 为 250 kW。" },
+        "plan": { "title": "分给各辆车", "text": "17:00Z 时，中央系统用 OCPP SetChargingProfile 调低每个充电桩的上限：每相 30 A，每桩约 20.7 kW，12 个桩共 248 kW。车继续充电，只是慢一些。" },
+        "measure": { "title": "报告用了多少", "text": "每个时段结束后，中央系统报告充电站用掉的电能：17:00 到 17:15Z 用了 61.8 kWh，平均 247 kW，低于允许的 250 kW。电网运营商可以核对预测是否被遵守。" },
+        "offline": { "title": "链路中断", "text": "20:30Z，电网运营商的最后一次心跳说：如果到 20:35Z 还没有我的消息，就进入离线模式。什么也没来。中央系统改用电网运营商先前发来的后备容量 150 kW，直到链路恢复。" }
+    },
+    "frames": {
+        "register": "这是我的令牌和联系地址",
+        "handshake": "每 300 s 给我发一次心跳",
+        "forecast": "明天 hub-17 可用 400 kW，晚高峰 250 kW",
+        "accepted": "已收到",
+        "profile1": "从 17:00Z 起，每相最多 30 A",
+        "profile2": "从 17:00Z 起，每相最多 30 A",
+        "measurements": "17:00 到 17:15Z 充电站用了 61.8 kWh",
+        "heartbeat": "我在；如果到 20:35Z 没有消息，就进入离线模式",
+        "fallback": "后备：每相最多 18 A"
+    },
+    "notes": {
+        "register": "一条 Register 消息，带有电网运营商将放进其 Authorization 头的令牌，以及 2.0 版对应的中央系统 URL。电网运营商事先已交出自己的令牌。",
+        "handshake": "一条 Handshake，写明要求的行为：心跳间隔 300 s。中央系统予以确认。",
+        "forecast": "针对 hub-17 组、类型为 CONSUMPTION 的 UpdateGroupCapacityForecast，含 96 个预测时段，每个都有容量、相、单位、开始和结束时间。练习区展示了其中一部分。",
+        "accepted": "HTTP 应答：204，已收到，无内容。一切正常时，每条 OSCP 消息都这样应答。",
+        "profile1": "这不是 OSCP：给充电站每个桩的 OCPP SetChargingProfile（见 OCPP 课）。12 × 30 A × 3 × 230 V ≈ 248 kW。",
+        "profile2": "给图中第二个桩以及站内其余 10 个桩的同一配置。",
+        "measurements": "一条 UpdateGroupMeasurements，报告 hub-17 在该时段取用的电能：15 分钟 61.8 kWh，平均 247 kW。",
+        "heartbeat": "一条带 offline_mode_at 20:35Z 的 Heartbeat：在那之前，中央系统可以相信手头的预测。这是最后一条。",
+        "fallback": "到 20:35Z 仍无心跳：中央系统执行 FALLBACK_CONSUMPTION 容量 150 kW：12 个桩每相 18 A，每桩约 12.4 kW。"
+    },
+    "fields": {
+        "a-capacity": { "name": "capacity", "note": "250：最多能用多少。" },
+        "a-phase": { "name": "phase", "note": "ALL：所有相合计。ONE、TWO 或 THREE 则只限制一相。" },
+        "a-unit": { "name": "unit", "note": "KW：千瓦。A 则表示每相安培，是完全不同的限值。" },
+        "a-start": { "name": "start_time", "note": "时段开始时间，用 UTC：11 月的 17:00Z 是中欧时间 18:00。" },
+        "a-end": { "name": "end_time", "note": "结束时间，15 分钟后。下一个时段从这里开始。" }
+    },
+    "devices": {
+        "dso": "电网运营商（Capacity Provider）",
+        "cpo": "CPO 中央系统（Capacity Optimizer）",
+        "charger1": "充电桩 1/12",
+        "charger2": "充电桩 2/12",
+        "transformer": "充电站变压器"
+    },
+    "facts": {
+        "standard": "Open Charge Alliance 的 OSCP 2.0（2020）；OSCP 1.0 始于 2015 年",
+        "between": "电网运营商（Capacity Provider）与充电运营商的中央系统（Capacity Optimizer），后者再用 OCPP 控制充电桩",
+        "transport": "基于 HTTPS 的 JSON，REST 风格：双方互相调用对方的 URL",
+        "security": "TLS，以及注册时双方互给的、放在 Authorization 头里的令牌",
+        "speed": "按时段（常为 15 分钟）预测次日，并在当天更新；按约定间隔发送心跳"
+    },
+    "tips": [
+        "商定每个时段的相和单位。所有相合计的 250 KW 与每相 250 A 是截然不同的限值。",
+        "确保设置了后备容量。预测或心跳中断时，优化方必须退回到它，而不是用满整个接入容量。",
+        "时间用 UTC，按 ISO 8601 书写。用当地时间写的预测会把每个时段错开一两个小时。",
+        "OSCP 限制的是一组，不是单个桩：优化方必须把容量分给各辆车，再用 OCPP 给每个桩发送它自己的限值。"
+    ],
+    "points": {
+        "capacity": "允许容量",
+        "load": "充电站负荷",
+        "link": "链路"
+    },
+    "values": {
+        "fallback": "150 kW（后备）",
+        "ok": "正常",
+        "lost": "中断"
+    },
+    "anatomy": {
+        "block": "一个预测时段：多少、哪些相、什么单位、何时"
+    },
+    "playground": {
+        "file": "试一试：电网运营商为 hub-17 发出的容量预测的一部分，JSON 格式。真实消息有 96 个时段，每 15 分钟一个。",
+        "group": "组：一台变压器后面的站内充电桩，用双方约定的名称。",
+        "type": "CONSUMPTION：限制该组取用的功率。GENERATION 则限制它送出的功率；FALLBACK 类型在链路中断时生效。",
+        "blocks": "时段列表，按时间排序。",
+        "before": "高峰前：400 kW。",
+        "peak": "从 17:00Z（中欧 18:00）起：250 kW。",
+        "same": "下一个 15 分钟，同样的限值。到 20:00Z 为止的时段这里省略了。",
+        "after": "20:00Z 高峰结束：回到 400 kW。"
+    }
+}

@@ -270,6 +270,7 @@
     "OPC UA": { "full": "OPC Unified Architecture (arquitectura unificada OPC)", "plain": "Un protocolo con el que los sistemas industriales intercambian datos, con seguridad incorporada." },
     "openssl": { "full": "OpenSSL", "plain": "Una herramienta de línea de comandos y biblioteca gratuita para certificados, claves y cifrado." },
     "OPN": { "full": "OpenSecureChannel (abrir canal seguro)", "plain": "El mensaje de OPC UA que abre o renueva un canal seguro." },
+    "OSCP": { "full": "Open Smart Charging Protocol (protocolo abierto de carga inteligente)", "plain": "Cómo una distribuidora le dice a un operador de carga cuánta potencia puede tomar un grupo de cargadores, cuarto de hora a cuarto de hora." },
     "OT": { "full": "Operational Technology (tecnología operativa)", "plain": "Las computadoras y controladores que manejan máquinas físicas, como una planta o una red eléctrica." },
     "OTAA": { "full": "Over-the-air activation (activación por el aire)", "plain": "Unirse a una red LoRaWAN por radio: el sensor y la red generan claves de sesión nuevas cada vez." },
     "P-256": { "full": "Curva elíptica NIST P-256 (secp256r1)", "plain": "La curva elíptica más extendida para el intercambio de claves y las firmas." },
