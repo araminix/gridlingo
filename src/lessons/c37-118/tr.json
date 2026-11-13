@@ -71,7 +71,11 @@
         "i1-mag-ev": { "name": "I1 büyüklüğü", "note": "455.0 A: hat artık daha fazla güç taşıyor." },
         "i1-ang-ev": { "name": "I1 açısı", "note": "−27.900°." },
         "freq-ev": { "name": "FREQ", "note": "49.946 Hz: 50 Hz'in altında, çünkü şebeke bir jeneratör kaybetti." },
-        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s: frekans düşüyor." }
+        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s: frekans düşüyor." },
+        "sw-aa": { "name": "AA · eşzaman baytı", "note": "0xAA her çerçeveyi başlatır: yerini kaybeden bir alıcı onu arar." },
+        "sw-res": { "name": "0 · ayrılmış", "note": "İkinci baytın ilk biti her zaman 0'dır." },
+        "sw-type": { "name": "011 · çerçeve tipi 3", "note": "Yapılandırma çerçevesi 2: PMU'nun neyi ölçtüğü ve nasıl gönderdiği. 000 bir veri çerçevesi, 100 bir komuttur." },
+        "sw-ver": { "name": "0001 · sürüm 1", "note": "2005 standardının çerçeve biçimi; 2011 de onu korur. 2, 2011 biçimi demek olurdu." }
     },
     "devices": {
         "gps": "GPS saati",
@@ -113,5 +117,8 @@
     },
     "playground": {
         "encoder": "C37.118, float'ları en anlamlı (en yüksek) bayt önce gönderir (ABCD). 89120, ilk veri çerçevesindeki V1 büyüklüğüdür: 47 AE 10 00."
+    },
+    "anatomy": {
+        "sync": "Yapılandırma çerçevesi 2'nin SYNC sözcüğü"
     }
 }

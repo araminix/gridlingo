@@ -55,7 +55,9 @@
         "sum-1": { "name": "Summation 1", "note": "0x01E240 = 123 456 Wh empfangen: Energie, die das Haus ins Netz geliefert hat." },
         "cksum": { "name": "Prüfsumme", "note": "0x72: Die Tabellenbytes und dieses Byte ergeben zusammen 0, modulo 256." },
         "logoff": { "name": "Logoff", "note": "0x52: die Sitzung beenden." },
-        "terminate": { "name": "Terminate", "note": "0x21: das Gespräch beenden." }
+        "terminate": { "name": "Terminate", "note": "0x21: das Gespräch beenden." },
+        "t-st": { "name": "ST · Standardtabelle", "note": "Von ANSI C12.19 festgelegt, in jedem Zähler gleich. Eine MT, eine Herstellertabelle, gehört dem Hersteller." },
+        "t-23": { "name": "23 · aktuelle Registerdaten", "note": "Tabelle 23 hält die Energie- und Leistungsregister, die der Zähler gerade führt. Diese Lektion liest sie ganz." }
     },
     "devices": {
         "laptop": "Laptop des Technikers",
@@ -96,5 +98,8 @@
         "st22": "Aus welcher Quelle jede Summation (laufende Summe) in ST 23 stammt.",
         "st23": "Die Tabelle, die diese Lektion liest: zwei Summen zu je 6 Bytes.",
         "mt": "Herstellertabellen: ihre Nummer plus 2048. Was darin steht, entscheidet der Hersteller."
+    },
+    "anatomy": {
+        "table": "Der Name der Energietabelle"
     }
 }

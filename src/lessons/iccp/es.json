@@ -55,7 +55,10 @@
         "domain": { "name": "Dominio", "note": "\"DSO_EAST\": el dominio de este cliente en el servidor, con el nombre de su tabla bilateral. Aquí viven los valores destinados solo a este socio (ámbito ICC)." },
         "item": { "name": "Ítem", "note": "\"Bilateral_Table_ID\": una variable que un servidor ICCP guarda en el dominio de cada cliente." },
         "results": { "name": "Resultados", "note": "Una lista de resultados, uno por cada variable pedida." },
-        "blt-value": { "name": "Visible string", "note": "Etiqueta 0x8A, 15 caracteres: DSOEAST-2026-03. El cliente lo compara con el ID de su propia tabla. Si no coinciden, debe cerrar la asociación." }
+        "blt-value": { "name": "Visible string", "note": "Etiqueta 0x8A, 15 caracteres: DSOEAST-2026-03. El cliente lo compara con el ID de su propia tabla. Si no coinciden, debe cerrar la asociación." },
+        "n-domain": { "name": "DSO_EAST · dominio", "note": "El dominio que el TSO tiene para este socio, según la tabla bilateral: lo que DSO_EAST puede ver y hacer." },
+        "n-sep": { "name": "/ · separador", "note": "Las herramientas escriben el dominio y el nombre con una barra entre ellos." },
+        "n-object": { "name": "Next_DSTransfer_Set · un nombre estándar", "note": "Todo servidor TASE.2 lo tiene. Leerlo reserva un transfer set de data set libre y da su nombre: aquí DSTS_07." }
     },
     "devices": {
         "dso": "Centro de control del DSO",
@@ -109,5 +112,8 @@
         "write": "No se puede escribir nada: el DSO no puede cambiar un valor del TSO.",
         "devices": "El control de equipos (bloque 5) no está permitido: no hay ningún equipo en la lista, así que el DSO no puede maniobrar un interruptor del TSO.",
         "transfer-sets": "Cuántos transfer sets puede usar este cliente a la vez."
+    },
+    "anatomy": {
+        "name": "El nombre que lee el DSO para obtener un transfer set"
     }
 }

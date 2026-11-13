@@ -55,7 +55,10 @@
         "domain": { "name": "Domain", "note": "\"DSO_EAST\": this client's domain on the server, named after its bilateral table. Values meant for this partner only (ICC scope) live here." },
         "item": { "name": "Item", "note": "\"Bilateral_Table_ID\": a variable an ICCP server keeps in each client's domain." },
         "results": { "name": "Results", "note": "A list of results, one per variable asked for." },
-        "blt-value": { "name": "Visible string", "note": "Tag 0x8A, 15 characters: DSOEAST-2026-03. The client compares it with the ID in its own table. If they differ, it must close the association." }
+        "blt-value": { "name": "Visible string", "note": "Tag 0x8A, 15 characters: DSOEAST-2026-03. The client compares it with the ID in its own table. If they differ, it must close the association." },
+        "n-domain": { "name": "DSO_EAST · domain", "note": "The domain the TSO keeps for this partner, from the bilateral table: what DSO_EAST may see and do." },
+        "n-sep": { "name": "/ · separator", "note": "Tools write the domain and the name with a slash between them." },
+        "n-object": { "name": "Next_DSTransfer_Set · a standard name", "note": "Every TASE.2 server has it. Reading it hands out a free data set transfer set and gives its name: DSTS_07 here." }
     },
     "devices": {
         "dso": "DSO control center",
@@ -109,5 +112,8 @@
         "write": "Nothing may be written: the DSO cannot change a TSO value.",
         "devices": "Device control (block 5) is not allowed: no device is listed, so the DSO cannot operate a TSO breaker.",
         "transfer-sets": "How many transfer sets this client may use at once."
+    },
+    "anatomy": {
+        "name": "The name the DSO reads to get a transfer set"
     }
 }

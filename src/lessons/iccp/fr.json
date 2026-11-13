@@ -55,7 +55,10 @@
         "domain": { "name": "Domaine", "note": "\"DSO_EAST\" : le domaine de ce client sur le serveur, au nom de sa table bilatérale. Les valeurs destinées à ce seul partenaire (périmètre ICC) s'y trouvent." },
         "item": { "name": "Item", "note": "\"Bilateral_Table_ID\" : une variable qu'un serveur ICCP tient dans le domaine de chaque client." },
         "results": { "name": "Résultats", "note": "Une liste de résultats, un par variable demandée." },
-        "blt-value": { "name": "Chaîne visible", "note": "Tag 0x8A, 15 caractères : DSOEAST-2026-03. Le client la compare à l'ID de sa propre table. S'ils diffèrent, il doit fermer l'association." }
+        "blt-value": { "name": "Chaîne visible", "note": "Tag 0x8A, 15 caractères : DSOEAST-2026-03. Le client la compare à l'ID de sa propre table. S'ils diffèrent, il doit fermer l'association." },
+        "n-domain": { "name": "DSO_EAST · domaine", "note": "Le domaine que le GRT tient pour ce partenaire, d'après la table bilatérale : ce que DSO_EAST peut voir et faire." },
+        "n-sep": { "name": "/ · séparateur", "note": "Les outils écrivent le domaine et le nom avec une barre oblique entre eux." },
+        "n-object": { "name": "Next_DSTransfer_Set · un nom standard", "note": "Tout serveur TASE.2 l'a. Le lire attribue un transfer set de data set libre et donne son nom : ici DSTS_07." }
     },
     "devices": {
         "dso": "Centre de conduite GRD",
@@ -109,5 +112,8 @@
         "write": "Rien ne peut être écrit : le GRD ne peut modifier aucune valeur du GRT.",
         "devices": "La commande d'équipements (bloc 5) n'est pas autorisée : aucun équipement n'est listé, le GRD ne peut donc manœuvrer aucun disjoncteur du GRT.",
         "transfer-sets": "Le nombre de transfer sets que ce client peut utiliser en même temps."
+    },
+    "anatomy": {
+        "name": "Le nom que lit le DSO pour obtenir un transfer set"
     }
 }

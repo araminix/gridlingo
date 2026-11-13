@@ -55,7 +55,10 @@
         "domain": { "name": "Domain", "note": "\"DSO_EAST\": bu istemcinin sunucudaki domain'i, ikili tablosunun adını taşır. Yalnızca bu ortağa yönelik değerler (ICC kapsamı) burada durur." },
         "item": { "name": "Öğe", "note": "\"Bilateral_Table_ID\": bir ICCP sunucusunun her istemcinin domain'inde tuttuğu bir değişken." },
         "results": { "name": "Sonuçlar", "note": "İstenen her değişken için bir tane olmak üzere sonuçların listesi." },
-        "blt-value": { "name": "Visible string", "note": "Etiket 0x8A, 15 karakter: DSOEAST-2026-03. İstemci bunu kendi tablosundaki kimlikle karşılaştırır. Farklıysa ilişkilendirmeyi kapatmalıdır." }
+        "blt-value": { "name": "Visible string", "note": "Etiket 0x8A, 15 karakter: DSOEAST-2026-03. İstemci bunu kendi tablosundaki kimlikle karşılaştırır. Farklıysa ilişkilendirmeyi kapatmalıdır." },
+        "n-domain": { "name": "DSO_EAST · etki alanı", "note": "TSO'nun bu ortak için tuttuğu etki alanı, iki taraflı tablodan: DSO_EAST'in neyi görüp neyi yapabileceği." },
+        "n-sep": { "name": "/ · ayırıcı", "note": "Araçlar etki alanını ve adı aralarına eğik çizgi koyarak yazar." },
+        "n-object": { "name": "Next_DSTransfer_Set · standart bir ad", "note": "Her TASE.2 sunucusunda bulunur. Okumak, boş bir veri kümesi aktarım kümesi ayırır ve adını verir: burada DSTS_07." }
     },
     "devices": {
         "dso": "DSO kontrol merkezi",
@@ -109,5 +112,8 @@
         "write": "Hiçbir şey yazılamaz: DSO bir TSO değerini değiştiremez.",
         "devices": "Cihaz kontrolüne (blok 5) izin yok: hiçbir cihaz listelenmemiş, bu yüzden DSO bir TSO kesicisini kumanda edemez.",
         "transfer-sets": "Bu istemcinin aynı anda kaç transfer set kullanabileceği."
+    },
+    "anatomy": {
+        "name": "DSO'nun bir aktarım kümesi almak için okuduğu ad"
     }
 }

@@ -71,7 +71,11 @@
         "i1-mag-ev": { "name": "Módulo de I1", "note": "455.0 A: a linha agora transporta mais potência." },
         "i1-ang-ev": { "name": "Ângulo de I1", "note": "−27.900°." },
         "freq-ev": { "name": "FREQ", "note": "49.946 Hz: abaixo de 50 Hz, porque a rede perdeu um gerador." },
-        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s: a frequência está caindo." }
+        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s: a frequência está caindo." },
+        "sw-aa": { "name": "AA · byte de sincronismo", "note": "0xAA abre todo quadro: um receptor que se perdeu procura por ele." },
+        "sw-res": { "name": "0 · reservado", "note": "O primeiro bit do segundo byte é sempre 0." },
+        "sw-type": { "name": "011 · tipo de quadro 3", "note": "Quadro de configuração 2: o que a PMU mede e como envia. 000 é um quadro de dados, 100 um comando." },
+        "sw-ver": { "name": "0001 · versão 1", "note": "O formato de quadro da norma de 2005, que a de 2011 mantém. 2 seria o formato de 2011." }
     },
     "devices": {
         "gps": "Relógio GPS",
@@ -113,5 +117,8 @@
     },
     "playground": {
         "encoder": "O C37.118 envia os floats com o byte mais significativo (o mais alto) primeiro (ABCD). 89120 é o módulo de V1 do primeiro quadro de dados: 47 AE 10 00."
+    },
+    "anatomy": {
+        "sync": "A palavra SYNC do quadro de configuração 2"
     }
 }

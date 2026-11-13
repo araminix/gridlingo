@@ -185,6 +185,18 @@ export const lesson: Lesson = {
             },
         ],
     },
+    anatomy: [
+        {
+            id: "sync",
+            parts: [
+                ["AA", "frame", "sw-aa"],
+                ["0", "control", "sw-res"],
+                ["011", "type", "sw-type"],
+                ["0001", "control", "sw-ver"],
+            ],
+            also: "AA 31 = 1010 1010 · 0 011 0001  ·  data frames AA 01, commands AA 41",
+        },
+    ],
     playground: [{ kind: "encoder", type: "float32", order: "ABCD", value: 89120 }],
     related: ["iec-61850-sv", "ptp", "irig-b", "iccp"],
 };

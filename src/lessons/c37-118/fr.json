@@ -71,7 +71,11 @@
         "i1-mag-ev": { "name": "Amplitude I1", "note": "455.0 A : la ligne transporte maintenant plus de puissance." },
         "i1-ang-ev": { "name": "Angle I1", "note": "−27.900°." },
         "freq-ev": { "name": "FREQ", "note": "49.946 Hz : sous les 50 Hz, car le réseau a perdu un groupe de production." },
-        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s : la fréquence baisse." }
+        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s : la fréquence baisse." },
+        "sw-aa": { "name": "AA · octet de synchro", "note": "0xAA ouvre chaque trame : un récepteur qui a perdu le fil le cherche." },
+        "sw-res": { "name": "0 · réservé", "note": "Le premier bit du second octet vaut toujours 0." },
+        "sw-type": { "name": "011 · type de trame 3", "note": "Trame de configuration 2 : ce que mesure la PMU et comment elle l'envoie. 000 est une trame de données, 100 une commande." },
+        "sw-ver": { "name": "0001 · version 1", "note": "Le format de trame de la norme de 2005, que celle de 2011 garde. 2 voudrait dire le format de 2011." }
     },
     "devices": {
         "gps": "Horloge GPS",
@@ -113,5 +117,8 @@
     },
     "playground": {
         "encoder": "C37.118 envoie les flottants octet de poids fort (le plus haut) en premier (ABCD). 89120 est l'amplitude V1 de la première trame de données : 47 AE 10 00."
+    },
+    "anatomy": {
+        "sync": "Le mot SYNC de la trame de configuration 2"
     }
 }

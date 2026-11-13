@@ -55,7 +55,10 @@
         "domain": { "name": "도메인", "note": "\"DSO_EAST\": 서버에 있는 이 클라이언트의 도메인으로, 양자 테이블의 이름을 따요. 이 상대만을 위한 값(ICC 범위)이 여기에 있어요." },
         "item": { "name": "항목", "note": "\"Bilateral_Table_ID\": ICCP 서버가 클라이언트 도메인마다 두는 변수." },
         "results": { "name": "결과", "note": "요청한 변수마다 하나씩 있는 결과 목록." },
-        "blt-value": { "name": "Visible string", "note": "태그 0x8A, 15자: DSOEAST-2026-03. 클라이언트는 이를 자기 테이블의 ID와 비교해요. 다르면 어소시에이션을 닫아야 해요." }
+        "blt-value": { "name": "Visible string", "note": "태그 0x8A, 15자: DSOEAST-2026-03. 클라이언트는 이를 자기 테이블의 ID와 비교해요. 다르면 어소시에이션을 닫아야 해요." },
+        "n-domain": { "name": "DSO_EAST · 도메인", "note": "양자 테이블에 따라 TSO가 이 상대를 위해 두는 도메인이에요. DSO_EAST가 보고 할 수 있는 범위예요." },
+        "n-sep": { "name": "/ · 구분자", "note": "도구는 도메인과 이름 사이에 슬래시를 넣어 써요." },
+        "n-object": { "name": "Next_DSTransfer_Set · 표준 이름", "note": "모든 TASE.2 서버에 있어요. 이것을 읽으면 빈 데이터 세트 전송 세트를 배정받고 그 이름을 알게 돼요. 여기서는 DSTS_07이에요." }
     },
     "devices": {
         "dso": "DSO 제어 센터",
@@ -109,5 +112,8 @@
         "write": "아무것도 쓸 수 없어요: DSO는 TSO의 값을 바꿀 수 없어요.",
         "devices": "기기 제어(블록 5)는 허용되지 않아요: 등록된 기기가 없으니 DSO는 TSO의 차단기를 조작할 수 없어요.",
         "transfer-sets": "이 클라이언트가 동시에 쓸 수 있는 전송 세트 수."
+    },
+    "anatomy": {
+        "name": "DSO가 전송 세트를 얻으려고 읽는 이름"
     }
 }

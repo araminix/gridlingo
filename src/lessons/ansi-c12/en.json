@@ -55,7 +55,9 @@
         "sum-1": { "name": "Summation 1", "note": "0x01E240 = 123 456 Wh received: energy the house sent to the grid." },
         "cksum": { "name": "Checksum", "note": "0x72: the table bytes and this byte add up to 0, modulo 256." },
         "logoff": { "name": "Logoff", "note": "0x52: end the session." },
-        "terminate": { "name": "Terminate", "note": "0x21: end the conversation." }
+        "terminate": { "name": "Terminate", "note": "0x21: end the conversation." },
+        "t-st": { "name": "ST · standard table", "note": "Defined by ANSI C12.19, the same in every meter. An MT, a manufacturer table, is the maker's own." },
+        "t-23": { "name": "23 · current register data", "note": "Table 23 holds the energy and demand registers the meter keeps now. This lesson reads it whole." }
     },
     "devices": {
         "laptop": "Technician's laptop",
@@ -96,5 +98,8 @@
         "st22": "Which source each summation (running total) in ST 23 comes from.",
         "st23": "The table this lesson reads: two totals of 6 bytes each.",
         "mt": "Manufacturer tables: their number plus 2048. The maker decides what is in them."
+    },
+    "anatomy": {
+        "table": "The name of the energy table"
     }
 }

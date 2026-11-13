@@ -55,7 +55,9 @@
         "sum-1": { "name": "Toplam 1", "note": "0x01E240 = 123 456 Wh verilen: evin şebekeye gönderdiği enerji." },
         "cksum": { "name": "Sağlama toplamı", "note": "0x72: tablo baytları ve bu bayt toplanınca mod 256'da 0 eder." },
         "logoff": { "name": "Logoff", "note": "0x52: oturumu bitir." },
-        "terminate": { "name": "Terminate", "note": "0x21: konuşmayı bitir." }
+        "terminate": { "name": "Terminate", "note": "0x21: konuşmayı bitir." },
+        "t-st": { "name": "ST · standart tablo", "note": "ANSI C12.19'un tanımladığı, her sayaçta aynı tablo. MT, yani üretici tablosu, üreticinin kendisine aittir." },
+        "t-23": { "name": "23 · güncel yazmaç verileri", "note": "Tablo 23, sayacın şu an tuttuğu enerji ve talep yazmaçlarını içerir. Bu ders onu bütün olarak okur." }
     },
     "devices": {
         "laptop": "Teknisyen dizüstüsü",
@@ -96,5 +98,8 @@
         "st22": "ST 23'teki her toplamın (birikimli toplamın) hangi kaynaktan geldiği.",
         "st23": "Bu dersin okuduğu tablo: her biri 6 baytlık iki toplam.",
         "mt": "Üretici tabloları: numaraları artı 2048. İçlerinde ne olacağına üretici karar verir."
+    },
+    "anatomy": {
+        "table": "Enerji tablosunun adı"
     }
 }

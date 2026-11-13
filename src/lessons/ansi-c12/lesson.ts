@@ -92,6 +92,16 @@ export const lesson: Lesson = {
             { id: "received", address: "ST 23 · 1", values: [["identify", "123456 Wh", "–"], ["read", "123456 Wh", "123456 Wh"]] },
         ],
     },
+    anatomy: [
+        {
+            id: "table",
+            parts: [
+                ["ST", "type", "t-st"],
+                ["23", "address", "t-23"],
+            ],
+            also: "ST 23 = table 0x0017 on the wire  ·  MT 23 would be 2048 + 23 = 0x0817",
+        },
+    ],
     playground: [{ kind: "file", sample: "tables.txt", file: tables, notes: { 3: "st0", 4: "st1", 7: "procedures", 8: "st12", 10: "st21", 11: "st22", 12: "st23", 14: "mt" } }],
     related: ["dlms-cosem", "iec-62056-21", "ieee-2030-5"],
 };

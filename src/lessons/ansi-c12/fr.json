@@ -55,7 +55,9 @@
         "sum-1": { "name": "Summation 1", "note": "0x01E240 = 123 456 Wh reçus : l'énergie que la maison a injectée dans le réseau." },
         "cksum": { "name": "Somme de contrôle", "note": "0x72 : les octets de la table et cet octet totalisent 0, modulo 256." },
         "logoff": { "name": "Logoff", "note": "0x52 : fermer la session." },
-        "terminate": { "name": "Terminate", "note": "0x21 : terminer la conversation." }
+        "terminate": { "name": "Terminate", "note": "0x21 : terminer la conversation." },
+        "t-st": { "name": "ST · table standard", "note": "Définie par ANSI C12.19, la même dans tous les compteurs. Une MT, table constructeur, est propre au fabricant." },
+        "t-23": { "name": "23 · données des registres actuels", "note": "La table 23 contient les registres d'énergie et de puissance que le compteur tient maintenant. Cette leçon la lit en entier." }
     },
     "devices": {
         "laptop": "PC du technicien",
@@ -96,5 +98,8 @@
         "st22": "De quelle source vient chaque totalisation (total cumulé) de ST 23.",
         "st23": "La table que lit cette leçon : deux totaux de 6 octets chacun.",
         "mt": "Les tables fabricant : leur numéro plus 2048. C'est le fabricant qui décide de leur contenu."
+    },
+    "anatomy": {
+        "table": "Le nom de la table d'énergie"
     }
 }

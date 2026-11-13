@@ -55,7 +55,10 @@
         "domain": { "name": "Domain", "note": "\"DSO_EAST\": die Domain dieses Clients auf dem Server, benannt nach seiner bilateralen Tabelle. Hier liegen Werte, die nur für diesen Partner bestimmt sind (ICC Scope)." },
         "item": { "name": "Item", "note": "\"Bilateral_Table_ID\": eine Variable, die ein ICCP-Server in der Domain jedes Clients führt." },
         "results": { "name": "Ergebnisse", "note": "Eine Liste von Ergebnissen, eines pro angefragter Variable." },
-        "blt-value": { "name": "Visible String", "note": "Tag 0x8A, 15 Zeichen: DSOEAST-2026-03. Der Client vergleicht sie mit der ID in seiner eigenen Tabelle. Weichen sie ab, muss er die Assoziation schließen." }
+        "blt-value": { "name": "Visible String", "note": "Tag 0x8A, 15 Zeichen: DSOEAST-2026-03. Der Client vergleicht sie mit der ID in seiner eigenen Tabelle. Weichen sie ab, muss er die Assoziation schließen." },
+        "n-domain": { "name": "DSO_EAST · Domäne", "note": "Die Domäne, die der ÜNB für diesen Partner führt, aus der bilateralen Tabelle: was DSO_EAST sehen und tun darf." },
+        "n-sep": { "name": "/ · Trennzeichen", "note": "Werkzeuge schreiben Domäne und Name mit einem Schrägstrich dazwischen." },
+        "n-object": { "name": "Next_DSTransfer_Set · ein Standardname", "note": "Jeder TASE.2-Server hat ihn. Wer ihn liest, bekommt einen freien Data Set Transfer Set und seinen Namen: hier DSTS_07." }
     },
     "devices": {
         "dso": "Leitstelle DSO",
@@ -109,5 +112,8 @@
         "write": "Nichts darf geschrieben werden: Der DSO kann keinen Wert des TSO ändern.",
         "devices": "Gerätesteuerung (Block 5) ist nicht erlaubt: Es ist kein Gerät eingetragen, also kann der DSO keinen Leistungsschalter des TSO schalten.",
         "transfer-sets": "Wie viele Transfer Sets dieser Client gleichzeitig verwenden darf."
+    },
+    "anatomy": {
+        "name": "Der Name, den der DSO liest, um einen Transfer Set zu bekommen"
     }
 }

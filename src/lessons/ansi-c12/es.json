@@ -55,7 +55,9 @@
         "sum-1": { "name": "Totalizador 1", "note": "0x01E240 = 123 456 Wh recibidos: la energía que la casa envió a la red." },
         "cksum": { "name": "Suma de comprobación", "note": "0x72: los bytes de la tabla y este byte suman 0, módulo 256." },
         "logoff": { "name": "Logoff", "note": "0x52: termina la sesión." },
-        "terminate": { "name": "Terminate", "note": "0x21: termina la conversación." }
+        "terminate": { "name": "Terminate", "note": "0x21: termina la conversación." },
+        "t-st": { "name": "ST · tabla estándar", "note": "Definida por ANSI C12.19, igual en todos los medidores. Una MT, tabla de fabricante, es propia de cada fabricante." },
+        "t-23": { "name": "23 · datos de registros actuales", "note": "La tabla 23 guarda los registros de energía y demanda que el medidor lleva ahora. Esta lección la lee entera." }
     },
     "devices": {
         "laptop": "Portátil del técnico",
@@ -96,5 +98,8 @@
         "st22": "De qué fuente viene cada totalizador (total acumulado) de la ST 23.",
         "st23": "La tabla que lee esta lección: dos totales de 6 bytes cada uno.",
         "mt": "Tablas del fabricante: su número más 2048. El fabricante decide qué contienen."
+    },
+    "anatomy": {
+        "table": "El nombre de la tabla de energía"
     }
 }

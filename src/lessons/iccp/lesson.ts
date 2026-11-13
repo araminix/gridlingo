@@ -107,6 +107,17 @@ export const lesson: Lesson = {
             { id: "change", events: [{ t: 6.6, mark: "event", label: "tie2-open" }] },
         ],
     },
+    anatomy: [
+        {
+            id: "name",
+            parts: [
+                ["DSO_EAST", "address", "n-domain"],
+                ["/", "frame", "n-sep"],
+                ["Next_DSTransfer_Set", "type", "n-object"],
+            ],
+            also: "MMS: domain DSO_EAST, variable Next_DSTransfer_Set  ·  read with a confirmed Read; the answer names DSTS_07",
+        },
+    ],
     playground: [{ kind: "file", sample: "bilateral-table.json", file: table, notes: { 2: "table", 3: "table-id", 6: "client-ap", 10: "blocks", 11: "read", 12: "data-value", 14: "state", 16: "write", 17: "devices", 18: "transfer-sets" } }],
     related: ["iec-61850-mms", "iec-104", "iec-62351"],
 };

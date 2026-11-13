@@ -71,7 +71,11 @@
         "i1-mag-ev": { "name": "I1 magnitude", "note": "455.0 A: the line now carries more power." },
         "i1-ang-ev": { "name": "I1 angle", "note": "−27.900°." },
         "freq-ev": { "name": "FREQ", "note": "49.946 Hz: below 50 Hz, because the grid lost a generator." },
-        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s: the frequency is falling." }
+        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s: the frequency is falling." },
+        "sw-aa": { "name": "AA · sync byte", "note": "0xAA starts every frame: a receiver that lost its place looks for it." },
+        "sw-res": { "name": "0 · reserved", "note": "The first bit of the second byte is always 0." },
+        "sw-type": { "name": "011 · frame type 3", "note": "Configuration frame 2: what the PMU measures and how it sends it. 000 is a data frame, 100 a command." },
+        "sw-ver": { "name": "0001 · version 1", "note": "The frame format of the 2005 standard, which 2011 keeps. 2 would mean the 2011 format." }
     },
     "devices": {
         "gps": "GPS clock",
@@ -113,5 +117,8 @@
     },
     "playground": {
         "encoder": "C37.118 sends floats most significant (highest) byte first (ABCD). 89120 is the V1 magnitude of the first data frame: 47 AE 10 00."
+    },
+    "anatomy": {
+        "sync": "The SYNC word of configuration frame 2"
     }
 }

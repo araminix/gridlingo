@@ -55,7 +55,10 @@
         "domain": { "name": "域", "note": "\"DSO_EAST\"：这个客户端在服务器上的域，以它的双边表命名。只给这个伙伴的值（ICC 范围）放在这里。" },
         "item": { "name": "条目", "note": "\"Bilateral_Table_ID\"：ICCP 服务器在每个客户端的域里都保存的一个变量。" },
         "results": { "name": "结果", "note": "结果列表，每个请求的变量对应一个。" },
-        "blt-value": { "name": "可见字符串", "note": "标签 0x8A，15 个字符：DSOEAST-2026-03。客户端把它与自己表里的 ID 比较。如果不同，必须关闭关联。" }
+        "blt-value": { "name": "可见字符串", "note": "标签 0x8A，15 个字符：DSOEAST-2026-03。客户端把它与自己表里的 ID 比较。如果不同，必须关闭关联。" },
+        "n-domain": { "name": "DSO_EAST · 域", "note": "TSO 依据双边表为该伙伴保留的域：规定 DSO_EAST 能看什么、能做什么。" },
+        "n-sep": { "name": "/ · 分隔符", "note": "工具里用斜杠把域和名称隔开。" },
+        "n-object": { "name": "Next_DSTransfer_Set · 标准名称", "note": "每个 TASE.2 服务器都有。读取它会分配一个空闲的数据集传输集并返回其名称：这里是 DSTS_07。" }
     },
     "devices": {
         "dso": "DSO 调度中心",
@@ -109,5 +112,8 @@
         "write": "什么都不能写：DSO 无法修改 TSO 的值。",
         "devices": "不允许设备控制（块 5）：没有列出任何设备，所以 DSO 无法操作 TSO 的断路器。",
         "transfer-sets": "这个客户端同时可以使用多少个传输集。"
+    },
+    "anatomy": {
+        "name": "DSO 为取得传输集而读取的名称"
     }
 }

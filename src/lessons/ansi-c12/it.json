@@ -55,7 +55,9 @@
         "sum-1": { "name": "Totale 1", "note": "0x01E240 = 123 456 Wh immessi: energia che la casa ha ceduto alla rete." },
         "cksum": { "name": "Checksum", "note": "0x72: i byte della tabella più questo byte sommano a 0, modulo 256." },
         "logoff": { "name": "Logoff", "note": "0x52: chiude la sessione." },
-        "terminate": { "name": "Terminate", "note": "0x21: chiude la conversazione." }
+        "terminate": { "name": "Terminate", "note": "0x21: chiude la conversazione." },
+        "t-st": { "name": "ST · tabella standard", "note": "Definita da ANSI C12.19, uguale in ogni contatore. Una MT, tabella del costruttore, è propria del costruttore." },
+        "t-23": { "name": "23 · dati dei registri attuali", "note": "La tabella 23 contiene i registri di energia e di potenza che il contatore tiene ora. Questa lezione la legge tutta." }
     },
     "devices": {
         "laptop": "Portatile del tecnico",
@@ -96,5 +98,8 @@
         "st22": "Da quale sorgente proviene ogni totale (totale progressivo) in ST 23.",
         "st23": "La tabella letta in questa lezione: due totali di 6 byte ciascuno.",
         "mt": "Tabelle del costruttore: il loro numero più 2048. Il costruttore decide cosa contengono."
+    },
+    "anatomy": {
+        "table": "Il nome della tabella dell'energia"
     }
 }

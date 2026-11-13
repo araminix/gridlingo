@@ -71,7 +71,11 @@
         "i1-mag-ev": { "name": "Modulo I1", "note": "455.0 A: la linea ora trasporta più potenza." },
         "i1-ang-ev": { "name": "Angolo I1", "note": "−27.900°." },
         "freq-ev": { "name": "FREQ", "note": "49.946 Hz: sotto i 50 Hz, perché la rete ha perso un generatore." },
-        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s: la frequenza sta scendendo." }
+        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s: la frequenza sta scendendo." },
+        "sw-aa": { "name": "AA · byte di sincronismo", "note": "0xAA apre ogni trama: un ricevitore che ha perso il filo la cerca." },
+        "sw-res": { "name": "0 · riservato", "note": "Il primo bit del secondo byte è sempre 0." },
+        "sw-type": { "name": "011 · tipo di trama 3", "note": "Trama di configurazione 2: cosa misura la PMU e come lo invia. 000 è una trama dati, 100 un comando." },
+        "sw-ver": { "name": "0001 · versione 1", "note": "Il formato di trama della norma del 2005, che quella del 2011 mantiene. 2 vorrebbe dire il formato del 2011." }
     },
     "devices": {
         "gps": "Orologio GPS",
@@ -113,5 +117,8 @@
     },
     "playground": {
         "encoder": "C37.118 invia i float con il byte più significativo (il più alto) per primo (ABCD). 89120 è il modulo di V1 del primo frame dati: 47 AE 10 00."
+    },
+    "anatomy": {
+        "sync": "La parola SYNC della trama di configurazione 2"
     }
 }

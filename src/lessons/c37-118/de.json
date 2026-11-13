@@ -71,7 +71,11 @@
         "i1-mag-ev": { "name": "I1 Betrag", "note": "455.0 A: Die Leitung trägt jetzt mehr Leistung." },
         "i1-ang-ev": { "name": "I1 Winkel", "note": "−27.900°." },
         "freq-ev": { "name": "FREQ", "note": "49.946 Hz: unter 50 Hz, weil dem Netz ein Generator fehlt." },
-        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s: Die Frequenz fällt." }
+        "dfreq-ev": { "name": "DFREQ", "note": "−0.120 Hz/s: Die Frequenz fällt." },
+        "sw-aa": { "name": "AA · Sync-Byte", "note": "0xAA beginnt jeden Frame: Ein Empfänger, der sich verloren hat, sucht danach." },
+        "sw-res": { "name": "0 · reserviert", "note": "Das erste Bit des zweiten Bytes ist immer 0." },
+        "sw-type": { "name": "011 · Frametyp 3", "note": "Konfigurationsframe 2: was die PMU misst und wie sie es sendet. 000 ist ein Datenframe, 100 ein Befehl." },
+        "sw-ver": { "name": "0001 · Version 1", "note": "Das Frameformat der Norm von 2005, das 2011 beibehält. 2 hieße das Format von 2011." }
     },
     "devices": {
         "gps": "GPS-Uhr",
@@ -113,5 +117,8 @@
     },
     "playground": {
         "encoder": "C37.118 sendet Gleitkommazahlen mit dem höchstwertigen (obersten) Byte zuerst (ABCD). 89120 ist der Betrag von V1 im ersten Datenframe: 47 AE 10 00."
+    },
+    "anatomy": {
+        "sync": "Das SYNC-Wort von Konfigurationsframe 2"
     }
 }
