@@ -21,7 +21,7 @@ export function DeviceState({ points, steps, current, words }: { points: Points;
                 <col className="w-[20%]" />
                 <col className="w-[20%]" />
             </colgroup>
-            <thead>
+            <thead className="break-words hyphens-auto">
                 <tr className="border-b text-start text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
                     <th className="py-2 pe-2 text-start font-semibold">{t("points.address")}</th>
                     <th className="py-2 pe-2 text-start font-semibold">{t("points.signal")}</th>
