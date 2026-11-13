@@ -100,5 +100,17 @@
         "every-100": "cada 100 ms",
         "every-1000": "cada 1000 ms",
         "on-fault": "una vez, con la falla"
+    },
+    "playground": {
+        "file": "Pruébalo: el EDS (hoja de datos electrónica) del BMS de esta lección, nodo 5. Enumera los objetos del nodo para que las herramientas los conozcan todos antes de preguntar.",
+        "device": "Quién lo fabricó y qué es, tal como lo muestra una herramienta de configuración.",
+        "baud": "Las velocidades que admite: 500 kbit/s, el bus de esta lección.",
+        "heartbeat": "Objeto 0x1017: cada cuánto envía su heartbeat, en ms. Cada 1000 ms: las tramas 0x705 de esta lección.",
+        "types": "DataType 0x0006 es UNSIGNED16 y 0x0007 es UNSIGNED32: el tamaño del valor del objeto.",
+        "serial": "Objeto 0x1018 sub 4: el número de serie que el EMS lee con el SDO de esta lección.",
+        "cobid": "El identificador del TPDO1: el número de nodo más 0x180, o sea 0x185 para el nodo 5.",
+        "mapping": "Lo primero que lleva el TPDO1: el objeto 0x2001 sub 1, de 0x10 = 16 bits, la tensión del pack.",
+        "voltage": "El objeto propio del fabricante para la tensión del pack (de 0x2000 a 0x5FFF es zona del fabricante): legible y permitido en un PDO.",
+        "encoder": "CANopen envía los números con el byte menos significativo primero. 8124 es la tensión del pack de esta lección en 0,1 V: BC 1F, como en su TPDO1."
     }
 }

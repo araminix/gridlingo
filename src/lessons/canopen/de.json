@@ -100,5 +100,17 @@
         "every-100": "alle 100 ms",
         "every-1000": "alle 1000 ms",
         "on-fault": "einmal, beim Fehler"
+    },
+    "playground": {
+        "file": "Probieren Sie es aus: das EDS (elektronisches Datenblatt) des BMS dieser Lektion, Knoten 5. Es listet die Objekte des Knotens, damit Werkzeuge sie alle kennen, bevor sie fragen.",
+        "device": "Wer es gebaut hat und was es ist, wie ein Konfigurationswerkzeug es anzeigt.",
+        "baud": "Die unterstützten Bitraten: 500 kbit/s, der Bus dieser Lektion.",
+        "heartbeat": "Objekt 0x1017: wie oft es seinen Heartbeat sendet, in ms. Alle 1000 ms: die 0x705-Frames dieser Lektion.",
+        "types": "DataType 0x0006 ist UNSIGNED16, 0x0007 ist UNSIGNED32: die Größe des Objektwerts.",
+        "serial": "Objekt 0x1018 Sub 4: die Seriennummer, die das EMS mit dem SDO dieser Lektion liest.",
+        "cobid": "Die Kennung von TPDO1: die Knotennummer plus 0x180, also 0x185 für Knoten 5.",
+        "mapping": "Was TPDO1 zuerst trägt: Objekt 0x2001 Sub 1, 0x10 = 16 Bit lang, die Packspannung.",
+        "voltage": "Das herstellereigene Objekt für die Packspannung (0x2000 bis 0x5FFF gehört dem Hersteller): lesbar und in einem PDO erlaubt.",
+        "encoder": "CANopen sendet Zahlen mit dem niederwertigsten Byte zuerst. 8124 ist die Packspannung dieser Lektion in 0,1 V: BC 1F, wie in ihrem TPDO1."
     }
 }

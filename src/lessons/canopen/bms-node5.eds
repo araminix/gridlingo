@@ -1,0 +1,33 @@
+[DeviceInfo]
+VendorName=Example Batteries
+ProductName=Rack BMS
+BaudRate_500=1
+
+[1017]
+ParameterName=Producer heartbeat time
+DataType=0x0006
+AccessType=rw
+DefaultValue=1000
+
+[1018sub4]
+ParameterName=Serial number
+DataType=0x0007
+AccessType=ro
+
+[1800sub1]
+ParameterName=TPDO1 COB-ID
+DataType=0x0007
+AccessType=rw
+DefaultValue=$NODEID+0x180
+
+[1A00sub1]
+ParameterName=TPDO1 mapping: pack voltage
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x20010110
+
+[2001sub1]
+ParameterName=Pack voltage
+DataType=0x0006
+AccessType=ro
+PDOMapping=1

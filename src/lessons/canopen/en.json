@@ -100,5 +100,17 @@
         "every-100": "every 100 ms",
         "every-1000": "every 1000 ms",
         "on-fault": "once, on the fault"
+    },
+    "playground": {
+        "file": "Try it: the EDS (electronic data sheet) of this lesson's BMS, node 5. It lists the node's objects, so tools know them all before they ask.",
+        "device": "Who made it and what it is, as a configuration tool shows it.",
+        "baud": "The bit rates it supports: 500 kbit/s, the bus of this lesson.",
+        "heartbeat": "Object 0x1017: how often it sends its heartbeat, in ms. Every 1000 ms: the 0x705 frames of this lesson.",
+        "types": "DataType 0x0006 is UNSIGNED16, 0x0007 is UNSIGNED32: the size of the object's value.",
+        "serial": "Object 0x1018 sub 4: the serial number the EMS reads with this lesson's SDO.",
+        "cobid": "TPDO1's identifier: the node number plus 0x180, so 0x185 for node 5.",
+        "mapping": "What TPDO1 carries first: object 0x2001 sub 1, 0x10 = 16 bits long, the pack voltage.",
+        "voltage": "The maker's own object for the pack voltage (0x2000 to 0x5FFF is the maker's range): readable, and allowed in a PDO.",
+        "encoder": "CANopen sends numbers least significant byte first. 8124 is this lesson's pack voltage in 0.1 V: BC 1F, as in its TPDO1."
     }
 }

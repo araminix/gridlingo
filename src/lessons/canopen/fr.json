@@ -100,5 +100,17 @@
         "every-100": "toutes les 100 ms",
         "every-1000": "toutes les 1000 ms",
         "on-fault": "une fois, au défaut"
+    },
+    "playground": {
+        "file": "Essayez : l'EDS (fiche de données électronique) du BMS de cette leçon, nœud 5. Il liste les objets du nœud, pour que les outils les connaissent tous avant de demander.",
+        "device": "Qui l'a fabriqué et ce que c'est, comme un outil de configuration l'affiche.",
+        "baud": "Les débits qu'il accepte : 500 kbit/s, le bus de cette leçon.",
+        "heartbeat": "Objet 0x1017 : à quelle fréquence il envoie son heartbeat, en ms. Toutes les 1000 ms : les trames 0x705 de cette leçon.",
+        "types": "DataType 0x0006 est UNSIGNED16, 0x0007 est UNSIGNED32 : la taille de la valeur de l'objet.",
+        "serial": "Objet 0x1018 sous-index 4 : le numéro de série que l'EMS lit avec le SDO de cette leçon.",
+        "cobid": "L'identifiant du TPDO1 : le numéro du nœud plus 0x180, donc 0x185 pour le nœud 5.",
+        "mapping": "Ce que le TPDO1 transporte en premier : l'objet 0x2001 sous-index 1, long de 0x10 = 16 bits, la tension du pack.",
+        "voltage": "L'objet propre au fabricant pour la tension du pack (0x2000 à 0x5FFF est sa zone) : lisible, et autorisé dans un PDO.",
+        "encoder": "CANopen envoie les nombres octet de poids faible en premier. 8124 est la tension du pack de cette leçon en 0,1 V : BC 1F, comme dans son TPDO1."
     }
 }

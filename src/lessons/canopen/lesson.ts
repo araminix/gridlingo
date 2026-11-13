@@ -1,4 +1,5 @@
 import type { Lesson } from "../types";
+import dataSheet from "./bms-node5.eds?raw";
 
 /**
  * CAN frames as a CAN driver shows them (candump): the 11-bit identifier, the data length code (DLC) and the data
@@ -216,6 +217,10 @@ export const lesson: Lesson = {
             ],
             also: "0011 0000101 = 0x185  ·  0x000 NMT · 0x080 EMCY · 0x180 TPDO1 · 0x200 RPDO1 · 0x580 SDO response · 0x600 SDO request · 0x700 heartbeat",
         },
+    ],
+    playground: [
+        { kind: "file", sample: "bms-node5.eds", file: dataSheet, notes: { 1: "device", 4: "baud", 6: "heartbeat", 8: "types", 12: "serial", 21: "cobid", 27: "mapping", 29: "voltage" } },
+        { kind: "encoder", type: "uint16", order: "DCBA", value: 8124 },
     ],
     related: ["modbus-tcp", "sunspec", "iec-61850-7-420"],
 };

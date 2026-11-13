@@ -100,5 +100,17 @@
         "every-100": "her 100 ms'de",
         "every-1000": "her 1000 ms'de",
         "on-fault": "bir kez, arızada"
+    },
+    "playground": {
+        "file": "Deneyin: bu dersteki BMS'in, düğüm 5'in EDS'i (elektronik veri sayfası). Düğümün nesnelerini listeler; böylece araçlar sormadan önce hepsini bilir.",
+        "device": "Onu kimin yaptığı ve ne olduğu, bir yapılandırma aracının gösterdiği gibi.",
+        "baud": "Desteklediği bit hızları: 500 kbit/s, bu dersin veri yolu.",
+        "heartbeat": "Nesne 0x1017: heartbeat'ini ne sıklıkla gönderdiği, ms cinsinden. Her 1000 ms: bu dersteki 0x705 çerçeveleri.",
+        "types": "DataType 0x0006 UNSIGNED16, 0x0007 UNSIGNED32'dir: nesne değerinin boyutu.",
+        "serial": "Nesne 0x1018 alt 4: EMS'in bu dersteki SDO ile okuduğu seri numarası.",
+        "cobid": "TPDO1'in kimliği: düğüm numarası artı 0x180, yani düğüm 5 için 0x185.",
+        "mapping": "TPDO1'in ilk taşıdığı: nesne 0x2001 alt 1, 0x10 = 16 bit uzunluğunda, paket gerilimi.",
+        "voltage": "Paket gerilimi için üreticinin kendi nesnesi (0x2000–0x5FFF üreticinin alanı): okunabilir ve bir PDO'da izinli.",
+        "encoder": "CANopen sayıları en düşük anlamlı bayt önce gönderir. 8124, bu dersin 0,1 V cinsinden paket gerilimidir: BC 1F, TPDO1'deki gibi."
     }
 }
