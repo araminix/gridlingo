@@ -95,5 +95,14 @@
         "measurand": "무엇을 측정했는지. measurand가 없으면 값은 Energy.Active.Import.Register를 뜻해요.",
         "unit": "Wh(와트시), 에너지의 기본 단위.",
         "power": "11040 W: 230 V에서 3상 각각 16 A."
+    },
+    "timing": {
+        "title": "CSMS가 요구하는 하트비트",
+        "note": "BootNotification에 대한 CSMS의 응답이 하트비트 간격을 정해요. 여기서는 300초예요. 충전기는 300초마다 Heartbeat를 보내고, 각 응답에 담긴 CSMS의 시각으로 시계를 맞춰요. 응답이 끊기면 충전기는 링크가 끊긴 걸 알아요.",
+        "charger": "AC 충전기",
+        "csms": "CSMS",
+        "boot": "BootNotification",
+        "heartbeat": "Heartbeat",
+        "interval": "간격: 300초"
     }
 }

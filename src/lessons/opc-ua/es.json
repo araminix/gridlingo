@@ -148,5 +148,13 @@
     },
     "playground": {
         "encoder": "OPC UA envía los números con el byte bajo primero (DCBA), a diferencia de MMS. 4820.0 viaja como 00 A0 96 45."
+    },
+    "timing": {
+        "title": "Muestreo, publicación y el keep-alive",
+        "note": "El controlador muestrea TotW cada 500 ms y, una vez por segundo, publica lo que cambió: aquí a los 2 s y 3 s. Si no tiene nada que contar durante 10 intervalos de publicación (el contador de keep-alive fijado aquí), envía un mensaje vacío para que SCADA sepa que la suscripción sigue viva.",
+        "sampling": "Muestras de TotW",
+        "server": "Controlador de planta",
+        "change": "DataChange",
+        "keepalive": "keep-alive"
     }
 }

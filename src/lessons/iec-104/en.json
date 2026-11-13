@@ -120,5 +120,15 @@
     },
     "anatomy": {
         "type": "The name of the trip's type"
+    },
+    "timing": {
+        "title": "The timers that keep an IEC 104 link honest",
+        "note": "SCADA confirms the RTU's I-frames at the latest 10 s later (t2), or after 8 of them (w). After 20 s of silence (t3), a test frame checks the link; if its answer does not come within 15 s (t1), the connection is closed and opened again. These are the standard's default values.",
+        "rtu": "RTU",
+        "scada": "SCADA master",
+        "trip": "I-frame: the trip",
+        "sframe": "S-frame: t2 = 10 s",
+        "testact": "TESTFR act: t3 = 20 s",
+        "testcon": "TESTFR con"
     }
 }

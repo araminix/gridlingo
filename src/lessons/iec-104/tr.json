@@ -120,5 +120,15 @@
     },
     "anatomy": {
         "type": "Açma mesajının tipinin adı"
+    },
+    "timing": {
+        "title": "Bir IEC 104 bağlantısını dürüst tutan zamanlayıcılar",
+        "note": "SCADA, RTU'nun I çerçevelerini en geç 10 s sonra (t2) ya da 8 tanesinden sonra (w) onaylar. 20 s sessizlikten sonra (t3) bir test çerçevesi bağlantıyı yoklar; yanıt 15 s içinde (t1) gelmezse bağlantı kapatılıp yeniden açılır. Bunlar standardın varsayılan değerleridir.",
+        "rtu": "RTU",
+        "scada": "SCADA ana istasyonu",
+        "trip": "I çerçevesi: açma",
+        "sframe": "S çerçevesi: t2 = 10 s",
+        "testact": "TESTFR act: t3 = 20 s",
+        "testcon": "TESTFR con"
     }
 }

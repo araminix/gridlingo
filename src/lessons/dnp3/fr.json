@@ -145,5 +145,14 @@
         "station": "LAN du poste · DNP3 vers le centre de conduite",
         "f1": "F1 · Ligne aérienne",
         "f2": "F2 · Auxiliaires du poste"
+    },
+    "timing": {
+        "title": "Interrogé toutes les 10 s, ou prévenu tout de suite",
+        "note": "Ici, SCADA lit les événements de la station toutes les 10 s. Sans réponses spontanées, un déclenchement à 23 s attendrait l'interrogation de 30 s. Avec elles, la RTU l'envoie aussitôt et garde les événements jusqu'à ce que SCADA confirme ; sans confirmation, elle les renvoie.",
+        "scada": "Maître SCADA",
+        "rtu": "RTU",
+        "poll": "READ classe 1, 2, 3",
+        "unsolicited": "UNSOLICITED : le déclenchement",
+        "confirm": "CONFIRM"
     }
 }

@@ -95,5 +95,14 @@
         "measurand": "Neyin ölçüldüğü. Measurand yoksa değer Energy.Active.Import.Register demektir.",
         "unit": "Wh (watt-saat), enerji için varsayılan birim.",
         "power": "11040 W: 230 V'ta 3 fazın her birinde 16 A."
+    },
+    "timing": {
+        "title": "CSMS'in istediği heartbeat",
+        "note": "CSMS'in BootNotification yanıtı heartbeat aralığını belirler: burada 300 s. Şarj cihazı sonra her 300 s'de bir Heartbeat gönderir; her yanıt CSMS'in saatini taşır ve cihazın saatini doğru tutar. Yanıtlar kesilirse cihaz bağlantının gittiğini anlar.",
+        "charger": "AC şarj cihazı",
+        "csms": "CSMS",
+        "boot": "BootNotification",
+        "heartbeat": "Heartbeat",
+        "interval": "aralık: 300 s"
     }
 }

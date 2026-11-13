@@ -120,5 +120,15 @@
     },
     "anatomy": {
         "type": "Der Name des Typs der Auslösung"
+    },
+    "timing": {
+        "title": "Die Timer, die eine IEC-104-Verbindung ehrlich halten",
+        "note": "SCADA bestätigt die I-Frames der RTU spätestens 10 s später (t2) oder nach 8 Stück (w). Nach 20 s Stille (t3) prüft ein Testframe die Verbindung; kommt die Antwort nicht binnen 15 s (t1), wird die Verbindung geschlossen und neu aufgebaut. Das sind die Standardwerte der Norm.",
+        "rtu": "RTU",
+        "scada": "SCADA-Master",
+        "trip": "I-Frame: die Auslösung",
+        "sframe": "S-Frame: t2 = 10 s",
+        "testact": "TESTFR act: t3 = 20 s",
+        "testcon": "TESTFR con"
     }
 }

@@ -145,5 +145,14 @@
         "station": "LAN da estação · DNP3 até o centro de controle",
         "f1": "F1 · Linha aérea",
         "f2": "F2 · Serviços auxiliares"
+    },
+    "timing": {
+        "title": "Perguntado a cada 10 s, ou avisado na hora",
+        "note": "Aqui o SCADA lê os eventos da estação remota a cada 10 s. Sem respostas não solicitadas, um disparo aos 23 s esperaria a consulta dos 30 s. Com elas, a RTU o envia na hora e guarda os eventos até o SCADA confirmar; sem confirmação, envia de novo.",
+        "scada": "Mestre SCADA",
+        "rtu": "RTU",
+        "poll": "READ classe 1, 2, 3",
+        "unsolicited": "UNSOLICITED: o disparo",
+        "confirm": "CONFIRM"
     }
 }

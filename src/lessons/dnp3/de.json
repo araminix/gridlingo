@@ -145,5 +145,14 @@
         "station": "Stations-LAN · DNP3 zur Leitstelle",
         "f1": "F1 · Freileitung",
         "f2": "F2 · Eigenbedarf"
+    },
+    "timing": {
+        "title": "Alle 10 s gefragt, oder sofort gemeldet",
+        "note": "SCADA liest hier alle 10 s die Ereignisse der Unterstation. Ohne unsolicited Antworten würde eine Auslösung um 23 s auf die Abfrage um 30 s warten. Mit ihnen sendet die RTU sie sofort und behält die Ereignisse, bis SCADA bestätigt; ohne Bestätigung sendet sie sie erneut.",
+        "scada": "SCADA-Master",
+        "rtu": "RTU",
+        "poll": "READ Klasse 1, 2, 3",
+        "unsolicited": "UNSOLICITED: die Auslösung",
+        "confirm": "CONFIRM"
     }
 }

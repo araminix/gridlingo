@@ -148,5 +148,13 @@
     },
     "playground": {
         "encoder": "OPC UA envoie les nombres octet de poids faible en premier (DCBA), contrairement à MMS. 4820.0 voyage sous la forme 00 A0 96 45."
+    },
+    "timing": {
+        "title": "Échantillonnage, publication et keep-alive",
+        "note": "Le contrôleur échantillonne TotW toutes les 500 ms et, une fois par seconde, publie ce qui a changé : ici à 2 s et 3 s. Sans rien à dire pendant 10 intervalles de publication (le compteur de keep-alive réglé ici), il envoie un message vide, pour que SCADA sache que l'abonnement vit encore.",
+        "sampling": "Échantillons de TotW",
+        "server": "Contrôleur de centrale",
+        "change": "DataChange",
+        "keepalive": "keep-alive"
     }
 }

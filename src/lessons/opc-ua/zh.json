@@ -148,5 +148,13 @@
     },
     "playground": {
         "encoder": "OPC UA 发送数值时低字节在前（DCBA），与 MMS 不同。4820.0 以 00 A0 96 45 传送。"
+    },
+    "timing": {
+        "title": "采样、发布与保活",
+        "note": "控制器每 500 ms 采样一次 TotW，每秒发布一次有变化的内容：这里在 2 s 和 3 s。若连续 10 个发布间隔（这里设定的保活次数）都没有内容，它就发一条空消息，让 SCADA 知道订阅仍然有效。",
+        "sampling": "TotW 采样",
+        "server": "电站控制器",
+        "change": "DataChange",
+        "keepalive": "保活"
     }
 }

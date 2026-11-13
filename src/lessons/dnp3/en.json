@@ -145,5 +145,14 @@
         "station": "Station LAN · DNP3 to the control room",
         "f1": "F1 · Overhead line",
         "f2": "F2 · Station supply"
+    },
+    "timing": {
+        "title": "Asked every 10 s, or told at once",
+        "note": "SCADA reads the outstation's events every 10 s here. Without unsolicited responses, a trip at 23 s would wait for the poll at 30 s. With them, the RTU sends it at once, and keeps the events until SCADA confirms; without the confirm, it sends them again.",
+        "scada": "SCADA master",
+        "rtu": "RTU",
+        "poll": "READ class 1, 2, 3",
+        "unsolicited": "UNSOLICITED: the trip",
+        "confirm": "CONFIRM"
     }
 }

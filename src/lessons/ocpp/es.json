@@ -95,5 +95,14 @@
         "measurand": "Qué se midió. Sin measurand, un valor significa Energy.Active.Import.Register.",
         "unit": "Wh (vatios-hora), la unidad por defecto para la energía.",
         "power": "11040 W: 16 A en cada una de las 3 fases a 230 V."
+    },
+    "timing": {
+        "title": "El latido que pide el CSMS",
+        "note": "La respuesta del CSMS a BootNotification fija el intervalo del heartbeat: aquí 300 s. El cargador envía entonces un Heartbeat cada 300 s, y cada respuesta trae la hora del CSMS, que mantiene en hora su reloj. Si dejan de llegar respuestas, el cargador sabe que el enlace cayó.",
+        "charger": "Cargador de CA",
+        "csms": "CSMS",
+        "boot": "BootNotification",
+        "heartbeat": "Heartbeat",
+        "interval": "intervalo: 300 s"
     }
 }

@@ -145,5 +145,14 @@
         "station": "站内局域网 · DNP3 通往控制中心",
         "f1": "F1 · 架空线路",
         "f2": "F2 · 站用电"
+    },
+    "timing": {
+        "title": "每 10 s 问一次，还是立刻通知",
+        "note": "这里 SCADA 每 10 s 读取一次子站的事件。没有非请求响应时，23 s 的跳闸要等到 30 s 的轮询。有了它，RTU 立即发送，并保留事件直到 SCADA 确认；没有确认就重发。",
+        "scada": "SCADA 主站",
+        "rtu": "RTU",
+        "poll": "READ 类 1、2、3",
+        "unsolicited": "UNSOLICITED：跳闸",
+        "confirm": "CONFIRM"
     }
 }

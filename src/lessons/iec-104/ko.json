@@ -120,5 +120,15 @@
     },
     "anatomy": {
         "type": "트립 메시지 형식의 이름"
+    },
+    "timing": {
+        "title": "IEC 104 링크를 정직하게 지키는 타이머",
+        "note": "SCADA는 RTU의 I 프레임을 늦어도 10초 뒤(t2), 또는 8개마다(w) 확인해요. 20초 동안 조용하면(t3) 테스트 프레임으로 링크를 확인하고, 15초 안에(t1) 응답이 없으면 연결을 닫고 다시 열어요. 표준의 기본값이에요.",
+        "rtu": "RTU",
+        "scada": "SCADA 마스터",
+        "trip": "I 프레임: 트립",
+        "sframe": "S 프레임: t2 = 10초",
+        "testact": "TESTFR act: t3 = 20초",
+        "testcon": "TESTFR con"
     }
 }

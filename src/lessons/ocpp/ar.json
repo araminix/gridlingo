@@ -95,5 +95,14 @@
         "measurand": "ما الذي قيس. ومن دون measurand تعني القيمة Energy.Active.Import.Register.",
         "unit": "Wh (واط ساعة)، الوحدة الافتراضية للطاقة.",
         "power": "11040 W: 16 A على كل طور من 3 أطوار بجهد 230 V."
+    },
+    "timing": {
+        "title": "نبضة القلب التي يطلبها CSMS",
+        "note": "يحدد ردّ CSMS على BootNotification فاصل نبضة القلب: 300 ثانية هنا. ثم يرسل الشاحن Heartbeat كل 300 ثانية، وكل ردّ يحمل وقت CSMS فيبقى ساعة الشاحن مضبوطة. وإذا انقطعت الردود عرف الشاحن أن الوصلة سقطت.",
+        "charger": "شاحن تيار متردد",
+        "csms": "CSMS",
+        "boot": "BootNotification",
+        "heartbeat": "Heartbeat",
+        "interval": "الفاصل: 300 ث"
     }
 }

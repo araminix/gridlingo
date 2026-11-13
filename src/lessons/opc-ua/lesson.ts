@@ -218,6 +218,23 @@ export const lesson: Lesson = {
             },
         ],
     },
+    timing: {
+        unit: "s",
+        scale: "linear",
+        end: 14,
+        ticks: [0, 2, 4, 6, 8, 10, 12, 14],
+        tracks: [
+            { id: "sampling", events: Array.from({ length: 28 }, (_, i) => ({ t: i * 0.5, mark: "beat" as const })) },
+            {
+                id: "server",
+                events: [
+                    { t: 2, mark: "event", label: "change" },
+                    { t: 3, mark: "repeat" },
+                    { t: 13, mark: "repeat", label: "keepalive" },
+                ],
+            },
+        ],
+    },
     anatomy: [
         {
             id: "nodeid",

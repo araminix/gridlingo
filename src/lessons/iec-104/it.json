@@ -120,5 +120,15 @@
     },
     "anatomy": {
         "type": "Il nome del tipo dello scatto"
+    },
+    "timing": {
+        "title": "I timer che tengono onesto un collegamento IEC 104",
+        "note": "Lo SCADA conferma i frame I della RTU al più tardi 10 s dopo (t2), o dopo 8 di essi (w). Dopo 20 s di silenzio (t3), un frame di prova controlla il collegamento; se la risposta non arriva entro 15 s (t1), la connessione si chiude e si riapre. Sono i valori predefiniti della norma.",
+        "rtu": "RTU",
+        "scada": "Master SCADA",
+        "trip": "Frame I: lo scatto",
+        "sframe": "Frame S: t2 = 10 s",
+        "testact": "TESTFR act: t3 = 20 s",
+        "testcon": "TESTFR con"
     }
 }

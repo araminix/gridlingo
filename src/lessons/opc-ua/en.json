@@ -148,5 +148,13 @@
     },
     "playground": {
         "encoder": "OPC UA sends numbers low byte first (DCBA), unlike MMS. 4820.0 travels as 00 A0 96 45."
+    },
+    "timing": {
+        "title": "Sampling, publishing and the keep-alive",
+        "note": "The controller samples TotW every 500 ms and, once a second, publishes what has changed: here at 2 s and 3 s. With nothing to tell for 10 publishing intervals (the keep-alive count set here), it sends an empty message, so SCADA knows the subscription is still alive.",
+        "sampling": "Samples of TotW",
+        "server": "Plant controller",
+        "change": "DataChange",
+        "keepalive": "keep-alive"
     }
 }

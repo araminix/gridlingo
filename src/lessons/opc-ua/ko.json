@@ -148,5 +148,13 @@
     },
     "playground": {
         "encoder": "OPC UA는 MMS와 달리 숫자를 하위 바이트부터 보내요(DCBA). 4820.0은 00 A0 96 45로 전송돼요."
+    },
+    "timing": {
+        "title": "샘플링, 퍼블리시, 그리고 keep-alive",
+        "note": "컨트롤러는 500 ms마다 TotW를 샘플링하고, 1초마다 바뀐 것을 퍼블리시해요. 여기서는 2초와 3초예요. 10번의 퍼블리시 간격(여기서 정한 keep-alive 횟수) 동안 알릴 게 없으면 빈 메시지를 보내, SCADA가 구독이 살아 있음을 알게 해요.",
+        "sampling": "TotW 샘플",
+        "server": "발전소 제어기",
+        "change": "DataChange",
+        "keepalive": "keep-alive"
     }
 }

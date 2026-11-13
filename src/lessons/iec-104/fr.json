@@ -120,5 +120,15 @@
     },
     "anatomy": {
         "type": "Le nom du type du déclenchement"
+    },
+    "timing": {
+        "title": "Les temporisations qui gardent une liaison IEC 104 honnête",
+        "note": "SCADA acquitte les trames I de la RTU au plus tard 10 s après (t2), ou après 8 d'entre elles (w). Après 20 s de silence (t3), une trame de test vérifie la liaison ; si la réponse n'arrive pas dans les 15 s (t1), la connexion est fermée puis rouverte. Ce sont les valeurs par défaut de la norme.",
+        "rtu": "RTU",
+        "scada": "Maître SCADA",
+        "trip": "Trame I : le déclenchement",
+        "sframe": "Trame S : t2 = 10 s",
+        "testact": "TESTFR act : t3 = 20 s",
+        "testcon": "TESTFR con"
     }
 }

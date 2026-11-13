@@ -95,5 +95,14 @@
         "measurand": "What was measured. Without a measurand, a value means Energy.Active.Import.Register.",
         "unit": "Wh (watt-hours), the default unit for energy.",
         "power": "11040 W: 16 A on each of 3 phases at 230 V."
+    },
+    "timing": {
+        "title": "The heartbeat the CSMS asks for",
+        "note": "The CSMS's answer to BootNotification sets the heartbeat interval: 300 s here. The charger then sends a Heartbeat every 300 s, and each answer carries the CSMS's time, which keeps the charger's clock right. When answers stop coming, the charger knows the link is gone.",
+        "charger": "AC charger",
+        "csms": "CSMS",
+        "boot": "BootNotification",
+        "heartbeat": "Heartbeat",
+        "interval": "interval: 300 s"
     }
 }

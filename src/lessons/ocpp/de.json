@@ -95,5 +95,14 @@
         "measurand": "Was gemessen wurde. Ohne measurand bedeutet ein Wert Energy.Active.Import.Register.",
         "unit": "Wh (Wattstunden), die Standardeinheit für Energie.",
         "power": "11040 W: 16 A auf jeder der 3 Phasen bei 230 V."
+    },
+    "timing": {
+        "title": "Der Heartbeat, den das CSMS verlangt",
+        "note": "Die Antwort des CSMS auf BootNotification legt das Heartbeat-Intervall fest: hier 300 s. Die Ladestation sendet dann alle 300 s einen Heartbeat, und jede Antwort trägt die Zeit des CSMS, die ihre Uhr richtig hält. Bleiben die Antworten aus, weiß die Station, dass die Verbindung weg ist.",
+        "charger": "AC-Ladestation",
+        "csms": "CSMS",
+        "boot": "BootNotification",
+        "heartbeat": "Heartbeat",
+        "interval": "Intervall: 300 s"
     }
 }

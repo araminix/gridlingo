@@ -148,5 +148,13 @@
     },
     "playground": {
         "encoder": "OPC UA sendet Zahlen mit dem niederwertigen Byte zuerst (DCBA), anders als MMS. 4820.0 reist als 00 A0 96 45."
+    },
+    "timing": {
+        "title": "Abtasten, Veröffentlichen und das Keep-alive",
+        "note": "Die Steuerung tastet TotW alle 500 ms ab und veröffentlicht einmal pro Sekunde, was sich geändert hat: hier bei 2 s und 3 s. Hat sie 10 Veröffentlichungsintervalle lang nichts zu melden (der hier eingestellte Keep-alive-Zähler), sendet sie eine leere Nachricht, damit SCADA weiß, dass das Abonnement noch lebt.",
+        "sampling": "Abtastungen von TotW",
+        "server": "Parkregler",
+        "change": "DataChange",
+        "keepalive": "Keep-alive"
     }
 }

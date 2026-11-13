@@ -120,5 +120,15 @@
     },
     "anatomy": {
         "type": "跳闸报文类型的名称"
+    },
+    "timing": {
+        "title": "让 IEC 104 链路保持可靠的定时器",
+        "note": "SCADA 最迟在 10 s 后（t2）或每收到 8 帧（w）确认 RTU 的 I 帧。静默 20 s（t3）后，用测试帧检查链路；若 15 s 内（t1）没有回应，就关闭连接并重新建立。这些都是标准的默认值。",
+        "rtu": "RTU",
+        "scada": "SCADA 主站",
+        "trip": "I 帧：跳闸",
+        "sframe": "S 帧：t2 = 10 s",
+        "testact": "TESTFR act：t3 = 20 s",
+        "testcon": "TESTFR con"
     }
 }

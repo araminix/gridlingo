@@ -95,5 +95,14 @@
         "measurand": "क्या मापा गया। measurand न हो, तो वैल्यू का मतलब Energy.Active.Import.Register होता है।",
         "unit": "Wh (वाट-घंटा), एनर्जी की डिफ़ॉल्ट यूनिट।",
         "power": "11040 W: 3 फ़ेज़ में से हर एक पर 230 V पर 16 A।"
+    },
+    "timing": {
+        "title": "CSMS जो हार्टबीट माँगता है",
+        "note": "BootNotification पर CSMS का जवाब हार्टबीट अंतराल तय करता है: यहाँ 300 s। फिर चार्जर हर 300 s में एक Heartbeat भेजता है, और हर जवाब में CSMS का समय होता है, जो चार्जर की घड़ी सही रखता है। जवाब आना बंद हो जाएँ, तो चार्जर समझ जाता है कि लिंक टूट गया।",
+        "charger": "AC चार्जर",
+        "csms": "CSMS",
+        "boot": "BootNotification",
+        "heartbeat": "Heartbeat",
+        "interval": "अंतराल: 300 s"
     }
 }

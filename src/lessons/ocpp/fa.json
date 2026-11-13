@@ -95,5 +95,14 @@
         "measurand": "چه چیزی اندازه‌گیری شد. بدون measurand، مقدار یعنی Energy.Active.Import.Register.",
         "unit": "Wh (وات‌ساعت)، واحد پیش‌فرض انرژی.",
         "power": "11040 W: یعنی 16 A روی هر یک از 3 فاز با 230 V."
+    },
+    "timing": {
+        "title": "ضربان قلبی که CSMS می‌خواهد",
+        "note": "پاسخ CSMS به BootNotification فاصله heartbeat را تعیین می‌کند: اینجا 300 ثانیه. سپس شارژر هر 300 ثانیه یک Heartbeat می‌فرستد و هر پاسخ زمان CSMS را دارد که ساعت شارژر را درست نگه می‌دارد. اگر پاسخ‌ها نرسند، شارژر می‌فهمد ارتباط قطع شده است.",
+        "charger": "شارژر AC",
+        "csms": "CSMS",
+        "boot": "BootNotification",
+        "heartbeat": "Heartbeat",
+        "interval": "فاصله: 300 ثانیه"
     }
 }

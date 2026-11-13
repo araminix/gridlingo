@@ -165,6 +165,25 @@ export const lesson: Lesson = {
             { id: "events", address: "Class 1", values: [["connect", "0", "–"], ["trip", "2", "–"], ["confirm", "0", "–"]] },
         ],
     },
+    timing: {
+        unit: "s",
+        scale: "linear",
+        end: 40,
+        ticks: [0, 10, 20, 30, 40],
+        tracks: [
+            {
+                id: "scada",
+                events: [
+                    { t: 0, mark: "repeat", label: "poll" },
+                    { t: 10, mark: "repeat" },
+                    { t: 20, mark: "repeat" },
+                    { t: 23.4, mark: "beat", label: "confirm" },
+                    { t: 30, mark: "repeat" },
+                ],
+            },
+            { id: "rtu", events: [{ t: 23, mark: "event", label: "unsolicited" }] },
+        ],
+    },
     anatomy: [
         {
             id: "uns-control",

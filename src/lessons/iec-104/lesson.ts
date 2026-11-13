@@ -122,6 +122,16 @@ export const lesson: Lesson = {
             { id: "cb", address: "2001", values: [["connect", "~closed", "–"], ["values", "~closed", "~closed"], ["trip", "~open", "~open"]] },
         ],
     },
+    timing: {
+        unit: "s",
+        scale: "linear",
+        end: 40,
+        ticks: [0, 10, 20, 30, 40],
+        tracks: [
+            { id: "rtu", events: [{ t: 0, mark: "event", label: "trip" }, { t: 31, mark: "beat", label: "testcon" }] },
+            { id: "scada", events: [{ t: 10, mark: "repeat", label: "sframe" }, { t: 30, mark: "event", label: "testact" }] },
+        ],
+    },
     anatomy: [
         {
             id: "type",

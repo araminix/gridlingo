@@ -95,5 +95,14 @@
         "measurand": "测量的是什么。没有 measurand 时，数值表示 Energy.Active.Import.Register。",
         "unit": "Wh（瓦时），电能的默认单位。",
         "power": "11040 W：3 相，每相 16 A，230 V。"
+    },
+    "timing": {
+        "title": "CSMS 要求的心跳",
+        "note": "CSMS 对 BootNotification 的应答设定心跳间隔：这里是 300 s。之后充电桩每 300 s 发送一次 Heartbeat，每次应答都带着 CSMS 的时间，让充电桩的时钟保持准确。应答不再到来时，充电桩就知道链路断了。",
+        "charger": "交流充电桩",
+        "csms": "CSMS",
+        "boot": "BootNotification",
+        "heartbeat": "Heartbeat",
+        "interval": "间隔：300 s"
     }
 }

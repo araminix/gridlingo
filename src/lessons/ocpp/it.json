@@ -95,5 +95,14 @@
         "measurand": "Cosa è stato misurato. Senza measurand, un valore significa Energy.Active.Import.Register.",
         "unit": "Wh (wattora), l'unità predefinita per l'energia.",
         "power": "11040 W: 16 A su ciascuna delle 3 fasi a 230 V."
+    },
+    "timing": {
+        "title": "L'heartbeat che chiede il CSMS",
+        "note": "La risposta del CSMS al BootNotification fissa l'intervallo dell'heartbeat: qui 300 s. Il caricatore invia poi un Heartbeat ogni 300 s, e ogni risposta porta l'ora del CSMS, che tiene giusto il suo orologio. Se le risposte smettono di arrivare, il caricatore sa che il collegamento è caduto.",
+        "charger": "Colonnina AC",
+        "csms": "CSMS",
+        "boot": "BootNotification",
+        "heartbeat": "Heartbeat",
+        "interval": "intervallo: 300 s"
     }
 }

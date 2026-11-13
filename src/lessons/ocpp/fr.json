@@ -95,5 +95,14 @@
         "measurand": "Ce qui a été mesuré. Sans measurand, une valeur signifie Energy.Active.Import.Register.",
         "unit": "Wh (wattheures), l'unité par défaut pour l'énergie.",
         "power": "11040 W : 16 A sur chacune des 3 phases à 230 V."
+    },
+    "timing": {
+        "title": "Le heartbeat que demande le CSMS",
+        "note": "La réponse du CSMS au BootNotification fixe l'intervalle du heartbeat : 300 s ici. La borne envoie alors un Heartbeat toutes les 300 s, et chaque réponse porte l'heure du CSMS, qui garde son horloge juste. Si les réponses cessent, la borne sait que la liaison est perdue.",
+        "charger": "Borne AC",
+        "csms": "CSMS",
+        "boot": "BootNotification",
+        "heartbeat": "Heartbeat",
+        "interval": "intervalle : 300 s"
     }
 }

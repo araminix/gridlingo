@@ -79,6 +79,24 @@ export const lesson: Lesson = {
             },
         ],
     },
+    timing: {
+        unit: "s",
+        scale: "linear",
+        end: 960,
+        ticks: [0, 300, 600, 900],
+        tracks: [
+            {
+                id: "charger",
+                events: [
+                    { t: 0, mark: "event", label: "boot" },
+                    { t: 300, mark: "repeat", label: "heartbeat" },
+                    { t: 600, mark: "repeat" },
+                    { t: 900, mark: "repeat" },
+                ],
+            },
+            { id: "csms", events: [{ t: 8, mark: "beat", label: "interval" }] },
+        ],
+    },
     anatomy: [
         {
             id: "call",

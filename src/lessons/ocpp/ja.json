@@ -95,5 +95,14 @@
         "measurand": "何を測ったか。measurandがなければ、値はEnergy.Active.Import.Registerを意味します。",
         "unit": "Wh（ワット時）：電力量の既定の単位です。",
         "power": "11040 W：3相それぞれ230 Vで16 A。"
+    },
+    "timing": {
+        "title": "CSMSが求めるハートビート",
+        "note": "BootNotificationへのCSMSの応答がハートビートの間隔を決めます。ここでは300秒です。充電器は300秒ごとにHeartbeatを送り、各応答にはCSMSの時刻が入っていて充電器の時計を正しく保ちます。応答が来なくなれば、充電器は回線が切れたとわかります。",
+        "charger": "AC充電器",
+        "csms": "CSMS",
+        "boot": "BootNotification",
+        "heartbeat": "Heartbeat",
+        "interval": "間隔：300秒"
     }
 }

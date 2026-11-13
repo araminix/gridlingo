@@ -148,5 +148,13 @@
     },
     "playground": {
         "encoder": "OPC UA, MMS'in aksine sayıları düşük bayt önce gönderir (DCBA). 4820.0, 00 A0 96 45 olarak taşınır."
+    },
+    "timing": {
+        "title": "Örnekleme, yayınlama ve keep-alive",
+        "note": "Denetleyici TotW'yi her 500 ms'de örnekler ve saniyede bir değişeni yayınlar: burada 2. ve 3. saniyede. 10 yayın aralığı boyunca (burada ayarlanan keep-alive sayısı) söyleyecek bir şeyi yoksa boş bir mesaj gönderir; böylece SCADA aboneliğin hâlâ canlı olduğunu bilir.",
+        "sampling": "TotW örnekleri",
+        "server": "Santral kontrolörü",
+        "change": "DataChange",
+        "keepalive": "keep-alive"
     }
 }

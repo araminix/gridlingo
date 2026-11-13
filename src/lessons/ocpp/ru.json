@@ -95,5 +95,14 @@
         "measurand": "Что измерено. Без measurand значение означает Energy.Active.Import.Register.",
         "unit": "Wh (ватт-часы), единица энергии по умолчанию.",
         "power": "11040 W: 16 A по каждой из 3 фаз при 230 V."
+    },
+    "timing": {
+        "title": "Heartbeat, который просит CSMS",
+        "note": "Ответ CSMS на BootNotification задаёт интервал heartbeat: здесь 300 с. Станция затем шлёт Heartbeat каждые 300 с, и каждый ответ несёт время CSMS, которое держит её часы точными. Если ответы перестают приходить, станция знает, что связь потеряна.",
+        "charger": "Станция AC",
+        "csms": "CSMS",
+        "boot": "BootNotification",
+        "heartbeat": "Heartbeat",
+        "interval": "интервал: 300 с"
     }
 }

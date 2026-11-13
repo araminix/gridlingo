@@ -120,5 +120,15 @@
     },
     "anatomy": {
         "type": "El nombre del tipo del disparo"
+    },
+    "timing": {
+        "title": "Los temporizadores que mantienen honesto un enlace IEC 104",
+        "note": "SCADA confirma las tramas I de la RTU como mucho 10 s después (t2), o tras 8 de ellas (w). Tras 20 s de silencio (t3), una trama de prueba revisa el enlace; si la respuesta no llega en 15 s (t1), la conexión se cierra y se vuelve a abrir. Son los valores por defecto de la norma.",
+        "rtu": "RTU",
+        "scada": "Maestro SCADA",
+        "trip": "Trama I: el disparo",
+        "sframe": "Trama S: t2 = 10 s",
+        "testact": "TESTFR act: t3 = 20 s",
+        "testcon": "TESTFR con"
     }
 }

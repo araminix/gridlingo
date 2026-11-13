@@ -145,5 +145,14 @@
         "station": "LAN di stazione · DNP3 verso la sala controllo",
         "f1": "F1 · Linea aerea",
         "f2": "F2 · Servizi ausiliari"
+    },
+    "timing": {
+        "title": "Interrogato ogni 10 s, o avvisato subito",
+        "note": "Qui lo SCADA legge gli eventi della stazione periferica ogni 10 s. Senza risposte spontanee, uno scatto a 23 s aspetterebbe l'interrogazione dei 30 s. Con esse, la RTU lo invia subito e tiene gli eventi finché lo SCADA conferma; senza conferma, li rimanda.",
+        "scada": "Master SCADA",
+        "rtu": "RTU",
+        "poll": "READ classe 1, 2, 3",
+        "unsolicited": "UNSOLICITED: lo scatto",
+        "confirm": "CONFIRM"
     }
 }
