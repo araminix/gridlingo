@@ -162,6 +162,12 @@ function clockParts(cx: number, cy: number) {
     };
 }
 
+/** A server rack on its levelling plinth, under a roof cap. */
+function rackParts(cx: number, cy: number) {
+    const { w, d, h } = SIZE.broker;
+    return { plinth: { cx, cy, w: w - 2, d: d - 2, h: 2 } satisfies Box, cabinet: { cx, cy, w: w - 4, d: d - 4, h: h - 4, z: 2 } satisfies Box, cap: { cx, cy, w: w - 3, d: d - 3, h: 2, z: h - 2 } satisfies Box };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -179,6 +185,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "broker") {
+        const { plinth, cabinet } = rackParts(cx, cy);
+        return [plinth, cabinet];
+    }
     if (kind === "clock") {
         const { plinth, body, chassis } = clockParts(cx, cy);
         return [plinth, body, chassis];
@@ -811,7 +821,34 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
                 </g>
             );
         }
-        case "broker":
+        case "broker": {
+            // Through its open front, five servers (drive bays and lights) over a UPS with its small screen; vents on its side
+            const { plinth, cabinet, cap } = rackParts(cx, cy);
+            const front = faces(cabinet).onLeft;
+            const side = faces(cabinet).onRight;
+            const servers = [0.78, 0.65, 0.52, 0.39, 0.26];
+            return (
+                <g>
+                    <Solid box={plinth} active={active} fine />
+                    <Solid box={cabinet} active={active} />
+                    <Solid box={cap} active={active} fine />
+                    <Panel on={front} u0={0.06} v0={0.03} u1={0.94} v1={0.97} fill="var(--viz-screen)" />
+                    {servers.map((v) => (
+                        <Panel key={v} on={front} u0={0.1} v0={v} u1={0.9} v1={v + 0.1} fill={tone.left} />
+                    ))}
+                    <Lines list={servers.flatMap((v) => [0.16, 0.24, 0.32, 0.4, 0.48].map((u) => [front(u, v + 0.02), front(u, v + 0.08)]))} width={0.6} />
+                    {servers.flatMap((v, i) =>
+                        [0.74, 0.82].map((u, j) => {
+                            const [x, y] = front(u, v + 0.05);
+                            return <circle key={`${v}${u}`} cx={round(x)} cy={round(y)} r={0.7} fill={i === 2 && j === 1 ? "var(--viz-token)" : "var(--viz-ok)"} />;
+                        }),
+                    )}
+                    <Panel on={front} u0={0.1} v0={0.06} u1={0.9} v1={0.2} fill={tone.left} />
+                    <Panel on={front} u0={0.6} v0={0.09} u1={0.82} v1={0.17} fill="var(--viz-screen)" />
+                    <Lines list={[0.3, 0.4, 0.5, 0.6, 0.7].map((v) => [side(0.3, v), side(0.7, v)])} width={0.5} />
+                </g>
+            );
+        }
         case "cloud":
             detail = (
                 <>
