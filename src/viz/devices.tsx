@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { DeviceKind } from "@/lessons/types";
-import { faces, project, round, type Box } from "./iso";
+import { faces, hull, project, round, type Box } from "./iso";
 
 /** Each kind's footprint (w along x, d along y) and height, in plan units. */
 const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
@@ -25,7 +25,7 @@ const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     building: { w: 60, d: 48, h: 84 },
     sensor: { w: 8, d: 8, h: 40 },
     laptop: { w: 30, d: 22, h: 16 },
-    transformer: { w: 44, d: 30, h: 38 },
+    transformer: { w: 44, d: 30, h: 48 },
     controller: { w: 30, d: 22, h: 46 },
     radio: { w: 8, d: 8, h: 110 },
     firewall: { w: 36, d: 22, h: 30 },
@@ -98,6 +98,20 @@ function breakerParts(cx: number, cy: number) {
     };
 }
 
+/** A power transformer: its tank on a pad, cooling fins in front, the tap changer's cabinet on its side, the oil
+ * conservator lying front to back above its left end, and the HV bushings across the rest of its top. */
+function transformerParts(cx: number, cy: number) {
+    const { w, d } = SIZE.transformer;
+    return {
+        pad: { cx, cy, w, d, h: 1.5 } satisfies Box,
+        tank: { cx, cy: cy - 2, w: 34, d: 18, h: 26, z: 1.5 } satisfies Box,
+        fins: { cx, cy: cy + 10, w: 28, d: 6, h: 20, z: 3 } satisfies Box,
+        tap: { cx: cx + 19, cy: cy - 2, w: 4, d: 8, h: 12, z: 6 } satisfies Box,
+        conservator: { x: cx - 11, y0: cy - 10, y1: cy + 5, z: 34, r: 3.5 },
+        hv: [-1, 7.5, 16].map((dx) => [cx + dx, cy - 2] as const),
+    };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -115,6 +129,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "transformer") {
+        const { pad, tank, fins, tap, conservator: c } = transformerParts(cx, cy);
+        return [pad, tank, fins, tap, { cx: c.x, cy: (c.y0 + c.y1) / 2, w: 2 * c.r, d: c.y1 - c.y0, h: 2 * c.r, z: c.z - c.r }];
+    }
     if (kind === "breaker") {
         const { pad, beam, cabinet } = breakerParts(cx, cy);
         return [pad, { ...beam, h: 21, z: 0 }, cabinet, { ...beam, w: 20, h: 23, z: 21 }];
@@ -186,6 +204,25 @@ function Solid({ box, active, fine = false }: { box: Box; active: boolean; fine?
 
 const pair = ([x, y]: [number, number]) => `${round(x)},${round(y)}`;
 const quad = (a: [number, number], b: [number, number], c: [number, number], d: [number, number]) => [a, b, c, d].map(pair).join(" ");
+
+/** A porcelain insulator standing at (x, y) from z0 to z1: a core with round sheds of radius r stacked up it, a clamp for
+ * the line on top. */
+function Insulator({ at: [x, y], z0, z1, r, tone }: { at: readonly [number, number]; z0: number; z1: number; r: number; tone: ReturnType<typeof tones> }) {
+    const [bx, by] = project(x, y, z0);
+    const [tx, ty] = project(x, y, z1);
+    const core = r * 0.48;
+    const count = Math.max(2, Math.round((z1 - z0) / 4));
+    return (
+        <g>
+            <polygon points={quad([bx - core, by], [tx - core, ty], [tx + core, ty], [bx + core, by])} fill={tone.left} stroke={tone.edge} strokeWidth={0.6} />
+            {Array.from({ length: count }, (_, i) => {
+                const [sx, sy] = project(x, y, z0 + ((i + 0.5) * (z1 - z0)) / count);
+                return <ellipse key={i} cx={round(sx)} cy={round(sy)} rx={r} ry={round(r * 0.58)} fill={tone.top} stroke={tone.edge} strokeWidth={0.6} />;
+            })}
+            <Lines list={[[project(x, y - 3, z1 + 1), project(x, y + 3, z1 + 1)]]} stroke={tone.edge} width={1.6} />
+        </g>
+    );
+}
 
 /** A rectangle on a face: from (u0, v0) to (u1, v1) of the face. */
 function Panel({ on, u0, v0, u1, v1, fill }: { on: (u: number, v: number) => [number, number]; u0: number; v0: number; u1: number; v1: number; fill: string }) {
@@ -435,20 +472,6 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             // Each column is an insulator: a core with round sheds stacked up it, a clamp for the line on top
             const { pad, legs, beam, poles, cabinet } = breakerParts(cx, cy);
             const door = faces(cabinet).onLeft;
-            const column = ([x, y]: readonly [number, number]) => {
-                const [bx, by] = project(x, y, 21);
-                const [tx, ty] = project(x, y, 42);
-                return (
-                    <g key={x}>
-                        <polygon points={quad([bx - 1.5, by], [tx - 1.5, ty], [tx + 1.5, ty], [bx + 1.5, by])} fill={tone.left} stroke={tone.edge} strokeWidth={0.6} />
-                        {[23.5, 27.5, 31.5, 35.5, 39.5].map((z) => {
-                            const [sx, sy] = project(x, y, z);
-                            return <ellipse key={z} cx={round(sx)} cy={round(sy)} rx={3.1} ry={1.8} fill={tone.top} stroke={tone.edge} strokeWidth={0.6} />;
-                        })}
-                        <Lines list={[[project(x, y - 3, 43), project(x, y + 3, 43)]]} stroke={tone.edge} width={1.6} />
-                    </g>
-                );
-            };
             return (
                 <g>
                     <Solid box={pad} active={active} fine />
@@ -456,7 +479,9 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
                         <Solid key={leg.cx} box={leg} active={active} fine />
                     ))}
                     <Solid box={beam} active={active} fine />
-                    {poles.map(column)}
+                    {poles.map((at) => (
+                        <Insulator key={at[0]} at={at} z0={21} z1={42} r={3.1} tone={tone} />
+                    ))}
                     <Solid box={cabinet} active={active} />
                     <Lines list={[[door(0.5, 0.08), door(0.5, 0.92)]]} width={0.6} />
                     <Panel on={door} u0={0.62} v0={0.58} u1={0.86} v1={0.78} fill="var(--viz-screen)" />
@@ -464,22 +489,34 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             );
         }
         case "transformer": {
-            const tops = [0.25, 0.5, 0.75];
-            detail = (
-                <>
-                    <Lines list={[0.2, 0.35, 0.5, 0.65, 0.8].map((u) => [f.onLeft(u, 0.12), f.onLeft(u, 0.88)])} />
-                    {tops.map((u) => {
-                        const [x, y] = f.onTop(u, 0.5);
-                        return (
-                            <g key={u}>
-                                <path d={`M${round(x)},${round(y)} l0,-12`} stroke={tone.edge} strokeWidth={2} strokeLinecap="round" />
-                                <circle cx={round(x)} cy={round(y - 13)} r={2.4} fill={tone.top} stroke={tone.edge} />
-                            </g>
-                        );
-                    })}
-                </>
+            // The conservator is a round tank lying along y on two short posts; its +y end faces the viewer
+            const { pad, tank, fins, tap, conservator: c, hv } = transformerParts(cx, cy);
+            const end = (y: number) =>
+                Array.from({ length: 16 }, (_, i) => {
+                    const a = (i * Math.PI) / 8;
+                    return project(c.x + c.r * Math.cos(a), y, c.z + c.r * Math.sin(a));
+                });
+            const ring = (list: [number, number][]) => list.map(pair).join(" ");
+            const grill = faces(fins);
+            const door = faces(tap).onRight;
+            return (
+                <g>
+                    <Solid box={pad} active={active} fine />
+                    <Solid box={tank} active={active} />
+                    {[c.y0 + 3, c.y1 - 3].map((y) => (
+                        <Solid key={y} box={{ cx: c.x, cy: y, w: 1.5, d: 1.5, h: c.z - c.r - 27.5, z: 27.5 }} active={active} fine />
+                    ))}
+                    <polygon points={ring(hull([...end(c.y0), ...end(c.y1)]))} fill={tone.top} stroke={tone.edge} strokeWidth={tone.width} strokeLinejoin="round" />
+                    <polygon points={ring(end(c.y1))} fill={tone.left} stroke={tone.edge} strokeWidth={0.8} />
+                    {hv.map((at) => (
+                        <Insulator key={at[0]} at={at} z0={27.5} z1={46} r={2.6} tone={tone} />
+                    ))}
+                    <Solid box={tap} active={active} fine />
+                    <Lines list={[[door(0.5, 0.1), door(0.5, 0.9)]]} width={0.6} />
+                    <Solid box={fins} active={active} />
+                    <Lines list={Array.from({ length: 13 }, (_, i) => 0.04 + i * 0.077).flatMap((u) => [[grill.onLeft(u, 0.04), grill.onLeft(u, 0.96)], [grill.onTop(u, 0.1), grill.onTop(u, 0.9)]])} width={0.6} />
+                </g>
             );
-            break;
         }
         case "meter": {
             // The meter stands out from the pillar: its reading, the round optical port, the pulse light, and the cover

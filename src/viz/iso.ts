@@ -85,7 +85,7 @@ export function groundPath(from: readonly [number, number], to: readonly [number
 }
 
 /** The convex hull of some screen points, in order around it. */
-function hull(list: [number, number][]): [number, number][] {
+export function hull(list: [number, number][]): [number, number][] {
     const sorted = [...list].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
     const turn = (o: [number, number], a: [number, number], b: [number, number]) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
     const half = (points: [number, number][]) => {
