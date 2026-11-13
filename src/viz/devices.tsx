@@ -24,7 +24,7 @@ const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     pmu: { w: 26, d: 20, h: 26 },
     building: { w: 60, d: 48, h: 86 },
     sensor: { w: 8, d: 8, h: 44 },
-    laptop: { w: 30, d: 22, h: 16 },
+    laptop: { w: 30, d: 22, h: 30 },
     transformer: { w: 44, d: 30, h: 48 },
     controller: { w: 30, d: 22, h: 49 },
     radio: { w: 8, d: 8, h: 110 },
@@ -193,6 +193,18 @@ function sensorParts(cx: number, cy: number) {
     };
 }
 
+/** A laptop open on a folding field table: four legs, the top, the laptop's base and its lid tilted back. */
+function laptopParts(cx: number, cy: number) {
+    const { w, d } = SIZE.laptop;
+    return {
+        legs: [-1, 1].flatMap((ax) => [-1, 1].map((ay): Box => ({ cx: cx + ax * (w / 2 - 2), cy: cy + ay * (d / 2 - 2), w: 1.5, d: 1.5, h: 14 }))),
+        top: { cx, cy, w, d, h: 1.5, z: 14 } satisfies Box,
+        base: { cx, cy: cy + 1, w: 20, d: 13, h: 1.5, z: 15.5 } satisfies Box,
+        // The lid's corners: from the base's back edge up to its top edge, leaning back
+        lid: { x0: cx - 10, x1: cx + 10, back: cy - 5.5, z: 17, top: cy - 8, height: 30 },
+    };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -210,6 +222,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "laptop") {
+        const { legs, top, lid } = laptopParts(cx, cy);
+        return [...legs, top, { cx, cy: (lid.back + lid.top) / 2, w: lid.x1 - lid.x0, d: 3, h: lid.height - lid.z, z: lid.z }];
+    }
     if (kind === "sensor") {
         const { foot, pole, logger } = sensorParts(cx, cy);
         return [foot, pole, logger];
@@ -428,15 +444,31 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             );
         }
         case "laptop": {
-            // A thin base and a screen standing at its back
-            const base: Box = { cx, cy, w: size.w, d: size.d, h: 3 };
-            const screen: Box = { cx, cy: cy - size.d / 2 + 1.5, w: size.w, d: 3, h: size.h };
-            const s = faces(screen);
+            // A dark keyboard and a touchpad on its base; on the screen, lines of a terminal
+            const { legs, top, base, lid } = laptopParts(cx, cy);
+            const keys = faces(base).onTop;
+            const screen = (u: number, v: number) => project(lid.x0 + u * (lid.x1 - lid.x0), lid.back + v * (lid.top - lid.back), lid.z + v * (lid.height - lid.z));
             return (
                 <g>
-                    <Solid box={base} active={active} />
-                    <Solid box={screen} active={active} />
-                    <Panel on={s.onLeft} u0={0.1} v0={0.25} u1={0.9} v1={0.9} fill="var(--viz-screen)" />
+                    {legs.map((leg) => (
+                        <Solid key={`${leg.cx}${leg.cy}`} box={leg} active={active} fine />
+                    ))}
+                    <Solid box={top} active={active} fine />
+                    <Solid box={base} active={active} fine />
+                    <polygon points={quad(keys(0.08, 0.08), keys(0.92, 0.08), keys(0.92, 0.55), keys(0.08, 0.55))} fill="var(--viz-screen)" />
+                    <polygon points={quad(keys(0.38, 0.66), keys(0.62, 0.66), keys(0.62, 0.9), keys(0.38, 0.9))} fill={tone.right} stroke={tone.edge} strokeWidth={0.4} />
+                    <polygon points={quad(screen(0, 0), screen(1, 0), screen(1, 1), screen(0, 1))} fill={tone.left} stroke={tone.edge} strokeWidth={tone.width} strokeLinejoin="round" />
+                    <polygon points={quad(screen(0.06, 0.08), screen(0.94, 0.08), screen(0.94, 0.92), screen(0.06, 0.92))} fill="var(--viz-screen)" />
+                    <Lines
+                        list={[
+                            [screen(0.14, 0.78), screen(0.6, 0.78)],
+                            [screen(0.14, 0.62), screen(0.78, 0.62)],
+                            [screen(0.14, 0.46), screen(0.5, 0.46)],
+                            [screen(0.14, 0.3), screen(0.24, 0.3)],
+                        ]}
+                        stroke="var(--viz-ok)"
+                        width={0.8}
+                    />
                 </g>
             );
         }
