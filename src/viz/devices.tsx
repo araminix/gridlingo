@@ -27,7 +27,7 @@ const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     laptop: { w: 30, d: 22, h: 30 },
     transformer: { w: 44, d: 30, h: 48 },
     controller: { w: 30, d: 22, h: 49 },
-    radio: { w: 8, d: 8, h: 110 },
+    radio: { w: 8, d: 8, h: 116 },
     firewall: { w: 36, d: 22, h: 30 },
 };
 
@@ -205,6 +205,15 @@ function laptopParts(cx: number, cy: number) {
     };
 }
 
+/** A radio mast: a square lattice tower on its foundation, narrowing upward, and a small equipment cabinet at its foot. */
+function mastParts(cx: number, cy: number) {
+    return {
+        foundation: { cx, cy, w: 12, d: 12, h: 1.5 } satisfies Box,
+        tower: { cx, cy, w: SIZE.radio.w, d: SIZE.radio.d, h: 104, z: 1.5 } satisfies Box,
+        cabinet: { cx: cx + 7, cy: cy + 4, w: 6, d: 6, h: 9 } satisfies Box,
+    };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -222,6 +231,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "radio") {
+        const { foundation, tower, cabinet } = mastParts(cx, cy);
+        return [foundation, tower, cabinet];
+    }
     if (kind === "laptop") {
         const { legs, top, lid } = laptopParts(cx, cy);
         return [...legs, top, { cx, cy: (lid.back + lid.top) / 2, w: lid.x1 - lid.x0, d: 3, h: lid.height - lid.z, z: lid.z }];
@@ -299,7 +312,7 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
 }
 
 /** How high a device reaches above the ground. */
-export const heightOf = (kind: DeviceKind) => (kind === "turbine" ? SIZE.turbine.h + 44 : kind === "radio" ? SIZE.radio.h + 12 : kind === "sensor" ? SIZE.sensor.h + 10 : SIZE[kind].h);
+export const heightOf = (kind: DeviceKind) => (kind === "turbine" ? SIZE.turbine.h + 44 : kind === "sensor" ? SIZE.sensor.h + 10 : SIZE[kind].h);
 
 /** Where a device's label goes: above its highest point on the screen (the top's back corner). */
 export function labelAt(kind: DeviceKind, cx: number, cy: number): [number, number] {
@@ -1004,13 +1017,40 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             );
         }
         case "radio": {
-            const [x, y] = project(cx, cy, size.h);
+            // Four legs narrowing upward, braced crosswise at every level (the back legs fainter); two panel antennas
+            // near the top, a whip above them, and the red light that warns aircraft
+            const { foundation, tower, cabinet } = mastParts(cx, cy);
+            const top = tower.z + tower.h;
+            const half = (z: number) => 4 - (2 * (z - tower.z)) / tower.h;
+            const corner = (sx: number, sy: number, z: number) => project(cx + sx * half(z), cy + sy * half(z), z);
+            const levels = Array.from({ length: 9 }, (_, i) => tower.z + (i * tower.h) / 8);
+            const front: [number, number][][] = [];
+            for (const [a, b] of [
+                [[-1, 1], [1, 1]],
+                [[1, -1], [1, 1]],
+            ] as const)
+                for (let i = 0; i < 8; i++) {
+                    front.push([corner(a[0], a[1], levels[i]!), corner(b[0], b[1], levels[i + 1]!)], [corner(b[0], b[1], levels[i]!), corner(a[0], a[1], levels[i + 1]!)]);
+                    front.push([corner(a[0], a[1], levels[i + 1]!), corner(b[0], b[1], levels[i + 1]!)]);
+                }
+            const leg = (sx: number, sy: number) => [corner(sx, sy, tower.z), corner(sx, sy, top)];
+            const panels = [
+                { cx: cx, cy: cy + 3, w: 4, d: 1.5, h: 10, z: top - 14 },
+                { cx: cx + 3, cy: cy, w: 1.5, d: 4, h: 10, z: top - 14 },
+            ] satisfies Box[];
+            const [lx, ly] = project(cx, cy, top + 9);
             return (
                 <g>
-                    <Solid box={box} active={active} />
-                    {[8, 14].map((r) => (
-                        <path key={r} d={`M${round(x - r)},${round(y - 4)} a${r},${r} 0 0 1 ${2 * r},0`} fill="none" stroke={tone.edge} strokeWidth={1.4} />
+                    <Solid box={foundation} active={active} fine />
+                    <Lines list={[leg(-1, -1), leg(1, -1), leg(-1, 1)]} stroke={tone.edge} width={0.5} />
+                    <Lines list={front} stroke={tone.edge} width={0.6} />
+                    <Lines list={[leg(1, 1), leg(-1, 1), leg(1, -1)]} stroke={tone.edge} width={1.2} />
+                    {panels.map((panel) => (
+                        <Solid key={panel.cx + panel.cy} box={panel} active={active} fine />
                     ))}
+                    <Lines list={[[project(cx, cy, top), [lx, ly + 1.5]]]} stroke={tone.edge} width={0.9} />
+                    <circle cx={round(lx)} cy={round(ly)} r={1.5} fill="var(--destructive)" stroke={tone.edge} strokeWidth={0.4} />
+                    <Solid box={cabinet} active={active} fine />
                 </g>
             );
         }
