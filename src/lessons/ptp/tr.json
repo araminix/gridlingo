@@ -126,5 +126,16 @@
     },
     "anatomy": {
         "port": "MAC adresinden üretilen bir port kimliği"
+    },
+    "playground": {
+        "file": "Deneyin: bir rölenin PTP yazılımının bu dersin Grandmaster'ını izlemesi için gereken ayarlar. Bu, Linux tabanlı cihazlarda yaygın olan linuxptp'nin ptp4l'idir.",
+        "domain": "Domain 0, bu dersteki her mesajda olduğu gibi: bir saat yalnızca kendi domain'inin mesajlarını izler.",
+        "client": "Bu röle yalnızca izler. Kendini asla Grandmaster olarak sunmaz.",
+        "l2": "Doğrudan Ethernet üzerinde, IP olmadan, profilin multicast adresine: bu dersteki Announce ve Sync'in adresi.",
+        "p2p": "Eşten eşe: her bağlantının gecikmesi, anahtarların asla iletmediği bir adrese gönderilen Pdelay ile ölçülür.",
+        "intervals": "Her aralık saniye cinsinden 2'nin kuvveti olarak: 0, saniyede bir demektir; profilin Announce, Sync ve Pdelay hızı.",
+        "timeout": "3 Announce kaçırıldıktan sonra (3 saniye) röle başka bir Grandmaster arar.",
+        "hardware": "Zaman damgalarını yazılım değil, çerçeve geçerken ağ kartı alır: bir mikrosaniye bunu gerektirir.",
+        "port": "Çerçevelerin geldiği istasyon veri yolundaki port."
     }
 }

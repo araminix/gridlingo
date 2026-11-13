@@ -126,5 +126,16 @@
     },
     "anatomy": {
         "port": "Eine Port-Identität, gebildet aus der MAC-Adresse"
+    },
+    "playground": {
+        "file": "Probieren Sie es aus: die Einstellungen, die die PTP-Software eines Schutzgeräts braucht, um dem Grandmaster dieser Lektion zu folgen. Das ist ptp4l aus linuxptp, verbreitet auf Linux-Geräten.",
+        "domain": "Domain 0, wie in jeder Nachricht dieser Lektion: Eine Uhr folgt nur Nachrichten ihrer eigenen Domain.",
+        "client": "Dieses Gerät folgt nur. Es bietet sich nie selbst als Grandmaster an.",
+        "l2": "Direkt auf Ethernet, ohne IP, an die Multicast-Adresse des Profils: die Adresse von Announce und Sync dieser Lektion.",
+        "p2p": "Peer to Peer: Die Verzögerung jeder Strecke wird mit Pdelay gemessen, an eine Adresse, die Switches nie weiterleiten.",
+        "intervals": "Jedes Intervall als Zweierpotenz in Sekunden: 0 heißt einmal pro Sekunde, das Tempo des Profils für Announce, Sync und Pdelay.",
+        "timeout": "Nach 3 verpassten Announce-Nachrichten (3 Sekunden) sucht das Gerät einen anderen Grandmaster.",
+        "hardware": "Zeitstempel, die die Netzwerkkarte nimmt, während der Frame vorbeikommt, nicht die Software: Eine Mikrosekunde braucht das.",
+        "port": "Der Port am Stationsbus, an dem die Frames ankommen."
     }
 }

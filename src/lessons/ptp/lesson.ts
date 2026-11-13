@@ -1,4 +1,5 @@
 import type { Field, Lesson } from "../types";
+import relayConfig from "./relay-ptp4l.conf?raw";
 
 /** The Ethernet header: destination, source and the PTP EtherType. */
 const ethernet = (dst: "all" | "peer", src: "gm" | "sw" | "mu"): Field[] => [
@@ -187,6 +188,9 @@ export const lesson: Lesson = {
             ],
             also: "MAC 02-00-00-00-01-01  →  clockIdentity 02 00 00 FF FE 00 01 01 · port 1",
         },
+    ],
+    playground: [
+        { kind: "file", sample: "relay-ptp4l.conf", file: relayConfig, notes: { 3: "domain", 4: "client", 7: "l2", 9: "p2p", 11: "intervals", 14: "timeout", 15: "hardware", 17: "port" } },
     ],
     related: ["iec-61850-sv", "irig-b", "prp-hsr", "iec-61850-goose"],
 };

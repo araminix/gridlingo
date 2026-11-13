@@ -126,5 +126,16 @@
     },
     "anatomy": {
         "port": "Una port identity, ricavata dall'indirizzo MAC"
+    },
+    "playground": {
+        "file": "Provalo: le impostazioni che servono al software PTP di un relè per seguire il grandmaster di questa lezione. È ptp4l, di linuxptp, diffuso sui dispositivi Linux.",
+        "domain": "Dominio 0, come in ogni messaggio di questa lezione: un orologio segue solo i messaggi del proprio dominio.",
+        "client": "Questo relè segue soltanto. Non si propone mai come grandmaster.",
+        "l2": "Direttamente su Ethernet, senza IP, all'indirizzo multicast del profilo: quello di Announce e Sync di questa lezione.",
+        "p2p": "Peer to peer: il ritardo di ogni collegamento si misura con Pdelay, inviato a un indirizzo che gli switch non inoltrano mai.",
+        "intervals": "Ogni intervallo come potenza di 2, in secondi: 0 vuol dire una volta al secondo, il ritmo del profilo per Announce, Sync e Pdelay.",
+        "timeout": "Dopo 3 Announce persi (3 secondi), il relè cerca un altro grandmaster.",
+        "hardware": "Marcature temporali prese dalla scheda di rete al passaggio del frame, non dal software: per un microsecondo servono.",
+        "port": "La porta sul bus di stazione da cui arrivano i frame."
     }
 }

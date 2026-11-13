@@ -126,5 +126,16 @@
     },
     "anatomy": {
         "port": "Une identité de port, construite à partir de l'adresse MAC"
+    },
+    "playground": {
+        "file": "Essayez : les réglages dont le logiciel PTP d'un relais a besoin pour suivre le grand maître de cette leçon. C'est ptp4l, de linuxptp, courant sur les équipements sous Linux.",
+        "domain": "Domaine 0, comme dans tous les messages de cette leçon : une horloge ne suit que les messages de son propre domaine.",
+        "client": "Ce relais ne fait que suivre. Il ne se propose jamais comme grand maître.",
+        "l2": "Directement sur Ethernet, sans IP, vers l'adresse multicast du profil : celle des Announce et Sync de cette leçon.",
+        "p2p": "Pair à pair : le délai de chaque lien est mesuré par Pdelay, envoyé à une adresse que les switches ne transmettent jamais.",
+        "intervals": "Chaque intervalle en puissance de 2, en secondes : 0 veut dire une fois par seconde, le rythme du profil pour Announce, Sync et Pdelay.",
+        "timeout": "Après 3 Announce manqués (3 secondes), le relais cherche un autre grand maître.",
+        "hardware": "Horodatage pris par la carte réseau au passage de la trame, pas par le logiciel : une microseconde l'exige.",
+        "port": "Le port du bus de poste où arrivent les trames."
     }
 }

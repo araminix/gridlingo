@@ -126,5 +126,16 @@
     },
     "anatomy": {
         "port": "A port identity, made from the MAC address"
+    },
+    "playground": {
+        "file": "Try it: the settings a relay's PTP software needs to follow this lesson's grandmaster. This is ptp4l, from linuxptp, common on Linux-based devices.",
+        "domain": "Domain 0, as in every message of this lesson: a clock follows only messages of its own domain.",
+        "client": "This relay only follows. It never offers itself as the grandmaster.",
+        "l2": "Straight on Ethernet, no IP, to the profile's multicast address: the address of this lesson's Announce and Sync.",
+        "p2p": "Peer to peer: each link's delay is measured with Pdelay, sent to an address that switches never forward.",
+        "intervals": "Each interval as a power of 2, in seconds: 0 means once a second, the profile's pace for Announce, Sync and Pdelay.",
+        "timeout": "After 3 missed Announce messages (3 seconds), the relay looks for another grandmaster.",
+        "hardware": "Time stamps taken by the network card as the frame passes, not by software: a microsecond needs them.",
+        "port": "The port on the station bus where the frames arrive."
     }
 }
