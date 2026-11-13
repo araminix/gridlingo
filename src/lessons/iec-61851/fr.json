@@ -68,5 +68,8 @@
         "c2": "C2 · 40 %",
         "c2-low": "C2 · 10 %",
         "digital": "B2 · 5 %"
+    },
+    "playground": {
+        "pwm": "Essayez : tapez un rapport cyclique pour voir ce que lit la voiture, ou un courant pour voir le rapport que la borne doit envoyer. 40 %, ce sont les 24 A de cette leçon."
     }
 }

@@ -85,5 +85,6 @@ export const lesson: Lesson = {
             { id: "digital", signal: pwm(9, 5) },
         ],
     },
+    playground: [{ kind: "pwm", duty: 40 }],
     related: ["iso-15118", "ocpp"],
 };

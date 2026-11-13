@@ -68,5 +68,8 @@
         "c2": "C2 · 40 %",
         "c2-low": "C2 · 10 %",
         "digital": "B2 · 5 %"
+    },
+    "playground": {
+        "pwm": "Try it: type a duty cycle to see what the car reads, or a current to see the duty cycle the charger must send. 40 % is this lesson's 24 A."
     }
 }

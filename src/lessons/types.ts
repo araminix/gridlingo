@@ -175,7 +175,9 @@ export type Playground =
     /** An IEC 61850 SCL file (a sample, or the reader's own) as a tree. */
     | { kind: "scl"; sample: string; file: string; intro?: string }
     /** A sample file with notes on its lines: `playground.<note>` in the texts. */
-    | { kind: "file"; sample: string; file: string; notes: Readonly<Record<number, string>>; intro?: string };
+    | { kind: "file"; sample: string; file: string; notes: Readonly<Record<number, string>>; intro?: string }
+    /** A control pilot's duty cycle and the current it offers, both ways (IEC 61851). */
+    | { kind: "pwm"; duty: number; intro?: string };
 
 export interface Lesson {
     /** The columns of the sequence view, left to right. */
