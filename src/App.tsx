@@ -9,6 +9,8 @@ import { Direction } from "radix-ui";
 
 // The lesson page (its diagrams and playgrounds) loads when a lesson is opened, not with the home page
 const LessonPage = lazy(() => import("@/pages/Lesson").then((module) => ({ default: module.LessonPage })));
+// PROTOTYPE: one event told by several protocols side by side
+const Compare = lazy(() => import("@/pages/Compare").then((module) => ({ default: module.Compare })));
 
 export function App() {
     const { t, dir } = useI18n();
@@ -25,6 +27,10 @@ export function App() {
             <Header />
             {path === "/" ? (
                 <Home />
+            ) : path === "/compare" ? (
+                <Suspense fallback={<main id="main" className="min-h-[60vh]" aria-busy="true" />}>
+                    <Compare />
+                </Suspense>
             ) : lesson ? (
                 <Suspense fallback={<main id="main" className="min-h-[60vh]" aria-busy="true" />}>
                     <LessonPage id={lesson} />
