@@ -4,5 +4,5 @@
     <path d="M4 10.5 L17 18 L30 10.5 M17 18 L17 31" fill="none" stroke="#6d28d9" stroke-width="2.2" stroke-linejoin="round"/>
     <path d="M7.5 16.5 C9.5 13.5 11.5 19.5 13.5 16.5" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round"/>
   </g>
-  <text x="62" y="38" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="-0.5" fill="#1a1530">Gridlingo</text>
+  <text x="62" y="37" font-family="'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace" font-size="29" font-weight="500" letter-spacing="-0.5" fill="#1a1530">Grid<tspan fill="#6d28d9">lingo</tspan></text>
 </svg>

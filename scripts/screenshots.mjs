@@ -42,7 +42,8 @@ await page.addStyleTag({
         #main > section:first-of-type { height: 640px; border: 0; display: flex; align-items: center; }
         #main > section:first-of-type > div { width: 100%; grid-template-columns: minmax(0, 1fr) 32rem; padding: 0 56px; gap: 40px; }
         #main h1 { font-size: 50px; }
-        .banner-name { display: flex; align-items: center; gap: 14px; font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
+        .banner-name { display: flex; align-items: center; gap: 14px; font-family: var(--font-mono); font-size: 30px; font-weight: 500; letter-spacing: -0.02em; }
+        .banner-name b { font-weight: inherit; color: var(--primary); }
         .banner-name svg { width: 48px; height: 48px; }
         .banner-site { font-size: 17px; color: var(--muted-foreground); }
     `,
@@ -50,10 +51,14 @@ await page.addStyleTag({
 await page.evaluate(() => {
     const column = document.querySelector("#main .max-w-3xl");
     column.querySelector(":scope > button").remove(); // the search
+    column.querySelector('a[href$="/compare"]').remove(); // the link to the comparison page
     column.lastElementChild.remove(); // "Start with"
     const name = document.createElement("div");
     name.className = "banner-name";
-    name.append(document.querySelector("header svg").cloneNode(true), "Gridlingo");
+    // The header's wordmark: "Grid" and a coloured "lingo"
+    const word = document.createElement("span");
+    word.append("Grid", Object.assign(document.createElement("b"), { textContent: "lingo" }));
+    name.append(document.querySelector("header svg").cloneNode(true), word);
     const site = document.createElement("p");
     site.className = "banner-site";
     site.textContent = "araminix.github.io/gridlingo";

@@ -28,7 +28,10 @@ export function Header({ search = true }: { search?: boolean }) {
             <div className="flex h-12 items-center gap-2 px-3 sm:gap-3 sm:px-4">
                 <Link to="/" className="flex shrink-0 items-center gap-2.5 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
                     <Logo className="size-7" />
-                    <span className="text-lg font-bold tracking-tight">Gridlingo</span>
+                    {/* The wordmark in the monospace face, lighter than the lesson title beside it */}
+                    <span className="font-mono text-[17px] font-medium tracking-tight">
+                        Grid<span className="text-primary">lingo</span>
+                    </span>
                 </Link>
                 {/* The open lesson's name and group, on wider screens; phones keep them on the page */}
                 {title && (
