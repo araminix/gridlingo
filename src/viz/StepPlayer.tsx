@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight, Pause, Play, RotateCcw } from "lucide-react";
+import { useState, type CSSProperties } from "react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/i18n";
 import type { Step } from "@/lessons/types";
@@ -6,8 +7,17 @@ import type { Words } from "@/lessons/words";
 import { Rich } from "@/glossary/Rich";
 import { cn } from "@/lib/utils";
 
-/** The steps of a lesson as a row of buttons. */
-export function StepStrip({ steps, current, onGo, words }: { steps: readonly Step[]; current: number; onGo: (index: number) => void; words: Words }) {
+/** While playing: how far the current step is (0 to 1) and how many milliseconds are left of it. */
+export type Progress = { key: string; from: number; ms: number };
+
+/** A bar along the bottom of the current step that fills until playing moves on; it keeps the timing it started with. */
+function ProgressBar({ from, ms }: Omit<Progress, "key">) {
+    const [start] = useState(() => ({ from, ms }));
+    return <span aria-hidden="true" data-progress="" className="step-progress absolute inset-x-0 bottom-0 h-1 bg-primary-foreground/80" style={{ "--from": start.from, animationDuration: `${start.ms}ms` } as CSSProperties} />;
+}
+
+/** The steps of a lesson as a row of buttons; while playing, the current one shows how long until the next. */
+export function StepStrip({ steps, current, onGo, words, progress }: { steps: readonly Step[]; current: number; onGo: (index: number) => void; words: Words; progress?: Progress | undefined }) {
     const { number } = useI18n();
     return (
         <ol className="grid grid-cols-[repeat(auto-fit,minmax(6.5rem,1fr))] gap-2">
@@ -18,7 +28,7 @@ export function StepStrip({ steps, current, onGo, words }: { steps: readonly Ste
                         onClick={() => onGo(index)}
                         aria-current={index === current ? "step" : undefined}
                         className={cn(
-                            "flex h-full min-h-12 w-full items-center gap-2 rounded-lg border px-3 py-1.5 text-start text-[13px] leading-tight font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            "relative flex h-full min-h-12 w-full items-center gap-2 overflow-hidden rounded-lg border px-3 py-1.5 text-start text-[13px] leading-tight font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring",
                             index === current
                                 ? "border-primary bg-primary text-primary-foreground"
                                 : index < current
@@ -28,6 +38,7 @@ export function StepStrip({ steps, current, onGo, words }: { steps: readonly Ste
                     >
                         <span className="font-mono text-xs">{number(index + 1)}</span>
                         <span>{words.step(step.id).title}</span>
+                        {progress && index === current && <ProgressBar key={progress.key} from={progress.from} ms={progress.ms} />}
                     </button>
                 </li>
             ))}

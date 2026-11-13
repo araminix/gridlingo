@@ -65,6 +65,21 @@ test("a lesson moves step by step, with the buttons, the keys and on its own", a
     await expect(caption(page)).toHaveText(/^Step 1 of 6/);
 });
 
+test("with motion, a step's frames travel one after another, and playing shows how long until the next step", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await open(page, "/p/iec-104");
+    await page.getByRole("button", { name: "Next step" }).click();
+    const reply = page.getByRole("button", { name: /STARTDT con/ });
+    // The answer joins the list only once the request has arrived, and the request moves on its way there
+    await expect(reply).toHaveCount(0);
+    const token = page.locator("[data-token]");
+    const leaving = await token.getAttribute("transform");
+    await expect(token).not.toHaveAttribute("transform", leaving!);
+    await expect(reply).toHaveCount(1);
+    await page.getByRole("button", { name: "Play" }).click();
+    await expect(page.getByTestId("stage").locator("[aria-current=step] [data-progress]")).toBeVisible();
+});
+
 test("choosing a frame shows its bytes, and the sequence view lists the frames so far", async ({ page }) => {
     await open(page, "/p/iec-104");
     await page.getByTestId("stage").getByRole("button", { name: "Ask for everything" }).click();

@@ -182,6 +182,19 @@
         @apply bg-background text-foreground antialiased;
         font-family: var(--font-sans);
     }
+    /* Everything that can be clicked shows a hand */
+    button:not(:disabled),
+    [role="button"]:not([aria-disabled="true"]),
+    [role="tab"],
+    [role="option"],
+    [role="menuitem"],
+    [role="menuitemradio"],
+    [role="switch"],
+    summary,
+    select,
+    label[for] {
+        cursor: pointer;
+    }
     /* Arabic and Persian in Estedad; Chinese, Japanese, Korean and Hindi in the system's fonts */
     html:lang(ar) body,
     html:lang(fa) body {
@@ -196,6 +209,41 @@
 @keyframes rotor {
     to {
         rotate: 360deg;
+    }
+}
+
+/* Dashes running along a frame's route while it travels, then fading */
+.lane-run {
+    animation: lane-run linear forwards;
+}
+@keyframes lane-run {
+    from {
+        stroke-dashoffset: 0;
+        opacity: 0.9;
+    }
+    80% {
+        opacity: 0.9;
+    }
+    to {
+        stroke-dashoffset: -70;
+        opacity: 0;
+    }
+}
+
+/* The current step's bar while playing: it fills until the next step */
+.step-progress {
+    transform-origin: left;
+    animation: step-progress linear forwards;
+}
+[dir="rtl"] .step-progress {
+    transform-origin: right;
+}
+@keyframes step-progress {
+    from {
+        transform: scaleX(var(--from, 0));
+    }
+    to {
+        transform: scaleX(1);
     }
 }
 

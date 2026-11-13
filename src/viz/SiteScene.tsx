@@ -1,4 +1,4 @@
-import { Fragment, useId, useMemo, useSyncExternalStore } from "react";
+import { Fragment, useEffect, useId, useMemo, useRef, useSyncExternalStore } from "react";
 import type { Frame, Scene } from "@/lessons/types";
 import type { Words } from "@/lessons/words";
 import { bodyOf, DeviceShape, extentOf, labelAt, reachOf } from "./devices";
@@ -23,6 +23,66 @@ export function groundOf(scene: Scene, margin: number) {
     const [x0, x1] = span(Math.min(...parts.map((p) => p.cx - p.w / 2)), Math.max(...parts.map((p) => p.cx + p.w / 2)), Math.min(...scene.devices.map((device) => device.at[0])));
     const [y0, y1] = span(Math.min(...parts.map((p) => p.cy - p.d / 2)), Math.max(...parts.map((p) => p.cy + p.d / 2)), Math.min(...scene.devices.map((device) => device.at[1])));
     return { x0, x1, y0, y1 };
+}
+
+/** How long a frame takes from its sender to its receiver. */
+export const TRAVEL_MS = 1200;
+type Point = readonly [number, number];
+/** Slow to leave, quick on the way, slow to arrive. */
+const ease = (k: number) => (k < 0.5 ? 4 * k ** 3 : 1 - (-2 * k + 2) ** 3 / 2);
+
+/** The point a share `k` (0 to 1) of the way along a route of straight pieces. */
+function along(points: readonly Point[], k: number): Point {
+    const pieces = points.slice(1).map((point, i) => Math.hypot(point[0] - points[i]![0], point[1] - points[i]![1]));
+    let left = k * pieces.reduce((sum, piece) => sum + piece, 0);
+    for (let i = 0; i < pieces.length; i++) {
+        if (left <= pieces[i]! || i === pieces.length - 1) {
+            const share = pieces[i] ? Math.min(1, left / pieces[i]!) : 1;
+            const [a, b] = [points[i]!, points[i + 1]!];
+            return [a[0] + (b[0] - a[0]) * share, a[1] + (b[1] - a[1]) * share];
+        }
+        left -= pieces[i]!;
+    }
+    return points.at(-1)!;
+}
+
+/**
+ * A frame on its way: it glides along its route once, its kind written above it, then waits at the receiver. It is moved
+ * frame by frame from script, so it starts when it appears (an SVG animation would count from when the picture appeared).
+ */
+function Token({ route, points, kind }: { route: string; points: readonly Point[]; kind: string }) {
+    const body = useRef<SVGGElement>(null);
+    const tag = useRef<SVGGElement>(null);
+    useEffect(() => {
+        if (typeof requestAnimationFrame !== "function") return;
+        let id = 0;
+        let start: number | undefined;
+        const tick = (now: number) => {
+            start ??= now;
+            const k = Math.min(1, (now - start) / TRAVEL_MS);
+            const [x, y] = along(points, ease(k));
+            body.current?.setAttribute("transform", `translate(${round(x)} ${round(y)})`);
+            if (k < 1) id = requestAnimationFrame(tick);
+            else if (tag.current) tag.current.style.opacity = "0";
+        };
+        id = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(id);
+    }, [points]);
+    const [x, y] = points[0]!;
+    const width = kind.length * 6.4 + 12;
+    return (
+        <g ref={body} transform={`translate(${round(x)} ${round(y)})`} data-token="" data-route={route}>
+            {kind && (
+                <g ref={tag} className="transition-opacity duration-300">
+                    <rect x={round(-width / 2)} y={-28} width={round(width)} height={15} rx={2} fill="var(--card)" stroke="var(--viz-token)" strokeWidth={1.5} />
+                    <text y={-17} textAnchor="middle" className="fill-foreground font-mono text-[10px] font-bold">
+                        {kind}
+                    </text>
+                </g>
+            )}
+            <circle r={6.5} fill="var(--viz-token)" stroke="var(--viz-ground)" strokeWidth={2} />
+        </g>
+    );
 }
 
 const targetsOf = (frame: Frame) => (typeof frame.to === "string" ? [frame.to] : [...frame.to]);
@@ -75,17 +135,21 @@ export function SiteScene({ scene, frame, words, plate = false }: { scene: Scene
     );
 
     // The frame travels from its sender to each receiver over the fewest links (through a switch or a broker), or on the one it names
-    const travels = frame
-        ? targetsOf(frame).flatMap((target) => {
-              const route = frame.link ? links.filter(({ link }) => link.id === frame.link).map((leg) => ({ leg, forward: leg.link.to !== frame.from })) : routeOf(links, frame.from, target);
-              if (!route.length) return [];
-              const list = route.flatMap(({ leg, forward }, i) => {
-                  const pts = forward ? leg.path.points : [...leg.path.points].reverse();
-                  return i ? pts.slice(1) : pts;
-              });
-              return [{ ids: route.map(({ leg }) => leg.link.id), d: list.map(([x, y], i) => `${i ? "L" : "M"}${round(x)},${round(y)}`).join(" "), end: list.at(-1)! }];
-          })
-        : [];
+    const travels = useMemo(
+        () =>
+            frame
+                ? targetsOf(frame).flatMap((target) => {
+                      const route = frame.link ? links.filter(({ link }) => link.id === frame.link).map((leg) => ({ leg, forward: leg.link.to !== frame.from })) : routeOf(links, frame.from, target);
+                      if (!route.length) return [];
+                      const list: Point[] = route.flatMap(({ leg, forward }, i) => {
+                          const pts = forward ? leg.path.points : [...leg.path.points].reverse();
+                          return i ? pts.slice(1) : pts;
+                      });
+                      return [{ ids: route.map(({ leg }) => leg.link.id), d: list.map(([x, y], i) => `${i ? "L" : "M"}${round(x)},${round(y)}`).join(" "), points: list, end: list.at(-1)! }];
+                  })
+                : [],
+        [frame, links],
+    );
     const busy = new Set(travels.flatMap((travel) => travel.ids));
 
     // The ground's grid, around every device (closer on a plate), and the slab under it
@@ -159,6 +223,12 @@ export function SiteScene({ scene, frame, words, plate = false }: { scene: Scene
                     strokeLinejoin="round"
                 />
             ))}
+            {/* Dashes run along the route in the frame's direction while it travels */}
+            {frame &&
+                !reduced &&
+                travels.map((travel) => (
+                    <path key={`${frame.id}${travel.ids.join()}`} d={travel.d} className="lane-run" style={{ animationDuration: `${TRAVEL_MS}ms` }} fill="none" stroke="var(--viz-ground)" strokeWidth={1.6} strokeDasharray="4 10" strokeLinecap="round" />
+                ))}
             <g fill="var(--viz-shade)" filter={`url(#${soft})`}>
                 {shadows.map((shadow) => (
                     <Fragment key={shadow.id}>
@@ -211,9 +281,7 @@ export function SiteScene({ scene, frame, words, plate = false }: { scene: Scene
                     reduced ? (
                         <circle key={`${frame.id}${travel.ids.join()}`} cx={round(travel.end[0])} cy={round(travel.end[1])} r={6.5} fill="var(--viz-token)" stroke="var(--viz-ground)" strokeWidth={2} />
                     ) : (
-                        <circle key={`${frame.id}${travel.ids.join()}`} r={6.5} fill="var(--viz-token)" stroke="var(--viz-ground)" strokeWidth={2} data-token="">
-                            <animateMotion dur="1.1s" fill="freeze" path={travel.d} calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" />
-                        </circle>
+                        <Token key={`${frame.id}${travel.ids.join()}`} route={travel.d} points={travel.points} kind={frame.kind} />
                     ),
                 )}
         </svg>

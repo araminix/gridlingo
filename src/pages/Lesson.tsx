@@ -28,13 +28,18 @@ import { FrameList } from "@/viz/FrameList";
 import { NameAnatomy } from "@/viz/NameAnatomy";
 import { SequenceDiagram } from "@/viz/SequenceDiagram";
 import { SingleLine } from "@/viz/SingleLine";
-import { SiteScene } from "@/viz/SiteScene";
+import { SiteScene, TRAVEL_MS, useReducedMotion } from "@/viz/SiteScene";
 import { StepCaption, StepControls, StepStrip } from "@/viz/StepPlayer";
 import { TimingChart } from "@/viz/TimingChart";
 import { COMPARED, compareFrom } from "./compared";
 import { NotFound } from "./NotFound";
 
+/** With less motion, playing moves on a step at a time. */
 const PLAY_EVERY_MS = 2600;
+/** With motion, a step's frames go out one after another, this far apart. */
+const FRAME_MS = TRAVEL_MS + 350;
+/** The time to read a step once its last frame has arrived, before playing moves on. */
+const READ_MS = 2200;
 
 export function LessonPage({ id }: { id: string }) {
     const { lang, t } = useI18n();
@@ -101,38 +106,58 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
     const { lesson } = loaded;
     const words = useMemo(() => wordsOf(loaded.text, loaded.english), [loaded]);
     const [current, setCurrent] = useState(0);
+    // How many of the step's frames have gone out so far, less one
+    const [cue, setCue] = useState(0);
     const [chosen, setChosen] = useState<string | undefined>(undefined);
     const [playing, setPlaying] = useState(false);
     const [navOpen, setNavOpen] = useState(false);
     const [level, setLevel] = usePersisted<Level>("gridlingo.level", "technical", isLevel);
     const wide = useWide();
+    const reduced = useReducedMotion();
     useSetPageTitle(meta.name, meta.group);
     const last = lesson.steps.length - 1;
 
     const stepIndex = useCallback((frame: Frame) => lesson.steps.findIndex((step) => step.id === frame.step), [lesson]);
-    const shownFrames = lesson.frames.filter((frame) => stepIndex(frame) <= current);
-    const stepFrames = shownFrames.filter((frame) => stepIndex(frame) === current);
+    // The step's frames join the list as they go out; all at once for readers who ask for less motion
+    const stepAll = lesson.frames.filter((frame) => stepIndex(frame) === current);
+    const sent = reduced ? stepAll.length : Math.min(cue + 1, stepAll.length);
+    const stepFrames = stepAll.slice(0, sent);
+    const shownFrames = [...lesson.frames.filter((frame) => stepIndex(frame) < current), ...stepFrames];
     const selected = shownFrames.find((frame) => frame.id === chosen) ?? stepFrames.at(-1) ?? shownFrames.at(-1);
 
     const go = useCallback(
         (index: number) => {
             const next = Math.max(0, Math.min(last, index));
             setCurrent(next);
+            setCue(0);
             setChosen(undefined);
             if (next === last) finish(meta.id);
         },
         [last, meta.id],
     );
 
+    // The next frame of the step goes out once the one before has arrived
     useEffect(() => {
-        if (!playing) return;
-        if (current >= last) {
-            setPlaying(false);
-            return;
-        }
-        const timer = setTimeout(() => go(current + 1), PLAY_EVERY_MS);
+        if (reduced || sent >= stepAll.length) return;
+        const timer = setTimeout(() => setCue(sent), FRAME_MS);
         return () => clearTimeout(timer);
-    }, [playing, current, last, go]);
+    }, [reduced, sent, stepAll.length]);
+
+    // Playing moves on once the step's last frame has arrived and there was time to read it; it stops after the last step
+    useEffect(() => {
+        if (!playing || sent < stepAll.length) return;
+        if (current >= last) {
+            const timer = setTimeout(() => setPlaying(false), reduced ? 0 : TRAVEL_MS);
+            return () => clearTimeout(timer);
+        }
+        const timer = setTimeout(() => go(current + 1), reduced ? PLAY_EVERY_MS : TRAVEL_MS + READ_MS);
+        return () => clearTimeout(timer);
+    }, [playing, sent, stepAll.length, current, last, go, reduced]);
+
+    // While playing, the current step's button fills up until the next step: how far it is, and how long is left
+    const stepMs = reduced ? PLAY_EVERY_MS : (stepAll.length - 1) * FRAME_MS + TRAVEL_MS + (current >= last ? 0 : READ_MS);
+    const doneMs = reduced ? 0 : (sent - 1) * FRAME_MS;
+    const progress = playing ? { key: `${current}`, from: doneMs / stepMs, ms: stepMs - doneMs } : undefined;
 
     // The arrow keys move between steps (mirrored in right-to-left languages), unless a field or a menu has the focus
     useEffect(() => {
@@ -248,7 +273,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                             </div>
                         </div>
                         <div className="border-b px-3 py-2">
-                            <StepStrip steps={lesson.steps} current={current} onGo={(index) => (setPlaying(false), go(index))} words={words} />
+                            <StepStrip steps={lesson.steps} current={current} onGo={(index) => (setPlaying(false), go(index))} words={words} progress={progress} />
                         </div>
                         <div className="border-b px-3 py-2.5">
                             <StepCaption steps={lesson.steps} current={current} wire={wire} words={words} />

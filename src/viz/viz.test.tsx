@@ -51,7 +51,7 @@ describe("the site", () => {
     it("sends a multicast to every subscriber, through the switch", () => {
         const { container } = inEnglish(<SiteScene scene={goose.scene} frame={frame(goose, "event")} words={wordsGoose} />);
         expect(container.querySelectorAll("[data-token]")).toHaveLength(3);
-        const motions = [...container.querySelectorAll("animateMotion")].map((motion) => motion.getAttribute("path")!.split("L").length);
+        const motions = [...container.querySelectorAll("[data-token]")].map((token) => token.getAttribute("data-route")!.split("L").length);
         // relay → switch is one link of 3 points; switch → each subscriber adds 2 more
         for (const points of motions) expect(points).toBeGreaterThanOrEqual(5);
     });
