@@ -83,5 +83,15 @@
     },
     "anatomy": {
         "rct": "La remorque de contrôle de redondance, bit par bit"
+    },
+    "playground": {
+        "file": "Essayez : ce que le contrôleur a capturé du relais sur ses deux ports, et comment il garde une seule copie de chaque trame.",
+        "columns": "Ce que les deux ports ont vu, trame par trame. PRP ajoute un trailer à chaque trame : son numéro de séquence, son LAN, sa taille et le suffixe 88 FB.",
+        "first": "La copie arrivée la première est gardée et transmise à l'application de protection.",
+        "drop": "La même source et le même SeqNr, venant du LAN B : un doublon, écarté. L'application voit chaque trame une seule fois.",
+        "trip": "Le déclenchement, 232 ms plus tard : SeqNr 3905. Il arrive d'abord par le LAN B et il est gardé.",
+        "lost": "Sa copie par le LAN A n'arrive jamais : le câble est coupé. Rien n'est perdu, rien ne bascule ; le déclenchement était déjà passé.",
+        "supervision": "Chaque LAN porte une trame de supervision toutes les 2 s. Seule celle du LAN B arrive : le contrôleur signale que le LAN A est en panne.",
+        "trailer": "Les 6 octets du trailer : SeqNr 0F 3C = 3900, LAN A (le quartet A) et la taille 0x079 = 121 octets, puis le suffixe 88 FB."
     }
 }

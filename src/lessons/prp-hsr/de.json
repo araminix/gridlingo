@@ -83,5 +83,15 @@
     },
     "anatomy": {
         "rct": "Der Redundancy Control Trailer, Bit für Bit"
+    },
+    "playground": {
+        "file": "Probieren Sie es aus: was die Steuerung an ihren zwei Ports vom Schutzgerät mitgeschnitten hat, und wie sie von jedem Frame eine Kopie behält.",
+        "columns": "Was die zwei Ports sahen, Frame für Frame. PRP hängt an jeden Frame einen Trailer: Sequenznummer, LAN, Größe und das Suffix 88 FB.",
+        "first": "Die zuerst ankommende Kopie wird behalten und an die Schutzanwendung weitergegeben.",
+        "drop": "Dieselbe Quelle und SeqNr noch einmal, aus LAN B: ein Duplikat, verworfen. Die Anwendung sieht jeden Frame einmal.",
+        "trip": "Die Auslösung, 232 ms später: SeqNr 3905. Sie kommt zuerst über LAN B an und wird behalten.",
+        "lost": "Ihre Kopie über LAN A kommt nie: Das Kabel ist durchtrennt. Nichts geht verloren, nichts schaltet um; die Auslösung war schon durch.",
+        "supervision": "Jedes LAN trägt alle 2 s einen Supervision-Frame. Nur der von LAN B kommt an, also meldet die Steuerung, dass LAN A ausgefallen ist.",
+        "trailer": "Die 6 Bytes des Trailers: SeqNr 0F 3C = 3900, LAN A (das Nibble A) und die Größe 0x079 = 121 Bytes, dann das Suffix 88 FB."
     }
 }

@@ -83,5 +83,15 @@
     },
     "anatomy": {
         "rct": "The redundancy control trailer, bit by bit"
+    },
+    "playground": {
+        "file": "Try it: what the controller captured on its two ports from the relay, and how it keeps one copy of each frame.",
+        "columns": "What the two ports saw, frame by frame. PRP adds a trailer to each frame: its sequence number, its LAN, its size and the suffix 88 FB.",
+        "first": "The copy that arrives first is kept and passed up to the protection application.",
+        "drop": "The same source and SeqNr again, from LAN B: a duplicate, dropped. The application sees each frame once.",
+        "trip": "The trip, 232 ms later: SeqNr 3905. It arrives on LAN B first and is kept.",
+        "lost": "Its copy on LAN A never comes: the cable is cut. Nothing is lost and nothing switches over; the trip was already through.",
+        "supervision": "Each LAN carries a supervision frame every 2 s. Only LAN B's arrives, so the controller raises the alarm that LAN A is down.",
+        "trailer": "The 6 bytes of the trailer: SeqNr 0F 3C = 3900, LAN A (the nibble A) and the size 0x079 = 121 bytes, then the suffix 88 FB."
     }
 }

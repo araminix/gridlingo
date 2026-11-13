@@ -83,5 +83,15 @@
     },
     "anatomy": {
         "rct": "O trailer de controle de redundância, bit a bit"
+    },
+    "playground": {
+        "file": "Experimente: o que o controlador capturou do relé nas suas duas portas e como ele guarda uma única cópia de cada quadro.",
+        "columns": "O que as duas portas viram, quadro a quadro. O PRP acrescenta um trailer a cada quadro: número de sequência, LAN, tamanho e o sufixo 88 FB.",
+        "first": "A cópia que chega primeiro é guardada e passada à aplicação de proteção.",
+        "drop": "A mesma origem e o mesmo SeqNr de novo, pela LAN B: uma duplicata, descartada. A aplicação vê cada quadro uma só vez.",
+        "trip": "O disparo, 232 ms depois: SeqNr 3905. Chega primeiro pela LAN B e é guardado.",
+        "lost": "A cópia dele pela LAN A nunca vem: o cabo está cortado. Nada se perde e nada comuta; o disparo já tinha passado.",
+        "supervision": "Cada LAN leva um quadro de supervisão a cada 2 s. Só o da LAN B chega, então o controlador dá o alarme de que a LAN A caiu.",
+        "trailer": "Os 6 bytes do trailer: SeqNr 0F 3C = 3900, LAN A (o nibble A) e o tamanho 0x079 = 121 bytes, e depois o sufixo 88 FB."
     }
 }

@@ -1,0 +1,9 @@
+# Controller C1, both ports: frames from relay F1 (02:00:00:00:00:F1)
+TIME (s)   PORT  SeqNr  LAN  WHAT                 RESULT
+0.500012   A     3900   A    GOOSE                first copy: kept
+0.500016   B     3900   B    GOOSE                same SeqNr: dropped
+0.732016   B     3905   B    GOOSE, trip          first copy: kept
+0.732020   -     -      -    (no copy on port A)  LAN A cable cut
+2.000000   B     -      B    PRP supervision      only on B: alarm
+
+Trailer of 3900 on LAN A:  0F 3C  A0 79  88 FB

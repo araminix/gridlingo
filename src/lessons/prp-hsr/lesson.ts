@@ -1,4 +1,5 @@
 import type { Field, Lesson } from "../types";
+import capture from "./controller-capture.txt?raw";
 
 /** F1 PROT's GOOSE message, byte for byte as in the GOOSE lesson: the heartbeat (stNum 12) or the trip (stNum 13). */
 function goose(message: "idle" | "trip"): Field[] {
@@ -80,6 +81,9 @@ export const lesson: Lesson = {
             ],
             also: "0F 3C · A0 79 · 88 FB",
         },
+    ],
+    playground: [
+        { kind: "file", sample: "controller-capture.txt", file: capture, notes: { 2: "columns", 3: "first", 4: "drop", 5: "trip", 6: "lost", 7: "supervision", 9: "trailer" } },
     ],
     related: ["iec-61850-goose", "iec-61850-sv", "ptp", "iec-62443"],
 };

@@ -83,5 +83,15 @@
     },
     "anatomy": {
         "rct": "Yedeklilik kontrol trailer'ı (RCT), bit bit"
+    },
+    "playground": {
+        "file": "Deneyin: denetleyicinin iki portunda röleden yakaladıkları ve her çerçeveden tek bir kopyayı nasıl tuttuğu.",
+        "columns": "İki portun gördükleri, çerçeve çerçeve. PRP her çerçeveye bir trailer ekler: sıra numarası, LAN, boyut ve 88 FB son eki.",
+        "first": "İlk gelen kopya tutulur ve koruma uygulamasına iletilir.",
+        "drop": "Aynı kaynak ve aynı SeqNr yeniden, LAN B'den: bir kopya, atılır. Uygulama her çerçeveyi bir kez görür.",
+        "trip": "Açma, 232 ms sonra: SeqNr 3905. Önce LAN B'den gelir ve tutulur.",
+        "lost": "LAN A'daki kopyası hiç gelmez: kablo kesik. Hiçbir şey kaybolmaz, geçiş olmaz; açma zaten ulaşmıştı.",
+        "supervision": "Her LAN 2 saniyede bir denetim çerçevesi taşır. Yalnızca LAN B'ninki gelir, bu yüzden denetleyici LAN A'nın düştüğü alarmını verir.",
+        "trailer": "Trailer'ın 6 baytı: SeqNr 0F 3C = 3900, LAN A (A yarım baytı) ve boyut 0x079 = 121 bayt, ardından 88 FB son eki."
     }
 }

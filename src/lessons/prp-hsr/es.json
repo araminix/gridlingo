@@ -83,5 +83,15 @@
     },
     "anatomy": {
         "rct": "El trailer de control de redundancia, bit a bit"
+    },
+    "playground": {
+        "file": "Pruébalo: lo que el controlador capturó del relé en sus dos puertos y cómo se queda con una copia de cada trama.",
+        "columns": "Lo que vieron los dos puertos, trama a trama. PRP añade un tráiler a cada trama: su número de secuencia, su LAN, su tamaño y el sufijo 88 FB.",
+        "first": "La copia que llega primero se guarda y se pasa a la aplicación de protección.",
+        "drop": "La misma fuente y el mismo SeqNr otra vez, desde la LAN B: un duplicado, descartado. La aplicación ve cada trama una sola vez.",
+        "trip": "El disparo, 232 ms después: SeqNr 3905. Llega primero por la LAN B y se guarda.",
+        "lost": "Su copia por la LAN A nunca llega: el cable está cortado. No se pierde nada ni hay conmutación; el disparo ya había pasado.",
+        "supervision": "Cada LAN lleva una trama de supervisión cada 2 s. Solo llega la de la LAN B, así que el controlador da la alarma de que la LAN A está caída.",
+        "trailer": "Los 6 bytes del tráiler: SeqNr 0F 3C = 3900, LAN A (el nibble A) y el tamaño 0x079 = 121 bytes, y luego el sufijo 88 FB."
     }
 }
