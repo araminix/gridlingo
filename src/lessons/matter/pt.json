@@ -1,0 +1,82 @@
+{
+    "intro": "O Matter é o padrão de casa inteligente da CSA (Connectivity Standards Alliance), apoiado por Apple, Google, Amazon, Samsung e centenas de fabricantes. Os equipamentos falam IPv6 por Wi-Fi, Ethernet ou Thread (uma malha de rádio de baixo consumo), na porta UDP 5540, com cada mensagem criptografada. Desde a versão 1.3 o Matter também fala de energia: um carregador (EVSE), medição de potência e energia e gestão de energia dos equipamentos, para que um gerenciador de energia doméstico opere o carregador do carro, a bomba de calor e a bateria com energia solar. A versão 1.4 traz inversores fotovoltaicos, baterias, bombas de calor e aquecedores de água.",
+    "plain": "O Matter é uma língua comum para os equipamentos da casa inteligente, para que uma lâmpada, uma fechadura ou um carregador de qualquer marca funcione com qualquer app. Agora ele também fala de energia. Um pequeno hub em casa vê quanto os painéis solares produzem e quanto a casa usa, e diz ao carregador do carro para usar só o sol que sobra. Quando vem uma nuvem, ele freia o carregador, sem ninguém precisar mexer em nada.",
+    "steps": {
+        "commission": { "title": "Trazê-lo para a casa", "text": "O instalador digita o código da etiqueta do carregador, 2636-002-0873, no hub de energia da casa. Por Bluetooth Low Energy (BLE) o hub prova com PASE (uma checagem de senha que nunca envia a senha) que conhece o código do carregador. Confere que o carregador é certificado, dá a ele um certificado da rede de confiança da casa (o fabric) e os dados do Wi-Fi." },
+        "connect": { "title": "Encontrar-se na rede", "text": "O carregador entra no Wi-Fi e se anuncia por DNS-SD como nó 0x17 do fabric. O hub abre uma sessão CASE: os dois mostram os seus certificados do fabric e combinam chaves. A partir daí cada mensagem é criptografada com AES-CCM. O hub encerra a configuração com CommissioningComplete." },
+        "subscribe": { "title": "Acompanhar a potência", "text": "O hub assina a potência ativa do carregador: o carregador a informa quando muda, no máximo a cada 10 s e no mínimo a cada 60 s. Agora o carro está ligado mas não carrega: 0 W." },
+        "solar": { "title": "Carregar com o sol", "text": "O inversor fotovoltaico informa −6,2 kW (negativo: ele entrega potência) e a casa usa 2,5 kW: sobram 3,7 kW. O hub invoca o comando EnableCharging do carregador: até as 18:00, no máximo 16 A. Numa fase a 230 V, isso dá 3,68 kW." },
+        "cloud": { "title": "Passa uma nuvem", "text": "A fotovoltaica cai para 3,9 kW: com a casa ainda em 2,5 kW, sobram só 1,4 kW. O hub baixa o limite para 6 A, o mínimo com que se pode pedir a um carro que carregue: 1,38 kW. Quando o sol volta, ele sobe de novo." }
+    },
+    "frames": {
+        "pase": "Conheço o seu código; vamos criar uma chave",
+        "attest": "Este é o certificado do meu fabricante",
+        "noc": "Agora você é o nó 0x17 desta casa",
+        "network": "Este é o Wi-Fi; entre nele",
+        "dnssd": "O nó 0x17 está aqui, neste endereço",
+        "case": "Mostre o seu certificado do fabric que eu mostro o meu",
+        "complete": "A configuração terminou",
+        "subscribe": "Me avise da sua potência ativa sempre que ela mudar",
+        "report": "0 W",
+        "pv": "Estou entregando 6,2 kW",
+        "enable": "Carregue até as 18:00, no máximo 16 A",
+        "charging": "3,68 kW",
+        "pv-low": "Agora só 3,9 kW",
+        "lower": "Continue carregando, no máximo 6 A"
+    },
+    "notes": {
+        "pase": "O PASE usa SPAKE2+: os dois lados provam que conhecem o código, sem enviá-lo, e tiram dele uma chave. Cada mensagem de configuração seguinte vai criptografada com essa chave.",
+        "attest": "O carregador mostra o seu DAC (certificado de atestação do equipamento), assinado pelo PAI do fabricante, assinado por uma raiz PAA em que a CSA confia. O hub confere a cadeia e se o equipamento é certificado.",
+        "noc": "O hub, como administrador do fabric, dá ao carregador um NOC (certificado operacional do nó) com o seu ID de nó, 0x17, assinado pela raiz do fabric. O fabric é a rede de confiança própria da casa.",
+        "network": "O nome e a senha do Wi-Fi, enviados pela sessão PASE criptografada. Depois o carregador deixa o BLE e entra no Wi-Fi.",
+        "dnssd": "Um registro DNS-SD do tipo _matter._tcp, com o nome do fabric e do nó, o endereço IPv6 do carregador e a porta 5540.",
+        "case": "CASE (estabelecimento de sessão autenticado por certificado) em três mensagens, de Sigma1 a Sigma3: os dois mostram o seu NOC, conferem com a raiz do fabric e combinam chaves de sessão.",
+        "complete": "Enviado pela nova sessão CASE: a configuração acabou e o carregador guarda os seus ajustes.",
+        "subscribe": "Um SubscribeRequest do atributo ActivePower do cluster Electrical Power Measurement, com intervalo mínimo de 10 s e máximo de 60 s.",
+        "report": "Um ReportData com ActivePower 0 mW: o carro está ligado mas não carrega. A potência é contada em miliwatts.",
+        "pv": "O hub também assinou o inversor. ActivePower −6 200 000 mW: negativo quer dizer que o equipamento entrega potência.",
+        "enable": "Um InvokeRequest de EnableCharging do cluster Energy EVSE: recarga permitida até as 18:00, corrente de carga máxima 16 000 mA. A área de testes mostra como viaja o 16 000.",
+        "charging": "O carregador deixa o carro puxar 16 A e informa ActivePower 3 680 000 mW: 16 A × 230 V.",
+        "pv-low": "O informe seguinte do inversor: ActivePower −3 900 000 mW.",
+        "lower": "De novo EnableCharging, com uma corrente de carga máxima de 6000 mA: 6 A × 230 V = 1,38 kW."
+    },
+    "fields": {
+        "a-first": { "name": "Primeiro dígito", "note": "2: os 2 bits altos do discriminador curto (11 = 1011, então 10). Um dígito de 4 ou mais significaria que seguem um ID de fabricante e de produto, num código de 21 dígitos." },
+        "a-middle": { "name": "Dígitos 2 a 6", "note": "63600 = os 2 bits baixos do discriminador (11) × 16384 + os 14 bits baixos do código (14448)." },
+        "a-high": { "name": "Dígitos 7 a 10", "note": "2087: os outros bits do código. 2087 × 16384 + 14448 = 34207856." },
+        "a-check": { "name": "Dígito verificador", "note": "3: um dígito verificador de Verhoeff. Ele pega qualquer dígito errado e dois dígitos trocados quando alguém digita o código." }
+    },
+    "devices": {
+        "hub": "Hub de energia da casa",
+        "charger": "Carregador (EVSE)",
+        "inverter": "Inversor fotovoltaico",
+        "car": "Carro elétrico"
+    },
+    "facts": {
+        "standard": "Matter 1.3 (2024) e 1.4 da CSA, Connectivity Standards Alliance: tipos de equipamento e clusters para carregadores, medição de energia e gestão de energia dos equipamentos",
+        "between": "Um gerenciador de energia doméstico ou hub de casa inteligente, e carregadores, bombas de calor, baterias, inversores fotovoltaicos e eletrodomésticos",
+        "transport": "IPv6 por Wi-Fi, Ethernet ou Thread; porta UDP 5540; BLE só para a configuração",
+        "security": "PASE com o código de configuração na instalação; depois CASE com certificados do fabric da casa; cada mensagem criptografada e autenticada com AES-CCM",
+        "speed": "Um comando em bem menos de um segundo; informes tão frequentes quanto a assinatura permitir"
+    },
+    "tips": [
+        "O código de configuração é a senha do equipamento. Quem o lê na etiqueta enquanto o equipamento espera ser configurado pode tomá-lo: guarde a etiqueta e não publique foto dela.",
+        "Um equipamento pode pertencer a vários fabrics ao mesmo tempo, por exemplo dois apps. Cada um pode comandá-lo; decida qual gerencia a energia, ou eles brigam.",
+        "A potência vem em miliwatts e a corrente em miliampères, como números inteiros. Um valor errado por um fator 1000 é quase sempre uma unidade mal lida.",
+        "As funções de energia do Matter são novas: confira se o carregador, o inversor e o hub indicam os mesmos clusters e a mesma versão do Matter."
+    ],
+    "points": {
+        "fabric": "No fabric da casa",
+        "limit": "Limite de corrente de carga",
+        "power": "Potência de recarga"
+    },
+    "values": {
+        "member": "membro"
+    },
+    "anatomy": {
+        "code": "O código de configuração na etiqueta do carregador"
+    },
+    "playground": {
+        "encoder": "O Matter escreve os seus números com o byte menos significativo primeiro (DCBA). Digite um valor para ver como viajam os 16 000 mA do limite de carga do hub."
+    }
+}

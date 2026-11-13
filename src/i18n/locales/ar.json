@@ -265,6 +265,8 @@
     "lesson.lorawan.where": "المستشعرات والعدّادات",
     "lesson.bacnet.summary": "المباني: التدفئة والتبريد والإنارة والشبكات المصغّرة",
     "lesson.bacnet.where": "وحدات التحكم في المباني",
+    "lesson.matter.summary": "معيار البيت الذكي، والآن للشواحن والطاقة الشمسية",
+    "lesson.matter.where": "محاور الطاقة المنزلية، الشواحن، العواكس",
     "lesson.iec-62351.summary": "الأمن لبروتوكولات IEC 104 وDNP3 وIEC 61850",
     "lesson.iec-62351.where": "وحدات RTU والمرحّلات وSCADA",
     "lesson.dnp3-sa.summary": "التحدي والاستجابة على الأوامر الحرجة",

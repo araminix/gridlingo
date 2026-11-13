@@ -1,0 +1,82 @@
+{
+    "intro": "Matter ist der Smart-Home-Standard der CSA (Connectivity Standards Alliance), getragen von Apple, Google, Amazon, Samsung und Hunderten Herstellern. Die Geräte sprechen IPv6 über WLAN, Ethernet oder Thread (ein sparsames Funk-Maschennetz), auf UDP-Port 5540, jede Nachricht verschlüsselt. Seit Version 1.3 spricht Matter auch Energie: eine Ladestation (EVSE), Leistungs- und Energiemessung und Geräte-Energiemanagement, sodass ein Heim-Energiemanager Ladestation, Wärmepumpe und Speicher mit Sonnenstrom betreiben kann. Version 1.4 bringt PV-Wechselrichter, Speicher, Wärmepumpen und Warmwasserbereiter dazu.",
+    "plain": "Matter ist eine gemeinsame Sprache für Smart-Home-Geräte, damit eine Lampe, ein Schloss oder eine Ladestation jeder Marke mit jeder Heim-App funktioniert. Jetzt spricht es auch Energie. Ein kleiner Hub im Haus sieht, wie viel die Solaranlage liefert und wie viel das Haus braucht, und sagt der Ladestation fürs Auto, nur den überschüssigen Sonnenstrom zu nutzen. Kommt eine Wolke, bremst er die Ladestation, ohne dass jemand etwas anfassen muss.",
+    "steps": {
+        "commission": { "title": "Ins Zuhause aufnehmen", "text": "Der Installateur tippt den Code vom Etikett der Ladestation, 2636-002-0873, in den Heim-Energiehub. Über Bluetooth Low Energy (BLE) beweist der Hub mit PASE (einer Passwortprüfung, die das Passwort nie sendet), dass er den Passcode der Ladestation kennt. Er prüft, dass die Ladestation zertifiziert ist, gibt ihr ein Zertifikat des Vertrauensnetzes des Zuhauses (der Fabric) und die WLAN-Daten." },
+        "connect": { "title": "Sich im Netz treffen", "text": "Die Ladestation tritt dem WLAN bei und meldet sich mit DNS-SD als Knoten 0x17 der Fabric. Der Hub öffnet eine CASE-Sitzung: Beide zeigen ihre Fabric-Zertifikate und einigen sich auf Schlüssel. Ab jetzt ist jede Nachricht mit AES-CCM verschlüsselt. Der Hub beendet die Einrichtung mit CommissioningComplete." },
+        "subscribe": { "title": "Die Leistung beobachten", "text": "Der Hub abonniert die Wirkleistung der Ladestation: Die Ladestation meldet sie, wenn sie sich ändert, höchstens alle 10 s und mindestens alle 60 s. Gerade ist das Auto eingesteckt, lädt aber nicht: 0 W." },
+        "solar": { "title": "Mit Sonne laden", "text": "Der PV-Wechselrichter meldet −6,2 kW (negativ: Er liefert Leistung), und das Haus braucht 2,5 kW: 3,7 kW übrig. Der Hub ruft den Befehl EnableCharging der Ladestation auf: bis 18:00, höchstens 16 A. Auf einer Phase bei 230 V sind das 3,68 kW." },
+        "cloud": { "title": "Eine Wolke zieht vorbei", "text": "Die PV fällt auf 3,9 kW: Bei weiter 2,5 kW im Haus bleiben nur 1,4 kW übrig. Der Hub senkt die Grenze auf 6 A, das Wenigste, womit man ein Auto laden lassen darf: 1,38 kW. Kommt die Sonne zurück, hebt er sie wieder an." }
+    },
+    "frames": {
+        "pase": "Ich kenne deinen Passcode; lass uns einen Schlüssel bilden",
+        "attest": "Hier ist mein Zertifikat von meinem Hersteller",
+        "noc": "Du bist jetzt Knoten 0x17 dieses Zuhauses",
+        "network": "Hier ist das WLAN; tritt ihm bei",
+        "dnssd": "Knoten 0x17 ist hier, unter dieser Adresse",
+        "case": "Zeig mir dein Fabric-Zertifikat, und ich zeige dir meins",
+        "complete": "Die Einrichtung ist fertig",
+        "subscribe": "Melde mir deine Wirkleistung, wann immer sie sich ändert",
+        "report": "0 W",
+        "pv": "Ich liefere 6,2 kW",
+        "enable": "Lade bis 18:00, höchstens 16 A",
+        "charging": "3,68 kW",
+        "pv-low": "Jetzt nur noch 3,9 kW",
+        "lower": "Lade weiter, höchstens 6 A"
+    },
+    "notes": {
+        "pase": "PASE nutzt SPAKE2+: Beide Seiten beweisen, dass sie den Passcode aus dem Code kennen, ohne ihn zu senden, und leiten einen Schlüssel ab. Jede weitere Einrichtungsnachricht ist mit diesem Schlüssel verschlüsselt.",
+        "attest": "Die Ladestation zeigt ihr DAC (Geräte-Echtheitszertifikat), signiert vom PAI ihres Herstellers, signiert von einer PAA-Wurzel, der die CSA vertraut. Der Hub prüft die Kette und dass das Gerät zertifiziert ist.",
+        "noc": "Der Hub gibt der Ladestation als Verwalter der Fabric ein NOC (Betriebszertifikat des Knotens) mit ihrer Knoten-ID 0x17, signiert von der Wurzel der Fabric. Die Fabric ist das eigene Vertrauensnetz des Zuhauses.",
+        "network": "WLAN-Name und Passwort, über die verschlüsselte PASE-Sitzung gesendet. Dann verlässt die Ladestation BLE und tritt dem WLAN bei.",
+        "dnssd": "Ein DNS-SD-Eintrag vom Typ _matter._tcp, benannt nach Fabric und Knoten, mit der IPv6-Adresse der Ladestation und Port 5540.",
+        "case": "CASE (zertifikatsgestützter Sitzungsaufbau) in drei Nachrichten, Sigma1 bis Sigma3: Beide zeigen ihr NOC, prüfen es gegen die Wurzel der Fabric und einigen sich auf Sitzungsschlüssel.",
+        "complete": "Über die neue CASE-Sitzung gesendet: Die Einrichtung ist vorbei, und die Ladestation behält ihre Einstellungen.",
+        "subscribe": "Ein SubscribeRequest für das Attribut ActivePower des Clusters Electrical Power Measurement, mit einem Mindestabstand von 10 s und einem Höchstabstand von 60 s.",
+        "report": "Ein ReportData mit ActivePower 0 mW: Das Auto ist eingesteckt, lädt aber nicht. Leistung wird in Milliwatt gezählt.",
+        "pv": "Der Hub hat auch den Wechselrichter abonniert. ActivePower −6 200 000 mW: Negativ heißt, das Gerät liefert Leistung.",
+        "enable": "Ein InvokeRequest von EnableCharging im Cluster Energy EVSE: Laden erlaubt bis 18:00, höchster Ladestrom 16 000 mA. Die Spielwiese zeigt, wie 16 000 übertragen wird.",
+        "charging": "Die Ladestation lässt das Auto 16 A ziehen und meldet ActivePower 3 680 000 mW: 16 A × 230 V.",
+        "pv-low": "Die nächste Meldung des Wechselrichters: ActivePower −3 900 000 mW.",
+        "lower": "Wieder EnableCharging, mit einem höchsten Ladestrom von 6000 mA: 6 A × 230 V = 1,38 kW."
+    },
+    "fields": {
+        "a-first": { "name": "Erste Ziffer", "note": "2: die oberen 2 Bits des kurzen Diskriminators (11 = 1011, also 10). Eine Ziffer ab 4 hieße, dass Hersteller- und Produkt-ID folgen, in einem 21-stelligen Code." },
+        "a-middle": { "name": "Ziffern 2 bis 6", "note": "63600 = die unteren 2 Bits des Diskriminators (11) × 16384 + die unteren 14 Bits des Passcodes (14448)." },
+        "a-high": { "name": "Ziffern 7 bis 10", "note": "2087: die übrigen Bits des Passcodes. 2087 × 16384 + 14448 = 34207856." },
+        "a-check": { "name": "Prüfziffer", "note": "3: eine Verhoeff-Prüfziffer. Sie erkennt jede einzelne falsche Ziffer und zwei vertauschte Ziffern, wenn jemand den Code eintippt." }
+    },
+    "devices": {
+        "hub": "Heim-Energiehub",
+        "charger": "Ladestation (EVSE)",
+        "inverter": "PV-Wechselrichter",
+        "car": "Elektroauto"
+    },
+    "facts": {
+        "standard": "Matter 1.3 (2024) und 1.4 der CSA, Connectivity Standards Alliance: Gerätetypen und Cluster für Ladestationen, Energiemessung und Geräte-Energiemanagement",
+        "between": "Ein Heim-Energiemanager oder Smart-Home-Hub und Ladestationen, Wärmepumpen, Speicher, PV-Wechselrichter und Haushaltsgeräte",
+        "transport": "IPv6 über WLAN, Ethernet oder Thread; UDP-Port 5540; BLE nur für die Einrichtung",
+        "security": "PASE mit dem Einrichtungs-Passcode bei der Einrichtung; dann CASE mit Zertifikaten der Fabric des Zuhauses; jede Nachricht mit AES-CCM verschlüsselt und authentifiziert",
+        "speed": "Ein Befehl in weit unter einer Sekunde; Meldungen so oft, wie das Abonnement erlaubt"
+    },
+    "tips": [
+        "Der Einrichtungscode ist das Passwort des Geräts. Wer ihn vom Etikett abliest, während das Gerät auf die Einrichtung wartet, kann es übernehmen: Bewahren Sie das Etikett auf und posten Sie kein Foto davon.",
+        "Ein Gerät kann zu mehreren Fabrics zugleich gehören, etwa zu zwei Heim-Apps. Jede kann es steuern; legen Sie fest, welche die Energie verwaltet, sonst kämpfen sie.",
+        "Leistung steht in Milliwatt und Strom in Milliampere, als ganze Zahlen. Ein Wert, der um den Faktor 1000 daneben liegt, ist fast immer eine falsch gelesene Einheit.",
+        "Die Energiefunktionen von Matter sind neu: Prüfen Sie, dass Ladestation, Wechselrichter und Hub dieselben Cluster und dieselbe Matter-Version nennen."
+    ],
+    "points": {
+        "fabric": "In der Fabric des Zuhauses",
+        "limit": "Ladestromgrenze",
+        "power": "Ladeleistung"
+    },
+    "values": {
+        "member": "Mitglied"
+    },
+    "anatomy": {
+        "code": "Der Einrichtungscode auf dem Etikett der Ladestation"
+    },
+    "playground": {
+        "encoder": "Matter schreibt seine Zahlen mit dem niederwertigsten Byte zuerst (DCBA). Geben Sie einen Wert ein, um zu sehen, wie 16 000 mA, die Ladegrenze des Hubs, übertragen wird."
+    }
+}

@@ -265,6 +265,8 @@
     "lesson.lorawan.where": "Датчики, счётчики",
     "lesson.bacnet.summary": "Здания: отопление, охлаждение, освещение, микросети",
     "lesson.bacnet.where": "Контроллеры зданий",
+    "lesson.matter.summary": "Стандарт умного дома — теперь для зарядок и солнца",
+    "lesson.matter.where": "Домашние энергохабы, зарядные станции, инверторы",
     "lesson.iec-62351.summary": "Безопасность для IEC 104, DNP3 и IEC 61850",
     "lesson.iec-62351.where": "RTU, терминалы защиты, SCADA",
     "lesson.dnp3-sa.summary": "Запрос и ответ (challenge-response) для критичных команд",

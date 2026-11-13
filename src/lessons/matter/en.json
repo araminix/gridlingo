@@ -1,0 +1,82 @@
+{
+    "intro": "Matter is the smart home standard of the CSA (Connectivity Standards Alliance), carried by Apple, Google, Amazon, Samsung and hundreds of makers. Devices talk IPv6 over Wi-Fi, Ethernet or Thread (a low-power radio mesh), on UDP port 5540, every message encrypted. Since version 1.3 Matter also speaks energy: a charger (EVSE), power and energy measurement, and device energy management, so a home energy manager can run the car charger, the heat pump and the battery on solar power. Version 1.4 adds solar inverters, batteries, heat pumps and water heaters.",
+    "plain": "Matter is a common language for smart home devices, so that a lamp, a lock or a charger from any brand works with any home app. Now it also speaks energy. A small hub in the house sees how much the solar panels make and how much the house uses, and tells the car charger to use only the extra sunshine. When a cloud comes, it slows the charger down, and nobody has to touch anything.",
+    "steps": {
+        "commission": { "title": "Bring it into the home", "text": "The installer types the code on the charger's label, 2636-002-0873, into the home energy hub. Over Bluetooth Low Energy (BLE) the hub proves it knows the charger's passcode with PASE (a password check that never sends the password). It checks that the charger is certified, gives it a certificate of the home's network of trust (the fabric) and the Wi-Fi details." },
+        "connect": { "title": "Meet on the network", "text": "The charger joins the Wi-Fi and announces itself with DNS-SD as node 0x17 of the fabric. The hub opens a CASE session: both show their fabric certificates and agree on keys. From now on every message is encrypted with AES-CCM. The hub ends the setup with CommissioningComplete." },
+        "subscribe": { "title": "Watch the power", "text": "The hub subscribes to the charger's active power: the charger reports it when it changes, at most every 10 s and at least every 60 s. Right now the car is plugged in but not charging: 0 W." },
+        "solar": { "title": "Charge from the sun", "text": "The PV inverter reports −6.2 kW (negative: it delivers power), and the house uses 2.5 kW: 3.7 kW to spare. The hub invokes the charger's EnableCharging command: until 18:00, at most 16 A. On one phase at 230 V, that is 3.68 kW." },
+        "cloud": { "title": "A cloud passes", "text": "The PV falls to 3.9 kW: with the house still at 2.5 kW, only 1.4 kW to spare. The hub lowers the limit to 6 A, the least a car may be asked to charge with: 1.38 kW. When the sun comes back, it raises it again." }
+    },
+    "frames": {
+        "pase": "I know your passcode; let us make a key",
+        "attest": "Here is my certificate from my maker",
+        "noc": "You are now node 0x17 of this home",
+        "network": "Here is the Wi-Fi; join it",
+        "dnssd": "Node 0x17 is here, at this address",
+        "case": "Show me your fabric certificate, and I show you mine",
+        "complete": "Setup is complete",
+        "subscribe": "Tell me your active power whenever it changes",
+        "report": "0 W",
+        "pv": "I am delivering 6.2 kW",
+        "enable": "Charge until 18:00, at most 16 A",
+        "charging": "3.68 kW",
+        "pv-low": "Now only 3.9 kW",
+        "lower": "Keep charging, at most 6 A"
+    },
+    "notes": {
+        "pase": "PASE uses SPAKE2+: both sides prove they know the passcode in the code, without sending it, and derive a key. Every commissioning message after this one is encrypted with that key.",
+        "attest": "The charger shows its DAC (device attestation certificate), signed by its maker's PAI, signed by a PAA root the CSA trusts. The hub checks the chain and that the device is certified.",
+        "noc": "The hub, as the fabric's administrator, gives the charger a NOC (node operational certificate) with its node ID, 0x17, signed by the fabric's root. The fabric is the home's own network of trust.",
+        "network": "The Wi-Fi name and password, sent over the encrypted PASE session. Then the charger leaves BLE and joins the Wi-Fi.",
+        "dnssd": "A DNS-SD record of type _matter._tcp, named after the fabric and the node, with the charger's IPv6 address and port 5540.",
+        "case": "CASE (certificate authenticated session establishment) in three messages, Sigma1 to Sigma3: both show their NOC, both check it against the fabric's root, and they agree on session keys.",
+        "complete": "Sent over the new CASE session: commissioning is over, and the charger keeps its settings.",
+        "subscribe": "A SubscribeRequest for the ActivePower attribute of the Electrical Power Measurement cluster, with a minimum interval of 10 s and a maximum of 60 s.",
+        "report": "A ReportData with ActivePower 0 mW: the car is plugged in but not charging. Power is counted in milliwatts.",
+        "pv": "The hub has also subscribed to the inverter. ActivePower −6 200 000 mW: negative means the device delivers power.",
+        "enable": "An InvokeRequest of EnableCharging in the Energy EVSE cluster: charging enabled until 18:00, maximum charge current 16 000 mA. The playground shows how 16 000 travels.",
+        "charging": "The charger lets the car draw 16 A and reports ActivePower 3 680 000 mW: 16 A × 230 V.",
+        "pv-low": "The inverter's next report: ActivePower −3 900 000 mW.",
+        "lower": "EnableCharging again, with a maximum charge current of 6000 mA: 6 A × 230 V = 1.38 kW."
+    },
+    "fields": {
+        "a-first": { "name": "First digit", "note": "2: the top 2 bits of the short discriminator (11 = 1011, so 10). A digit of 4 or more would mean a vendor and product ID follow, in a 21-digit code." },
+        "a-middle": { "name": "Digits 2 to 6", "note": "63600 = the low 2 bits of the discriminator (11) × 16384 + the low 14 bits of the passcode (14448)." },
+        "a-high": { "name": "Digits 7 to 10", "note": "2087: the passcode's other bits. 2087 × 16384 + 14448 = 34207856." },
+        "a-check": { "name": "Check digit", "note": "3: a Verhoeff check digit. It catches any single wrong digit and any two digits swapped when someone types the code." }
+    },
+    "devices": {
+        "hub": "Home energy hub",
+        "charger": "EV charger (EVSE)",
+        "inverter": "PV inverter",
+        "car": "Electric car"
+    },
+    "facts": {
+        "standard": "Matter 1.3 (2024) and 1.4 of the CSA, Connectivity Standards Alliance: device types and clusters for chargers, energy measurement and device energy management",
+        "between": "A home energy manager or smart home hub, and chargers, heat pumps, batteries, PV inverters and appliances",
+        "transport": "IPv6 over Wi-Fi, Ethernet or Thread; UDP port 5540; BLE only for commissioning",
+        "security": "PASE with the setup passcode during commissioning; then CASE with certificates of the home's fabric; every message encrypted and authenticated with AES-CCM",
+        "speed": "A command in well under a second; reports as often as the subscription allows"
+    },
+    "tips": [
+        "The setup code is the device's password. Anyone who reads it from the label while the device is waiting to be set up can take it over: keep the label, and do not post a photo of it.",
+        "A device can belong to several fabrics at once, for example two home apps. Each one can command it; decide which one manages the energy, or they fight.",
+        "Power is in milliwatts and current in milliamperes, as whole numbers. A value off by a factor of 1000 is almost always a unit read wrongly.",
+        "Matter energy features are new: check that the charger, the inverter and the hub all list the same clusters and Matter version."
+    ],
+    "points": {
+        "fabric": "In the home's fabric",
+        "limit": "Charge current limit",
+        "power": "Charging power"
+    },
+    "values": {
+        "member": "member"
+    },
+    "anatomy": {
+        "code": "The setup code on the charger's label"
+    },
+    "playground": {
+        "encoder": "Matter writes its numbers least significant byte first (DCBA). Type a value to see how 16 000 mA, the hub's charge limit, travels."
+    }
+}

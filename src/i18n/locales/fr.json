@@ -265,6 +265,8 @@
     "lesson.lorawan.where": "Capteurs, compteurs",
     "lesson.bacnet.summary": "Les bâtiments : chauffage, climatisation, éclairage, micro-réseaux",
     "lesson.bacnet.where": "Automates de bâtiment",
+    "lesson.matter.summary": "Le standard de la maison connectée, désormais pour les bornes et le solaire",
+    "lesson.matter.where": "Hubs d'énergie domestiques, bornes, onduleurs",
     "lesson.iec-62351.summary": "La sécurité d'IEC 104, de DNP3 et d'IEC 61850",
     "lesson.iec-62351.where": "RTU, relais, SCADA",
     "lesson.dnp3-sa.summary": "Défi et réponse sur les commandes critiques",

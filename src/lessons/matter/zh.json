@@ -1,0 +1,82 @@
+{
+    "intro": "Matter 是 CSA（连接标准联盟，Connectivity Standards Alliance）的智能家居标准，由 Apple、Google、Amazon、Samsung 和数百家厂商支持。设备通过 Wi-Fi、Ethernet 或 Thread（低功耗无线网状网）用 IPv6 通信，使用 UDP 端口 5540，每条消息都加密。从 1.3 版起，Matter 也涉及能源：充电桩（EVSE）、功率与电能计量，以及设备能源管理，让家庭能量管理器能用太阳能驱动汽车充电桩、热泵和电池。1.4 版又加入了光伏逆变器、电池、热泵和热水器。",
+    "plain": "Matter 是智能家居设备的通用语言，让任何品牌的灯、锁或充电桩都能配合任何家居应用。现在它也会谈能源。家里的一个小中枢看着太阳能板发多少电、家里用多少电，告诉汽车充电桩只用多出来的阳光。来了一片云，它就让充电桩慢下来，谁都不用动手。",
+    "steps": {
+        "commission": { "title": "接入家中", "text": "安装人员把充电桩标签上的配对码 2636-002-0873 输入家庭能源中枢。通过低功耗蓝牙（BLE），中枢用 PASE（一种从不发送密码本身的密码核验）证明自己知道充电桩的配对码。它核实充电桩经过认证，再给它一张家庭信任网络（fabric）的证书和 Wi-Fi 信息。" },
+        "connect": { "title": "在网络上会合", "text": "充电桩加入 Wi-Fi，用 DNS-SD 宣布自己是 fabric 的节点 0x17。中枢建立 CASE 会话：双方出示 fabric 证书并商定密钥。从此每条消息都用 AES-CCM 加密。中枢用 CommissioningComplete 结束配置。" },
+        "subscribe": { "title": "关注功率", "text": "中枢订阅充电桩的有功功率：充电桩在数值变化时上报，最快每 10 s，最慢每 60 s。现在汽车已插上但没有充电：0 W。" },
+        "solar": { "title": "用阳光充电", "text": "光伏逆变器上报 −6.2 kW（负值：它在输出功率），家里用 2.5 kW：多出 3.7 kW。中枢调用充电桩的 EnableCharging 命令：到 18:00 为止，最多 16 A。单相 230 V 下，这是 3.68 kW。" },
+        "cloud": { "title": "一片云飘过", "text": "光伏降到 3.9 kW：家里仍用 2.5 kW，只多出 1.4 kW。中枢把上限降到 6 A，这是能要求汽车充电的最小电流：1.38 kW。阳光回来后，它再调高。" }
+    },
+    "frames": {
+        "pase": "我知道你的配对码；我们来生成密钥",
+        "attest": "这是我厂商的证书",
+        "noc": "你现在是这个家的节点 0x17",
+        "network": "这是 Wi-Fi，加入吧",
+        "dnssd": "节点 0x17 在这里，地址是这个",
+        "case": "出示你的 fabric 证书，我也出示我的",
+        "complete": "配置完成",
+        "subscribe": "有功功率一变就告诉我",
+        "report": "0 W",
+        "pv": "我在输出 6.2 kW",
+        "enable": "充到 18:00，最多 16 A",
+        "charging": "3.68 kW",
+        "pv-low": "现在只有 3.9 kW",
+        "lower": "继续充，最多 6 A"
+    },
+    "notes": {
+        "pase": "PASE 使用 SPAKE2+：双方不发送配对码，却证明自己知道它，并由此得出密钥。之后的每条配置消息都用这个密钥加密。",
+        "attest": "充电桩出示它的 DAC（设备证明证书），由其厂商的 PAI 签名，PAI 又由 CSA 信任的 PAA 根证书签名。中枢核验这条证书链以及设备已经认证。",
+        "noc": "中枢作为 fabric 的管理者，给充电桩一张带节点 ID 0x17 的 NOC（节点运行证书），由 fabric 根证书签名。fabric 是这个家自己的信任网络。",
+        "network": "Wi-Fi 名称和密码，经加密的 PASE 会话发送。随后充电桩离开 BLE，加入 Wi-Fi。",
+        "dnssd": "一条类型为 _matter._tcp 的 DNS-SD 记录，以 fabric 和节点命名，带有充电桩的 IPv6 地址和端口 5540。",
+        "case": "CASE（基于证书认证的会话建立）共三条消息，Sigma1 到 Sigma3：双方出示 NOC，用 fabric 根证书核验，并商定会话密钥。",
+        "complete": "经新的 CASE 会话发送：配置结束，充电桩保留其设置。",
+        "subscribe": "针对 Electrical Power Measurement 簇 ActivePower 属性的 SubscribeRequest，最小间隔 10 s，最大间隔 60 s。",
+        "report": "一条 ActivePower 0 mW 的 ReportData：汽车已插上但没有充电。功率以毫瓦计。",
+        "pv": "中枢也订阅了逆变器。ActivePower −6 200 000 mW：负值表示设备在输出功率。",
+        "enable": "Energy EVSE 簇中 EnableCharging 的 InvokeRequest：允许充电到 18:00，最大充电电流 16 000 mA。练习区展示 16 000 是怎么传的。",
+        "charging": "充电桩让汽车取 16 A，并上报 ActivePower 3 680 000 mW：16 A × 230 V。",
+        "pv-low": "逆变器的下一次上报：ActivePower −3 900 000 mW。",
+        "lower": "再次 EnableCharging，最大充电电流 6000 mA：6 A × 230 V = 1.38 kW。"
+    },
+    "fields": {
+        "a-first": { "name": "第一位", "note": "2：短鉴别码的高 2 位（11 = 1011，所以是 10）。若为 4 或更大，表示后面跟着厂商 ID 和产品 ID，是 21 位的配对码。" },
+        "a-middle": { "name": "第 2 到 6 位", "note": "63600 = 鉴别码的低 2 位（11）× 16384 + 配对码的低 14 位（14448）。" },
+        "a-high": { "name": "第 7 到 10 位", "note": "2087：配对码的其余位。2087 × 16384 + 14448 = 34207856。" },
+        "a-check": { "name": "校验位", "note": "3：Verhoeff 校验位。输入配对码时，任何一位输错、任何两位颠倒都能查出来。" }
+    },
+    "devices": {
+        "hub": "家庭能源中枢",
+        "charger": "电动汽车充电桩（EVSE）",
+        "inverter": "光伏逆变器",
+        "car": "电动汽车"
+    },
+    "facts": {
+        "standard": "CSA（连接标准联盟）的 Matter 1.3（2024）和 1.4：用于充电桩、电能计量和设备能源管理的设备类型与簇",
+        "between": "家庭能量管理器或智能家居中枢，与充电桩、热泵、电池、光伏逆变器和家电",
+        "transport": "经 Wi-Fi、Ethernet 或 Thread 的 IPv6；UDP 端口 5540；BLE 仅用于配置",
+        "security": "配置时用配对码做 PASE；之后用家庭 fabric 的证书做 CASE；每条消息用 AES-CCM 加密和认证",
+        "speed": "一条命令远不到一秒；上报频率取决于订阅设置"
+    },
+    "tips": [
+        "配对码就是设备的密码。设备等待配置时，谁从标签上读到它，谁就能接管设备：收好标签，不要发布它的照片。",
+        "一台设备可以同时属于多个 fabric，比如两个家居应用。每个都能指挥它；要定好由哪一个管理能源，否则它们会互相打架。",
+        "功率单位是毫瓦，电流单位是毫安，都是整数。数值差了 1000 倍，几乎总是单位读错了。",
+        "Matter 的能源功能还很新：核实充电桩、逆变器和中枢列出的簇和 Matter 版本一致。"
+    ],
+    "points": {
+        "fabric": "加入家庭 fabric",
+        "limit": "充电电流上限",
+        "power": "充电功率"
+    },
+    "values": {
+        "member": "成员"
+    },
+    "anatomy": {
+        "code": "充电桩标签上的配对码"
+    },
+    "playground": {
+        "encoder": "Matter 写数字时低字节在前（DCBA）。输入一个值，看看中枢的充电上限 16 000 mA 是怎么传送的。"
+    }
+}

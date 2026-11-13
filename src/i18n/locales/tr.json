@@ -265,6 +265,8 @@
     "lesson.lorawan.where": "Sensörler, sayaçlar",
     "lesson.bacnet.summary": "Binalar: ısıtma, soğutma, aydınlatma, mikro şebekeler",
     "lesson.bacnet.where": "Bina kontrolörleri",
+    "lesson.matter.summary": "Akıllı ev standardı, artık şarj cihazları ve güneş için",
+    "lesson.matter.where": "Ev enerji merkezleri, şarj cihazları, eviriciler",
     "lesson.iec-62351.summary": "IEC 104, DNP3 ve IEC 61850 için güvenlik",
     "lesson.iec-62351.where": "RTU'lar, röleler, SCADA",
     "lesson.dnp3-sa.summary": "Kritik komutlarda sorgu ve yanıt (challenge-response)",

@@ -265,6 +265,8 @@
     "lesson.lorawan.where": "Sensori, contatori",
     "lesson.bacnet.summary": "Edifici: riscaldamento, raffrescamento, illuminazione, microreti",
     "lesson.bacnet.where": "Controllori di edificio",
+    "lesson.matter.summary": "Lo standard della casa intelligente, ora per colonnine e solare",
+    "lesson.matter.where": "Hub energetici domestici, colonnine, inverter",
     "lesson.iec-62351.summary": "Sicurezza per IEC 104, DNP3 e IEC 61850",
     "lesson.iec-62351.where": "RTU, relè, SCADA",
     "lesson.dnp3-sa.summary": "Challenge-response sui comandi critici",

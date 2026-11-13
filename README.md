@@ -45,7 +45,7 @@ four protocols side by side (IEC 61850 GOOSE, IEC 60870-5-104, -101 and -103, DN
 receiver learns of it, the bytes of each frame with one meaning lit up across all of them, and what each frame can say
 about the time, the quality and the reason. The choice stays in the address, so it can be shared.
 
-## 44 protocols
+## 45 protocols
 
 | Where you meet them | Protocols |
 | --- | --- |
@@ -54,7 +54,7 @@ about the time, the quality and the reason. The choice stays in the address, so 
 | Solar, wind and storage | Modbus TCP, Modbus RTU, SunSpec Modbus, IEC 61850-7-420, IEC 61400-25, CAN / CANopen |
 | EV charging and DER | OCPP, ISO 15118, IEC 61851, OCPI, IEEE 2030.5, OpenADR, EEBus, OSCP |
 | Metering | DLMS/COSEM, IEC 62056-21, M-Bus / wM-Bus, ANSI C12.18 / 19 / 22, G3-PLC / PRIME |
-| IoT and cloud | MQTT, Sparkplug B, OPC UA, LoRaWAN, BACnet/IP |
+| IoT and cloud | MQTT, Sparkplug B, OPC UA, LoRaWAN, BACnet/IP, Matter energy |
 | Security | IEC 62351, DNP3 Secure Authentication, Modbus/TCP Security, IEC 62443, SNMP |
 
 ## For everyone

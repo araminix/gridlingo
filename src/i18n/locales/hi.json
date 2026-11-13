@@ -265,6 +265,8 @@
     "lesson.lorawan.where": "सेंसर, मीटर",
     "lesson.bacnet.summary": "बिल्डिंग: हीटिंग, कूलिंग, लाइटिंग, माइक्रोग्रिड",
     "lesson.bacnet.where": "बिल्डिंग कंट्रोलर",
+    "lesson.matter.summary": "स्मार्ट होम मानक, अब चार्जर और सोलर के लिए",
+    "lesson.matter.where": "होम एनर्जी हब, चार्जर, इन्वर्टर",
     "lesson.iec-62351.summary": "IEC 104, DNP3 और IEC 61850 की सुरक्षा",
     "lesson.iec-62351.where": "RTU, रिले, SCADA",
     "lesson.dnp3-sa.summary": "अहम कमांड पर चैलेंज और रिस्पॉन्स",

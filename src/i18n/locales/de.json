@@ -265,6 +265,8 @@
     "lesson.lorawan.where": "Sensoren, Zähler",
     "lesson.bacnet.summary": "Gebäude: Heizung, Kühlung, Beleuchtung, Microgrids",
     "lesson.bacnet.where": "Gebäudeautomation",
+    "lesson.matter.summary": "Der Smart-Home-Standard, jetzt für Ladestationen und Solar",
+    "lesson.matter.where": "Heim-Energiehubs, Ladestationen, Wechselrichter",
     "lesson.iec-62351.summary": "Sicherheit für IEC 104, DNP3 und IEC 61850",
     "lesson.iec-62351.where": "RTUs, Schutzgeräte, SCADA",
     "lesson.dnp3-sa.summary": "Challenge-Response bei kritischen Befehlen",

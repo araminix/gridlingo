@@ -1,0 +1,82 @@
+{
+    "intro": "Matter est le standard de maison connectée de la CSA (Connectivity Standards Alliance), porté par Apple, Google, Amazon, Samsung et des centaines de fabricants. Les appareils parlent IPv6 en Wi-Fi, en Ethernet ou en Thread (un maillage radio à basse consommation), sur le port UDP 5540, chaque message chiffré. Depuis la version 1.3, Matter parle aussi d'énergie : une borne (EVSE), la mesure de puissance et d'énergie, et la gestion énergétique des appareils, pour qu'un gestionnaire d'énergie domestique fasse tourner la borne, la pompe à chaleur et la batterie au solaire. La version 1.4 ajoute onduleurs photovoltaïques, batteries, pompes à chaleur et chauffe-eau.",
+    "plain": "Matter est une langue commune aux appareils de la maison connectée, pour qu'une lampe, une serrure ou une borne de toute marque marche avec toute appli. Elle parle maintenant aussi d'énergie. Un petit boîtier dans la maison voit combien les panneaux solaires produisent et combien la maison consomme, et dit à la borne de la voiture de n'utiliser que le soleil en trop. Quand un nuage arrive, il ralentit la borne, sans que personne ait à toucher à rien.",
+    "steps": {
+        "commission": { "title": "L'accueillir dans la maison", "text": "L'installateur tape le code de l'étiquette de la borne, 2636-002-0873, dans le boîtier d'énergie de la maison. En Bluetooth Low Energy (BLE), le boîtier prouve avec PASE (une vérification de mot de passe qui n'envoie jamais le mot de passe) qu'il connaît le code de la borne. Il vérifie que la borne est certifiée, lui donne un certificat du réseau de confiance de la maison (la fabric) et les informations du Wi-Fi." },
+        "connect": { "title": "Se retrouver sur le réseau", "text": "La borne rejoint le Wi-Fi et s'annonce par DNS-SD comme nœud 0x17 de la fabric. Le boîtier ouvre une session CASE : chacun montre son certificat de la fabric et ils conviennent de clés. Dès lors, chaque message est chiffré en AES-CCM. Le boîtier termine l'installation par CommissioningComplete." },
+        "subscribe": { "title": "Surveiller la puissance", "text": "Le boîtier s'abonne à la puissance active de la borne : la borne la signale quand elle change, au plus toutes les 10 s et au moins toutes les 60 s. Pour l'instant, la voiture est branchée mais ne charge pas : 0 W." },
+        "solar": { "title": "Charger au soleil", "text": "L'onduleur photovoltaïque signale −6,2 kW (négatif : il fournit de la puissance) et la maison consomme 2,5 kW : 3,7 kW en trop. Le boîtier invoque la commande EnableCharging de la borne : jusqu'à 18:00, au plus 16 A. Sur une phase à 230 V, cela fait 3,68 kW." },
+        "cloud": { "title": "Un nuage passe", "text": "Le photovoltaïque tombe à 3,9 kW : avec la maison toujours à 2,5 kW, il ne reste que 1,4 kW. Le boîtier baisse la limite à 6 A, le minimum qu'on puisse demander à une voiture : 1,38 kW. Quand le soleil revient, il la remonte." }
+    },
+    "frames": {
+        "pase": "Je connais ton code ; créons une clé",
+        "attest": "Voici le certificat de mon fabricant",
+        "noc": "Tu es maintenant le nœud 0x17 de cette maison",
+        "network": "Voici le Wi-Fi ; rejoins-le",
+        "dnssd": "Le nœud 0x17 est ici, à cette adresse",
+        "case": "Montre-moi ton certificat de la fabric, je te montre le mien",
+        "complete": "L'installation est terminée",
+        "subscribe": "Signale-moi ta puissance active dès qu'elle change",
+        "report": "0 W",
+        "pv": "Je fournis 6,2 kW",
+        "enable": "Charge jusqu'à 18:00, au plus 16 A",
+        "charging": "3,68 kW",
+        "pv-low": "Plus que 3,9 kW",
+        "lower": "Continue de charger, au plus 6 A"
+    },
+    "notes": {
+        "pase": "PASE utilise SPAKE2+ : les deux côtés prouvent qu'ils connaissent le code, sans l'envoyer, et en tirent une clé. Chaque message d'installation suivant est chiffré avec cette clé.",
+        "attest": "La borne montre son DAC (certificat d'attestation de l'appareil), signé par le PAI de son fabricant, lui-même signé par une racine PAA en laquelle la CSA a confiance. Le boîtier vérifie la chaîne et que l'appareil est certifié.",
+        "noc": "Le boîtier, administrateur de la fabric, donne à la borne un NOC (certificat opérationnel du nœud) avec son ID de nœud, 0x17, signé par la racine de la fabric. La fabric est le réseau de confiance propre à la maison.",
+        "network": "Le nom et le mot de passe du Wi-Fi, envoyés par la session PASE chiffrée. Puis la borne quitte BLE et rejoint le Wi-Fi.",
+        "dnssd": "Un enregistrement DNS-SD de type _matter._tcp, nommé d'après la fabric et le nœud, avec l'adresse IPv6 de la borne et le port 5540.",
+        "case": "CASE (établissement de session authentifié par certificat) en trois messages, de Sigma1 à Sigma3 : chacun montre son NOC, le vérifie avec la racine de la fabric, et ils conviennent de clés de session.",
+        "complete": "Envoyé par la nouvelle session CASE : l'installation est finie et la borne garde ses réglages.",
+        "subscribe": "Un SubscribeRequest pour l'attribut ActivePower du cluster Electrical Power Measurement, avec un intervalle minimal de 10 s et maximal de 60 s.",
+        "report": "Un ReportData avec ActivePower 0 mW : la voiture est branchée mais ne charge pas. La puissance se compte en milliwatts.",
+        "pv": "Le boîtier s'est aussi abonné à l'onduleur. ActivePower −6 200 000 mW : négatif veut dire que l'appareil fournit de la puissance.",
+        "enable": "Un InvokeRequest d'EnableCharging du cluster Energy EVSE : charge autorisée jusqu'à 18:00, courant de charge maximal 16 000 mA. Le bac à sable montre comment voyage 16 000.",
+        "charging": "La borne laisse la voiture tirer 16 A et signale ActivePower 3 680 000 mW : 16 A × 230 V.",
+        "pv-low": "Le rapport suivant de l'onduleur : ActivePower −3 900 000 mW.",
+        "lower": "De nouveau EnableCharging, avec un courant de charge maximal de 6000 mA : 6 A × 230 V = 1,38 kW."
+    },
+    "fields": {
+        "a-first": { "name": "Premier chiffre", "note": "2 : les 2 bits hauts du discriminateur court (11 = 1011, donc 10). Un chiffre de 4 ou plus voudrait dire qu'un ID de fabricant et de produit suivent, dans un code de 21 chiffres." },
+        "a-middle": { "name": "Chiffres 2 à 6", "note": "63600 = les 2 bits bas du discriminateur (11) × 16384 + les 14 bits bas du code (14448)." },
+        "a-high": { "name": "Chiffres 7 à 10", "note": "2087 : les autres bits du code. 2087 × 16384 + 14448 = 34207856." },
+        "a-check": { "name": "Chiffre de contrôle", "note": "3 : un chiffre de contrôle de Verhoeff. Il détecte tout chiffre faux et deux chiffres inversés quand on tape le code." }
+    },
+    "devices": {
+        "hub": "Boîtier d'énergie",
+        "charger": "Borne (EVSE)",
+        "inverter": "Onduleur photovoltaïque",
+        "car": "Voiture électrique"
+    },
+    "facts": {
+        "standard": "Matter 1.3 (2024) et 1.4 de la CSA, Connectivity Standards Alliance : types d'appareils et clusters pour bornes, mesure d'énergie et gestion énergétique des appareils",
+        "between": "Un gestionnaire d'énergie domestique ou boîtier de maison connectée, et bornes, pompes à chaleur, batteries, onduleurs photovoltaïques et électroménager",
+        "transport": "IPv6 en Wi-Fi, Ethernet ou Thread ; port UDP 5540 ; BLE seulement pour l'installation",
+        "security": "PASE avec le code d'installation à la mise en service ; puis CASE avec les certificats de la fabric de la maison ; chaque message chiffré et authentifié en AES-CCM",
+        "speed": "Une commande en bien moins d'une seconde ; des rapports aussi souvent que l'abonnement le permet"
+    },
+    "tips": [
+        "Le code d'installation est le mot de passe de l'appareil. Qui le lit sur l'étiquette pendant que l'appareil attend d'être installé peut le prendre : gardez l'étiquette et n'en publiez pas de photo.",
+        "Un appareil peut appartenir à plusieurs fabrics à la fois, par exemple deux applis. Chacune peut le commander ; décidez laquelle gère l'énergie, sinon elles se disputent.",
+        "La puissance est en milliwatts et le courant en milliampères, en nombres entiers. Une valeur fausse d'un facteur 1000 vient presque toujours d'une unité mal lue.",
+        "Les fonctions énergie de Matter sont récentes : vérifiez que la borne, l'onduleur et le boîtier annoncent les mêmes clusters et la même version de Matter."
+    ],
+    "points": {
+        "fabric": "Dans la fabric de la maison",
+        "limit": "Limite de courant de charge",
+        "power": "Puissance de charge"
+    },
+    "values": {
+        "member": "membre"
+    },
+    "anatomy": {
+        "code": "Le code d'installation de l'étiquette de la borne"
+    },
+    "playground": {
+        "encoder": "Matter écrit ses nombres octet de poids faible en premier (DCBA). Tapez une valeur pour voir comment voyagent les 16 000 mA de la limite de charge du boîtier."
+    }
+}

@@ -1,0 +1,82 @@
+{
+    "intro": "Matter, Apple, Google, Amazon, Samsung ve yüzlerce üreticinin desteklediği, CSA'nın (Connectivity Standards Alliance) akıllı ev standardıdır. Cihazlar Wi-Fi, Ethernet ya da Thread (az güç harcayan bir radyo örgü ağı) üzerinden, UDP port 5540'ta IPv6 konuşur ve her mesaj şifrelidir. Sürüm 1.3'ten beri Matter enerji de konuşur: bir şarj cihazı (EVSE), güç ve enerji ölçümü ve cihaz enerji yönetimi; böylece bir ev enerji yöneticisi araba şarj cihazını, ısı pompasını ve bataryayı güneş enerjisiyle çalıştırabilir. Sürüm 1.4 güneş eviricileri, bataryalar, ısı pompaları ve su ısıtıcılarını ekler.",
+    "plain": "Matter, akıllı ev cihazları için ortak bir dildir; böylece her markadan bir lamba, kilit ya da şarj cihazı her ev uygulamasıyla çalışır. Artık enerji de konuşur. Evdeki küçük bir merkez, güneş panellerinin ne kadar ürettiğini ve evin ne kadar kullandığını görür ve araba şarj cihazına yalnızca artan güneşi kullanmasını söyler. Bir bulut gelince şarj cihazını yavaşlatır; kimsenin bir şeye dokunması gerekmez.",
+    "steps": {
+        "commission": { "title": "Eve dahil et", "text": "Kurulumcu şarj cihazının etiketindeki kodu, 2636-002-0873'ü, ev enerji merkezine girer. Bluetooth Low Energy (BLE) üzerinden merkez, PASE ile (parolayı asla göndermeyen bir parola denetimi) şarj cihazının kodunu bildiğini kanıtlar. Şarj cihazının sertifikalı olduğunu denetler, ona evin güven ağının (fabric) bir sertifikasını ve Wi-Fi bilgilerini verir." },
+        "connect": { "title": "Ağda buluş", "text": "Şarj cihazı Wi-Fi'a katılır ve kendini DNS-SD ile fabric'in 0x17 numaralı düğümü olarak duyurur. Merkez bir CASE oturumu açar: ikisi de fabric sertifikalarını gösterir ve anahtarlar üzerinde anlaşır. Bundan sonra her mesaj AES-CCM ile şifrelenir. Merkez kurulumu CommissioningComplete ile bitirir." },
+        "subscribe": { "title": "Gücü izle", "text": "Merkez, şarj cihazının aktif gücüne abone olur: şarj cihazı onu değiştikçe, en sık 10 s'de bir ve en seyrek 60 s'de bir bildirir. Şu an araba takılı ama şarj olmuyor: 0 W." },
+        "solar": { "title": "Güneşle şarj et", "text": "Güneş eviricisi −6,2 kW bildirir (negatif: güç veriyor) ve ev 2,5 kW kullanır: 3,7 kW artar. Merkez, şarj cihazının EnableCharging komutunu çağırır: 18:00'e kadar, en çok 16 A. Tek fazda 230 V'ta bu 3,68 kW eder." },
+        "cloud": { "title": "Bir bulut geçer", "text": "Güneş 3,9 kW'a düşer: ev hâlâ 2,5 kW kullanırken yalnızca 1,4 kW artar. Merkez sınırı 6 A'ya indirir; bir arabadan şarj olmasını istemenin en düşük değeri: 1,38 kW. Güneş geri gelince yeniden yükseltir." }
+    },
+    "frames": {
+        "pase": "Kodunu biliyorum; bir anahtar oluşturalım",
+        "attest": "İşte üreticimin sertifikası",
+        "noc": "Artık bu evin 0x17 numaralı düğümüsün",
+        "network": "İşte Wi-Fi; katıl",
+        "dnssd": "Düğüm 0x17 burada, bu adreste",
+        "case": "Fabric sertifikanı göster, ben de benimkini göstereyim",
+        "complete": "Kurulum tamamlandı",
+        "subscribe": "Aktif gücün her değiştiğinde bana bildir",
+        "report": "0 W",
+        "pv": "6,2 kW veriyorum",
+        "enable": "18:00'e kadar şarj et, en çok 16 A",
+        "charging": "3,68 kW",
+        "pv-low": "Şimdi yalnızca 3,9 kW",
+        "lower": "Şarja devam et, en çok 6 A"
+    },
+    "notes": {
+        "pase": "PASE, SPAKE2+ kullanır: iki taraf da kodu göndermeden bildiğini kanıtlar ve bir anahtar türetir. Sonraki her kurulum mesajı bu anahtarla şifrelenir.",
+        "attest": "Şarj cihazı, üreticisinin PAI'si tarafından, o da CSA'nın güvendiği bir PAA kökü tarafından imzalanmış DAC'ını (cihaz doğrulama sertifikası) gösterir. Merkez zinciri ve cihazın sertifikalı olduğunu denetler.",
+        "noc": "Merkez, fabric'in yöneticisi olarak şarj cihazına, fabric kökü tarafından imzalanmış, 0x17 düğüm ID'sini taşıyan bir NOC (düğüm işletim sertifikası) verir. Fabric, evin kendi güven ağıdır.",
+        "network": "Şifreli PASE oturumu üzerinden gönderilen Wi-Fi adı ve parolası. Ardından şarj cihazı BLE'den ayrılır ve Wi-Fi'a katılır.",
+        "dnssd": "Fabric'e ve düğüme göre adlandırılmış, _matter._tcp türünde bir DNS-SD kaydı; şarj cihazının IPv6 adresi ve port 5540 ile.",
+        "case": "Üç mesajda, Sigma1'den Sigma3'e CASE (sertifikayla doğrulanan oturum kurma): ikisi de NOC'unu gösterir, fabric köküne göre denetler ve oturum anahtarları üzerinde anlaşır.",
+        "complete": "Yeni CASE oturumu üzerinden gönderilir: kurulum bitti ve şarj cihazı ayarlarını korur.",
+        "subscribe": "Electrical Power Measurement kümesinin ActivePower özniteliği için, en kısa aralığı 10 s ve en uzunu 60 s olan bir SubscribeRequest.",
+        "report": "ActivePower 0 mW içeren bir ReportData: araba takılı ama şarj olmuyor. Güç miliwatt olarak sayılır.",
+        "pv": "Merkez eviriciye de abone. ActivePower −6 200 000 mW: negatif, cihazın güç verdiği anlamına gelir.",
+        "enable": "Energy EVSE kümesinde bir EnableCharging InvokeRequest'i: şarja 18:00'e kadar izin var, en yüksek şarj akımı 16 000 mA. Deneme alanı 16 000'in nasıl gittiğini gösterir.",
+        "charging": "Şarj cihazı arabanın 16 A çekmesine izin verir ve ActivePower 3 680 000 mW bildirir: 16 A × 230 V.",
+        "pv-low": "Eviricinin sonraki bildirimi: ActivePower −3 900 000 mW.",
+        "lower": "Yine EnableCharging, en yüksek şarj akımı 6000 mA: 6 A × 230 V = 1,38 kW."
+    },
+    "fields": {
+        "a-first": { "name": "İlk hane", "note": "2: kısa ayırt edicinin üst 2 biti (11 = 1011, yani 10). 4 ya da daha büyük bir hane, 21 haneli bir kodda üretici ve ürün kimliğinin izlediği anlamına gelirdi." },
+        "a-middle": { "name": "2–6. haneler", "note": "63600 = ayırt edicinin alt 2 biti (11) × 16384 + kodun alt 14 biti (14448)." },
+        "a-high": { "name": "7–10. haneler", "note": "2087: kodun öteki bitleri. 2087 × 16384 + 14448 = 34207856." },
+        "a-check": { "name": "Denetim hanesi", "note": "3: bir Verhoeff denetim hanesi. Kod yazılırken tek bir yanlış haneyi ve yer değiştirmiş iki haneyi yakalar." }
+    },
+    "devices": {
+        "hub": "Ev enerji merkezi",
+        "charger": "Şarj cihazı (EVSE)",
+        "inverter": "Güneş eviricisi",
+        "car": "Elektrikli araba"
+    },
+    "facts": {
+        "standard": "CSA'nın (Connectivity Standards Alliance) Matter 1.3'ü (2024) ve 1.4'ü: şarj cihazları, enerji ölçümü ve cihaz enerji yönetimi için cihaz türleri ve kümeler",
+        "between": "Bir ev enerji yöneticisi ya da akıllı ev merkezi ile şarj cihazları, ısı pompaları, bataryalar, güneş eviricileri ve ev aletleri",
+        "transport": "Wi-Fi, Ethernet ya da Thread üzerinden IPv6; UDP port 5540; BLE yalnızca kurulum için",
+        "security": "Devreye almada kurulum koduyla PASE; sonra evin fabric sertifikalarıyla CASE; her mesaj AES-CCM ile şifreli ve doğrulanmış",
+        "speed": "Bir komut bir saniyeden çok daha kısa sürer; bildirimler aboneliğin izin verdiği sıklıkta"
+    },
+    "tips": [
+        "Kurulum kodu cihazın parolasıdır. Cihaz kurulmayı beklerken kodu etiketten okuyan biri onu ele geçirebilir: etiketi saklayın ve fotoğrafını paylaşmayın.",
+        "Bir cihaz aynı anda birkaç fabric'e, örneğin iki uygulamaya, ait olabilir. Her biri ona komut verebilir; enerjiyi hangisinin yöneteceğine karar verin, yoksa çatışırlar.",
+        "Güç miliwatt, akım miliamper cinsindendir ve tam sayıdır. 1000 kat sapan bir değer hemen her zaman yanlış okunmuş bir birimdir.",
+        "Matter'ın enerji özellikleri yenidir: şarj cihazının, eviricinin ve merkezin aynı kümeleri ve aynı Matter sürümünü bildirdiğini denetleyin."
+    ],
+    "points": {
+        "fabric": "Evin fabric'inde",
+        "limit": "Şarj akımı sınırı",
+        "power": "Şarj gücü"
+    },
+    "values": {
+        "member": "üye"
+    },
+    "anatomy": {
+        "code": "Şarj cihazının etiketindeki kurulum kodu"
+    },
+    "playground": {
+        "encoder": "Matter sayılarını en düşük anlamlı bayt önce gelecek şekilde (DCBA) yazar. Merkezin şarj sınırı olan 16 000 mA'nın nasıl gittiğini görmek için bir değer yazın."
+    }
+}

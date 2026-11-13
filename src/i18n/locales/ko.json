@@ -265,6 +265,8 @@
     "lesson.lorawan.where": "센서, 계량기",
     "lesson.bacnet.summary": "건물: 난방, 냉방, 조명, 마이크로그리드",
     "lesson.bacnet.where": "빌딩 제어기",
+    "lesson.matter.summary": "스마트홈 표준, 이제 충전기와 태양광까지",
+    "lesson.matter.where": "가정용 에너지 허브, 충전기, 인버터",
     "lesson.iec-62351.summary": "IEC 104, DNP3, IEC 61850의 보안",
     "lesson.iec-62351.where": "RTU, 계전기, SCADA",
     "lesson.dnp3-sa.summary": "중요한 명령에 챌린지-응답 인증",

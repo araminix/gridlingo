@@ -265,6 +265,8 @@
     "lesson.lorawan.where": "センサ、メーター",
     "lesson.bacnet.summary": "ビル設備：暖房、冷房、照明、マイクログリッド",
     "lesson.bacnet.where": "ビルコントローラ",
+    "lesson.matter.summary": "スマートホーム規格、充電器と太陽光にも",
+    "lesson.matter.where": "家庭用エネルギーハブ、充電器、インバータ",
     "lesson.iec-62351.summary": "IEC 104、DNP3、IEC 61850のセキュリティ",
     "lesson.iec-62351.where": "RTU、保護リレー、SCADA",
     "lesson.dnp3-sa.summary": "重要なコマンドにチャレンジ・レスポンス",

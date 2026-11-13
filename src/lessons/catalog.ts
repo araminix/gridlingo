@@ -49,6 +49,7 @@ export const CATALOG: readonly Meta[] = [
     { id: "opc-ua", name: "OPC UA", group: "iot", devices: ["controller", "scada"], wire: "TCP 4840" },
     { id: "lorawan", name: "LoRaWAN", group: "iot", devices: ["sensor", "meter", "radio"], wire: "868 / 915 MHz" },
     { id: "bacnet", name: "BACnet/IP", group: "iot", devices: ["building", "controller"], wire: "UDP 47808" },
+    { id: "matter", name: "Matter energy", group: "iot", devices: ["charger", "controller", "inverter"], wire: "IPv6 · UDP 5540" },
 
     { id: "iec-62351", name: "IEC 62351", group: "security", devices: ["rtu", "relay", "scada"], wire: "TLS · X.509" },
     { id: "dnp3-sa", name: "DNP3 Secure Authentication", group: "security", devices: ["rtu", "scada"], wire: "In DNP3" },

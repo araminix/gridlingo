@@ -1,0 +1,82 @@
+{
+    "intro": "Matter è lo standard per la casa intelligente della CSA (Connectivity Standards Alliance), sostenuto da Apple, Google, Amazon, Samsung e centinaia di produttori. I dispositivi parlano IPv6 via Wi-Fi, Ethernet o Thread (una rete radio a maglia a basso consumo), sulla porta UDP 5540, con ogni messaggio cifrato. Dalla versione 1.3 Matter parla anche di energia: una colonnina (EVSE), misure di potenza ed energia e gestione energetica dei dispositivi, così che un gestore energetico domestico possa far funzionare la colonnina, la pompa di calore e la batteria con il sole. La versione 1.4 aggiunge inverter fotovoltaici, batterie, pompe di calore e scaldacqua.",
+    "plain": "Matter è una lingua comune per i dispositivi della casa intelligente, perché una lampada, una serratura o una colonnina di qualsiasi marca funzioni con qualsiasi app. Ora parla anche di energia. Un piccolo hub in casa vede quanto producono i pannelli solari e quanto consuma la casa, e dice alla colonnina dell'auto di usare solo il sole in più. Quando arriva una nuvola, la rallenta, senza che nessuno debba toccare nulla.",
+    "steps": {
+        "commission": { "title": "Portarla in casa", "text": "L'installatore digita il codice sull'etichetta della colonnina, 2636-002-0873, nell'hub energetico di casa. Via Bluetooth Low Energy (BLE) l'hub dimostra con PASE (un controllo della password che non invia mai la password) di conoscere il codice della colonnina. Verifica che la colonnina sia certificata, le dà un certificato della rete di fiducia della casa (la fabric) e i dati del Wi-Fi." },
+        "connect": { "title": "Incontrarsi in rete", "text": "La colonnina entra nel Wi-Fi e si annuncia con DNS-SD come nodo 0x17 della fabric. L'hub apre una sessione CASE: entrambi mostrano i certificati della fabric e concordano le chiavi. Da ora ogni messaggio è cifrato con AES-CCM. L'hub chiude la configurazione con CommissioningComplete." },
+        "subscribe": { "title": "Tenere d'occhio la potenza", "text": "L'hub si iscrive alla potenza attiva della colonnina: la colonnina la segnala quando cambia, al massimo ogni 10 s e almeno ogni 60 s. Per ora l'auto è collegata ma non carica: 0 W." },
+        "solar": { "title": "Caricare con il sole", "text": "L'inverter fotovoltaico segnala −6,2 kW (negativo: fornisce potenza) e la casa usa 2,5 kW: avanzano 3,7 kW. L'hub invoca il comando EnableCharging della colonnina: fino alle 18:00, al massimo 16 A. Su una fase a 230 V fanno 3,68 kW." },
+        "cloud": { "title": "Passa una nuvola", "text": "Il fotovoltaico scende a 3,9 kW: con la casa sempre a 2,5 kW, avanzano solo 1,4 kW. L'hub abbassa il limite a 6 A, il minimo con cui si può chiedere a un'auto di caricare: 1,38 kW. Quando torna il sole, lo rialza." }
+    },
+    "frames": {
+        "pase": "Conosco il tuo codice; creiamo una chiave",
+        "attest": "Ecco il certificato del mio produttore",
+        "noc": "Ora sei il nodo 0x17 di questa casa",
+        "network": "Ecco il Wi-Fi; entraci",
+        "dnssd": "Il nodo 0x17 è qui, a questo indirizzo",
+        "case": "Mostrami il tuo certificato della fabric e io ti mostro il mio",
+        "complete": "La configurazione è finita",
+        "subscribe": "Segnalami la tua potenza attiva ogni volta che cambia",
+        "report": "0 W",
+        "pv": "Sto fornendo 6,2 kW",
+        "enable": "Carica fino alle 18:00, al massimo 16 A",
+        "charging": "3,68 kW",
+        "pv-low": "Ora solo 3,9 kW",
+        "lower": "Continua a caricare, al massimo 6 A"
+    },
+    "notes": {
+        "pase": "PASE usa SPAKE2+: entrambi i lati dimostrano di conoscere il codice, senza inviarlo, e ne ricavano una chiave. Ogni messaggio di configurazione successivo è cifrato con quella chiave.",
+        "attest": "La colonnina mostra il suo DAC (certificato di attestazione del dispositivo), firmato dal PAI del suo produttore, firmato da una radice PAA di cui la CSA si fida. L'hub verifica la catena e che il dispositivo sia certificato.",
+        "noc": "L'hub, come amministratore della fabric, dà alla colonnina un NOC (certificato operativo del nodo) con il suo ID di nodo, 0x17, firmato dalla radice della fabric. La fabric è la rete di fiducia propria della casa.",
+        "network": "Nome e password del Wi-Fi, inviati sulla sessione PASE cifrata. Poi la colonnina lascia BLE ed entra nel Wi-Fi.",
+        "dnssd": "Un record DNS-SD di tipo _matter._tcp, con il nome della fabric e del nodo, l'indirizzo IPv6 della colonnina e la porta 5540.",
+        "case": "CASE (instaurazione di sessione autenticata da certificato) in tre messaggi, da Sigma1 a Sigma3: entrambi mostrano il proprio NOC, lo verificano con la radice della fabric e concordano le chiavi di sessione.",
+        "complete": "Inviato sulla nuova sessione CASE: la configurazione è finita e la colonnina conserva le sue impostazioni.",
+        "subscribe": "Un SubscribeRequest per l'attributo ActivePower del cluster Electrical Power Measurement, con un intervallo minimo di 10 s e massimo di 60 s.",
+        "report": "Un ReportData con ActivePower 0 mW: l'auto è collegata ma non carica. La potenza si conta in milliwatt.",
+        "pv": "L'hub si è iscritto anche all'inverter. ActivePower −6 200 000 mW: negativo vuol dire che il dispositivo fornisce potenza.",
+        "enable": "Un InvokeRequest di EnableCharging del cluster Energy EVSE: carica consentita fino alle 18:00, corrente di carica massima 16 000 mA. L'area di prova mostra come viaggia 16 000.",
+        "charging": "La colonnina lascia assorbire all'auto 16 A e segnala ActivePower 3 680 000 mW: 16 A × 230 V.",
+        "pv-low": "La segnalazione successiva dell'inverter: ActivePower −3 900 000 mW.",
+        "lower": "Di nuovo EnableCharging, con una corrente di carica massima di 6000 mA: 6 A × 230 V = 1,38 kW."
+    },
+    "fields": {
+        "a-first": { "name": "Prima cifra", "note": "2: i 2 bit alti del discriminatore breve (11 = 1011, quindi 10). Una cifra da 4 in su vorrebbe dire che seguono ID del produttore e del prodotto, in un codice di 21 cifre." },
+        "a-middle": { "name": "Cifre da 2 a 6", "note": "63600 = i 2 bit bassi del discriminatore (11) × 16384 + i 14 bit bassi del codice (14448)." },
+        "a-high": { "name": "Cifre da 7 a 10", "note": "2087: gli altri bit del codice. 2087 × 16384 + 14448 = 34207856." },
+        "a-check": { "name": "Cifra di controllo", "note": "3: una cifra di controllo di Verhoeff. Rileva qualsiasi cifra sbagliata e due cifre scambiate quando si digita il codice." }
+    },
+    "devices": {
+        "hub": "Hub energetico di casa",
+        "charger": "Colonnina (EVSE)",
+        "inverter": "Inverter fotovoltaico",
+        "car": "Auto elettrica"
+    },
+    "facts": {
+        "standard": "Matter 1.3 (2024) e 1.4 della CSA, Connectivity Standards Alliance: tipi di dispositivo e cluster per colonnine, misura dell'energia e gestione energetica dei dispositivi",
+        "between": "Un gestore energetico domestico o hub per la casa intelligente, e colonnine, pompe di calore, batterie, inverter fotovoltaici ed elettrodomestici",
+        "transport": "IPv6 via Wi-Fi, Ethernet o Thread; porta UDP 5540; BLE solo per la configurazione",
+        "security": "PASE con il codice di configurazione durante la messa in servizio; poi CASE con i certificati della fabric di casa; ogni messaggio cifrato e autenticato con AES-CCM",
+        "speed": "Un comando in molto meno di un secondo; segnalazioni con la frequenza che l'iscrizione consente"
+    },
+    "tips": [
+        "Il codice di configurazione è la password del dispositivo. Chi lo legge sull'etichetta mentre il dispositivo aspetta di essere configurato può impossessarsene: conservate l'etichetta e non pubblicatene foto.",
+        "Un dispositivo può appartenere a più fabric insieme, per esempio due app. Ognuna può comandarlo; decidete quale gestisce l'energia, o litigheranno.",
+        "La potenza è in milliwatt e la corrente in milliampere, come numeri interi. Un valore sbagliato di un fattore 1000 è quasi sempre un'unità letta male.",
+        "Le funzioni energetiche di Matter sono nuove: verificate che colonnina, inverter e hub indichino gli stessi cluster e la stessa versione di Matter."
+    ],
+    "points": {
+        "fabric": "Nella fabric di casa",
+        "limit": "Limite di corrente di carica",
+        "power": "Potenza di carica"
+    },
+    "values": {
+        "member": "membro"
+    },
+    "anatomy": {
+        "code": "Il codice di configurazione sull'etichetta della colonnina"
+    },
+    "playground": {
+        "encoder": "Matter scrive i suoi numeri con il byte meno significativo per primo (DCBA). Digitate un valore per vedere come viaggiano i 16 000 mA del limite di carica dell'hub."
+    }
+}

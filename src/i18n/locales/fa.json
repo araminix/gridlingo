@@ -265,6 +265,8 @@
     "lesson.lorawan.where": "سنسورها، کنتورها",
     "lesson.bacnet.summary": "ساختمان‌ها: گرمایش، سرمایش، روشنایی، ریزشبکه‌ها",
     "lesson.bacnet.where": "کنترلرهای ساختمان",
+    "lesson.matter.summary": "استاندارد خانه هوشمند، حالا برای شارژرها و خورشیدی",
+    "lesson.matter.where": "هاب‌های انرژی خانگی، شارژرها، اینورترها",
     "lesson.iec-62351.summary": "امنیت برای IEC 104، DNP3 و IEC 61850",
     "lesson.iec-62351.where": "RTUها، رله‌ها، SCADA",
     "lesson.dnp3-sa.summary": "چالش و پاسخ برای فرمان‌های حساس",

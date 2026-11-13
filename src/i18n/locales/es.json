@@ -265,6 +265,8 @@
     "lesson.lorawan.where": "Sensores, medidores",
     "lesson.bacnet.summary": "Edificios: calefacción, refrigeración, iluminación, microrredes",
     "lesson.bacnet.where": "Controladores de edificios",
+    "lesson.matter.summary": "El estándar del hogar inteligente, ahora para cargadores y solar",
+    "lesson.matter.where": "Centrales de energía doméstica, cargadores, inversores",
     "lesson.iec-62351.summary": "Seguridad para IEC 104, DNP3 e IEC 61850",
     "lesson.iec-62351.where": "RTU, relés, SCADA",
     "lesson.dnp3-sa.summary": "Desafío y respuesta en los comandos críticos",
