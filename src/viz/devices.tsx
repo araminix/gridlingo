@@ -23,7 +23,7 @@ const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     cloud: { w: 40, d: 34, h: 56 },
     pmu: { w: 26, d: 20, h: 26 },
     building: { w: 60, d: 48, h: 86 },
-    sensor: { w: 8, d: 8, h: 40 },
+    sensor: { w: 8, d: 8, h: 44 },
     laptop: { w: 30, d: 22, h: 16 },
     transformer: { w: 44, d: 30, h: 48 },
     controller: { w: 30, d: 22, h: 49 },
@@ -184,6 +184,15 @@ function buildingParts(cx: number, cy: number) {
     };
 }
 
+/** A sensor mast: a slim pole on its foot plate, a small logger box on its front. */
+function sensorParts(cx: number, cy: number) {
+    return {
+        foot: { cx, cy, w: SIZE.sensor.w, d: SIZE.sensor.d, h: 1.5 } satisfies Box,
+        pole: { cx, cy, w: 2, d: 2, h: SIZE.sensor.h } satisfies Box,
+        logger: { cx, cy: cy + 2.5, w: 6, d: 3, h: 7, z: 10 } satisfies Box,
+    };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -201,6 +210,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "sensor") {
+        const { foot, pole, logger } = sensorParts(cx, cy);
+        return [foot, pole, logger];
+    }
     if (kind === "building") {
         // The cooling unit's shadow falls on the roof, not on the ground
         const { body, canopy } = buildingParts(cx, cy);
@@ -931,11 +944,30 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             );
         }
         case "sensor": {
-            const head: Box = { cx, cy, w: 16, d: 12, h: 10, z: size.h };
+            // A weather mast: cups turning in the wind on top, the white discs that shade a thermometer, a small solar
+            // panel, and the logger box sending it all by radio
+            const { foot, pole, logger } = sensorParts(cx, cy);
+            const top = SIZE.sensor.h + 2;
+            const [hx, hy] = project(cx, cy, top);
+            const arms = [0, 120, 240].map((deg) => project(cx + 6 * Math.cos((deg * Math.PI) / 180), cy + 6 * Math.sin((deg * Math.PI) / 180), top));
+            const shield = [21, 23, 25, 27, 29].map((z) => project(cx + 5, cy, z));
+            const panel = quad(project(cx - 7, cy - 3, 35), project(cx - 1.5, cy - 3, 35), project(cx - 1.5, cy + 2, 31), project(cx - 7, cy + 2, 31));
+            const [ax, ay] = project(cx + 1.5, cy + 2.5, 17);
             return (
                 <g>
-                    <Solid box={box} active={active} />
-                    <Solid box={head} active={active} />
+                    <Solid box={foot} active={active} fine />
+                    <Solid box={pole} active={active} fine />
+                    <Lines list={[[project(cx, cy, 25), project(cx + 5, cy, 25)]]} stroke={tone.edge} width={0.8} />
+                    {shield.map(([x, y], i) => (
+                        <ellipse key={i} cx={round(x)} cy={round(y)} rx={3.6} ry={2} fill={tone.top} stroke={tone.edge} strokeWidth={0.5} />
+                    ))}
+                    <polygon points={panel} fill="var(--viz-cell)" stroke={tone.edge} strokeWidth={0.5} />
+                    <Solid box={logger} active={active} fine />
+                    <Lines list={[[[ax, ay], [ax, ay - 7]]]} stroke={tone.edge} width={0.9} />
+                    <Lines list={[[project(cx, cy, SIZE.sensor.h), [hx, hy]], ...arms.map((arm) => [[hx, hy], arm] as [number, number][])]} stroke={tone.edge} width={0.8} />
+                    {arms.map(([x, y]) => (
+                        <circle key={x} cx={round(x)} cy={round(y)} r={1.4} fill={tone.top} stroke={tone.edge} strokeWidth={0.6} />
+                    ))}
                 </g>
             );
         }
