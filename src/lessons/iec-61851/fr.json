@@ -33,7 +33,10 @@
         "open": "En état B, la borne ne doit pas fournir d'énergie : elle ouvre donc le contacteur. Le signal carré continue : la voiture pourrait redemander de l'énergie.",
         "a": "Plus rien ne fait baisser le CP : +12 V, état A. La borne arrête le signal carré (A1) et attend la voiture suivante."
     },
-    "fields": {},
+    "fields": {
+        "s-letter": { "name": "C · prêt à charger", "note": "La voiture dit qu'elle est prête : le pilote est à +6 V. A veut dire pas de voiture, B branchée mais pas prête, D charge avec ventilation, E pas d'alimentation, F un défaut." },
+        "s-digit": { "name": "2 · PWM active", "note": "La borne offre un courant par son rapport cyclique. 1 voudrait dire un signal fixe : rien n'est encore offert." }
+    },
     "devices": {
         "car": "Voiture",
         "charger": "Borne",
@@ -71,5 +74,8 @@
     },
     "playground": {
         "pwm": "Essayez : tapez un rapport cyclique pour voir ce que lit la voiture, ou un courant pour voir le rapport que la borne doit envoyer. 40 %, ce sont les 24 A de cette leçon."
+    },
+    "anatomy": {
+        "state": "Le nom de l'état de charge"
     }
 }

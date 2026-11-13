@@ -33,7 +33,10 @@
         "open": "No estado B o carregador não pode fornecer energia, então abre o contator. A onda quadrada continua: o carro poderia pedir energia de novo.",
         "a": "Nada mais puxa o CP para baixo: +12 V, estado A. O carregador para a onda quadrada (A1) e espera o próximo carro."
     },
-    "fields": {},
+    "fields": {
+        "s-letter": { "name": "C · pronto para carregar", "note": "O carro diz que está pronto: o piloto marca +6 V. A é sem carro, B carro ligado mas não pronto, D carga com ventilação, E sem alimentação, F uma falha." },
+        "s-digit": { "name": "2 · PWM ligado", "note": "O carregador oferece uma corrente com o ciclo de trabalho. 1 seria um sinal fixo: nada oferecido ainda." }
+    },
     "devices": {
         "car": "Carro",
         "charger": "Carregador",
@@ -71,5 +74,8 @@
     },
     "playground": {
         "pwm": "Experimente: digite um ciclo de trabalho para ver o que o carro lê, ou uma corrente para ver o ciclo que o carregador deve enviar. 40 % são os 24 A desta lição."
+    },
+    "anatomy": {
+        "state": "O nome do estado de carga"
     }
 }

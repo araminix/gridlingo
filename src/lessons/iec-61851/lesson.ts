@@ -85,6 +85,16 @@ export const lesson: Lesson = {
             { id: "digital", signal: pwm(9, 5) },
         ],
     },
+    anatomy: [
+        {
+            id: "state",
+            parts: [
+                ["C", "value", "s-letter"],
+                ["2", "control", "s-digit"],
+            ],
+            also: "A +12 V · B +9 V · C +6 V · D +3 V · E 0 V · F −12 V  ·  1 steady, 2 PWM",
+        },
+    ],
     playground: [{ kind: "pwm", duty: 40 }],
     related: ["iso-15118", "ocpp"],
 };

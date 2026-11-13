@@ -70,7 +70,9 @@
         "data-6": { "name": "Challenge-Daten", "note": "Neue Zufallsbytes, in zwei Teilen gezeigt. Hier erfunden." },
         "ac-10-reply": { "name": "Anwendungssteuerung", "note": "0xCA: kopiert, wie der Rest." },
         "csq-2": { "name": "CSQ 2", "note": "Die Challenge-Nummer von gestern. Die RTU wartet auf eine Antwort auf 6." },
-        "mac-2": { "name": "MAC", "note": "Richtig für die Challenge und den Schlüssel von gestern, falsch für die von heute. Die RTU weist den Befehl ab. Hier erfunden." }
+        "mac-2": { "name": "MAC", "note": "Richtig für die Challenge und den Schlüssel von gestern, falsch für die von heute. Die RTU weist den Befehl ab. Hier erfunden." },
+        "a-group": { "name": "g120 · Gruppe 120", "note": "Die Gruppe der DNP3-Objekte für Secure Authentication. Eine Gruppe sagt, welche Art Daten es sind: g1 ist ein Binäreingang, g12 ein Befehl." },
+        "a-var": { "name": "v1 · Variante 1", "note": "Die Challenge: Zufallsdaten, die die Unterstation dem Master zum Signieren schickt. v2 ist die Antwort; v4 bis v6 regeln die Sitzungsschlüssel." }
     },
     "devices": {
         "scada": "SCADA-Master",
@@ -111,5 +113,8 @@
         "timeout": "Wie lange die RTU auf die Antwort auf eine Challenge wartet. Danach verwirft sie den Befehl.",
         "aggressive": "Der Aggressive Mode ist aus: Jede kritische Anfrage bekommt eine Challenge.",
         "critical": "Die Funktionen, für die die RTU eine Challenge stellt. Lesen steht nicht in der Liste, zyklisches Abfragen kostet also nichts extra."
+    },
+    "anatomy": {
+        "object": "Der Name des Challenge-Objekts"
     }
 }

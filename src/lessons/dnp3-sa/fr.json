@@ -70,7 +70,9 @@
         "data-6": { "name": "Données du défi", "note": "De nouveaux octets aléatoires, montrés en deux parties. Inventés ici." },
         "ac-10-reply": { "name": "Contrôle applicatif", "note": "0xCA : copié, comme le reste." },
         "csq-2": { "name": "CSQ 2", "note": "Le numéro de défi d'hier. Le RTU attend une réponse au 6." },
-        "mac-2": { "name": "MAC", "note": "Juste pour le défi et la clé d'hier, faux pour ceux d'aujourd'hui. Le RTU rejette la commande. Inventé ici." }
+        "mac-2": { "name": "MAC", "note": "Juste pour le défi et la clé d'hier, faux pour ceux d'aujourd'hui. Le RTU rejette la commande. Inventé ici." },
+        "a-group": { "name": "g120 · groupe 120", "note": "Le groupe d'objets DNP3 de Secure Authentication. Un groupe dit de quel type de donnée il s'agit : g1 est une entrée binaire, g12 une commande." },
+        "a-var": { "name": "v1 · variante 1", "note": "Le défi : des données aléatoires que la station envoie pour que le maître les signe. v2 est la réponse ; v4 à v6 gèrent les clés de session." }
     },
     "devices": {
         "scada": "Maître SCADA",
@@ -111,5 +113,8 @@
         "timeout": "Le temps pendant lequel le RTU attend la réponse à un défi. Passé ce délai, il abandonne la commande.",
         "aggressive": "Le mode agressif est désactivé : chaque requête critique est mise au défi.",
         "critical": "Les fonctions que le RTU met au défi. Les lectures n'y figurent pas : la scrutation ne coûte rien de plus."
+    },
+    "anatomy": {
+        "object": "Le nom de l'objet de défi"
     }
 }

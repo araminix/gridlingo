@@ -33,7 +33,10 @@
         "open": "B durumunda şarj cihazı güç vermemelidir, bu yüzden kontaktörü açar. Kare dalga devam eder: araç yeniden güç isteyebilir.",
         "a": "Artık hiçbir şey CP'yi aşağı çekmiyor: +12 V, A durumu. Şarj cihazı kare dalgayı durdurur (A1) ve bir sonraki aracı bekler."
     },
-    "fields": {},
+    "fields": {
+        "s-letter": { "name": "C · şarja hazır", "note": "Araç hazır olduğunu söyler: pilot +6 V gösterir. A araç yok, B takılı ama hazır değil, D havalandırmalı şarj, E besleme yok, F bir arıza demektir." },
+        "s-digit": { "name": "2 · PWM açık", "note": "Şarj cihazı görev döngüsüyle bir akım sunar. 1 sabit bir sinyal olurdu: henüz bir şey sunulmadı." }
+    },
     "devices": {
         "car": "Araç",
         "charger": "Şarj cihazı",
@@ -71,5 +74,8 @@
     },
     "playground": {
         "pwm": "Deneyin: aracın ne anladığını görmek için bir görev döngüsü, şarj cihazının göndermesi gereken döngüyü görmek için bir akım yazın. %40, bu dersin 24 A'sıdır."
+    },
+    "anatomy": {
+        "state": "Şarj durumunun adı"
     }
 }

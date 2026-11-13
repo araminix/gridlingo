@@ -42,7 +42,9 @@
         "fcnt-down": { "name": "FCnt", "note": "0: the first downlink since the join. Downlinks have their own counter." },
         "fport-2": { "name": "FPort", "note": "2: on this sensor, port 2 carries settings." },
         "frm-down": { "name": "FRMPayload", "note": "Encrypted with the AppSKey. The sensor decrypts it to 01 02 58: command 1, set the interval, 0x0258 = 600 s. An example value, from the made-up AppKey." },
-        "mic-down": { "name": "MIC", "note": "Made with the NwkSKey, so the sensor knows the downlink is genuine. An example value, from the made-up AppKey." }
+        "mic-down": { "name": "MIC", "note": "Made with the NwkSKey, so the sensor knows the downlink is genuine. An example value, from the made-up AppKey." },
+        "dr-sf": { "name": "SF7 · spreading factor 7", "note": "Each symbol is spread over 2⁷ = 128 chips. A higher factor is slower but reaches farther: each step up roughly halves the bit rate." },
+        "dr-bw": { "name": "BW125 · 125 kHz", "note": "The width of the channel. Most uplinks in Europe use 125 kHz." }
     },
     "devices": {
         "transformer": "Transformer T1",
@@ -88,5 +90,8 @@
         "signed": "A signed number in tenths of a degree: 0x01CF = 463, so 46.3 °C. Below zero, the top bit is set.",
         "battery": "Millivolts: 0x0E10 = 3600, so 3.6 V.",
         "encode": "The other way: the setting {\"interval_s\":600} becomes 01 02 58, sent on FPort 2."
+    },
+    "anatomy": {
+        "datarate": "The name of the data rate"
     }
 }

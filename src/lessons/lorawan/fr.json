@@ -42,7 +42,9 @@
         "fcnt-down": { "name": "FCnt", "note": "0 : le premier downlink depuis le rattachement. Les downlinks ont leur propre compteur." },
         "fport-2": { "name": "FPort", "note": "2 : sur ce capteur, le port 2 transporte les réglages." },
         "frm-down": { "name": "FRMPayload", "note": "Chiffré avec l'AppSKey. Le capteur le déchiffre en 01 02 58 : commande 1, régler l'intervalle, 0x0258 = 600 s. Une valeur d'exemple, tirée de l'AppKey inventée." },
-        "mic-down": { "name": "MIC", "note": "Calculé avec la NwkSKey : le capteur sait ainsi que le downlink est authentique. Une valeur d'exemple, tirée de l'AppKey inventée." }
+        "mic-down": { "name": "MIC", "note": "Calculé avec la NwkSKey : le capteur sait ainsi que le downlink est authentique. Une valeur d'exemple, tirée de l'AppKey inventée." },
+        "dr-sf": { "name": "SF7 · facteur d'étalement 7", "note": "Chaque symbole est étalé sur 2⁷ = 128 chips. Un facteur plus grand est plus lent mais porte plus loin : chaque cran divise le débit par deux environ." },
+        "dr-bw": { "name": "BW125 · 125 kHz", "note": "La largeur du canal. La plupart des liaisons montantes en Europe utilisent 125 kHz." }
     },
     "devices": {
         "transformer": "Transformateur T1",
@@ -88,5 +90,8 @@
         "signed": "Un nombre signé en dixièmes de degré : 0x01CF = 463, soit 46.3 °C. En dessous de zéro, le bit de poids fort est à 1.",
         "battery": "Des millivolts : 0x0E10 = 3600, soit 3.6 V.",
         "encode": "Dans l'autre sens : le réglage {\"interval_s\":600} devient 01 02 58, envoyé sur le FPort 2."
+    },
+    "anatomy": {
+        "datarate": "Le nom du débit"
     }
 }

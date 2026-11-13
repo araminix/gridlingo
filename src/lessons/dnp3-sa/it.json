@@ -70,7 +70,9 @@
         "data-6": { "name": "Dati della challenge", "note": "Nuovi byte casuali, mostrati in due parti. Qui sono inventati." },
         "ac-10-reply": { "name": "Controllo applicativo", "note": "0xCA: copiato, come il resto." },
         "csq-2": { "name": "CSQ 2", "note": "Il numero di challenge di ieri. La RTU aspetta una risposta alla 6." },
-        "mac-2": { "name": "MAC", "note": "Giusto per la challenge e la chiave di ieri, sbagliato per quelle di oggi. La RTU rifiuta il comando. Qui è inventato." }
+        "mac-2": { "name": "MAC", "note": "Giusto per la challenge e la chiave di ieri, sbagliato per quelle di oggi. La RTU rifiuta il comando. Qui è inventato." },
+        "a-group": { "name": "g120 · gruppo 120", "note": "Il gruppo di oggetti DNP3 per Secure Authentication. Un gruppo dice che tipo di dato è: g1 è un ingresso binario, g12 un comando." },
+        "a-var": { "name": "v1 · variante 1", "note": "La sfida: dati casuali che la stazione periferica invia perché il master li firmi. v2 è la risposta; da v4 a v6 gestiscono le chiavi di sessione." }
     },
     "devices": {
         "scada": "Master SCADA",
@@ -111,5 +113,8 @@
         "timeout": "Quanto aspetta la RTU la risposta a una challenge. Dopo, scarta il comando.",
         "aggressive": "La modalità aggressive è disattivata: ogni richiesta critica riceve una challenge.",
         "critical": "Le funzioni a cui la RTU lancia una challenge. Le letture non sono nell'elenco, quindi il polling non costa nulla in più."
+    },
+    "anatomy": {
+        "object": "Il nome dell'oggetto di sfida"
     }
 }

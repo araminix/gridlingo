@@ -42,7 +42,9 @@
         "fcnt-down": { "name": "FCnt", "note": "0：入网后的第一条下行。下行有自己的计数器。" },
         "fport-2": { "name": "FPort", "note": "2：在这款传感器上，端口 2 用于传送设置。" },
         "frm-down": { "name": "FRMPayload", "note": "用 AppSKey 加密。传感器把它解密为 01 02 58：命令 1，设置上报间隔，0x0258 = 600 s。示例值，由虚构的 AppKey 得出。" },
-        "mic-down": { "name": "MIC", "note": "用 NwkSKey 生成，这样传感器就知道下行是真的。示例值，由虚构的 AppKey 得出。" }
+        "mic-down": { "name": "MIC", "note": "用 NwkSKey 生成，这样传感器就知道下行是真的。示例值，由虚构的 AppKey 得出。" },
+        "dr-sf": { "name": "SF7 · 扩频因子 7", "note": "每个符号扩展到 2⁷ = 128 个码片。因子越大越慢，但传得越远：每升一级，比特率大约减半。" },
+        "dr-bw": { "name": "BW125 · 125 kHz", "note": "信道带宽。欧洲大多数上行使用 125 kHz。" }
     },
     "devices": {
         "transformer": "变压器 T1",
@@ -88,5 +90,8 @@
         "signed": "以十分之一度为单位的有符号数：0x01CF = 463，即 46.3 °C。零度以下时，最高位置 1。",
         "battery": "毫伏：0x0E10 = 3600，即 3.6 V。",
         "encode": "反方向：设置 {\"interval_s\":600} 变成 01 02 58，在 FPort 2 上发送。"
+    },
+    "anatomy": {
+        "datarate": "数据速率的名称"
     }
 }

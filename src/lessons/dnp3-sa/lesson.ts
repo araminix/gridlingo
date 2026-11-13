@@ -159,6 +159,16 @@ export const lesson: Lesson = {
             { id: "csq", address: "CSQ", values: [["keys", "4", "4"], ["challenge", "5", "5"], ["replay", "6", "5"]] },
         ],
     },
+    anatomy: [
+        {
+            id: "object",
+            parts: [
+                ["g120", "type", "a-group"],
+                ["v1", "type", "a-var"],
+            ],
+            also: "g120v1 = 78 01 on the wire (0x78 = 120)  ·  the reply is g120v2",
+        },
+    ],
     playground: [{ kind: "file", sample: "sa-settings.json", file: settings, notes: { 4: "version", 7: "user", 8: "update-key", 11: "key-wrap", 12: "mac", 13: "interval", 14: "timeout", 15: "aggressive", 16: "critical" } }],
     related: ["dnp3", "iec-62351", "iec-62443"],
 };

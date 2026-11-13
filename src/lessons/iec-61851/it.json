@@ -33,7 +33,10 @@
         "open": "Nello stato B la colonnina non deve erogare energia, quindi apre il contattore. L'onda quadra continua: l'auto potrebbe chiedere di nuovo energia.",
         "a": "Niente abbassa più il CP: +12 V, stato A. La colonnina ferma l'onda quadra (A1) e aspetta la prossima auto."
     },
-    "fields": {},
+    "fields": {
+        "s-letter": { "name": "C · pronta a caricare", "note": "L'auto dice di essere pronta: il pilota è a +6 V. A vuol dire nessuna auto, B collegata ma non pronta, D ricarica con ventilazione, E nessuna alimentazione, F un guasto." },
+        "s-digit": { "name": "2 · PWM attivo", "note": "Il caricatore offre una corrente con il suo duty cycle. 1 vorrebbe dire un segnale fisso: ancora niente di offerto." }
+    },
     "devices": {
         "car": "Auto",
         "charger": "Colonnina",
@@ -71,5 +74,8 @@
     },
     "playground": {
         "pwm": "Provalo: scrivi un duty cycle per vedere cosa legge l'auto, o una corrente per vedere il duty cycle che il caricatore deve inviare. 40 % sono i 24 A di questa lezione."
+    },
+    "anatomy": {
+        "state": "Il nome dello stato di ricarica"
     }
 }

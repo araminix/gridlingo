@@ -70,7 +70,9 @@
         "data-6": { "name": "Challenge data", "note": "New random bytes, shown in two parts. Made up here." },
         "ac-10-reply": { "name": "App control", "note": "0xCA: copied, like the rest." },
         "csq-2": { "name": "CSQ 2", "note": "Yesterday's challenge number. The RTU waits for an answer to 6." },
-        "mac-2": { "name": "MAC", "note": "Right for yesterday's challenge and key, wrong for today's. The RTU rejects the command. Made up here." }
+        "mac-2": { "name": "MAC", "note": "Right for yesterday's challenge and key, wrong for today's. The RTU rejects the command. Made up here." },
+        "a-group": { "name": "g120 · group 120", "note": "The group of DNP3 objects for Secure Authentication. A group says what kind of data it is: g1 is a binary input, g12 a command." },
+        "a-var": { "name": "v1 · variation 1", "note": "The challenge: random data the outstation sends for the master to sign. v2 is the reply; v4 to v6 handle the session keys." }
     },
     "devices": {
         "scada": "SCADA master",
@@ -111,5 +113,8 @@
         "timeout": "How long the RTU waits for the reply to a challenge. After that, it drops the command.",
         "aggressive": "Aggressive mode is off: every critical request is challenged.",
         "critical": "The functions the RTU challenges. Reads are not in the list, so polling costs nothing extra."
+    },
+    "anatomy": {
+        "object": "The name of the challenge object"
     }
 }

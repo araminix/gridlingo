@@ -42,7 +42,9 @@
         "fcnt-down": { "name": "FCnt", "note": "0: katılmadan sonraki ilk downlink. Downlink'lerin kendi sayacı vardır." },
         "fport-2": { "name": "FPort", "note": "2: bu sensörde port 2 ayarları taşır." },
         "frm-down": { "name": "FRMPayload", "note": "AppSKey ile şifrelenmiş. Sensör onu 01 02 58 olarak çözer: komut 1, aralığı ayarla, 0x0258 = 600 s. Uydurma AppKey'den örnek bir değer." },
-        "mic-down": { "name": "MIC", "note": "NwkSKey ile üretilir; böylece sensör downlink'in gerçek olduğunu bilir. Uydurma AppKey'den örnek bir değer." }
+        "mic-down": { "name": "MIC", "note": "NwkSKey ile üretilir; böylece sensör downlink'in gerçek olduğunu bilir. Uydurma AppKey'den örnek bir değer." },
+        "dr-sf": { "name": "SF7 · yayılma faktörü 7", "note": "Her sembol 2⁷ = 128 çipe yayılır. Daha yüksek faktör daha yavaştır ama daha uzağa ulaşır: her adım bit hızını kabaca yarıya indirir." },
+        "dr-bw": { "name": "BW125 · 125 kHz", "note": "Kanalın genişliği. Avrupa'daki çoğu yukarı bağlantı 125 kHz kullanır." }
     },
     "devices": {
         "transformer": "T1 transformatörü",
@@ -88,5 +90,8 @@
         "signed": "Derecenin onda biri cinsinden işaretli bir sayı: 0x01CF = 463, yani 46.3 °C. Sıfırın altında en üst bit kuruludur.",
         "battery": "Milivolt: 0x0E10 = 3600, yani 3.6 V.",
         "encode": "Ters yön: {\"interval_s\":600} ayarı 01 02 58 olur ve FPort 2'de gönderilir."
+    },
+    "anatomy": {
+        "datarate": "Veri hızının adı"
     }
 }

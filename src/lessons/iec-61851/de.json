@@ -33,7 +33,10 @@
         "open": "In Zustand B darf die Ladestation keine Leistung liefern, also öffnet sie das Schütz. Das Rechtecksignal läuft weiter: Das Auto könnte wieder Leistung anfordern.",
         "a": "Nichts zieht CP mehr herunter: +12 V, Zustand A. Die Ladestation stoppt das Rechtecksignal (A1) und wartet auf das nächste Auto."
     },
-    "fields": {},
+    "fields": {
+        "s-letter": { "name": "C · ladebereit", "note": "Das Auto meldet, dass es bereit ist: Der Pilot liegt bei +6 V. A heißt kein Auto, B eingesteckt, aber nicht bereit, D Laden mit Belüftung, E keine Versorgung, F ein Fehler." },
+        "s-digit": { "name": "2 · PWM an", "note": "Die Ladestation bietet mit ihrem Tastgrad einen Strom an. 1 hieße ein ruhiges Signal: noch nichts angeboten." }
+    },
     "devices": {
         "car": "Auto",
         "charger": "Ladestation",
@@ -71,5 +74,8 @@
     },
     "playground": {
         "pwm": "Probieren Sie es aus: Geben Sie einen Tastgrad ein und sehen Sie, was das Auto liest, oder einen Strom und sehen Sie den Tastgrad, den die Ladestation senden muss. 40 % sind die 24 A dieser Lektion."
+    },
+    "anatomy": {
+        "state": "Der Name des Ladezustands"
     }
 }

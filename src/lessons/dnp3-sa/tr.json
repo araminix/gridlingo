@@ -70,7 +70,9 @@
         "data-6": { "name": "Challenge verisi", "note": "Yeni rastgele baytlar, iki parça hâlinde gösteriliyor. Burada uydurmadır." },
         "ac-10-reply": { "name": "Uygulama kontrolü", "note": "0xCA: geri kalanı gibi kopyalanmış." },
         "csq-2": { "name": "CSQ 2", "note": "Dünkü challenge numarası. RTU, 6'ya bir yanıt bekliyor." },
-        "mac-2": { "name": "MAC", "note": "Dünkü challenge ve anahtar için doğru, bugünkü için yanlış. RTU komutu reddeder. Burada uydurmadır." }
+        "mac-2": { "name": "MAC", "note": "Dünkü challenge ve anahtar için doğru, bugünkü için yanlış. RTU komutu reddeder. Burada uydurmadır." },
+        "a-group": { "name": "g120 · grup 120", "note": "Secure Authentication için DNP3 nesne grubu. Grup, verinin türünü söyler: g1 ikili giriş, g12 bir komuttur." },
+        "a-var": { "name": "v1 · varyasyon 1", "note": "Sınama: dış istasyonun ana istasyon imzalasın diye gönderdiği rastgele veri. v2 yanıttır; v4–v6 oturum anahtarlarını yönetir." }
     },
     "devices": {
         "scada": "SCADA ana istasyonu",
@@ -111,5 +113,8 @@
         "timeout": "RTU'nun bir challenge'ın yanıtını ne kadar beklediği. Bu süreden sonra komutu düşürür.",
         "aggressive": "Aggressive mode kapalı: her kritik istek challenge edilir.",
         "critical": "RTU'nun challenge ettiği fonksiyonlar. Okumalar listede yok; bu yüzden sorgulama fazladan bir şeye mal olmaz."
+    },
+    "anatomy": {
+        "object": "Sınama nesnesinin adı"
     }
 }

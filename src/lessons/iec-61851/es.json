@@ -33,7 +33,10 @@
         "open": "En el estado B el cargador no debe dar potencia, así que abre el contactor. La onda cuadrada sigue: el vehículo podría volver a pedir potencia.",
         "a": "Ya nada baja CP: +12 V, estado A. El cargador detiene la onda cuadrada (A1) y espera al siguiente vehículo."
     },
-    "fields": {},
+    "fields": {
+        "s-letter": { "name": "C · listo para cargar", "note": "El coche indica que está listo: el piloto marca +6 V. A es sin coche, B coche enchufado pero no listo, D carga con ventilación, E sin alimentación, F un fallo." },
+        "s-digit": { "name": "2 · PWM activo", "note": "El cargador ofrece una corriente con su ciclo de trabajo. 1 sería una señal fija: aún no ofrece nada." }
+    },
     "devices": {
         "car": "Vehículo",
         "charger": "Cargador",
@@ -71,5 +74,8 @@
     },
     "playground": {
         "pwm": "Pruébalo: escribe un ciclo de trabajo para ver qué lee el coche, o una corriente para ver el ciclo que debe enviar el cargador. 40 % son los 24 A de esta lección."
+    },
+    "anatomy": {
+        "state": "El nombre del estado de carga"
     }
 }

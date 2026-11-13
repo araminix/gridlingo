@@ -70,7 +70,9 @@
         "data-6": { "name": "Dados do desafio", "note": "Bytes aleatórios novos, mostrados em duas partes. Inventados aqui." },
         "ac-10-reply": { "name": "Controle de aplicação", "note": "0xCA: copiado, como o resto." },
         "csq-2": { "name": "CSQ 2", "note": "O número de desafio de ontem. A RTU espera uma resposta ao 6." },
-        "mac-2": { "name": "MAC", "note": "Certo para o desafio e a chave de ontem, errado para os de hoje. A RTU rejeita o comando. Inventado aqui." }
+        "mac-2": { "name": "MAC", "note": "Certo para o desafio e a chave de ontem, errado para os de hoje. A RTU rejeita o comando. Inventado aqui." },
+        "a-group": { "name": "g120 · grupo 120", "note": "O grupo de objetos DNP3 de Secure Authentication. Um grupo diz que tipo de dado é: g1 é uma entrada binária, g12 um comando." },
+        "a-var": { "name": "v1 · variação 1", "note": "O desafio: dados aleatórios que a estação remota envia para o mestre assinar. v2 é a resposta; v4 a v6 cuidam das chaves de sessão." }
     },
     "devices": {
         "scada": "Mestre SCADA",
@@ -111,5 +113,8 @@
         "timeout": "Quanto tempo a RTU espera pela resposta a um desafio. Depois disso, descarta o comando.",
         "aggressive": "O modo agressivo está desligado: toda requisição crítica recebe um desafio.",
         "critical": "As funções que a RTU desafia. As leituras não estão na lista, então a varredura não custa nada a mais."
+    },
+    "anatomy": {
+        "object": "O nome do objeto de desafio"
     }
 }

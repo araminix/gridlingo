@@ -126,6 +126,16 @@ export const lesson: Lesson = {
             },
         ],
     },
+    anatomy: [
+        {
+            id: "datarate",
+            parts: [
+                ["SF7", "value", "dr-sf"],
+                ["BW125", "value", "dr-bw"],
+            ],
+            also: "SF7BW125 = DR5 in EU868, about 5.5 kbit/s  ·  SF12BW125 = DR0, about 250 bit/s, reaches farthest",
+        },
+    ],
     playground: [{ kind: "file", sample: "decoder.js", file: codec, notes: { 4: "decode", 5: "port", 9: "order", 12: "signed", 13: "battery", 18: "encode" } }],
     related: ["m-bus", "mqtt", "dlms-cosem"],
 };

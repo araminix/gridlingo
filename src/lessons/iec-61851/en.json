@@ -33,7 +33,10 @@
         "open": "In state B the charger must not supply power, so it opens the contactor. The square wave goes on: the car could ask for power again.",
         "a": "Nothing pulls CP down any more: +12 V, state A. The charger stops the square wave (A1) and waits for the next car."
     },
-    "fields": {},
+    "fields": {
+        "s-letter": { "name": "C · ready to charge", "note": "The car says it is ready: the pilot reads +6 V. A means no car, B a car plugged in but not ready, D charging with ventilation, E no supply, F a fault." },
+        "s-digit": { "name": "2 · PWM on", "note": "The charger offers a current with its duty cycle. 1 means a steady signal: nothing offered yet." }
+    },
     "devices": {
         "car": "Car",
         "charger": "Charger",
@@ -71,5 +74,8 @@
     },
     "playground": {
         "pwm": "Try it: type a duty cycle to see what the car reads, or a current to see the duty cycle the charger must send. 40 % is this lesson's 24 A."
+    },
+    "anatomy": {
+        "state": "The name of the charging state"
     }
 }

@@ -42,7 +42,9 @@
         "fcnt-down": { "name": "FCnt", "note": "0: el primer downlink desde la unión. Los downlinks tienen su propio contador." },
         "fport-2": { "name": "FPort", "note": "2: en este sensor, el puerto 2 lleva ajustes." },
         "frm-down": { "name": "FRMPayload", "note": "Cifrado con la AppSKey. El sensor lo descifra a 01 02 58: comando 1, fijar el intervalo, 0x0258 = 600 s. Un valor de ejemplo, a partir de la AppKey inventada." },
-        "mic-down": { "name": "MIC", "note": "Hecho con la NwkSKey, para que el sensor sepa que el downlink es auténtico. Un valor de ejemplo, a partir de la AppKey inventada." }
+        "mic-down": { "name": "MIC", "note": "Hecho con la NwkSKey, para que el sensor sepa que el downlink es auténtico. Un valor de ejemplo, a partir de la AppKey inventada." },
+        "dr-sf": { "name": "SF7 · factor de ensanchamiento 7", "note": "Cada símbolo se reparte en 2⁷ = 128 chips. Un factor mayor es más lento pero llega más lejos: cada paso arriba reduce la velocidad a la mitad, más o menos." },
+        "dr-bw": { "name": "BW125 · 125 kHz", "note": "El ancho del canal. La mayoría de los enlaces de subida en Europa usan 125 kHz." }
     },
     "devices": {
         "transformer": "Transformador T1",
@@ -88,5 +90,8 @@
         "signed": "Un número con signo en décimas de grado: 0x01CF = 463, es decir, 46.3 °C. Bajo cero, el bit superior está activo.",
         "battery": "Milivoltios: 0x0E10 = 3600, es decir, 3.6 V.",
         "encode": "Al revés: el ajuste {\"interval_s\":600} se convierte en 01 02 58, enviado en el FPort 2."
+    },
+    "anatomy": {
+        "datarate": "El nombre de la velocidad de datos"
     }
 }
