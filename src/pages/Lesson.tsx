@@ -1,5 +1,5 @@
 import { Binary, Lightbulb, ListTree } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -78,6 +78,16 @@ function Section({ title, hint, children, action, testId }: { title: string; hin
     );
 }
 
+// Wide screens have a right-hand column: the introduction goes at its top; on narrower ones it follows the diagram.
+// It is mounted in one place only, so its text is never on the page twice.
+const wideQuery = () => (typeof matchMedia === "function" ? matchMedia("(min-width: 80rem)") : null);
+const subscribeWide = (onChange: () => void) => {
+    const query = wideQuery();
+    query?.addEventListener("change", onChange);
+    return () => query?.removeEventListener("change", onChange);
+};
+const useWide = () => useSyncExternalStore(subscribeWide, () => wideQuery()?.matches ?? false, () => false);
+
 /** How the lesson is introduced: in the trade's words, or in plain ones. */
 type Level = "technical" | "plain";
 const isLevel = (value: unknown): value is Level => value === "technical" || value === "plain";
@@ -91,6 +101,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
     const [playing, setPlaying] = useState(false);
     const [navOpen, setNavOpen] = useState(false);
     const [level, setLevel] = usePersisted<Level>("gridlingo.level", "technical", isLevel);
+    const wide = useWide();
     const last = lesson.steps.length - 1;
 
     const stepIndex = useCallback((frame: Frame) => lesson.steps.findIndex((step) => step.id === frame.step), [lesson]);
@@ -142,6 +153,37 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
 
     const wire = selected && `${selected.name} · ${words.device(selected.from)} → ${(typeof selected.to === "string" ? [selected.to] : selected.to).map((to) => words.device(to)).join(", ")}`;
     const facts = <Facts meta={meta} words={words} keys={lesson.facts} />;
+    // What the protocol is for, in the trade's words or in plain ones, as the reader picks
+    const intro = (
+        <Card className="gap-0 overflow-hidden py-0">
+            <Tabs value={level} onValueChange={(value) => isLevel(value) && setLevel(value)} className="gap-0">
+                <div className="border-b px-3 py-2">
+                    <TabsList className="w-full">
+                        <TabsTrigger value="technical">
+                            <Binary aria-hidden="true" />
+                            {t("lesson.technical")}
+                        </TabsTrigger>
+                        <TabsTrigger value="plain">
+                            <Lightbulb aria-hidden="true" className="text-gold-foreground" />
+                            {t("lesson.plain")}
+                        </TabsTrigger>
+                    </TabsList>
+                </div>
+                <TabsContent value="technical" className="p-3">
+                    <p className="text-[15px]">
+                        <Rich text={words.intro} />
+                    </p>
+                </TabsContent>
+                <TabsContent value="plain" className="flex gap-2.5 bg-gold-soft p-3">
+                    <Lightbulb className="mt-0.5 size-5 shrink-0 text-gold-foreground" aria-hidden="true" />
+                    <p className="text-[15px]">
+                        <Rich text={words.plain} />
+                    </p>
+                </TabsContent>
+            </Tabs>
+        </Card>
+    );
+
     const devices = lesson.points && (
         <Section title={t("points.title")} hint={t("points.hint")}>
             <div className="px-3 py-1.5">
@@ -184,32 +226,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                             {t(`group.${meta.group}` as MessageKey)}
                         </span>
                     </div>
-                    <Tabs value={level} onValueChange={(value) => isLevel(value) && setLevel(value)} className="max-w-3xl gap-2">
-                        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-                            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{meta.name}</h1>
-                            <TabsList>
-                                <TabsTrigger value="technical">
-                                    <Binary aria-hidden="true" />
-                                    {t("lesson.technical")}
-                                </TabsTrigger>
-                                <TabsTrigger value="plain">
-                                    <Lightbulb aria-hidden="true" className="text-gold-foreground" />
-                                    {t("lesson.plain")}
-                                </TabsTrigger>
-                            </TabsList>
-                        </div>
-                        <TabsContent value="technical">
-                            <p className="text-[15px]">
-                                <Rich text={words.intro} />
-                            </p>
-                        </TabsContent>
-                        <TabsContent value="plain" className="flex gap-2.5 rounded-xl border border-[color-mix(in_oklab,var(--gold)_45%,transparent)] bg-gold-soft px-3.5 py-3">
-                            <Lightbulb className="mt-0.5 size-5 shrink-0 text-gold-foreground" aria-hidden="true" />
-                            <p className="text-[15px]">
-                                <Rich text={words.plain} />
-                            </p>
-                        </TabsContent>
-                    </Tabs>
+                    <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{meta.name}</h1>
                 </header>
 
                 <Card className="gap-0 overflow-hidden py-0" data-testid="stage">
@@ -249,6 +266,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                     </Tabs>
                 </Card>
 
+                {!wide && intro}
                 <div className="xl:hidden">{devices}</div>
 
                 <Section title={t("frames.title")} hint={t("frames.hint")}>
@@ -315,6 +333,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
             </main>
 
             <aside className="hidden space-y-4 xl:block">
+                {wide && intro}
                 {facts}
                 {devices}
                 <Tips words={words} />
