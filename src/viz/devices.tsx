@@ -79,6 +79,12 @@ function chargerParts(cx: number, cy: number) {
     return { base: { cx, cy, w: w + 4, d: 18, h: 2 } satisfies Box, pillar: { cx, cy, w, d: 12, h: h - 4, z: 2 } satisfies Box, cap: { cx, cy, w: w + 1.5, d: 13.5, h: 2, z: h - 2 } satisfies Box };
 }
 
+/** A meter on the front of an outdoor meter pillar. */
+function meterParts(cx: number, cy: number) {
+    const { w, d, h } = SIZE.meter;
+    return { pillar: { cx, cy, w, d, h: h - 2 } satisfies Box, meter: { cx, cy: cy + d / 2 + 1.5, w: w - 6, d: 3, h: 15, z: 10 } satisfies Box, cap: { cx, cy, w: w + 2, d: d + 2, h: 2, z: h - 2 } satisfies Box };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -96,6 +102,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "meter") {
+        const { pillar, meter } = meterParts(cx, cy);
+        return [pillar, meter];
+    }
     if (kind === "charger") {
         const { base, pillar } = chargerParts(cx, cy);
         return [base, pillar];
@@ -423,9 +433,26 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             );
             break;
         }
-        case "meter":
-            detail = <Panel on={f.onLeft} u0={0.14} v0={0.55} u1={0.86} v1={0.78} fill="var(--viz-screen)" />;
-            break;
+        case "meter": {
+            // The meter stands out from the pillar: its reading, the round optical port, the pulse light, and the cover
+            // over its terminals below
+            const { pillar, meter, cap } = meterParts(cx, cy);
+            const face = faces(meter).onLeft;
+            const [ox, oy] = face(0.32, 0.4);
+            const [px, py] = face(0.72, 0.4);
+            return (
+                <g>
+                    <Solid box={pillar} active={active} />
+                    <Solid box={cap} active={active} fine />
+                    <Solid box={meter} active={active} fine />
+                    <Panel on={face} u0={0.14} v0={0.62} u1={0.86} v1={0.86} fill="var(--viz-screen)" />
+                    <Lines list={[[face(0.24, 0.74), face(0.7, 0.74)]]} stroke="var(--viz-ok)" width={1.2} />
+                    <circle cx={round(ox)} cy={round(oy)} r={1.5} fill="var(--viz-screen)" stroke={tone.edge} strokeWidth={0.5} />
+                    <circle cx={round(px)} cy={round(py)} r={0.9} fill="var(--destructive)" />
+                    <Lines list={[[face(0, 0.24), face(1, 0.24)]]} width={0.6} />
+                </g>
+            );
+        }
         case "charger": {
             // In front a green light bar (free to use), a screen with the charge and a card reader; on its side the
             // plug rests in a holster, its cable hanging in a loop
