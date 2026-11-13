@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import type { DeviceKind } from "@/lessons/types";
 import { faces, hull, project, round, type Box } from "./iso";
 
@@ -214,6 +213,12 @@ function mastParts(cx: number, cy: number) {
     };
 }
 
+/** A firewall in a short network cabinet on its plinth, under a cap. */
+function firewallParts(cx: number, cy: number) {
+    const { w, d, h } = SIZE.firewall;
+    return { plinth: { cx, cy, w, d, h: 2 } satisfies Box, cabinet: { cx, cy, w: w - 2, d: d - 2, h: h - 4, z: 2 } satisfies Box, cap: { cx, cy, w: w - 1, d: d - 1, h: 2, z: h - 2 } satisfies Box };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -231,6 +236,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "firewall") {
+        const { plinth, cabinet } = firewallParts(cx, cy);
+        return [plinth, cabinet];
+    }
     if (kind === "radio") {
         const { foundation, tower, cabinet } = mastParts(cx, cy);
         return [foundation, tower, cabinet];
@@ -408,10 +417,7 @@ function Lines({ list, stroke = "var(--viz-edge)", width = 1 }: { list: [number,
 /** A device of its kind standing at (cx, cy) on the ground. */
 export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind; cx: number; cy: number; active?: boolean }) {
     const size = SIZE[kind];
-    const box: Box = { cx, cy, ...size };
-    const f = faces(box);
     const tone = tones(active);
-    let detail: ReactNode = null;
 
     switch (kind) {
         case "scada": {
@@ -806,20 +812,43 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
                 </g>
             );
         }
-        case "firewall":
-            // A brick wall on its front
-            detail = (
-                <Lines
-                    list={[
-                        ...[0.33, 0.66].map((v) => [f.onLeft(0, v), f.onLeft(1, v)]),
-                        ...[0.25, 0.5, 0.75].map((u) => [f.onLeft(u, 0), f.onLeft(u, 0.33)]),
-                        ...[0.12, 0.38, 0.62, 0.88].map((u) => [f.onLeft(u, 0.33), f.onLeft(u, 0.66)]),
-                        ...[0.25, 0.5, 0.75].map((u) => [f.onLeft(u, 0.66), f.onLeft(u, 1)]),
-                    ]}
-                    stroke="var(--viz-alert)"
-                />
+        case "firewall": {
+            // Through its glass door a patch panel and the firewall itself: a brick wall on its bezel (what it is for),
+            // its ports and two lights; vents on its side
+            const { plinth, cabinet, cap } = firewallParts(cx, cy);
+            const front = faces(cabinet).onLeft;
+            const side = faces(cabinet).onRight;
+            const row = (u0: number, u1: number, v: number, width: number) => <path d={`M${pair(front(u0, v))} L${pair(front(u1, v))}`} stroke="var(--viz-screen)" strokeWidth={width} strokeDasharray="1.4 0.9" />;
+            return (
+                <g>
+                    <Solid box={plinth} active={active} fine />
+                    <Solid box={cabinet} active={active} />
+                    <Solid box={cap} active={active} fine />
+                    <Panel on={front} u0={0.06} v0={0.06} u1={0.94} v1={0.94} fill="var(--viz-screen)" />
+                    <Panel on={front} u0={0.1} v0={0.76} u1={0.9} v1={0.86} fill={tone.left} />
+                    {row(0.14, 0.86, 0.81, 1.2)}
+                    <Panel on={front} u0={0.1} v0={0.4} u1={0.9} v1={0.7} fill={tone.left} />
+                    <Panel on={front} u0={0.1} v0={0.4} u1={0.34} v1={0.7} fill="var(--viz-alert)" />
+                    <Lines
+                        list={[
+                            [front(0.1, 0.5), front(0.34, 0.5)],
+                            [front(0.1, 0.6), front(0.34, 0.6)],
+                            ...[0.18, 0.26].map((u) => [front(u, 0.4), front(u, 0.5)]),
+                            ...[0.14, 0.22, 0.3].map((u) => [front(u, 0.5), front(u, 0.6)]),
+                            ...[0.18, 0.26].map((u) => [front(u, 0.6), front(u, 0.7)]),
+                        ]}
+                        stroke={tone.top}
+                        width={0.5}
+                    />
+                    {row(0.4, 0.76, 0.55, 1.6)}
+                    {[0.62, 0.48].map((v) => {
+                        const [x, y] = front(0.84, v);
+                        return <circle key={v} cx={round(x)} cy={round(y)} r={0.7} fill="var(--viz-ok)" />;
+                    })}
+                    <Lines list={[0.4, 0.5, 0.6, 0.7].map((v) => [side(0.3, v), side(0.7, v)])} width={0.5} />
+                </g>
             );
-            break;
+        }
         case "breaker": {
             // Each column is an insulator: a core with round sheds stacked up it, a clamp for the line on top
             const { pad, legs, beam, poles, cabinet } = breakerParts(cx, cy);
@@ -1139,11 +1168,4 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             );
         }
     }
-
-    return (
-        <g>
-            <Solid box={box} active={active} />
-            {detail}
-        </g>
-    );
 }
