@@ -20,7 +20,7 @@ const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     charger: { w: 16, d: 16, h: 52 },
     car: { w: 62, d: 28, h: 26 },
     broker: { w: 34, d: 30, h: 48 },
-    cloud: { w: 40, d: 34, h: 40 },
+    cloud: { w: 40, d: 34, h: 56 },
     pmu: { w: 26, d: 20, h: 26 },
     building: { w: 60, d: 48, h: 84 },
     sensor: { w: 8, d: 8, h: 40 },
@@ -168,6 +168,12 @@ function rackParts(cx: number, cy: number) {
     return { plinth: { cx, cy, w: w - 2, d: d - 2, h: 2 } satisfies Box, cabinet: { cx, cy, w: w - 4, d: d - 4, h: h - 4, z: 2 } satisfies Box, cap: { cx, cy, w: w - 3, d: d - 3, h: 2, z: h - 2 } satisfies Box };
 }
 
+/** A small data hall: a raised floor with two server racks on it; a cloud floats above (drawn, not a body). */
+function hallParts(cx: number, cy: number) {
+    const { w, d } = SIZE.cloud;
+    return { floor: { cx, cy, w, d, h: 3 } satisfies Box, racks: [-1, 1].map((at): Box => ({ cx: cx + at * 9.5, cy: cy - 3, w: 17, d: 22, h: 30, z: 3 })) };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -185,6 +191,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "cloud") {
+        const { floor, racks } = hallParts(cx, cy);
+        return [floor, ...racks];
+    }
     if (kind === "broker") {
         const { plinth, cabinet } = rackParts(cx, cy);
         return [plinth, cabinet];
@@ -308,20 +318,30 @@ function Insulator({ at: [x, y], z0, z1, r, tone }: { at: readonly [number, numb
     );
 }
 
+/** Servers seen through a rack's open front (from v 0.25 up): dark inside, each with drive bays and two lights. */
+function Servers({ on, count, tone }: { on: (u: number, v: number) => [number, number]; count: number; tone: ReturnType<typeof tones> }) {
+    const slot = 0.65 / count;
+    const rows = Array.from({ length: count }, (_, i) => 0.9 - (i + 1) * slot);
+    return (
+        <>
+            <Panel on={on} u0={0.06} v0={0.03} u1={0.94} v1={0.97} fill="var(--viz-screen)" />
+            {rows.map((v) => (
+                <Panel key={v} on={on} u0={0.1} v0={v} u1={0.9} v1={v + slot * 0.77} fill={tone.left} />
+            ))}
+            <Lines list={rows.flatMap((v) => [0.16, 0.24, 0.32, 0.4, 0.48].map((u) => [on(u, v + slot * 0.15), on(u, v + slot * 0.62)]))} width={0.6} />
+            {rows.flatMap((v, i) =>
+                [0.74, 0.82].map((u, j) => {
+                    const [x, y] = on(u, v + slot * 0.38);
+                    return <circle key={`${v}${u}`} cx={round(x)} cy={round(y)} r={0.7} fill={i === 2 && j === 1 ? "var(--viz-token)" : "var(--viz-ok)"} />;
+                }),
+            )}
+        </>
+    );
+}
+
 /** A rectangle on a face: from (u0, v0) to (u1, v1) of the face. */
 function Panel({ on, u0, v0, u1, v1, fill }: { on: (u: number, v: number) => [number, number]; u0: number; v0: number; u1: number; v1: number; fill: string }) {
     return <polygon points={quad(on(u0, v0), on(u1, v0), on(u1, v1), on(u0, v1))} fill={fill} />;
-}
-
-function Leds({ on, v = 0.84, at = [0.25, 0.45, 0.65] }: { on: (u: number, v: number) => [number, number]; v?: number; at?: number[] }) {
-    return (
-        <>
-            {at.map((u, i) => {
-                const [x, y] = on(u, v);
-                return <circle key={u} cx={round(x)} cy={round(y)} r={2.2} fill={i === 1 ? "var(--viz-token)" : "var(--viz-ok)"} />;
-            })}
-        </>
-    );
 }
 
 function Lines({ list, stroke = "var(--viz-edge)", width = 1 }: { list: [number, number][][]; stroke?: string; width?: number }) {
@@ -826,39 +846,39 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             const { plinth, cabinet, cap } = rackParts(cx, cy);
             const front = faces(cabinet).onLeft;
             const side = faces(cabinet).onRight;
-            const servers = [0.78, 0.65, 0.52, 0.39, 0.26];
             return (
                 <g>
                     <Solid box={plinth} active={active} fine />
                     <Solid box={cabinet} active={active} />
                     <Solid box={cap} active={active} fine />
-                    <Panel on={front} u0={0.06} v0={0.03} u1={0.94} v1={0.97} fill="var(--viz-screen)" />
-                    {servers.map((v) => (
-                        <Panel key={v} on={front} u0={0.1} v0={v} u1={0.9} v1={v + 0.1} fill={tone.left} />
-                    ))}
-                    <Lines list={servers.flatMap((v) => [0.16, 0.24, 0.32, 0.4, 0.48].map((u) => [front(u, v + 0.02), front(u, v + 0.08)]))} width={0.6} />
-                    {servers.flatMap((v, i) =>
-                        [0.74, 0.82].map((u, j) => {
-                            const [x, y] = front(u, v + 0.05);
-                            return <circle key={`${v}${u}`} cx={round(x)} cy={round(y)} r={0.7} fill={i === 2 && j === 1 ? "var(--viz-token)" : "var(--viz-ok)"} />;
-                        }),
-                    )}
+                    <Servers on={front} count={5} tone={tone} />
                     <Panel on={front} u0={0.1} v0={0.06} u1={0.9} v1={0.2} fill={tone.left} />
                     <Panel on={front} u0={0.6} v0={0.09} u1={0.82} v1={0.17} fill="var(--viz-screen)" />
                     <Lines list={[0.3, 0.4, 0.5, 0.6, 0.7].map((v) => [side(0.3, v), side(0.7, v)])} width={0.5} />
                 </g>
             );
         }
-        case "cloud":
-            detail = (
-                <>
-                    <Lines list={[0.25, 0.5, 0.75].map((v) => [f.onLeft(0.04, v), f.onLeft(0.96, v)])} />
-                    <Leds on={f.onLeft} v={0.88} at={[0.15, 0.3]} />
-                    <Leds on={f.onLeft} v={0.62} at={[0.15, 0.3]} />
-                    <Leds on={f.onLeft} v={0.38} at={[0.15, 0.3]} />
-                </>
+        case "cloud": {
+            // Two racks of servers on a tiled raised floor, and the cloud they stand for floating above, lit from the left
+            const { floor, racks } = hallParts(cx, cy);
+            const tiles = faces(floor).onTop;
+            const [x, y] = project(cx, cy, 50);
+            const puffs = (dx: number, dy: number) => `M${round(x - 15 + dx)},${round(y + 5 + dy)} a5,5 0 0 1 3,-9 a8,8 0 0 1 14,-4 a6.5,6.5 0 0 1 12,4 a5,5 0 0 1 1,9 Z`;
+            return (
+                <g>
+                    <Solid box={floor} active={active} fine />
+                    <Lines list={[0.25, 0.5, 0.75].flatMap((t) => [[tiles(t, 0.02), tiles(t, 0.98)], [tiles(0.02, t), tiles(0.98, t)]])} width={0.4} />
+                    {racks.map((rack) => (
+                        <g key={rack.cx}>
+                            <Solid box={rack} active={active} />
+                            <Servers on={faces(rack).onLeft} count={4} tone={tone} />
+                        </g>
+                    ))}
+                    <path d={puffs(1.5, 1.5)} fill={tone.right} />
+                    <path d={puffs(0, 0)} fill={tone.top} stroke={tone.edge} strokeWidth={tone.width} strokeLinejoin="round" />
+                </g>
             );
-            break;
+        }
         case "building":
             detail = (
                 <>
