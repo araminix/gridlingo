@@ -1,4 +1,5 @@
 import type { Lesson } from "../types";
+import publisher from "./relay-a-publisher.txt?raw";
 
 const KDC_LINK = "GDOI · UDP 848";
 
@@ -83,6 +84,9 @@ export const lesson: Lesson = {
             ],
             also: "239.192.0.1 → 01-00-5E-40-00-01",
         },
+    ],
+    playground: [
+        { kind: "file", sample: "relay-a-publisher.txt", file: publisher, notes: { 2: "cb", 3: "group", 4: "port", 5: "mac", 6: "ttl", 7: "dscp", 8: "kdc", 9: "security", 10: "repeat" } },
     ],
     related: ["iec-61850-goose", "iec-62351", "iec-61850-sv", "c37-118"],
 };

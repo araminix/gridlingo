@@ -79,5 +79,17 @@
     },
     "anatomy": {
         "multicast": "Bir IP multicast grubu nasıl MAC adresine dönüşür"
+    },
+    "playground": {
+        "file": "Deneyin: bir mühendisin, açmasını R-GOOSE olarak yayınlaması için röle A'ya verdiği ayarlar. Burada sade bir biçimde gösterilir; gerçek bir röle bunları SCL dosyasında ya da üreticinin aracında tutar.",
+        "cb": "Yayınlayan kontrol bloğu: klasik bir GOOSE'unkiyle aynı türden. Değişen yalnızca yoludur.",
+        "group": "Bir IPv4 multicast grubu: ona katılan her abone mesajı alır, yönlendiricilerin ulaştığı her trafo merkezinde.",
+        "port": "UDP portu 102, bu dersin çerçevesindeki gibi (00 66).",
+        "mac": "Yerel Ethernet'te grubun kendi MAC adresi: 01:00:5E, ardından 239.192.0.1'in son 23 biti.",
+        "ttl": "Yaşam süresi: her yönlendirici 1 düşer ve çerçeveyi 0'da atar. WAN'ı geçmek için 16 yeter: bu dersin çerçevesindeki 10 baytı.",
+        "dscp": "WAN'da öncelik: DSCP 46, hızlandırılmış iletim, bu dersin çerçevesindeki B8 baytı. Bir açma başka trafiğin arkasında beklemez.",
+        "kdc": "Anahtarların geldiği yer: bu dersin KDC'si, GDOI üzerinden. Anahtarlar olmadan aboneler her mesajı atar.",
+        "security": "Kimse sahte bir açma üretemesin diye HMAC ile imzalı. Şifreleme isteğe bağlıdır ve burada kapalıdır.",
+        "repeat": "Bir değişiklikten sonra hızlı, sonra giderek yavaşlayarak tekrarlar, GOOSE gibi: abone kaybolan bir mesajı bir saniye içinde fark eder."
     }
 }

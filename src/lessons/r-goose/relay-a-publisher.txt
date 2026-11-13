@@ -1,0 +1,10 @@
+# Relay A (10.1.0.11): R-GOOSE publisher settings
+Control block   RelayA/LLN0.TripGoose
+Destination     239.192.0.1        IPv4 multicast group
+UDP port        102
+Multicast MAC   01:00:5E:40:00:01
+TTL             16                 routers it may cross
+DSCP            46 (EF)            first in line on the WAN
+Key server      10.0.0.50          GDOI, UDP 848
+Security        HMAC signature, no encryption
+Repeat          4 ms, doubling up to 1 s

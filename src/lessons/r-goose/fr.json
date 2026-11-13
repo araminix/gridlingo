@@ -79,5 +79,17 @@
     },
     "anatomy": {
         "multicast": "Comment un groupe multicast IP devient une adresse MAC"
+    },
+    "playground": {
+        "file": "Essayez : les réglages qu'un ingénieur donne au relais A pour publier son déclenchement en R-GOOSE. Ils sont présentés ici simplement ; un vrai relais les garde dans son fichier SCL ou l'outil du constructeur.",
+        "cb": "Le bloc de contrôle qui publie : le même genre que pour un GOOSE classique. Seul le chemin change.",
+        "group": "Un groupe multicast IPv4 : tout abonné qui le rejoint reçoit le message, dans tout poste que les routeurs atteignent.",
+        "port": "Port UDP 102, comme dans la trame de cette leçon (00 66).",
+        "mac": "Sur l'Ethernet local, l'adresse MAC propre au groupe : 01:00:5E, puis les 23 derniers bits de 239.192.0.1.",
+        "ttl": "Durée de vie : chaque routeur retire 1 et jette la trame à 0. 16 suffit pour traverser le WAN : l'octet 10 de la trame de cette leçon.",
+        "dscp": "Priorité sur le WAN : DSCP 46, acheminement express, l'octet B8 de la trame de cette leçon. Un déclenchement n'attend pas derrière le reste du trafic.",
+        "kdc": "D'où viennent les clés : du KDC de cette leçon, par GDOI. Sans les clés, les abonnés jettent tous les messages.",
+        "security": "Signé avec un HMAC, pour que personne ne puisse forger un déclenchement. Le chiffrement est facultatif et coupé ici.",
+        "repeat": "Après un changement, il répète vite, puis de plus en plus lentement, comme GOOSE : un abonné voit un message perdu en moins d'une seconde."
     }
 }

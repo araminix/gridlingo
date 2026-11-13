@@ -79,5 +79,17 @@
     },
     "anatomy": {
         "multicast": "Cómo un grupo multicast IP se convierte en una dirección MAC"
+    },
+    "playground": {
+        "file": "Pruébalo: los ajustes que un ingeniero le da al relé A para publicar su disparo como R-GOOSE. Aquí van en forma sencilla; un relé real los guarda en su archivo SCL o en la herramienta del fabricante.",
+        "cb": "El bloque de control que publica: del mismo tipo que usa un GOOSE clásico. Solo cambia cómo viaja.",
+        "group": "Un grupo multicast IPv4: todo suscriptor que se une recibe el mensaje, en cualquier subestación a la que lleguen los routers.",
+        "port": "Puerto UDP 102, como en la trama de esta lección (00 66).",
+        "mac": "En la Ethernet local, la dirección MAC propia del grupo: 01:00:5E y después los últimos 23 bits de 239.192.0.1.",
+        "ttl": "Tiempo de vida: cada router resta 1 y descarta la trama al llegar a 0. Con 16 basta para cruzar la WAN: el byte 10 de la trama de esta lección.",
+        "dscp": "Prioridad en la WAN: DSCP 46, reenvío expedito, el byte B8 de la trama de esta lección. Un disparo no espera detrás de otro tráfico.",
+        "kdc": "De dónde vienen las claves: del KDC de esta lección, por GDOI. Sin las claves, los suscriptores descartan todos los mensajes.",
+        "security": "Firmado con un HMAC, para que nadie pueda falsificar un disparo. El cifrado es opcional y aquí está apagado.",
+        "repeat": "Tras un cambio repite rápido y luego cada vez más despacio, como GOOSE: un suscriptor nota un mensaje perdido en menos de un segundo."
     }
 }

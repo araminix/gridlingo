@@ -79,5 +79,17 @@
     },
     "anatomy": {
         "multicast": "Wie aus einer IP-Multicast-Gruppe eine MAC-Adresse wird"
+    },
+    "playground": {
+        "file": "Probieren Sie es aus: die Einstellungen, die ein Ingenieur Schutzgerät A gibt, damit es seine Auslösung als R-GOOSE veröffentlicht. Hier in einfacher Form; ein echtes Gerät hält sie in seiner SCL-Datei oder im Werkzeug des Herstellers.",
+        "cb": "Der veröffentlichende Kontrollblock: dieselbe Art wie bei klassischem GOOSE. Nur der Weg ändert sich.",
+        "group": "Eine IPv4-Multicast-Gruppe: Jeder Abonnent, der ihr beitritt, bekommt die Nachricht, in jedem Umspannwerk, das die Router erreichen.",
+        "port": "UDP-Port 102, wie im Frame dieser Lektion (00 66).",
+        "mac": "Im lokalen Ethernet die eigene MAC-Adresse der Gruppe: 01:00:5E, dann die letzten 23 Bit von 239.192.0.1.",
+        "ttl": "Time to Live: Jeder Router zieht 1 ab und verwirft den Frame bei 0. 16 reicht über das WAN: das Byte 10 im Frame dieser Lektion.",
+        "dscp": "Priorität im WAN: DSCP 46, Expedited Forwarding, das Byte B8 im Frame dieser Lektion. Eine Auslösung wartet nicht hinter anderem Verkehr.",
+        "kdc": "Woher die Schlüssel kommen: vom KDC dieser Lektion, über GDOI. Ohne Schlüssel verwerfen Abonnenten jede Nachricht.",
+        "security": "Mit einem HMAC signiert, damit niemand eine Auslösung fälschen kann. Verschlüsselung ist optional und hier aus.",
+        "repeat": "Nach einer Änderung wiederholt es schnell, dann immer langsamer, wie GOOSE: Ein Abonnent merkt eine verlorene Nachricht binnen einer Sekunde."
     }
 }

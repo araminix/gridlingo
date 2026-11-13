@@ -79,5 +79,17 @@
     },
     "anatomy": {
         "multicast": "How an IP multicast group becomes a MAC address"
+    },
+    "playground": {
+        "file": "Try it: the settings an engineer gives relay A to publish its trip as R-GOOSE. They are shown here in a plain form; a real relay keeps them in its SCL file or its maker's tool.",
+        "cb": "The control block that publishes: the same kind a classic GOOSE uses. Only the way it travels changes.",
+        "group": "An IPv4 multicast group: every subscriber that joins it gets the message, in any substation the routers reach.",
+        "port": "UDP port 102, as in this lesson's frame (00 66).",
+        "mac": "On the local Ethernet, the group's own MAC address: 01:00:5E, then the last 23 bits of 239.192.0.1.",
+        "ttl": "Time to live: each router takes 1 off and drops the frame at 0. 16 is enough to cross the WAN: the byte 10 of this lesson's frame.",
+        "dscp": "Priority on the WAN: DSCP 46, expedited forwarding, the byte B8 of this lesson's frame. A trip does not wait behind other traffic.",
+        "kdc": "Where the keys come from: this lesson's KDC, over GDOI. Without the keys, subscribers drop every message.",
+        "security": "Signed with an HMAC, so no one can forge a trip. Encryption is optional and off here.",
+        "repeat": "After a change it repeats fast, then slower and slower, as GOOSE does: a subscriber notices a lost message within a second."
     }
 }
