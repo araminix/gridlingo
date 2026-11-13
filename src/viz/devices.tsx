@@ -10,7 +10,7 @@ const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     relay: { w: 26, d: 20, h: 52 },
     breaker: { w: 24, d: 24, h: 44 },
     "merging-unit": { w: 24, d: 20, h: 22 },
-    clock: { w: 26, d: 20, h: 24 },
+    clock: { w: 26, d: 20, h: 33 },
     switch: { w: 44, d: 24, h: 28 },
     inverter: { w: 26, d: 20, h: 40 },
     pv: { w: 112, d: 52, h: 18 },
@@ -151,6 +151,17 @@ function mergingParts(cx: number, cy: number) {
     };
 }
 
+/** A time server: a low cabinet on a plinth, the clock's chassis standing out from its front, a GPS antenna on a mast. */
+function clockParts(cx: number, cy: number) {
+    const { w, d } = SIZE.clock;
+    return {
+        plinth: { cx, cy, w, d, h: 3 } satisfies Box,
+        body: { cx, cy, w, d, h: 14, z: 3 } satisfies Box,
+        chassis: { cx, cy: cy + d / 2 + 0.75, w: w - 4, d: 1.5, h: 7, z: 8 } satisfies Box,
+        mast: [cx + 7, cy - 6] as const,
+    };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -168,6 +179,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "clock") {
+        const { plinth, body, chassis } = clockParts(cx, cy);
+        return [plinth, body, chassis];
+    }
     if (kind === "merging-unit") {
         const { foot, post, unit } = mergingParts(cx, cy);
         return [foot, post, unit];
@@ -559,14 +574,36 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             );
         }
         case "clock": {
-            const [x, y] = f.onLeft(0.5, 0.5);
-            detail = (
-                <>
-                    <circle cx={round(x)} cy={round(y)} r={6} fill="var(--viz-screen)" />
-                    <path d={`M${round(x)},${round(y)} l0,-4 M${round(x)},${round(y)} l3,1.5`} stroke="var(--viz-token)" strokeWidth={1.4} strokeLinecap="round" />
-                </>
+            // The time in red digits, laid on the chassis' front by one matrix (one unit along it, one unit down it);
+            // the lock and alarm lights beside it; the GPS antenna on its mast
+            const { plinth, body, chassis, mast } = clockParts(cx, cy);
+            const front = faces(chassis).onLeft;
+            const [ox, oy] = front(0.08, 0.84);
+            const [ax, ay] = front(0.08 + 1 / chassis.w, 0.84);
+            const [bx, by] = front(0.08, 0.84 - 1 / chassis.h);
+            const roof = body.z + body.h;
+            const [tx, ty] = project(mast[0], mast[1], roof + 12);
+            return (
+                <g>
+                    <Solid box={plinth} active={active} fine />
+                    <Solid box={body} active={active} />
+                    <Solid box={chassis} active={active} fine />
+                    <Panel on={front} u0={0.05} v0={0.14} u1={0.74} v1={0.86} fill="var(--viz-screen)" />
+                    <text transform={`matrix(${[ax - ox, ay - oy, bx - ox, by - oy, ox, oy].map(round).join(" ")})`} x={1.4} y={4} fontSize={4.2} fontFamily="var(--font-mono, monospace)" fill="var(--destructive)">
+                        12:00
+                    </text>
+                    {[
+                        [0.82, "var(--viz-ok)"],
+                        [0.91, "var(--viz-token)"],
+                    ].map(([u, fill]) => {
+                        const [x, y] = front(u as number, 0.5);
+                        return <circle key={u} cx={round(x)} cy={round(y)} r={0.8} fill={fill as string} />;
+                    })}
+                    <Lines list={[[project(mast[0], mast[1], roof), project(mast[0], mast[1], roof + 11)]]} stroke={tone.edge} width={1.2} />
+                    <path d={`M${round(tx - 3)},${round(ty)} a3,2.6 0 0 1 6,0 Z`} fill={tone.top} stroke={tone.edge} strokeWidth={0.6} />
+                    <ellipse cx={round(tx)} cy={round(ty)} rx={3} ry={1.2} fill={tone.right} stroke={tone.edge} strokeWidth={0.5} />
+                </g>
             );
-            break;
         }
         case "switch": {
             // Two rows of ports, two fibre cages and link lights on the switch; patch cords loop down to it from the panel
