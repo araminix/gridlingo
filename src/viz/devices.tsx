@@ -6,7 +6,7 @@ import { faces, hull, project, round, type Box } from "./iso";
 const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     scada: { w: 52, d: 40, h: 46 },
     rtu: { w: 28, d: 22, h: 62 },
-    gateway: { w: 30, d: 22, h: 22 },
+    gateway: { w: 30, d: 22, h: 30 },
     relay: { w: 26, d: 20, h: 52 },
     breaker: { w: 24, d: 24, h: 44 },
     "merging-unit": { w: 24, d: 20, h: 20 },
@@ -125,6 +125,11 @@ function switchParts(cx: number, cy: number) {
     };
 }
 
+/** A gateway as a rugged router: a box with cooling ribs on a small plinth, its two antennas rising at the back. */
+function gatewayParts(cx: number, cy: number) {
+    return { plinth: { cx, cy, w: SIZE.gateway.w, d: SIZE.gateway.d, h: 3 } satisfies Box, body: { cx, cy, w: 26, d: 18, h: 13, z: 3 } satisfies Box };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -142,6 +147,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "gateway") {
+        const { plinth, body } = gatewayParts(cx, cy);
+        return [plinth, body];
+    }
     if (kind === "switch") {
         const { feet, posts, bar, panel, unit } = switchParts(cx, cy);
         return [...feet, ...posts, bar, panel, unit];
@@ -350,14 +359,42 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
                 </g>
             );
         }
-        case "gateway":
+        case "gateway": {
+            // Four network ports, a SIM slot and two lights in front; ribs on top to shed heat
+            const { plinth, body } = gatewayParts(cx, cy);
+            const box = faces(body);
+            const top = body.z + body.h;
+            const antennas = [-1, 1].map((at): [[number, number], [number, number]] => [project(cx + at * 10, cy - 6, top), project(cx + at * 12, cy - 7, top + 13)]);
+            return (
+                <g>
+                    <Solid box={plinth} active={active} fine />
+                    <Solid box={body} active={active} />
+                    <Lines list={[0.2, 0.35, 0.5, 0.65, 0.8].map((v) => [box.onTop(0.08, v), box.onTop(0.92, v)])} width={0.6} />
+                    {[0.12, 0.25, 0.38, 0.51].map((u) => (
+                        <Panel key={u} on={box.onLeft} u0={u} v0={0.28} u1={u + 0.09} v1={0.56} fill="var(--viz-screen)" />
+                    ))}
+                    <Lines list={[[box.onLeft(0.72, 0.4), box.onLeft(0.9, 0.4)]]} stroke="var(--viz-screen)" width={1} />
+                    {[
+                        [0.72, "var(--viz-ok)"],
+                        [0.84, "var(--viz-token)"],
+                    ].map(([u, fill]) => {
+                        const [x, y] = box.onLeft(u as number, 0.78);
+                        return <circle key={u} cx={round(x)} cy={round(y)} r={0.9} fill={fill as string} />;
+                    })}
+                    <Lines list={antennas} stroke={tone.edge} width={1.8} />
+                    {antennas.map(([base]) => (
+                        <circle key={base[0]} cx={round(base[0])} cy={round(base[1])} r={1.4} fill={tone.top} stroke={tone.edge} strokeWidth={0.6} />
+                    ))}
+                </g>
+            );
+        }
         case "controller":
         case "pmu":
         case "merging-unit":
             detail = (
                 <>
-                    {kind !== "gateway" && kind !== "merging-unit" && <Panel on={f.onLeft} u0={0.18} v0={0.5} u1={0.82} v1={0.68} fill="var(--viz-screen)" />}
-                    <Leds on={f.onLeft} v={kind === "gateway" || kind === "merging-unit" ? 0.55 : 0.84} />
+                    {kind !== "merging-unit" && <Panel on={f.onLeft} u0={0.18} v0={0.5} u1={0.82} v1={0.68} fill="var(--viz-screen)" />}
+                    <Leds on={f.onLeft} v={kind === "merging-unit" ? 0.55 : 0.84} />
                 </>
             );
             break;
