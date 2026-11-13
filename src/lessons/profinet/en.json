@@ -1,0 +1,142 @@
+{
+    "intro": "PROFINET is the Ethernet fieldbus of PROFIBUS & PROFINET International and the successor of PROFIBUS. A PLC, the IO controller, swaps inputs and outputs with remote I/O stations, drives and instruments, the IO devices, every few milliseconds. These cyclic frames skip IP and go straight on Ethernet (EtherType 0x8892). Devices are found by their name with DCP, connected over UDP, and send an alarm when something breaks. In energy it runs power plant auxiliaries, hydro units, battery plants and transformer cooling.",
+    "plain": "PROFINET is how a plant's control computer, the PLC, talks to the boxes of switches and sensors spread around it. It works like a roll call: every 2 milliseconds the PLC sends each box its orders and each box answers with its readings. If a box misses three calls in a row, both sides assume the line is broken and put everything in a safe state, such as cooling fans on.",
+    "steps": {
+        "name": { "title": "Naming the station", "text": "At commissioning, the engineer plugs a laptop into the PLC's second port. The engineering tool asks every PROFINET device on the network to say who it is (DCP Identify All). The new I/O station by transformer T1 answers with its MAC address and no name. The engineer names it trafo-io, and it keeps the name for good. From now on, that name is its address." },
+        "find": { "title": "Finding it by name", "text": "When the PLC starts, it asks for trafo-io by name on the PROFINET multicast address. Only that station answers, with its MAC address. The PLC then gives it the IP address from the project, 192.168.0.10, with a DCP Set." },
+        "connect": { "title": "Connecting", "text": "Over UDP 34964 the PLC sends a Connect request: an application relation (AR) with the module it expects in each slot, two cyclic data streams every 2 ms and an alarm channel. The station checks that its modules match. The PLC writes the PT100 settings and says it is done; the station answers that it is ready." },
+        "cyclic": { "title": "Every 2 ms", "text": "Now the two send each other a frame every 2 ms, without IP: the PLC's outputs (both fan groups off) and the station's inputs (the top-oil temperature, 72.5 °C). Each value has a status byte that says it is good (0x80), and each frame a data status of 0x35: valid data, program running." },
+        "hot": { "title": "Fans on", "text": "The afternoon load warms the oil to 85.0 °C. The PLC's program switches both fan groups on above 80 °C: two output bits turn to 1 in the next frame, and the station closes the fan contactors." },
+        "alarm": { "title": "A broken wire", "text": "A wire of the PT100 sensor breaks. The station sends a diagnosis alarm: slot 1, channel 0, wire break. The PLC acknowledges it, reports it to the operators, and keeps both fan groups running while it cannot read the temperature." }
+    },
+    "frames": {
+        "identify-all": "Every PROFINET device: who are you?",
+        "identify-new": "I have no name and no IP address yet",
+        "set-name": "Your name is trafo-io; keep it",
+        "set-name-ok": "Name saved",
+        "identify-name": "Where is trafo-io?",
+        "found": "Here, at this MAC address",
+        "set-ip": "Your IP address is 192.168.0.10",
+        "set-ip-ok": "Done",
+        "connect-req": "Let's connect: these are the modules I expect",
+        "connect-res": "Your modules match mine",
+        "prm-end": "Here are your settings; that is all",
+        "app-ready": "I am ready",
+        "out": "Fans off",
+        "in": "Top oil 72.5 °C",
+        "in-hot": "Top oil 85.0 °C",
+        "out-fans": "Both fan groups on",
+        "alarm": "Wire break on the temperature sensor",
+        "alarm-ack": "Alarm received"
+    },
+    "notes": {
+        "identify-new": "Frame ID 0xFEFF, the Identify response, sent to the laptop alone. It lists the device's blocks: an empty name, IP address 0.0.0.0, its vendor and device IDs, its type and its role, IO device.",
+        "set-name-ok": "Frame ID 0xFEFD with the same transaction ID. Its one block says the name was set without error.",
+        "found": "The same Identify response as before, now with the name trafo-io. The PLC learns the station's MAC address and checks the vendor and device IDs against its project.",
+        "set-ip-ok": "Frame ID 0xFEFD, the same transaction ID. Its one block says the address was set without error.",
+        "connect-req": "A DCE RPC call over UDP 34964. It opens an application relation (AR) and holds blocks for the two cyclic streams (input and output, every 2 ms, with 3 missed frames allowed), for the alarms, and the list of expected modules: the station head in slot 0, a temperature input in slot 1, an output module in slot 2.",
+        "connect-res": "The station accepts the AR. Had a module been missing or of another type, a module difference block would say which; the PLC would still connect and report it.",
+        "prm-end": "Record writes set up the input of slot 1: a PT100 sensor on 3 wires, in tenths of a degree. Then a Control call with PrmEnd: every setting has been sent.",
+        "app-ready": "Now the station calls the PLC: a Control call with ApplicationReady. The PLC answers, and from now on it uses the station's inputs.",
+        "alarm": "An alarm frame straight on Ethernet, repeated until acknowledged, carrying a diagnosis: alarm type Diagnosis appears, slot 1, subslot 1, channel 0, channel error type 0x0006, wire break. The station also lights its error LED.",
+        "alarm-ack": "The PLC acknowledges the alarm, so the station knows it was received. When the wire is repaired, the station sends a Diagnosis disappears alarm."
+    },
+    "fields": {
+        "dst-dcp": { "name": "Destination: PROFINET multicast", "note": "01-0E-CF-00-00-00, the address every PROFINET device listens to for Identify requests." },
+        "dst-io": { "name": "Destination: the I/O station", "note": "Its MAC address, learned from its answer to Identify." },
+        "dst-plc": { "name": "Destination: the PLC", "note": "The PLC's MAC address." },
+        "src-laptop": { "name": "Source: the laptop", "note": "The engineering laptop's MAC address." },
+        "src-plc": { "name": "Source: the PLC", "note": "The PLC's MAC address." },
+        "src-io": { "name": "Source: the I/O station", "note": "The station's MAC address." },
+        "ethertype": { "name": "EtherType 0x8892", "note": "PROFINET. No IP and no UDP follow: the frame goes straight from one Ethernet port to the other." },
+        "fid-identify": { "name": "Frame ID 0xFEFE: DCP Identify", "note": "Frame IDs 0xFEFC to 0xFEFF are DCP. 0xFEFE is an Identify request to all; the answers come back as 0xFEFF." },
+        "fid-set": { "name": "Frame ID 0xFEFD: DCP Get or Set", "note": "Sent to one device, which answers with the same frame ID." },
+        "identify-req": { "name": "Identify request", "note": "Service 05 (Identify), service type 00 (request)." },
+        "set-req": { "name": "Set request", "note": "Service 04 (Set), service type 00 (request)." },
+        "xid": { "name": "Transaction ID", "note": "Chosen by the sender. The answer carries the same number, so the sender knows which question it answers." },
+        "delay": { "name": "Response delay factor: 1", "note": "1: answer at once. A larger factor spreads the answers over a longer time, so that hundreds of devices do not answer at the same moment." },
+        "reserved": { "name": "Reserved", "note": "Always 00 00 in a Set request." },
+        "dcp-len": { "name": "DCP data length", "note": "The number of bytes in the blocks that follow." },
+        "all": { "name": "Block: all devices", "note": "Option FF, suboption FF, length 0: every device must answer." },
+        "name-match": { "name": "Block: name of station, 8 bytes", "note": "Option 02 (device properties), suboption 02 (NameOfStation), length 00 08. Only the device with this name answers." },
+        "name-set": { "name": "Block: name of station, 10 bytes", "note": "Option 02, suboption 02 (NameOfStation), length 00 0A: the qualifier and the name." },
+        "name": { "name": "trafo-io", "note": "The name in ASCII. Names follow the rules of DNS: lower-case letters, digits, hyphens and dots, at most 240 characters." },
+        "permanent": { "name": "Qualifier: permanent", "note": "00 01: keep the name after a power cut. 00 00 would keep it only until then." },
+        "temporary": { "name": "Qualifier: temporary", "note": "00 00: keep the address only until the next power cut. The PLC gives it again at every start." },
+        "ip-block": { "name": "Block: IP parameters", "note": "Option 01 (IP), suboption 02 (IP parameter), length 00 0E: the qualifier and three addresses of 4 bytes each." },
+        "ip": { "name": "IP address 192.168.0.10", "note": "C0 A8 00 0A." },
+        "mask": { "name": "Subnet mask 255.255.255.0", "note": "FF FF FF 00." },
+        "gateway": { "name": "Gateway 0.0.0.0", "note": "No router: the PLC and its stations share one network." },
+        "pad": { "name": "Padding", "note": "An Ethernet frame is at least 60 bytes long before its check sum; the sender fills the rest with zeros." },
+        "vlan": { "name": "VLAN tag, priority 6", "note": "81 00 says a tag follows; C0 00 means priority 6 and VLAN 0. Switches send priority 6 frames before ordinary traffic." },
+        "fid-out": { "name": "Frame ID 0xC000: outputs", "note": "Cyclic real-time data, class 1 (0xC000 to 0xF7FF). The connect gave this number to the PLC's output stream." },
+        "fid-in": { "name": "Frame ID 0xC001: inputs", "note": "The number the connect gave to the station's input stream." },
+        "iocs-head": { "name": "Consumer status: station head", "note": "IOCS 80 80 80 80: the PLC accepts the status of the head's four parts (the head, its interface and its two ports). They carry no data, only a status." },
+        "iops-head": { "name": "Provider status: station head", "note": "IOPS 80 80 80 80: the head, its interface and its two ports are good. They carry no data, only a status." },
+        "iocs-ai": { "name": "Consumer status: temperature", "note": "80: the PLC accepted the last temperature." },
+        "fans-off": { "name": "Outputs: 00", "note": "Slot 2, one byte: bit 0 is fan group 1, bit 1 fan group 2. Both off." },
+        "fans-on": { "name": "Outputs: 03", "note": "Bits 0 and 1 set: both fan groups on." },
+        "iops-dq": { "name": "Provider status: outputs", "note": "80: the PLC vouches for these outputs. With 00 the station would use its substitute values instead." },
+        "temp-725": { "name": "Top-oil temperature: 725", "note": "Slot 1, two bytes, most significant first: 0x02D5 = 725, in tenths of a degree as set in the connect: 72.5 °C." },
+        "temp-850": { "name": "Top-oil temperature: 850", "note": "0x0352 = 850: 85.0 °C." },
+        "iops-ai": { "name": "Provider status: temperature", "note": "80: the station vouches for the value." },
+        "iocs-dq": { "name": "Consumer status: outputs", "note": "80: the station accepted the PLC's last outputs." },
+        "fill": { "name": "Filler", "note": "The data part of a cyclic frame is at least 40 bytes; the unused rest is zeros. The connect fixed where each value sits." },
+        "cycle": { "name": "Cycle counter", "note": "Goes up with every frame, so the receiver can tell a new frame from an old one." },
+        "status-run": { "name": "Data status 0x35", "note": "Valid data, the sender is running, no problem. The breakdown below takes it apart bit by bit." },
+        "transfer": { "name": "Transfer status", "note": "00. Only IRT uses it." },
+        "ds-ignore": { "name": "Bit 7, ignore: 0", "note": "0: read this byte. 1: ignore it." },
+        "ds-reserved": { "name": "Reserved: 0", "note": "Bits 6 and 3 are always 0." },
+        "ds-problem": { "name": "Bit 5, station problem indicator: 1", "note": "1: normal. 0: the station has a problem; read its diagnosis." },
+        "ds-run": { "name": "Bit 4, provider state: 1", "note": "1: the sender runs. 0 (data status 0x25): the PLC's program has stopped." },
+        "ds-valid": { "name": "Bit 2, data valid: 1", "note": "1: the data can be used. 0: ignore them." },
+        "ds-redundancy": { "name": "Bit 1, redundancy: 0", "note": "For a pair of redundant PLCs; 0 with a single PLC." },
+        "ds-primary": { "name": "Bit 0, state: 1", "note": "1: primary. A backup PLC sends 0." }
+    },
+    "devices": {
+        "plc": "PLC (IO controller)",
+        "io": "I/O station trafo-io",
+        "t1": "Transformer T1",
+        "laptop": "Engineering laptop"
+    },
+    "facts": {
+        "standard": "IEC 61158 and IEC 61784-2, from PROFIBUS & PROFINET International; each device is described by a GSDML file",
+        "between": "A PLC (the IO controller) and its I/O stations, drives and instruments (the IO devices), with an engineering tool",
+        "transport": "Cyclic data, alarms and DCP straight on Ethernet (EtherType 0x8892), with no IP; connecting and settings over UDP 34964 (DCE RPC)",
+        "security": "None in classic PROFINET: anyone on the cable can rename a device or send it outputs. Keep it in its own cell behind a firewall. Security class 1 can lock DCP changes; classes 2 and 3 add signed and encrypted frames on new devices",
+        "speed": "An update time per device, from under a millisecond to 512 ms; 2 to 32 ms is usual in plants. IRT reserves time slots in each switch for motion control, with jitter under a microsecond"
+    },
+    "tips": [
+        "The name is the address. A replacement device must get the same name, or be named by the PLC from the cabling: that needs neighbour information (LLDP) and a station with no name yet.",
+        "Cyclic PROFINET is not IP: a router does not pass it, and a firewall that only lets TCP and UDP through blocks it. Keep the PLC and its stations in one Ethernet network.",
+        "In Wireshark, look at the data status and the status bytes: 0x35 and 0x80 are good. A data status of 0x25 means the PLC's program has stopped; a status byte of 00 means that value is bad.",
+        "Update time × the missed frames allowed is how long outputs wait after a fault before they go to their substitute values. Choose substitute values that are safe, such as cooling fans on."
+    ],
+    "points": {
+        "name": "Name",
+        "ip": "IP address",
+        "temp": "Top-oil temperature",
+        "fans": "Fan groups"
+    },
+    "values": {
+        "break": "wire break",
+        "off": "off",
+        "on": "on"
+    },
+    "timing": {
+        "title": "A cut cable, three missed frames later",
+        "note": "Each side expects a frame every 2 ms and accepts 3 missing ones: a watchdog of 6 ms. The cable is cut at 6.5 ms. The PLC last heard the station at 5 ms, so at 11 ms it reports the station failed. The station last heard the PLC at 6 ms, so at 12 ms it sets its outputs to their substitute values: both fan groups on.",
+        "out": "PLC → I/O station",
+        "in": "I/O station → PLC",
+        "cable": "Cable",
+        "cut": "cut",
+        "down": "PLC: station failed",
+        "safe": "outputs to substitute values"
+    },
+    "anatomy": {
+        "status": "The data status 0x35, bit by bit"
+    },
+    "playground": {
+        "encoder": "PROFINET sends numbers with the most significant byte first (ABCD). Enter a value to see how 725, the top-oil temperature in tenths of a degree, travels."
+    }
+}

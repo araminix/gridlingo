@@ -1,0 +1,142 @@
+{
+    "intro": "PROFINET est le bus de terrain Ethernet de PROFIBUS & PROFINET International et le successeur de PROFIBUS. Un automate (PLC), le contrôleur IO, échange entrées et sorties avec des stations d'E/S déportées, des variateurs et des instruments, les appareils IO, toutes les quelques millisecondes. Ces trames cycliques se passent d'IP et vont directement sur Ethernet (EtherType 0x8892). Les appareils sont trouvés par leur nom avec DCP, connectés par UDP, et envoient une alarme quand quelque chose casse. Dans l'énergie, il pilote les auxiliaires de centrales, les groupes hydrauliques, les centrales de batteries et le refroidissement des transformateurs.",
+    "plain": "PROFINET, c'est la façon dont l'ordinateur de commande d'une installation, l'automate, parle aux boîtiers d'interrupteurs et de capteurs répartis autour de lui. Cela marche comme un appel en classe : toutes les 2 millisecondes, l'automate envoie à chaque boîtier ses ordres et chaque boîtier répond avec ses mesures. Si un boîtier manque trois appels de suite, les deux côtés supposent que la ligne est coupée et mettent tout dans un état sûr, par exemple les ventilateurs de refroidissement en marche.",
+    "steps": {
+        "name": { "title": "Baptiser la station", "text": "À la mise en service, l'ingénieur branche un portable sur le second port de l'automate. L'outil d'ingénierie demande à chaque appareil PROFINET du réseau de se présenter (DCP Identify All). La nouvelle station d'E/S près du transformateur T1 répond avec son adresse MAC et sans nom. L'ingénieur la nomme trafo-io, et elle garde ce nom pour de bon. Désormais, ce nom est son adresse." },
+        "find": { "title": "La trouver par son nom", "text": "Au démarrage, l'automate demande trafo-io par son nom sur l'adresse multicast PROFINET. Seule cette station répond, avec son adresse MAC. L'automate lui donne alors l'adresse IP du projet, 192.168.0.10, avec un DCP Set." },
+        "connect": { "title": "Se connecter", "text": "Par UDP 34964, l'automate envoie une requête Connect : une relation applicative (AR) avec le module qu'il attend dans chaque emplacement, deux flux de données cycliques toutes les 2 ms et un canal d'alarmes. La station vérifie que ses modules correspondent. L'automate écrit les réglages de la PT100 et dit qu'il a fini ; la station répond qu'elle est prête." },
+        "cyclic": { "title": "Toutes les 2 ms", "text": "Désormais, les deux s'envoient une trame toutes les 2 ms, sans IP : les sorties de l'automate (les deux groupes de ventilateurs à l'arrêt) et les entrées de la station (la température de l'huile en haut, 72.5 °C). Chaque valeur a un octet d'état qui dit qu'elle est bonne (0x80), et chaque trame un état des données de 0x35 : données valides, programme en marche." },
+        "hot": { "title": "Ventilateurs en marche", "text": "La charge de l'après-midi chauffe l'huile à 85.0 °C. Le programme de l'automate met les deux groupes de ventilateurs en marche au-dessus de 80 °C : deux bits de sortie passent à 1 dans la trame suivante, et la station ferme les contacteurs des ventilateurs." },
+        "alarm": { "title": "Un fil cassé", "text": "Un fil de la sonde PT100 se casse. La station envoie une alarme de diagnostic : emplacement 1, voie 0, rupture de fil. L'automate l'acquitte, la signale aux opérateurs et garde les deux groupes de ventilateurs en marche tant qu'il ne peut pas lire la température." }
+    },
+    "frames": {
+        "identify-all": "Tout appareil PROFINET : qui es-tu ?",
+        "identify-new": "Je n'ai encore ni nom ni adresse IP",
+        "set-name": "Tu t'appelles trafo-io ; garde-le",
+        "set-name-ok": "Nom enregistré",
+        "identify-name": "Où est trafo-io ?",
+        "found": "Ici, à cette adresse MAC",
+        "set-ip": "Ton adresse IP est 192.168.0.10",
+        "set-ip-ok": "Fait",
+        "connect-req": "Connectons-nous : voici les modules que j'attends",
+        "connect-res": "Tes modules correspondent aux miens",
+        "prm-end": "Voici tes réglages ; c'est tout",
+        "app-ready": "Je suis prête",
+        "out": "Ventilateurs à l'arrêt",
+        "in": "Huile en haut 72.5 °C",
+        "in-hot": "Huile en haut 85.0 °C",
+        "out-fans": "Les deux groupes de ventilateurs en marche",
+        "alarm": "Rupture de fil sur la sonde de température",
+        "alarm-ack": "Alarme reçue"
+    },
+    "notes": {
+        "identify-new": "Frame ID 0xFEFF, la réponse Identify, envoyée au seul portable. Elle liste les blocs de l'appareil : un nom vide, l'adresse IP 0.0.0.0, ses identifiants de fabricant et d'appareil, son type et son rôle, appareil IO.",
+        "set-name-ok": "Frame ID 0xFEFD avec le même identifiant de transaction. Son unique bloc dit que le nom a été réglé sans erreur.",
+        "found": "La même réponse Identify qu'avant, maintenant avec le nom trafo-io. L'automate apprend l'adresse MAC de la station et compare les identifiants de fabricant et d'appareil avec son projet.",
+        "set-ip-ok": "Frame ID 0xFEFD, le même identifiant de transaction. Son unique bloc dit que l'adresse a été réglée sans erreur.",
+        "connect-req": "Un appel DCE RPC par UDP 34964. Il ouvre une relation applicative (AR) et contient des blocs pour les deux flux cycliques (entrée et sortie, toutes les 2 ms, 3 trames manquées admises), pour les alarmes, et la liste des modules attendus : la tête de station dans l'emplacement 0, une entrée de température dans l'emplacement 1, un module de sorties dans l'emplacement 2.",
+        "connect-res": "La station accepte l'AR. Si un module avait manqué ou été d'un autre type, un bloc de différences de modules dirait lequel ; l'automate se connecterait quand même et le signalerait.",
+        "prm-end": "Des écritures d'enregistrements règlent l'entrée de l'emplacement 1 : une sonde PT100 en 3 fils, en dixièmes de degré. Puis un appel Control avec PrmEnd : tous les réglages sont envoyés.",
+        "app-ready": "C'est maintenant la station qui appelle l'automate : un appel Control avec ApplicationReady. L'automate répond et utilise désormais les entrées de la station.",
+        "alarm": "Une trame d'alarme directement sur Ethernet, répétée jusqu'à son acquittement, qui porte un diagnostic : type d'alarme Diagnosis appears, emplacement 1, sous-emplacement 1, voie 0, type d'erreur de voie 0x0006, rupture de fil. La station allume aussi sa LED d'erreur.",
+        "alarm-ack": "L'automate acquitte l'alarme, pour que la station sache qu'elle est arrivée. Quand le fil sera réparé, la station enverra une alarme Diagnosis disappears."
+    },
+    "fields": {
+        "dst-dcp": { "name": "Destination : multicast PROFINET", "note": "01-0E-CF-00-00-00, l'adresse sur laquelle tout appareil PROFINET écoute les requêtes Identify." },
+        "dst-io": { "name": "Destination : la station d'E/S", "note": "Son adresse MAC, apprise par sa réponse à Identify." },
+        "dst-plc": { "name": "Destination : l'automate", "note": "L'adresse MAC de l'automate." },
+        "src-laptop": { "name": "Source : le portable", "note": "L'adresse MAC du portable d'ingénierie." },
+        "src-plc": { "name": "Source : l'automate", "note": "L'adresse MAC de l'automate." },
+        "src-io": { "name": "Source : la station d'E/S", "note": "L'adresse MAC de la station." },
+        "ethertype": { "name": "EtherType 0x8892", "note": "PROFINET. Ni IP ni UDP ne suivent : la trame va directement d'un port Ethernet à l'autre." },
+        "fid-identify": { "name": "Frame ID 0xFEFE : DCP Identify", "note": "Les Frame ID 0xFEFC à 0xFEFF sont du DCP. 0xFEFE est une requête Identify à tous ; les réponses reviennent en 0xFEFF." },
+        "fid-set": { "name": "Frame ID 0xFEFD : DCP Get ou Set", "note": "Envoyée à un seul appareil, qui répond avec le même Frame ID." },
+        "identify-req": { "name": "Requête Identify", "note": "Service 05 (Identify), type de service 00 (requête)." },
+        "set-req": { "name": "Requête Set", "note": "Service 04 (Set), type de service 00 (requête)." },
+        "xid": { "name": "Identifiant de transaction", "note": "Choisi par l'émetteur. La réponse porte le même numéro, ainsi l'émetteur sait à quelle question elle répond." },
+        "delay": { "name": "Facteur de délai de réponse : 1", "note": "1 : répondre tout de suite. Un facteur plus grand étale les réponses sur une durée plus longue, pour que des centaines d'appareils ne répondent pas au même instant." },
+        "reserved": { "name": "Réservé", "note": "Toujours 00 00 dans une requête Set." },
+        "dcp-len": { "name": "Longueur des données DCP", "note": "Le nombre d'octets des blocs qui suivent." },
+        "all": { "name": "Bloc : tous les appareils", "note": "Option FF, sous-option FF, longueur 0 : tout appareil doit répondre." },
+        "name-match": { "name": "Bloc : nom de station, 8 octets", "note": "Option 02 (propriétés de l'appareil), sous-option 02 (NameOfStation), longueur 00 08. Seul l'appareil qui porte ce nom répond." },
+        "name-set": { "name": "Bloc : nom de station, 10 octets", "note": "Option 02, sous-option 02 (NameOfStation), longueur 00 0A : le qualificatif et le nom." },
+        "name": { "name": "trafo-io", "note": "Le nom en ASCII. Les noms suivent les règles du DNS : minuscules, chiffres, tirets et points, 240 caractères au plus." },
+        "permanent": { "name": "Qualificatif : permanent", "note": "00 01 : garder le nom après une coupure de courant. 00 00 ne le garderait que jusque-là." },
+        "temporary": { "name": "Qualificatif : temporaire", "note": "00 00 : garder l'adresse seulement jusqu'à la prochaine coupure de courant. L'automate la redonne à chaque démarrage." },
+        "ip-block": { "name": "Bloc : paramètres IP", "note": "Option 01 (IP), sous-option 02 (paramètre IP), longueur 00 0E : le qualificatif et trois adresses de 4 octets chacune." },
+        "ip": { "name": "Adresse IP 192.168.0.10", "note": "C0 A8 00 0A." },
+        "mask": { "name": "Masque de sous-réseau 255.255.255.0", "note": "FF FF FF 00." },
+        "gateway": { "name": "Passerelle 0.0.0.0", "note": "Pas de routeur : l'automate et ses stations partagent un même réseau." },
+        "pad": { "name": "Bourrage", "note": "Une trame Ethernet fait au moins 60 octets avant sa somme de contrôle ; l'émetteur complète avec des zéros." },
+        "vlan": { "name": "Étiquette VLAN, priorité 6", "note": "81 00 dit qu'une étiquette suit ; C0 00 signifie priorité 6 et VLAN 0. Les switchs font passer les trames de priorité 6 avant le trafic ordinaire." },
+        "fid-out": { "name": "Frame ID 0xC000 : sorties", "note": "Données cycliques temps réel, classe 1 (0xC000 à 0xF7FF). Le Connect a donné ce numéro au flux de sorties de l'automate." },
+        "fid-in": { "name": "Frame ID 0xC001 : entrées", "note": "Le numéro que le Connect a donné au flux d'entrées de la station." },
+        "iocs-head": { "name": "État du consommateur : tête de station", "note": "IOCS 80 80 80 80 : l'automate accepte l'état des quatre parties de la tête (la tête, son interface et ses deux ports). Elles ne portent pas de données, seulement un état." },
+        "iops-head": { "name": "État du fournisseur : tête de station", "note": "IOPS 80 80 80 80 : la tête, son interface et ses deux ports sont bons. Ils ne portent pas de données, seulement un état." },
+        "iocs-ai": { "name": "État du consommateur : température", "note": "80 : l'automate a accepté la dernière température." },
+        "fans-off": { "name": "Sorties : 00", "note": "Emplacement 2, un octet : le bit 0 est le groupe de ventilateurs 1, le bit 1 le groupe 2. Les deux à l'arrêt." },
+        "fans-on": { "name": "Sorties : 03", "note": "Bits 0 et 1 à un : les deux groupes de ventilateurs en marche." },
+        "iops-dq": { "name": "État du fournisseur : sorties", "note": "80 : l'automate garantit ces sorties. Avec 00, la station utiliserait à la place ses valeurs de repli." },
+        "temp-725": { "name": "Température de l'huile en haut : 725", "note": "Emplacement 1, deux octets, poids fort en premier : 0x02D5 = 725, en dixièmes de degré comme réglé au Connect : 72.5 °C." },
+        "temp-850": { "name": "Température de l'huile en haut : 850", "note": "0x0352 = 850 : 85.0 °C." },
+        "iops-ai": { "name": "État du fournisseur : température", "note": "80 : la station garantit la valeur." },
+        "iocs-dq": { "name": "État du consommateur : sorties", "note": "80 : la station a accepté les dernières sorties de l'automate." },
+        "fill": { "name": "Remplissage", "note": "La partie données d'une trame cyclique fait au moins 40 octets ; le reste inutilisé est à zéro. Le Connect a fixé la place de chaque valeur." },
+        "cycle": { "name": "Compteur de cycle", "note": "Augmente à chaque trame, ainsi le récepteur distingue une trame nouvelle d'une ancienne." },
+        "status-run": { "name": "État des données 0x35", "note": "Données valides, l'émetteur est en marche, aucun problème. La décomposition ci-dessous le détaille bit par bit." },
+        "transfer": { "name": "État de transfert", "note": "00. Seul IRT l'utilise." },
+        "ds-ignore": { "name": "Bit 7, ignorer : 0", "note": "0 : lire cet octet. 1 : l'ignorer." },
+        "ds-reserved": { "name": "Réservé : 0", "note": "Les bits 6 et 3 valent toujours 0." },
+        "ds-problem": { "name": "Bit 5, indicateur de problème de station : 1", "note": "1 : normal. 0 : la station a un problème ; lire son diagnostic." },
+        "ds-run": { "name": "Bit 4, état du fournisseur : 1", "note": "1 : l'émetteur est en marche. 0 (état des données 0x25) : le programme de l'automate est arrêté." },
+        "ds-valid": { "name": "Bit 2, données valides : 1", "note": "1 : les données sont utilisables. 0 : les ignorer." },
+        "ds-redundancy": { "name": "Bit 1, redondance : 0", "note": "Pour une paire d'automates redondants ; 0 avec un seul automate." },
+        "ds-primary": { "name": "Bit 0, état : 1", "note": "1 : primaire. Un automate de secours envoie 0." }
+    },
+    "devices": {
+        "plc": "Automate (contrôleur IO)",
+        "io": "Station d'E/S trafo-io",
+        "t1": "Transformateur T1",
+        "laptop": "Portable d'ingénierie"
+    },
+    "facts": {
+        "standard": "IEC 61158 et IEC 61784-2, par PROFIBUS & PROFINET International ; chaque appareil est décrit par un fichier GSDML",
+        "between": "Un automate (le contrôleur IO) et ses stations d'E/S, variateurs et instruments (les appareils IO), avec un outil d'ingénierie",
+        "transport": "Données cycliques, alarmes et DCP directement sur Ethernet (EtherType 0x8892), sans IP ; connexion et réglages par UDP 34964 (DCE RPC)",
+        "security": "Aucune dans le PROFINET classique : n'importe qui sur le câble peut renommer un appareil ou lui envoyer des sorties. Gardez-le dans sa propre cellule derrière un pare-feu. La classe de sécurité 1 peut verrouiller les changements par DCP ; les classes 2 et 3 ajoutent des trames signées et chiffrées sur les appareils récents",
+        "speed": "Un temps de rafraîchissement par appareil, de moins d'une milliseconde à 512 ms ; 2 à 32 ms est courant dans les installations. IRT réserve des créneaux dans chaque switch pour la commande de mouvement, avec une gigue inférieure à une microseconde"
+    },
+    "tips": [
+        "Le nom est l'adresse. Un appareil de remplacement doit recevoir le même nom, ou être nommé par l'automate d'après le câblage : il faut pour cela les informations de voisinage (LLDP) et une station encore sans nom.",
+        "Le PROFINET cyclique n'est pas de l'IP : un routeur ne le transmet pas, et un pare-feu qui ne laisse passer que TCP et UDP le bloque. Gardez l'automate et ses stations dans un même réseau Ethernet.",
+        "Dans Wireshark, regardez l'état des données et les octets d'état : 0x35 et 0x80 sont bons. Un état des données de 0x25 signifie que le programme de l'automate est arrêté ; un octet d'état à 00 signifie que cette valeur est mauvaise.",
+        "Temps de rafraîchissement × trames manquées admises : c'est le temps que les sorties attendent après une panne avant de passer à leurs valeurs de repli. Choisissez des valeurs de repli sûres, comme les ventilateurs de refroidissement en marche."
+    ],
+    "points": {
+        "name": "Nom",
+        "ip": "Adresse IP",
+        "temp": "Température de l'huile en haut",
+        "fans": "Groupes de ventilateurs"
+    },
+    "values": {
+        "break": "rupture de fil",
+        "off": "arrêt",
+        "on": "marche"
+    },
+    "timing": {
+        "title": "Un câble coupé, trois trames manquées plus tard",
+        "note": "Chaque côté attend une trame toutes les 2 ms et en tolère 3 manquantes : un chien de garde de 6 ms. Le câble est coupé à 6.5 ms. L'automate a entendu la station pour la dernière fois à 5 ms, donc à 11 ms il déclare la station défaillante. La station a entendu l'automate pour la dernière fois à 6 ms, donc à 12 ms elle met ses sorties à leurs valeurs de repli : les deux groupes de ventilateurs en marche.",
+        "out": "Automate → station d'E/S",
+        "in": "Station d'E/S → automate",
+        "cable": "Câble",
+        "cut": "coupé",
+        "down": "automate : station défaillante",
+        "safe": "sorties aux valeurs de repli"
+    },
+    "anatomy": {
+        "status": "L'état des données 0x35, bit par bit"
+    },
+    "playground": {
+        "encoder": "PROFINET envoie les nombres avec l'octet de poids fort en premier (ABCD). Saisissez une valeur pour voir comment voyage 725, la température de l'huile en haut en dixièmes de degré."
+    }
+}

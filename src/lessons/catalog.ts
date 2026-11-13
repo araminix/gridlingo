@@ -28,6 +28,7 @@ export const CATALOG: readonly Meta[] = [
     { id: "iec-61850-7-420", name: "IEC 61850-7-420", group: "plant", devices: ["inverter", "battery", "controller"], wire: "IEC 61850 MMS" },
     { id: "iec-61400-25", name: "IEC 61400-25", group: "plant", devices: ["turbine", "controller"], wire: "MMS · OPC UA" },
     { id: "canopen", name: "CAN / CANopen", group: "plant", devices: ["battery", "inverter"], wire: "CAN bus" },
+    { id: "profinet", name: "PROFINET", group: "plant", devices: ["controller", "rtu", "transformer", "laptop"], wire: "Ethernet 0x8892 · UDP 34964" },
 
     { id: "ocpp", name: "OCPP", group: "ev", devices: ["charger", "cloud"], wire: "WebSocket · JSON" },
     { id: "iso-15118", name: "ISO 15118", group: "ev", devices: ["car", "charger"], wire: "PLC · TLS" },

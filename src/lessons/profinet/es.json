@@ -1,0 +1,142 @@
+{
+    "intro": "PROFINET es el bus de campo Ethernet de PROFIBUS & PROFINET International y el sucesor de PROFIBUS. Un PLC, el controlador IO, intercambia entradas y salidas con estaciones de E/S remotas, accionamientos e instrumentos, los dispositivos IO, cada pocos milisegundos. Estas tramas cíclicas se saltan IP y van directamente sobre Ethernet (EtherType 0x8892). Los dispositivos se encuentran por su nombre con DCP, se conectan por UDP y envían una alarma cuando algo se rompe. En energía maneja servicios auxiliares de centrales, grupos hidráulicos, plantas de baterías y la refrigeración de transformadores.",
+    "plain": "PROFINET es la forma en que el ordenador de control de una planta, el PLC, habla con las cajas de interruptores y sensores repartidas a su alrededor. Funciona como pasar lista: cada 2 milisegundos el PLC manda a cada caja sus órdenes y cada caja responde con sus lecturas. Si una caja falla tres llamadas seguidas, ambos lados dan la línea por cortada y lo ponen todo en un estado seguro, como los ventiladores de refrigeración encendidos.",
+    "steps": {
+        "name": { "title": "Dar nombre a la estación", "text": "En la puesta en marcha, el ingeniero conecta un portátil al segundo puerto del PLC. La herramienta de ingeniería pide a cada dispositivo PROFINET de la red que diga quién es (DCP Identify All). La nueva estación de E/S junto al transformador T1 responde con su dirección MAC y sin nombre. El ingeniero la llama trafo-io, y ella guarda el nombre para siempre. Desde ahora, ese nombre es su dirección." },
+        "find": { "title": "Encontrarla por su nombre", "text": "Al arrancar, el PLC pregunta por trafo-io por su nombre en la dirección multicast de PROFINET. Solo esa estación responde, con su dirección MAC. Luego el PLC le da la dirección IP del proyecto, 192.168.0.10, con un DCP Set." },
+        "connect": { "title": "Conectar", "text": "Por UDP 34964 el PLC envía una petición Connect: una relación de aplicación (AR) con el módulo que espera en cada slot, dos flujos de datos cíclicos cada 2 ms y un canal de alarmas. La estación comprueba que sus módulos coinciden. El PLC escribe los ajustes del PT100 y avisa de que ha terminado; la estación responde que está lista." },
+        "cyclic": { "title": "Cada 2 ms", "text": "Ahora los dos se envían una trama cada 2 ms, sin IP: las salidas del PLC (ambos grupos de ventiladores apagados) y las entradas de la estación (la temperatura del aceite superior, 72.5 °C). Cada valor lleva un byte de estado que dice que es bueno (0x80), y cada trama un estado de datos 0x35: datos válidos, programa en marcha." },
+        "hot": { "title": "Ventiladores encendidos", "text": "La carga de la tarde calienta el aceite a 85.0 °C. El programa del PLC enciende ambos grupos de ventiladores por encima de 80 °C: dos bits de salida pasan a 1 en la siguiente trama, y la estación cierra los contactores de los ventiladores." },
+        "alarm": { "title": "Un hilo roto", "text": "Se rompe un hilo del sensor PT100. La estación envía una alarma de diagnóstico: slot 1, canal 0, rotura de hilo. El PLC la confirma, la comunica a los operadores y mantiene ambos grupos de ventiladores en marcha mientras no pueda leer la temperatura." }
+    },
+    "frames": {
+        "identify-all": "Todo dispositivo PROFINET: ¿quién eres?",
+        "identify-new": "Aún no tengo nombre ni dirección IP",
+        "set-name": "Te llamas trafo-io; guárdalo",
+        "set-name-ok": "Nombre guardado",
+        "identify-name": "¿Dónde está trafo-io?",
+        "found": "Aquí, en esta dirección MAC",
+        "set-ip": "Tu dirección IP es 192.168.0.10",
+        "set-ip-ok": "Hecho",
+        "connect-req": "Conectemos: estos son los módulos que espero",
+        "connect-res": "Tus módulos coinciden con los míos",
+        "prm-end": "Aquí tienes tus ajustes; eso es todo",
+        "app-ready": "Estoy lista",
+        "out": "Ventiladores apagados",
+        "in": "Aceite superior 72.5 °C",
+        "in-hot": "Aceite superior 85.0 °C",
+        "out-fans": "Ambos grupos de ventiladores encendidos",
+        "alarm": "Rotura de hilo en el sensor de temperatura",
+        "alarm-ack": "Alarma recibida"
+    },
+    "notes": {
+        "identify-new": "Frame ID 0xFEFF, la respuesta a Identify, enviada solo al portátil. Enumera los bloques del dispositivo: un nombre vacío, la dirección IP 0.0.0.0, sus ID de fabricante y de dispositivo, su tipo y su papel, dispositivo IO.",
+        "set-name-ok": "Frame ID 0xFEFD con el mismo ID de transacción. Su único bloque dice que el nombre se fijó sin error.",
+        "found": "La misma respuesta a Identify de antes, ahora con el nombre trafo-io. El PLC aprende la dirección MAC de la estación y compara los ID de fabricante y de dispositivo con su proyecto.",
+        "set-ip-ok": "Frame ID 0xFEFD, el mismo ID de transacción. Su único bloque dice que la dirección se fijó sin error.",
+        "connect-req": "Una llamada DCE RPC por UDP 34964. Abre una relación de aplicación (AR) y lleva bloques para los dos flujos cíclicos (entrada y salida, cada 2 ms, con 3 tramas perdidas permitidas), para las alarmas, y la lista de módulos esperados: la cabecera de la estación en el slot 0, una entrada de temperatura en el slot 1, un módulo de salidas en el slot 2.",
+        "connect-res": "La estación acepta la AR. Si faltara un módulo o fuera de otro tipo, un bloque de diferencias de módulos diría cuál; el PLC conectaría igualmente y lo comunicaría.",
+        "prm-end": "Escrituras de registros configuran la entrada del slot 1: un sensor PT100 a 3 hilos, en décimas de grado. Luego una llamada Control con PrmEnd: se han enviado todos los ajustes.",
+        "app-ready": "Ahora es la estación la que llama al PLC: una llamada Control con ApplicationReady. El PLC responde y a partir de ahora usa las entradas de la estación.",
+        "alarm": "Una trama de alarma directamente sobre Ethernet, repetida hasta que se confirma, que lleva un diagnóstico: tipo de alarma Diagnosis appears, slot 1, subslot 1, canal 0, tipo de error de canal 0x0006, rotura de hilo. La estación también enciende su LED de error.",
+        "alarm-ack": "El PLC confirma la alarma, así la estación sabe que llegó. Cuando se repare el hilo, la estación enviará una alarma Diagnosis disappears."
+    },
+    "fields": {
+        "dst-dcp": { "name": "Destino: multicast PROFINET", "note": "01-0E-CF-00-00-00, la dirección en la que todo dispositivo PROFINET escucha las peticiones Identify." },
+        "dst-io": { "name": "Destino: la estación de E/S", "note": "Su dirección MAC, aprendida de su respuesta a Identify." },
+        "dst-plc": { "name": "Destino: el PLC", "note": "La dirección MAC del PLC." },
+        "src-laptop": { "name": "Origen: el portátil", "note": "La dirección MAC del portátil de ingeniería." },
+        "src-plc": { "name": "Origen: el PLC", "note": "La dirección MAC del PLC." },
+        "src-io": { "name": "Origen: la estación de E/S", "note": "La dirección MAC de la estación." },
+        "ethertype": { "name": "EtherType 0x8892", "note": "PROFINET. No siguen ni IP ni UDP: la trama va directamente de un puerto Ethernet al otro." },
+        "fid-identify": { "name": "Frame ID 0xFEFE: DCP Identify", "note": "Los Frame ID 0xFEFC a 0xFEFF son DCP. 0xFEFE es una petición Identify a todos; las respuestas vuelven como 0xFEFF." },
+        "fid-set": { "name": "Frame ID 0xFEFD: DCP Get o Set", "note": "Se envía a un solo dispositivo, que responde con el mismo Frame ID." },
+        "identify-req": { "name": "Petición Identify", "note": "Servicio 05 (Identify), tipo de servicio 00 (petición)." },
+        "set-req": { "name": "Petición Set", "note": "Servicio 04 (Set), tipo de servicio 00 (petición)." },
+        "xid": { "name": "ID de transacción", "note": "Lo elige el emisor. La respuesta lleva el mismo número, así el emisor sabe a qué pregunta responde." },
+        "delay": { "name": "Factor de retardo de respuesta: 1", "note": "1: responder enseguida. Un factor mayor reparte las respuestas en un tiempo más largo, para que cientos de dispositivos no respondan en el mismo instante." },
+        "reserved": { "name": "Reservado", "note": "Siempre 00 00 en una petición Set." },
+        "dcp-len": { "name": "Longitud de datos DCP", "note": "El número de bytes de los bloques que siguen." },
+        "all": { "name": "Bloque: todos los dispositivos", "note": "Opción FF, subopción FF, longitud 0: todo dispositivo debe responder." },
+        "name-match": { "name": "Bloque: nombre de estación, 8 bytes", "note": "Opción 02 (propiedades del dispositivo), subopción 02 (NameOfStation), longitud 00 08. Solo responde el dispositivo con este nombre." },
+        "name-set": { "name": "Bloque: nombre de estación, 10 bytes", "note": "Opción 02, subopción 02 (NameOfStation), longitud 00 0A: el calificador y el nombre." },
+        "name": { "name": "trafo-io", "note": "El nombre en ASCII. Los nombres siguen las reglas de DNS: minúsculas, cifras, guiones y puntos, como mucho 240 caracteres." },
+        "permanent": { "name": "Calificador: permanente", "note": "00 01: guardar el nombre tras un corte de corriente. 00 00 lo guardaría solo hasta entonces." },
+        "temporary": { "name": "Calificador: temporal", "note": "00 00: guardar la dirección solo hasta el próximo corte de corriente. El PLC la da de nuevo en cada arranque." },
+        "ip-block": { "name": "Bloque: parámetros IP", "note": "Opción 01 (IP), subopción 02 (parámetro IP), longitud 00 0E: el calificador y tres direcciones de 4 bytes cada una." },
+        "ip": { "name": "Dirección IP 192.168.0.10", "note": "C0 A8 00 0A." },
+        "mask": { "name": "Máscara de subred 255.255.255.0", "note": "FF FF FF 00." },
+        "gateway": { "name": "Puerta de enlace 0.0.0.0", "note": "Sin router: el PLC y sus estaciones comparten una red." },
+        "pad": { "name": "Relleno", "note": "Una trama Ethernet mide al menos 60 bytes antes de su suma de comprobación; el emisor rellena el resto con ceros." },
+        "vlan": { "name": "Etiqueta VLAN, prioridad 6", "note": "81 00 dice que sigue una etiqueta; C0 00 significa prioridad 6 y VLAN 0. Los switches envían las tramas de prioridad 6 antes que el tráfico normal." },
+        "fid-out": { "name": "Frame ID 0xC000: salidas", "note": "Datos cíclicos en tiempo real, clase 1 (0xC000 a 0xF7FF). El Connect dio este número al flujo de salidas del PLC." },
+        "fid-in": { "name": "Frame ID 0xC001: entradas", "note": "El número que el Connect dio al flujo de entradas de la estación." },
+        "iocs-head": { "name": "Estado del consumidor: cabecera", "note": "IOCS 80 80 80 80: el PLC acepta el estado de las cuatro partes de la cabecera (la cabecera, su interfaz y sus dos puertos). No llevan datos, solo un estado." },
+        "iops-head": { "name": "Estado del proveedor: cabecera", "note": "IOPS 80 80 80 80: la cabecera, su interfaz y sus dos puertos están bien. No llevan datos, solo un estado." },
+        "iocs-ai": { "name": "Estado del consumidor: temperatura", "note": "80: el PLC aceptó la última temperatura." },
+        "fans-off": { "name": "Salidas: 00", "note": "Slot 2, un byte: el bit 0 es el grupo de ventiladores 1, el bit 1 el grupo 2. Ambos apagados." },
+        "fans-on": { "name": "Salidas: 03", "note": "Bits 0 y 1 a uno: ambos grupos de ventiladores encendidos." },
+        "iops-dq": { "name": "Estado del proveedor: salidas", "note": "80: el PLC responde de estas salidas. Con 00 la estación usaría en su lugar sus valores sustitutivos." },
+        "temp-725": { "name": "Temperatura del aceite superior: 725", "note": "Slot 1, dos bytes, el más significativo primero: 0x02D5 = 725, en décimas de grado según se fijó en el Connect: 72.5 °C." },
+        "temp-850": { "name": "Temperatura del aceite superior: 850", "note": "0x0352 = 850: 85.0 °C." },
+        "iops-ai": { "name": "Estado del proveedor: temperatura", "note": "80: la estación responde del valor." },
+        "iocs-dq": { "name": "Estado del consumidor: salidas", "note": "80: la estación aceptó las últimas salidas del PLC." },
+        "fill": { "name": "Relleno de datos", "note": "La parte de datos de una trama cíclica mide al menos 40 bytes; el resto sin usar son ceros. El Connect fijó dónde va cada valor." },
+        "cycle": { "name": "Contador de ciclo", "note": "Sube con cada trama, así el receptor distingue una trama nueva de una vieja." },
+        "status-run": { "name": "Estado de datos 0x35", "note": "Datos válidos, el emisor está en marcha, sin problemas. El desglose de abajo lo separa bit a bit." },
+        "transfer": { "name": "Estado de transferencia", "note": "00. Solo lo usa IRT." },
+        "ds-ignore": { "name": "Bit 7, ignorar: 0", "note": "0: leer este byte. 1: ignorarlo." },
+        "ds-reserved": { "name": "Reservado: 0", "note": "Los bits 6 y 3 siempre valen 0." },
+        "ds-problem": { "name": "Bit 5, indicador de problema en la estación: 1", "note": "1: normal. 0: la estación tiene un problema; leer su diagnóstico." },
+        "ds-run": { "name": "Bit 4, estado del proveedor: 1", "note": "1: el emisor está en marcha. 0 (estado de datos 0x25): el programa del PLC se ha detenido." },
+        "ds-valid": { "name": "Bit 2, datos válidos: 1", "note": "1: los datos se pueden usar. 0: ignorarlos." },
+        "ds-redundancy": { "name": "Bit 1, redundancia: 0", "note": "Para una pareja de PLC redundantes; 0 con un solo PLC." },
+        "ds-primary": { "name": "Bit 0, estado: 1", "note": "1: primario. Un PLC de reserva envía 0." }
+    },
+    "devices": {
+        "plc": "PLC (controlador IO)",
+        "io": "Estación de E/S trafo-io",
+        "t1": "Transformador T1",
+        "laptop": "Portátil de ingeniería"
+    },
+    "facts": {
+        "standard": "IEC 61158 e IEC 61784-2, de PROFIBUS & PROFINET International; cada dispositivo se describe con un archivo GSDML",
+        "between": "Un PLC (el controlador IO) y sus estaciones de E/S, accionamientos e instrumentos (los dispositivos IO), con una herramienta de ingeniería",
+        "transport": "Datos cíclicos, alarmas y DCP directamente sobre Ethernet (EtherType 0x8892), sin IP; la conexión y los ajustes por UDP 34964 (DCE RPC)",
+        "security": "Ninguna en el PROFINET clásico: cualquiera en el cable puede renombrar un dispositivo o enviarle salidas. Manténgalo en su propia celda tras un cortafuegos. La clase de seguridad 1 puede bloquear los cambios por DCP; las clases 2 y 3 añaden tramas firmadas y cifradas en dispositivos nuevos",
+        "speed": "Un tiempo de actualización por dispositivo, de menos de un milisegundo a 512 ms; en plantas lo normal es de 2 a 32 ms. IRT reserva franjas de tiempo en cada switch para control de movimiento, con una fluctuación de menos de un microsegundo"
+    },
+    "tips": [
+        "El nombre es la dirección. Un dispositivo de recambio debe recibir el mismo nombre, o que el PLC lo nombre a partir del cableado: eso requiere la información de vecinos (LLDP) y una estación que aún no tenga nombre.",
+        "PROFINET cíclico no es IP: un router no lo deja pasar, y un cortafuegos que solo deja pasar TCP y UDP lo bloquea. Mantenga el PLC y sus estaciones en una misma red Ethernet.",
+        "En Wireshark, mire el estado de datos y los bytes de estado: 0x35 y 0x80 son buenos. Un estado de datos 0x25 significa que el programa del PLC se ha detenido; un byte de estado 00 significa que ese valor es malo.",
+        "El tiempo de actualización × las tramas perdidas permitidas es cuánto esperan las salidas tras un fallo antes de pasar a sus valores sustitutivos. Elija valores sustitutivos seguros, como los ventiladores de refrigeración encendidos."
+    ],
+    "points": {
+        "name": "Nombre",
+        "ip": "Dirección IP",
+        "temp": "Temperatura del aceite superior",
+        "fans": "Grupos de ventiladores"
+    },
+    "values": {
+        "break": "rotura de hilo",
+        "off": "apagados",
+        "on": "encendidos"
+    },
+    "timing": {
+        "title": "Un cable cortado, tres tramas perdidas después",
+        "note": "Cada lado espera una trama cada 2 ms y acepta que falten 3: un watchdog de 6 ms. El cable se corta a los 6.5 ms. El PLC oyó a la estación por última vez a los 5 ms, así que a los 11 ms da la estación por caída. La estación oyó al PLC por última vez a los 6 ms, así que a los 12 ms pone sus salidas en los valores sustitutivos: ambos grupos de ventiladores encendidos.",
+        "out": "PLC → estación de E/S",
+        "in": "Estación de E/S → PLC",
+        "cable": "Cable",
+        "cut": "cortado",
+        "down": "PLC: estación caída",
+        "safe": "salidas a valores sustitutivos"
+    },
+    "anatomy": {
+        "status": "El estado de datos 0x35, bit a bit"
+    },
+    "playground": {
+        "encoder": "PROFINET envía los números con el byte más significativo primero (ABCD). Introduzca un valor para ver cómo viaja 725, la temperatura del aceite superior en décimas de grado."
+    }
+}

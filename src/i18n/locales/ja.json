@@ -229,6 +229,8 @@
     "lesson.iec-61400-25.where": "風車、ウィンドファームコントローラ",
     "lesson.canopen.summary": "蓄電池ラックの中の部品どうしの通信",
     "lesson.canopen.where": "バッテリーマネジメントシステム、コンバータ",
+    "lesson.profinet.summary": "PLCが数ミリ秒ごとに入出力をやり取りするしくみ",
+    "lesson.profinet.where": "発電所の補機、変圧器の冷却、水力発電ユニット",
     "lesson.ocpp.summary": "充電器から充電管理システムへ",
     "lesson.ocpp.where": "EV充電器、充電サービスのバックエンド",
     "lesson.iso-15118.summary": "クルマから充電器へ：プラグ・アンド・チャージ、V2G",

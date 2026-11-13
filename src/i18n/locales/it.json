@@ -229,6 +229,8 @@
     "lesson.iec-61400-25.where": "Turbine eoliche, controllori di parco",
     "lesson.canopen.summary": "Come comunicano le parti dentro un rack di batterie",
     "lesson.canopen.where": "Sistemi di gestione batterie, convertitori",
+    "lesson.profinet.summary": "Come un PLC scambia ingressi e uscite ogni pochi millisecondi",
+    "lesson.profinet.where": "Ausiliari di centrale, raffreddamento dei trasformatori, gruppi idroelettrici",
     "lesson.ocpp.summary": "Dalla colonnina al sistema di gestione della ricarica",
     "lesson.ocpp.where": "Colonnine di ricarica, back end di ricarica",
     "lesson.iso-15118.summary": "Dall'auto alla colonnina: plug and charge, vehicle to grid",

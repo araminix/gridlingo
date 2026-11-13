@@ -229,6 +229,8 @@
     "lesson.iec-61400-25.where": "Windenergieanlagen, Parkregler",
     "lesson.canopen.summary": "Wie die Komponenten in einem Batterie-Rack miteinander sprechen",
     "lesson.canopen.where": "Batteriemanagementsysteme, Umrichter",
+    "lesson.profinet.summary": "Wie eine SPS alle paar Millisekunden Ein- und Ausgänge tauscht",
+    "lesson.profinet.where": "Kraftwerks-Nebenanlagen, Trafokühlung, Wasserkraftmaschinen",
     "lesson.ocpp.summary": "Ladestation an Lademanagementsystem",
     "lesson.ocpp.where": "Ladestationen, Lade-Backends",
     "lesson.iso-15118.summary": "Fahrzeug an Ladestation: Plug & Charge, Vehicle-to-Grid",

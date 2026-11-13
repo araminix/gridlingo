@@ -229,6 +229,8 @@
     "lesson.iec-61400-25.where": "Aerogeneradores, controladores de parque",
     "lesson.canopen.summary": "Cómo se hablan las piezas dentro de un rack de baterías",
     "lesson.canopen.where": "Sistemas de gestión de baterías, convertidores",
+    "lesson.profinet.summary": "Cómo un PLC intercambia entradas y salidas cada pocos milisegundos",
+    "lesson.profinet.where": "Servicios auxiliares de centrales, refrigeración de transformadores, grupos hidráulicos",
     "lesson.ocpp.summary": "Del cargador al sistema de gestión de estaciones de carga",
     "lesson.ocpp.where": "Cargadores de VE, plataformas de gestión de carga",
     "lesson.iso-15118.summary": "Del vehículo al cargador: Plug & Charge y del vehículo a la red (V2G)",

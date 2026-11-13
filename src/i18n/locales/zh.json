@@ -229,6 +229,8 @@
     "lesson.iec-61400-25.where": "风机、风电场控制器",
     "lesson.canopen.summary": "电池架内部各部件如何通信",
     "lesson.canopen.where": "电池管理系统、变流器",
+    "lesson.profinet.summary": "PLC 如何每隔几毫秒交换输入和输出",
+    "lesson.profinet.where": "电厂辅助系统、变压器冷却、水电机组",
     "lesson.ocpp.summary": "充电桩与充电管理平台之间",
     "lesson.ocpp.where": "电动汽车充电桩、充电平台后台",
     "lesson.iso-15118.summary": "车与桩之间：即插即充、车网互动",

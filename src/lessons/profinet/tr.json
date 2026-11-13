@@ -1,0 +1,142 @@
+{
+    "intro": "PROFINET, PROFIBUS & PROFINET International'ın Ethernet saha veri yolu ve PROFIBUS'ın halefidir. IO denetleyicisi olan bir PLC, uzak I/O istasyonları, sürücüler ve ölçü aletleriyle, yani IO cihazlarıyla, birkaç milisaniyede bir giriş ve çıkış değiş tokuş eder. Bu döngüsel çerçeveler IP'yi atlar ve doğrudan Ethernet üzerinde gider (EtherType 0x8892). Cihazlar DCP ile adlarından bulunur, UDP üzerinden bağlanır ve bir şey bozulunca alarm gönderir. Enerjide santral yardımcı sistemlerini, hidroelektrik ünitelerini, batarya tesislerini ve trafo soğutmasını yönetir.",
+    "plain": "PROFINET, bir tesisin kontrol bilgisayarı olan PLC'nin etrafa dağılmış anahtar ve sensör kutularıyla konuşma yoludur. Bir yoklama gibi işler: PLC her 2 milisaniyede bir her kutuya emirlerini gönderir, her kutu da okumalarıyla cevap verir. Bir kutu üç yoklamayı üst üste kaçırırsa, iki taraf da hattın koptuğunu varsayar ve her şeyi güvenli bir duruma getirir, örneğin soğutma fanlarını açık tutar.",
+    "steps": {
+        "name": { "title": "İstasyona ad vermek", "text": "Devreye almada mühendis bir dizüstü bilgisayarı PLC'nin ikinci portuna takar. Mühendislik aracı ağdaki her PROFINET cihazından kendini tanıtmasını ister (DCP Identify All). T1 trafosunun yanındaki yeni I/O istasyonu MAC adresiyle ve adsız olarak cevap verir. Mühendis ona trafo-io adını verir ve istasyon bu adı kalıcı olarak saklar. Bundan sonra bu ad onun adresidir." },
+        "find": { "title": "Adıyla bulmak", "text": "PLC açılırken PROFINET çoklu yayın adresinde trafo-io'yu adıyla sorar. Yalnızca o istasyon, MAC adresiyle cevap verir. Ardından PLC bir DCP Set ile ona projedeki IP adresini, 192.168.0.10'u verir." },
+        "connect": { "title": "Bağlanmak", "text": "PLC, UDP 34964 üzerinden bir Connect isteği gönderir: her yuvada beklediği modülü, her 2 ms'de bir iki döngüsel veri akışını ve bir alarm kanalını içeren bir uygulama ilişkisi (AR). İstasyon modüllerinin eşleştiğini kontrol eder. PLC PT100 ayarlarını yazar ve bitirdiğini söyler; istasyon hazır olduğunu bildirir." },
+        "cyclic": { "title": "Her 2 ms'de", "text": "Artık ikisi her 2 ms'de bir birbirine IP olmadan bir çerçeve gönderir: PLC'nin çıkışları (iki fan grubu da kapalı) ve istasyonun girişleri (üst yağ sıcaklığı, 72.5 °C). Her değerin iyi olduğunu söyleyen bir durum baytı (0x80), her çerçevenin de 0x35 veri durumu vardır: veri geçerli, program çalışıyor." },
+        "hot": { "title": "Fanlar açık", "text": "Öğleden sonraki yük yağı 85.0 °C'ye ısıtır. PLC programı 80 °C'nin üstünde iki fan grubunu da açar: bir sonraki çerçevede iki çıkış biti 1 olur ve istasyon fan kontaktörlerini kapatır." },
+        "alarm": { "title": "Kopan bir tel", "text": "PT100 sensörünün bir teli kopar. İstasyon bir teşhis alarmı gönderir: yuva 1, kanal 0, tel kopması. PLC alarmı onaylar, operatörlere bildirir ve sıcaklığı okuyamadığı sürece iki fan grubunu da çalışır durumda tutar." }
+    },
+    "frames": {
+        "identify-all": "Her PROFINET cihazı: sen kimsin?",
+        "identify-new": "Henüz adım ve IP adresim yok",
+        "set-name": "Adın trafo-io; sakla",
+        "set-name-ok": "Ad kaydedildi",
+        "identify-name": "trafo-io nerede?",
+        "found": "Burada, bu MAC adresinde",
+        "set-ip": "IP adresin 192.168.0.10",
+        "set-ip-ok": "Tamam",
+        "connect-req": "Bağlanalım: beklediğim modüller bunlar",
+        "connect-res": "Modüllerin benimkilerle eşleşiyor",
+        "prm-end": "İşte ayarların; hepsi bu",
+        "app-ready": "Hazırım",
+        "out": "Fanlar kapalı",
+        "in": "Üst yağ 72.5 °C",
+        "in-hot": "Üst yağ 85.0 °C",
+        "out-fans": "İki fan grubu da açık",
+        "alarm": "Sıcaklık sensöründe tel kopması",
+        "alarm-ack": "Alarm alındı"
+    },
+    "notes": {
+        "identify-new": "Frame ID 0xFEFF, Identify cevabı, yalnızca dizüstüne gönderilir. Cihazın bloklarını listeler: boş bir ad, IP adresi 0.0.0.0, üretici ve cihaz kimlikleri, tipi ve rolü, IO cihazı.",
+        "set-name-ok": "Aynı işlem kimliğiyle Frame ID 0xFEFD. Tek bloğu adın hatasız ayarlandığını söyler.",
+        "found": "Öncekiyle aynı Identify cevabı, şimdi trafo-io adıyla. PLC istasyonun MAC adresini öğrenir ve üretici ile cihaz kimliklerini projesiyle karşılaştırır.",
+        "set-ip-ok": "Frame ID 0xFEFD, aynı işlem kimliği. Tek bloğu adresin hatasız ayarlandığını söyler.",
+        "connect-req": "UDP 34964 üzerinden bir DCE RPC çağrısı. Bir uygulama ilişkisi (AR) açar ve iki döngüsel akış (giriş ve çıkış, her 2 ms'de, 3 kaçırılan çerçeveye izinle), alarmlar ve beklenen modüllerin listesi için bloklar taşır: yuva 0'da istasyon başlığı, yuva 1'de bir sıcaklık girişi, yuva 2'de bir çıkış modülü.",
+        "connect-res": "İstasyon AR'yi kabul eder. Bir modül eksik ya da başka tipte olsaydı, bir modül farkı bloğu hangisi olduğunu söylerdi; PLC yine de bağlanır ve bunu bildirirdi.",
+        "prm-end": "Kayıt yazmaları yuva 1'in girişini ayarlar: 3 telli bir PT100 sensörü, derecenin onda biri cinsinden. Sonra PrmEnd içeren bir Control çağrısı: tüm ayarlar gönderildi.",
+        "app-ready": "Şimdi istasyon PLC'yi çağırır: ApplicationReady içeren bir Control çağrısı. PLC cevap verir ve bundan sonra istasyonun girişlerini kullanır.",
+        "alarm": "Doğrudan Ethernet üzerinde, onaylanana kadar tekrarlanan bir alarm çerçevesi; bir teşhis taşır: alarm tipi Diagnosis appears, yuva 1, alt yuva 1, kanal 0, kanal hata tipi 0x0006, tel kopması. İstasyon ayrıca hata LED'ini yakar.",
+        "alarm-ack": "PLC alarmı onaylar, böylece istasyon alarmın ulaştığını bilir. Tel onarılınca istasyon bir Diagnosis disappears alarmı gönderir."
+    },
+    "fields": {
+        "dst-dcp": { "name": "Hedef: PROFINET çoklu yayını", "note": "01-0E-CF-00-00-00, her PROFINET cihazının Identify isteklerini dinlediği adres." },
+        "dst-io": { "name": "Hedef: I/O istasyonu", "note": "Identify'a verdiği cevaptan öğrenilen MAC adresi." },
+        "dst-plc": { "name": "Hedef: PLC", "note": "PLC'nin MAC adresi." },
+        "src-laptop": { "name": "Kaynak: dizüstü", "note": "Mühendislik dizüstüsünün MAC adresi." },
+        "src-plc": { "name": "Kaynak: PLC", "note": "PLC'nin MAC adresi." },
+        "src-io": { "name": "Kaynak: I/O istasyonu", "note": "İstasyonun MAC adresi." },
+        "ethertype": { "name": "EtherType 0x8892", "note": "PROFINET. Ardından ne IP ne UDP gelir: çerçeve bir Ethernet portundan diğerine doğrudan gider." },
+        "fid-identify": { "name": "Frame ID 0xFEFE: DCP Identify", "note": "0xFEFC ile 0xFEFF arasındaki Frame ID'ler DCP'dir. 0xFEFE herkese bir Identify isteğidir; cevaplar 0xFEFF olarak döner." },
+        "fid-set": { "name": "Frame ID 0xFEFD: DCP Get veya Set", "note": "Tek bir cihaza gönderilir; cihaz aynı Frame ID ile cevap verir." },
+        "identify-req": { "name": "Identify isteği", "note": "Servis 05 (Identify), servis tipi 00 (istek)." },
+        "set-req": { "name": "Set isteği", "note": "Servis 04 (Set), servis tipi 00 (istek)." },
+        "xid": { "name": "İşlem kimliği", "note": "Gönderen seçer. Cevap aynı numarayı taşır, böylece gönderen hangi soruya cevap geldiğini bilir." },
+        "delay": { "name": "Cevap gecikme çarpanı: 1", "note": "1: hemen cevap ver. Daha büyük bir çarpan cevapları daha uzun bir süreye yayar, böylece yüzlerce cihaz aynı anda cevap vermez." },
+        "reserved": { "name": "Ayrılmış", "note": "Set isteğinde her zaman 00 00." },
+        "dcp-len": { "name": "DCP veri uzunluğu", "note": "Ardından gelen bloklardaki bayt sayısı." },
+        "all": { "name": "Blok: tüm cihazlar", "note": "Seçenek FF, alt seçenek FF, uzunluk 0: her cihaz cevap vermeli." },
+        "name-match": { "name": "Blok: istasyon adı, 8 bayt", "note": "Seçenek 02 (cihaz özellikleri), alt seçenek 02 (NameOfStation), uzunluk 00 08. Yalnızca bu adı taşıyan cihaz cevap verir." },
+        "name-set": { "name": "Blok: istasyon adı, 10 bayt", "note": "Seçenek 02, alt seçenek 02 (NameOfStation), uzunluk 00 0A: niteleyici ve ad." },
+        "name": { "name": "trafo-io", "note": "ASCII olarak ad. Adlar DNS kurallarına uyar: küçük harfler, rakamlar, tireler ve noktalar, en fazla 240 karakter." },
+        "permanent": { "name": "Niteleyici: kalıcı", "note": "00 01: adı elektrik kesintisinden sonra da sakla. 00 00 onu yalnızca o zamana kadar saklardı." },
+        "temporary": { "name": "Niteleyici: geçici", "note": "00 00: adresi yalnızca bir sonraki elektrik kesintisine kadar sakla. PLC onu her açılışta yeniden verir." },
+        "ip-block": { "name": "Blok: IP parametreleri", "note": "Seçenek 01 (IP), alt seçenek 02 (IP parametresi), uzunluk 00 0E: niteleyici ve her biri 4 baytlık üç adres." },
+        "ip": { "name": "IP adresi 192.168.0.10", "note": "C0 A8 00 0A." },
+        "mask": { "name": "Alt ağ maskesi 255.255.255.0", "note": "FF FF FF 00." },
+        "gateway": { "name": "Ağ geçidi 0.0.0.0", "note": "Yönlendirici yok: PLC ve istasyonları tek bir ağı paylaşır." },
+        "pad": { "name": "Dolgu", "note": "Bir Ethernet çerçevesi sağlama toplamından önce en az 60 bayttır; gönderen kalanı sıfırlarla doldurur." },
+        "vlan": { "name": "VLAN etiketi, öncelik 6", "note": "81 00 bir etiket geldiğini söyler; C0 00 öncelik 6 ve VLAN 0 demektir. Anahtarlar öncelik 6 çerçevelerini olağan trafikten önce gönderir." },
+        "fid-out": { "name": "Frame ID 0xC000: çıkışlar", "note": "Döngüsel gerçek zamanlı veri, sınıf 1 (0xC000 ile 0xF7FF arası). Connect bu numarayı PLC'nin çıkış akışına verdi." },
+        "fid-in": { "name": "Frame ID 0xC001: girişler", "note": "Connect'in istasyonun giriş akışına verdiği numara." },
+        "iocs-head": { "name": "Tüketici durumu: istasyon başlığı", "note": "IOCS 80 80 80 80: PLC başlığın dört parçasının (başlık, arayüzü ve iki portu) durumunu kabul eder. Bunlar veri taşımaz, yalnızca bir durum taşır." },
+        "iops-head": { "name": "Sağlayıcı durumu: istasyon başlığı", "note": "IOPS 80 80 80 80: başlık, arayüzü ve iki portu iyi durumda. Bunlar veri taşımaz, yalnızca bir durum taşır." },
+        "iocs-ai": { "name": "Tüketici durumu: sıcaklık", "note": "80: PLC son sıcaklığı kabul etti." },
+        "fans-off": { "name": "Çıkışlar: 00", "note": "Yuva 2, bir bayt: bit 0 fan grubu 1, bit 1 fan grubu 2. İkisi de kapalı." },
+        "fans-on": { "name": "Çıkışlar: 03", "note": "Bit 0 ve 1 bir: iki fan grubu da açık." },
+        "iops-dq": { "name": "Sağlayıcı durumu: çıkışlar", "note": "80: PLC bu çıkışlara kefil olur. 00 ile istasyon bunların yerine yedek değerlerini kullanırdı." },
+        "temp-725": { "name": "Üst yağ sıcaklığı: 725", "note": "Yuva 1, iki bayt, en anlamlısı önce: 0x02D5 = 725, Connect'te ayarlandığı gibi derecenin onda biri cinsinden: 72.5 °C." },
+        "temp-850": { "name": "Üst yağ sıcaklığı: 850", "note": "0x0352 = 850: 85.0 °C." },
+        "iops-ai": { "name": "Sağlayıcı durumu: sıcaklık", "note": "80: istasyon değere kefil olur." },
+        "iocs-dq": { "name": "Tüketici durumu: çıkışlar", "note": "80: istasyon PLC'nin son çıkışlarını kabul etti." },
+        "fill": { "name": "Doldurma", "note": "Döngüsel bir çerçevenin veri kısmı en az 40 bayttır; kullanılmayan kalan sıfırdır. Her değerin yerini Connect belirledi." },
+        "cycle": { "name": "Döngü sayacı", "note": "Her çerçevede artar, böylece alıcı yeni bir çerçeveyi eskisinden ayırabilir." },
+        "status-run": { "name": "Veri durumu 0x35", "note": "Veri geçerli, gönderen çalışıyor, sorun yok. Aşağıdaki çözümleme onu bit bit ayırır." },
+        "transfer": { "name": "Aktarım durumu", "note": "00. Yalnızca IRT kullanır." },
+        "ds-ignore": { "name": "Bit 7, yok say: 0", "note": "0: bu baytı oku. 1: yok say." },
+        "ds-reserved": { "name": "Ayrılmış: 0", "note": "Bit 6 ve 3 her zaman 0'dır." },
+        "ds-problem": { "name": "Bit 5, istasyon sorun göstergesi: 1", "note": "1: normal. 0: istasyonda bir sorun var; teşhisini oku." },
+        "ds-run": { "name": "Bit 4, sağlayıcı durumu: 1", "note": "1: gönderen çalışıyor. 0 (veri durumu 0x25): PLC programı durdu." },
+        "ds-valid": { "name": "Bit 2, veri geçerli: 1", "note": "1: veri kullanılabilir. 0: yok say." },
+        "ds-redundancy": { "name": "Bit 1, yedeklilik: 0", "note": "Yedekli bir PLC çifti için; tek PLC ile 0." },
+        "ds-primary": { "name": "Bit 0, durum: 1", "note": "1: birincil. Yedek bir PLC 0 gönderir." }
+    },
+    "devices": {
+        "plc": "PLC (IO denetleyicisi)",
+        "io": "I/O istasyonu trafo-io",
+        "t1": "Trafo T1",
+        "laptop": "Mühendislik dizüstüsü"
+    },
+    "facts": {
+        "standard": "IEC 61158 ve IEC 61784-2, PROFIBUS & PROFINET International'dan; her cihaz bir GSDML dosyasıyla tanımlanır",
+        "between": "Bir PLC (IO denetleyicisi) ile I/O istasyonları, sürücüleri ve ölçü aletleri (IO cihazları), bir mühendislik aracıyla birlikte",
+        "transport": "Döngüsel veri, alarmlar ve DCP doğrudan Ethernet üzerinde (EtherType 0x8892), IP olmadan; bağlantı ve ayarlar UDP 34964 üzerinden (DCE RPC)",
+        "security": "Klasik PROFINET'te yok: kabloya erişen herkes bir cihazın adını değiştirebilir ya da ona çıkış gönderebilir. Onu bir güvenlik duvarının arkasında kendi hücresinde tutun. Güvenlik sınıfı 1 DCP değişikliklerini kilitleyebilir; sınıf 2 ve 3 yeni cihazlarda imzalı ve şifreli çerçeveler ekler",
+        "speed": "Cihaz başına bir güncelleme süresi, bir milisaniyenin altından 512 ms'ye kadar; tesislerde 2 ile 32 ms olağandır. IRT, hareket kontrolü için her anahtarda zaman dilimleri ayırır; titreşim bir mikrosaniyenin altındadır"
+    },
+    "tips": [
+        "Ad, adrestir. Yedek cihaz aynı adı almalı ya da PLC tarafından kablolamaya göre adlandırılmalıdır: bunun için komşu bilgisi (LLDP) ve henüz adı olmayan bir istasyon gerekir.",
+        "Döngüsel PROFINET IP değildir: bir yönlendirici onu geçirmez, yalnızca TCP ve UDP'ye izin veren bir güvenlik duvarı da onu engeller. PLC'yi ve istasyonlarını tek bir Ethernet ağında tutun.",
+        "Wireshark'ta veri durumuna ve durum baytlarına bakın: 0x35 ve 0x80 iyidir. 0x25 veri durumu PLC programının durduğu anlamına gelir; 00 durum baytı o değerin kötü olduğu anlamına gelir.",
+        "Güncelleme süresi × izin verilen kaçırılan çerçeve, bir arızadan sonra çıkışların yedek değerlere geçmeden önce ne kadar bekleyeceğidir. Güvenli yedek değerler seçin, örneğin soğutma fanları açık."
+    ],
+    "points": {
+        "name": "Ad",
+        "ip": "IP adresi",
+        "temp": "Üst yağ sıcaklığı",
+        "fans": "Fan grupları"
+    },
+    "values": {
+        "break": "tel kopması",
+        "off": "kapalı",
+        "on": "açık"
+    },
+    "timing": {
+        "title": "Kesilen bir kablo, üç kaçırılan çerçeve sonra",
+        "note": "Her taraf her 2 ms'de bir çerçeve bekler ve 3 eksik çerçeveyi kabul eder: 6 ms'lik bir bekçi zamanlayıcısı. Kablo 6.5 ms'de kesilir. PLC istasyonu en son 5 ms'de duydu, bu yüzden 11 ms'de istasyonun arızalandığını bildirir. İstasyon PLC'yi en son 6 ms'de duydu, bu yüzden 12 ms'de çıkışlarını yedek değerlere getirir: iki fan grubu da açık.",
+        "out": "PLC → I/O istasyonu",
+        "in": "I/O istasyonu → PLC",
+        "cable": "Kablo",
+        "cut": "kesildi",
+        "down": "PLC: istasyon arızalı",
+        "safe": "çıkışlar yedek değerlerde"
+    },
+    "anatomy": {
+        "status": "Veri durumu 0x35, bit bit"
+    },
+    "playground": {
+        "encoder": "PROFINET sayıları en anlamlı bayt önce gelecek şekilde gönderir (ABCD). Üst yağ sıcaklığının derecenin onda biri cinsinden değeri olan 725'in nasıl gittiğini görmek için bir değer girin."
+    }
+}

@@ -1,0 +1,142 @@
+{
+    "intro": "PROFINET é o barramento de campo Ethernet da PROFIBUS & PROFINET International e o sucessor do PROFIBUS. Um CLP (PLC), o controlador IO, troca entradas e saídas com estações de E/S remotas, acionamentos e instrumentos, os dispositivos IO, a cada poucos milissegundos. Esses quadros cíclicos pulam o IP e vão direto sobre Ethernet (EtherType 0x8892). Os dispositivos são achados pelo nome com DCP, conectados por UDP e enviam um alarme quando algo quebra. Em energia, ele comanda serviços auxiliares de usinas, unidades hidrelétricas, usinas de baterias e o resfriamento de transformadores.",
+    "plain": "PROFINET é como o computador de controle de uma usina, o CLP, conversa com as caixas de chaves e sensores espalhadas ao redor. Funciona como uma chamada na escola: a cada 2 milissegundos o CLP manda a cada caixa as suas ordens e cada caixa responde com as suas leituras. Se uma caixa perde três chamadas seguidas, os dois lados concluem que a linha caiu e colocam tudo num estado seguro, como os ventiladores de resfriamento ligados.",
+    "steps": {
+        "name": { "title": "Dar nome à estação", "text": "No comissionamento, o engenheiro liga um notebook à segunda porta do CLP. A ferramenta de engenharia pede a cada dispositivo PROFINET da rede que diga quem é (DCP Identify All). A nova estação de E/S junto ao transformador T1 responde com seu endereço MAC e sem nome. O engenheiro a chama de trafo-io, e ela guarda o nome para sempre. Daqui em diante, esse nome é o seu endereço." },
+        "find": { "title": "Achá-la pelo nome", "text": "Ao partir, o CLP procura trafo-io pelo nome no endereço multicast do PROFINET. Só essa estação responde, com seu endereço MAC. Então o CLP lhe dá o endereço IP do projeto, 192.168.0.10, com um DCP Set." },
+        "connect": { "title": "Conectar", "text": "Por UDP 34964 o CLP envia um pedido Connect: uma relação de aplicação (AR) com o módulo que espera em cada slot, dois fluxos de dados cíclicos a cada 2 ms e um canal de alarmes. A estação confere se seus módulos batem. O CLP escreve os ajustes do PT100 e avisa que terminou; a estação responde que está pronta." },
+        "cyclic": { "title": "A cada 2 ms", "text": "Agora os dois trocam um quadro a cada 2 ms, sem IP: as saídas do CLP (os dois grupos de ventiladores desligados) e as entradas da estação (a temperatura do óleo no topo, 72.5 °C). Cada valor tem um byte de estado que diz que ele é bom (0x80), e cada quadro um estado dos dados de 0x35: dados válidos, programa rodando." },
+        "hot": { "title": "Ventiladores ligados", "text": "A carga da tarde aquece o óleo a 85.0 °C. O programa do CLP liga os dois grupos de ventiladores acima de 80 °C: dois bits de saída viram 1 no quadro seguinte, e a estação fecha os contatores dos ventiladores." },
+        "alarm": { "title": "Um fio partido", "text": "Um fio do sensor PT100 se parte. A estação envia um alarme de diagnóstico: slot 1, canal 0, fio partido. O CLP o reconhece, informa os operadores e mantém os dois grupos de ventiladores ligados enquanto não consegue ler a temperatura." }
+    },
+    "frames": {
+        "identify-all": "Todo dispositivo PROFINET: quem é você?",
+        "identify-new": "Ainda não tenho nome nem endereço IP",
+        "set-name": "Seu nome é trafo-io; guarde-o",
+        "set-name-ok": "Nome salvo",
+        "identify-name": "Onde está trafo-io?",
+        "found": "Aqui, neste endereço MAC",
+        "set-ip": "Seu endereço IP é 192.168.0.10",
+        "set-ip-ok": "Feito",
+        "connect-req": "Vamos conectar: estes são os módulos que espero",
+        "connect-res": "Seus módulos batem com os meus",
+        "prm-end": "Aqui estão seus ajustes; é tudo",
+        "app-ready": "Estou pronta",
+        "out": "Ventiladores desligados",
+        "in": "Óleo no topo 72.5 °C",
+        "in-hot": "Óleo no topo 85.0 °C",
+        "out-fans": "Os dois grupos de ventiladores ligados",
+        "alarm": "Fio partido no sensor de temperatura",
+        "alarm-ack": "Alarme recebido"
+    },
+    "notes": {
+        "identify-new": "Frame ID 0xFEFF, a resposta ao Identify, enviada só ao notebook. Lista os blocos do dispositivo: um nome vazio, o endereço IP 0.0.0.0, seus IDs de fabricante e de dispositivo, seu tipo e seu papel, dispositivo IO.",
+        "set-name-ok": "Frame ID 0xFEFD com o mesmo ID de transação. Seu único bloco diz que o nome foi definido sem erro.",
+        "found": "A mesma resposta ao Identify de antes, agora com o nome trafo-io. O CLP aprende o endereço MAC da estação e confere os IDs de fabricante e de dispositivo com seu projeto.",
+        "set-ip-ok": "Frame ID 0xFEFD, o mesmo ID de transação. Seu único bloco diz que o endereço foi definido sem erro.",
+        "connect-req": "Uma chamada DCE RPC por UDP 34964. Ela abre uma relação de aplicação (AR) e traz blocos para os dois fluxos cíclicos (entrada e saída, a cada 2 ms, com 3 quadros perdidos permitidos), para os alarmes, e a lista de módulos esperados: a cabeça da estação no slot 0, uma entrada de temperatura no slot 1, um módulo de saídas no slot 2.",
+        "connect-res": "A estação aceita a AR. Se um módulo faltasse ou fosse de outro tipo, um bloco de diferenças de módulos diria qual; o CLP conectaria mesmo assim e informaria.",
+        "prm-end": "Escritas de registros configuram a entrada do slot 1: um sensor PT100 a 3 fios, em décimos de grau. Depois uma chamada Control com PrmEnd: todos os ajustes foram enviados.",
+        "app-ready": "Agora é a estação que chama o CLP: uma chamada Control com ApplicationReady. O CLP responde e, a partir daí, usa as entradas da estação.",
+        "alarm": "Um quadro de alarme direto sobre Ethernet, repetido até ser reconhecido, levando um diagnóstico: tipo de alarme Diagnosis appears, slot 1, subslot 1, canal 0, tipo de erro de canal 0x0006, fio partido. A estação também acende seu LED de erro.",
+        "alarm-ack": "O CLP reconhece o alarme, para que a estação saiba que ele chegou. Quando o fio for consertado, a estação enviará um alarme Diagnosis disappears."
+    },
+    "fields": {
+        "dst-dcp": { "name": "Destino: multicast PROFINET", "note": "01-0E-CF-00-00-00, o endereço em que todo dispositivo PROFINET escuta os pedidos Identify." },
+        "dst-io": { "name": "Destino: a estação de E/S", "note": "Seu endereço MAC, aprendido com sua resposta ao Identify." },
+        "dst-plc": { "name": "Destino: o CLP", "note": "O endereço MAC do CLP." },
+        "src-laptop": { "name": "Origem: o notebook", "note": "O endereço MAC do notebook de engenharia." },
+        "src-plc": { "name": "Origem: o CLP", "note": "O endereço MAC do CLP." },
+        "src-io": { "name": "Origem: a estação de E/S", "note": "O endereço MAC da estação." },
+        "ethertype": { "name": "EtherType 0x8892", "note": "PROFINET. Não vêm IP nem UDP: o quadro vai direto de uma porta Ethernet à outra." },
+        "fid-identify": { "name": "Frame ID 0xFEFE: DCP Identify", "note": "Os Frame IDs 0xFEFC a 0xFEFF são DCP. 0xFEFE é um pedido Identify a todos; as respostas voltam como 0xFEFF." },
+        "fid-set": { "name": "Frame ID 0xFEFD: DCP Get ou Set", "note": "Enviado a um só dispositivo, que responde com o mesmo Frame ID." },
+        "identify-req": { "name": "Pedido Identify", "note": "Serviço 05 (Identify), tipo de serviço 00 (pedido)." },
+        "set-req": { "name": "Pedido Set", "note": "Serviço 04 (Set), tipo de serviço 00 (pedido)." },
+        "xid": { "name": "ID de transação", "note": "Escolhido por quem envia. A resposta traz o mesmo número, assim quem envia sabe a que pergunta ela responde." },
+        "delay": { "name": "Fator de atraso da resposta: 1", "note": "1: responder na hora. Um fator maior espalha as respostas por um tempo mais longo, para que centenas de dispositivos não respondam no mesmo instante." },
+        "reserved": { "name": "Reservado", "note": "Sempre 00 00 num pedido Set." },
+        "dcp-len": { "name": "Comprimento dos dados DCP", "note": "O número de bytes dos blocos que vêm a seguir." },
+        "all": { "name": "Bloco: todos os dispositivos", "note": "Opção FF, subopção FF, comprimento 0: todo dispositivo deve responder." },
+        "name-match": { "name": "Bloco: nome da estação, 8 bytes", "note": "Opção 02 (propriedades do dispositivo), subopção 02 (NameOfStation), comprimento 00 08. Só responde o dispositivo com este nome." },
+        "name-set": { "name": "Bloco: nome da estação, 10 bytes", "note": "Opção 02, subopção 02 (NameOfStation), comprimento 00 0A: o qualificador e o nome." },
+        "name": { "name": "trafo-io", "note": "O nome em ASCII. Os nomes seguem as regras do DNS: letras minúsculas, dígitos, hífens e pontos, no máximo 240 caracteres." },
+        "permanent": { "name": "Qualificador: permanente", "note": "00 01: guardar o nome depois de uma falta de energia. 00 00 o guardaria só até lá." },
+        "temporary": { "name": "Qualificador: temporário", "note": "00 00: guardar o endereço só até a próxima falta de energia. O CLP o dá de novo a cada partida." },
+        "ip-block": { "name": "Bloco: parâmetros IP", "note": "Opção 01 (IP), subopção 02 (parâmetro IP), comprimento 00 0E: o qualificador e três endereços de 4 bytes cada." },
+        "ip": { "name": "Endereço IP 192.168.0.10", "note": "C0 A8 00 0A." },
+        "mask": { "name": "Máscara de sub-rede 255.255.255.0", "note": "FF FF FF 00." },
+        "gateway": { "name": "Gateway 0.0.0.0", "note": "Sem roteador: o CLP e suas estações dividem uma mesma rede." },
+        "pad": { "name": "Preenchimento", "note": "Um quadro Ethernet tem pelo menos 60 bytes antes da soma de verificação; quem envia completa o resto com zeros." },
+        "vlan": { "name": "Tag VLAN, prioridade 6", "note": "81 00 diz que vem uma tag; C0 00 significa prioridade 6 e VLAN 0. Os switches mandam os quadros de prioridade 6 antes do tráfego comum." },
+        "fid-out": { "name": "Frame ID 0xC000: saídas", "note": "Dados cíclicos em tempo real, classe 1 (0xC000 a 0xF7FF). O Connect deu este número ao fluxo de saídas do CLP." },
+        "fid-in": { "name": "Frame ID 0xC001: entradas", "note": "O número que o Connect deu ao fluxo de entradas da estação." },
+        "iocs-head": { "name": "Estado do consumidor: cabeça", "note": "IOCS 80 80 80 80: o CLP aceita o estado das quatro partes da cabeça (a cabeça, sua interface e suas duas portas). Elas não levam dados, só um estado." },
+        "iops-head": { "name": "Estado do fornecedor: cabeça", "note": "IOPS 80 80 80 80: a cabeça, sua interface e suas duas portas estão boas. Elas não levam dados, só um estado." },
+        "iocs-ai": { "name": "Estado do consumidor: temperatura", "note": "80: o CLP aceitou a última temperatura." },
+        "fans-off": { "name": "Saídas: 00", "note": "Slot 2, um byte: o bit 0 é o grupo de ventiladores 1, o bit 1 o grupo 2. Os dois desligados." },
+        "fans-on": { "name": "Saídas: 03", "note": "Bits 0 e 1 em um: os dois grupos de ventiladores ligados." },
+        "iops-dq": { "name": "Estado do fornecedor: saídas", "note": "80: o CLP garante estas saídas. Com 00 a estação usaria no lugar os seus valores substitutos." },
+        "temp-725": { "name": "Temperatura do óleo no topo: 725", "note": "Slot 1, dois bytes, o mais significativo primeiro: 0x02D5 = 725, em décimos de grau como ajustado no Connect: 72.5 °C." },
+        "temp-850": { "name": "Temperatura do óleo no topo: 850", "note": "0x0352 = 850: 85.0 °C." },
+        "iops-ai": { "name": "Estado do fornecedor: temperatura", "note": "80: a estação garante o valor." },
+        "iocs-dq": { "name": "Estado do consumidor: saídas", "note": "80: a estação aceitou as últimas saídas do CLP." },
+        "fill": { "name": "Enchimento", "note": "A parte de dados de um quadro cíclico tem pelo menos 40 bytes; o resto sem uso é zero. O Connect fixou onde fica cada valor." },
+        "cycle": { "name": "Contador de ciclo", "note": "Sobe a cada quadro, assim quem recebe distingue um quadro novo de um velho." },
+        "status-run": { "name": "Estado dos dados 0x35", "note": "Dados válidos, quem envia está rodando, nenhum problema. O detalhamento abaixo o separa bit a bit." },
+        "transfer": { "name": "Estado de transferência", "note": "00. Só o IRT o usa." },
+        "ds-ignore": { "name": "Bit 7, ignorar: 0", "note": "0: ler este byte. 1: ignorá-lo." },
+        "ds-reserved": { "name": "Reservado: 0", "note": "Os bits 6 e 3 são sempre 0." },
+        "ds-problem": { "name": "Bit 5, indicador de problema da estação: 1", "note": "1: normal. 0: a estação tem um problema; ler o seu diagnóstico." },
+        "ds-run": { "name": "Bit 4, estado do fornecedor: 1", "note": "1: quem envia está rodando. 0 (estado dos dados 0x25): o programa do CLP parou." },
+        "ds-valid": { "name": "Bit 2, dados válidos: 1", "note": "1: os dados podem ser usados. 0: ignorá-los." },
+        "ds-redundancy": { "name": "Bit 1, redundância: 0", "note": "Para um par de CLPs redundantes; 0 com um só CLP." },
+        "ds-primary": { "name": "Bit 0, estado: 1", "note": "1: primário. Um CLP reserva envia 0." }
+    },
+    "devices": {
+        "plc": "CLP (controlador IO)",
+        "io": "Estação de E/S trafo-io",
+        "t1": "Transformador T1",
+        "laptop": "Notebook de engenharia"
+    },
+    "facts": {
+        "standard": "IEC 61158 e IEC 61784-2, da PROFIBUS & PROFINET International; cada dispositivo é descrito por um arquivo GSDML",
+        "between": "Um CLP (o controlador IO) e suas estações de E/S, acionamentos e instrumentos (os dispositivos IO), com uma ferramenta de engenharia",
+        "transport": "Dados cíclicos, alarmes e DCP direto sobre Ethernet (EtherType 0x8892), sem IP; conexão e ajustes por UDP 34964 (DCE RPC)",
+        "security": "Nenhuma no PROFINET clássico: qualquer um no cabo pode renomear um dispositivo ou mandar-lhe saídas. Mantenha-o numa célula própria atrás de um firewall. A classe de segurança 1 pode travar as mudanças por DCP; as classes 2 e 3 trazem quadros assinados e criptografados em dispositivos novos",
+        "speed": "Um tempo de atualização por dispositivo, de menos de um milissegundo a 512 ms; em usinas o comum é de 2 a 32 ms. O IRT reserva janelas de tempo em cada switch para controle de movimento, com jitter abaixo de um microssegundo"
+    },
+    "tips": [
+        "O nome é o endereço. Um dispositivo de reposição precisa receber o mesmo nome, ou ser nomeado pelo CLP a partir do cabeamento: isso exige as informações de vizinhos (LLDP) e uma estação ainda sem nome.",
+        "O PROFINET cíclico não é IP: um roteador não o repassa, e um firewall que só deixa passar TCP e UDP o bloqueia. Mantenha o CLP e suas estações numa mesma rede Ethernet.",
+        "No Wireshark, olhe o estado dos dados e os bytes de estado: 0x35 e 0x80 são bons. Um estado dos dados de 0x25 significa que o programa do CLP parou; um byte de estado 00 significa que aquele valor é ruim.",
+        "Tempo de atualização × quadros perdidos permitidos é quanto as saídas esperam depois de uma falha antes de ir para os valores substitutos. Escolha valores substitutos seguros, como os ventiladores de resfriamento ligados."
+    ],
+    "points": {
+        "name": "Nome",
+        "ip": "Endereço IP",
+        "temp": "Temperatura do óleo no topo",
+        "fans": "Grupos de ventiladores"
+    },
+    "values": {
+        "break": "fio partido",
+        "off": "desligados",
+        "on": "ligados"
+    },
+    "timing": {
+        "title": "Um cabo cortado, três quadros perdidos depois",
+        "note": "Cada lado espera um quadro a cada 2 ms e aceita 3 faltando: um watchdog de 6 ms. O cabo é cortado em 6.5 ms. O CLP ouviu a estação pela última vez em 5 ms, então em 11 ms informa a estação como falha. A estação ouviu o CLP pela última vez em 6 ms, então em 12 ms leva suas saídas aos valores substitutos: os dois grupos de ventiladores ligados.",
+        "out": "CLP → estação de E/S",
+        "in": "Estação de E/S → CLP",
+        "cable": "Cabo",
+        "cut": "cortado",
+        "down": "CLP: estação em falha",
+        "safe": "saídas nos valores substitutos"
+    },
+    "anatomy": {
+        "status": "O estado dos dados 0x35, bit a bit"
+    },
+    "playground": {
+        "encoder": "O PROFINET envia os números com o byte mais significativo primeiro (ABCD). Digite um valor para ver como viaja 725, a temperatura do óleo no topo em décimos de grau."
+    }
+}

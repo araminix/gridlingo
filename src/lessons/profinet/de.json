@@ -1,0 +1,142 @@
+{
+    "intro": "PROFINET ist der Ethernet-Feldbus von PROFIBUS & PROFINET International und der Nachfolger von PROFIBUS. Eine SPS (PLC), der IO-Controller, tauscht alle paar Millisekunden Ein- und Ausgänge mit dezentralen I/O-Stationen, Antrieben und Messgeräten, den IO-Devices. Diese zyklischen Frames lassen IP aus und gehen direkt auf Ethernet (EtherType 0x8892). Geräte werden mit DCP über ihren Namen gefunden, über UDP verbunden und senden einen Alarm, wenn etwas kaputtgeht. In der Energietechnik steuert es Kraftwerks-Nebenanlagen, Wasserkraftmaschinen, Batteriespeicher und Trafokühlungen.",
+    "plain": "PROFINET ist die Art, wie der Steuerrechner einer Anlage, die SPS, mit den Kästen voller Schalter und Fühler ringsum spricht. Es funktioniert wie ein Appell: Alle 2 Millisekunden schickt die SPS jedem Kasten seine Befehle, und jeder Kasten antwortet mit seinen Messwerten. Verpasst ein Kasten drei Aufrufe hintereinander, nehmen beide Seiten an, dass die Leitung unterbrochen ist, und bringen alles in einen sicheren Zustand, etwa Kühllüfter an.",
+    "steps": {
+        "name": { "title": "Die Station taufen", "text": "Bei der Inbetriebnahme steckt der Techniker einen Laptop an den zweiten Port der SPS. Das Engineering-Werkzeug bittet jedes PROFINET-Gerät im Netz, sich zu melden (DCP Identify All). Die neue I/O-Station an Transformator T1 antwortet mit ihrer MAC-Adresse und ohne Namen. Der Techniker nennt sie trafo-io, und sie behält den Namen dauerhaft. Ab jetzt ist dieser Name ihre Adresse." },
+        "find": { "title": "Über den Namen finden", "text": "Beim Anlauf fragt die SPS auf der PROFINET-Multicast-Adresse nach trafo-io. Nur diese Station antwortet, mit ihrer MAC-Adresse. Dann gibt ihr die SPS mit einem DCP Set die IP-Adresse aus dem Projekt, 192.168.0.10." },
+        "connect": { "title": "Verbinden", "text": "Über UDP 34964 sendet die SPS einen Connect-Request: eine Applikationsbeziehung (AR) mit dem Modul, das sie in jedem Steckplatz erwartet, zwei zyklischen Datenströmen alle 2 ms und einem Alarmkanal. Die Station prüft, ob ihre Module passen. Die SPS schreibt die PT100-Einstellungen und meldet, dass sie fertig ist; die Station antwortet, dass sie bereit ist." },
+        "cyclic": { "title": "Alle 2 ms", "text": "Jetzt schicken sich beide alle 2 ms einen Frame, ohne IP: die Ausgänge der SPS (beide Lüftergruppen aus) und die Eingänge der Station (die Öltemperatur oben, 72.5 °C). Jeder Wert hat ein Statusbyte, das sagt, dass er gut ist (0x80), und jeder Frame einen Datenstatus von 0x35: gültige Daten, Programm läuft." },
+        "hot": { "title": "Lüfter an", "text": "Die Nachmittagslast erwärmt das Öl auf 85.0 °C. Das SPS-Programm schaltet über 80 °C beide Lüftergruppen ein: Im nächsten Frame werden zwei Ausgangsbits zu 1, und die Station schließt die Lüfterschütze." },
+        "alarm": { "title": "Ein gebrochener Draht", "text": "Ein Draht des PT100-Fühlers bricht. Die Station sendet einen Diagnosealarm: Steckplatz 1, Kanal 0, Drahtbruch. Die SPS quittiert ihn, meldet ihn dem Betriebspersonal und lässt beide Lüftergruppen laufen, solange sie die Temperatur nicht lesen kann." }
+    },
+    "frames": {
+        "identify-all": "Jedes PROFINET-Gerät: Wer bist du?",
+        "identify-new": "Ich habe noch keinen Namen und keine IP-Adresse",
+        "set-name": "Dein Name ist trafo-io; behalte ihn",
+        "set-name-ok": "Name gespeichert",
+        "identify-name": "Wo ist trafo-io?",
+        "found": "Hier, unter dieser MAC-Adresse",
+        "set-ip": "Deine IP-Adresse ist 192.168.0.10",
+        "set-ip-ok": "Erledigt",
+        "connect-req": "Verbinden wir uns: Diese Module erwarte ich",
+        "connect-res": "Deine Module passen zu meinen",
+        "prm-end": "Hier sind deine Einstellungen; das ist alles",
+        "app-ready": "Ich bin bereit",
+        "out": "Lüfter aus",
+        "in": "Öl oben 72.5 °C",
+        "in-hot": "Öl oben 85.0 °C",
+        "out-fans": "Beide Lüftergruppen an",
+        "alarm": "Drahtbruch am Temperaturfühler",
+        "alarm-ack": "Alarm erhalten"
+    },
+    "notes": {
+        "identify-new": "Frame-ID 0xFEFF, die Identify-Antwort, nur an den Laptop. Sie listet die Blöcke des Geräts: einen leeren Namen, die IP-Adresse 0.0.0.0, seine Hersteller- und Geräte-ID, seinen Typ und seine Rolle, IO-Device.",
+        "set-name-ok": "Frame-ID 0xFEFD mit derselben Transaktions-ID. Ihr einziger Block sagt, dass der Name ohne Fehler gesetzt wurde.",
+        "found": "Dieselbe Identify-Antwort wie vorher, jetzt mit dem Namen trafo-io. Die SPS erfährt die MAC-Adresse der Station und vergleicht Hersteller- und Geräte-ID mit ihrem Projekt.",
+        "set-ip-ok": "Frame-ID 0xFEFD, dieselbe Transaktions-ID. Ihr einziger Block sagt, dass die Adresse ohne Fehler gesetzt wurde.",
+        "connect-req": "Ein DCE-RPC-Aufruf über UDP 34964. Er öffnet eine Applikationsbeziehung (AR) und enthält Blöcke für die beiden zyklischen Ströme (Eingang und Ausgang, alle 2 ms, 3 verpasste Frames erlaubt), für die Alarme und die Liste der erwarteten Module: den Stationskopf in Steckplatz 0, einen Temperatureingang in Steckplatz 1, ein Ausgangsmodul in Steckplatz 2.",
+        "connect-res": "Die Station nimmt die AR an. Hätte ein Modul gefehlt oder einen anderen Typ gehabt, würde ein Moduldifferenz-Block sagen, welches; die SPS würde trotzdem verbinden und es melden.",
+        "prm-end": "Datensatz-Schreibzugriffe richten den Eingang in Steckplatz 1 ein: ein PT100-Fühler in Dreileiterschaltung, in Zehntelgrad. Dann ein Control-Aufruf mit PrmEnd: Alle Einstellungen sind gesendet.",
+        "app-ready": "Jetzt ruft die Station die SPS auf: ein Control-Aufruf mit ApplicationReady. Die SPS antwortet und verwendet von nun an die Eingänge der Station.",
+        "alarm": "Ein Alarm-Frame direkt auf Ethernet, wiederholt bis zur Quittung, mit einer Diagnose: Alarmtyp Diagnose kommend, Steckplatz 1, Subslot 1, Kanal 0, Kanalfehlertyp 0x0006, Drahtbruch. Die Station schaltet außerdem ihre Fehler-LED ein.",
+        "alarm-ack": "Die SPS quittiert den Alarm, damit die Station weiß, dass er angekommen ist. Wenn der Draht repariert ist, sendet die Station einen Alarm Diagnose gehend."
+    },
+    "fields": {
+        "dst-dcp": { "name": "Ziel: PROFINET-Multicast", "note": "01-0E-CF-00-00-00, die Adresse, auf der jedes PROFINET-Gerät auf Identify-Anfragen hört." },
+        "dst-io": { "name": "Ziel: die I/O-Station", "note": "Ihre MAC-Adresse, aus ihrer Antwort auf Identify bekannt." },
+        "dst-plc": { "name": "Ziel: die SPS", "note": "Die MAC-Adresse der SPS." },
+        "src-laptop": { "name": "Quelle: der Laptop", "note": "Die MAC-Adresse des Engineering-Laptops." },
+        "src-plc": { "name": "Quelle: die SPS", "note": "Die MAC-Adresse der SPS." },
+        "src-io": { "name": "Quelle: die I/O-Station", "note": "Die MAC-Adresse der Station." },
+        "ethertype": { "name": "EtherType 0x8892", "note": "PROFINET. Es folgen weder IP noch UDP: Der Frame geht direkt von einem Ethernet-Port zum anderen." },
+        "fid-identify": { "name": "Frame-ID 0xFEFE: DCP Identify", "note": "Die Frame-IDs 0xFEFC bis 0xFEFF sind DCP. 0xFEFE ist eine Identify-Anfrage an alle; die Antworten kommen als 0xFEFF zurück." },
+        "fid-set": { "name": "Frame-ID 0xFEFD: DCP Get oder Set", "note": "An ein einzelnes Gerät, das mit derselben Frame-ID antwortet." },
+        "identify-req": { "name": "Identify-Anfrage", "note": "Dienst 05 (Identify), Diensttyp 00 (Anfrage)." },
+        "set-req": { "name": "Set-Anfrage", "note": "Dienst 04 (Set), Diensttyp 00 (Anfrage)." },
+        "xid": { "name": "Transaktions-ID", "note": "Vom Sender gewählt. Die Antwort trägt dieselbe Nummer, so weiß der Sender, auf welche Frage sie antwortet." },
+        "delay": { "name": "Antwortverzögerungsfaktor: 1", "note": "1: sofort antworten. Ein größerer Faktor verteilt die Antworten über eine längere Zeit, damit nicht Hunderte Geräte im selben Moment antworten." },
+        "reserved": { "name": "Reserviert", "note": "In einer Set-Anfrage immer 00 00." },
+        "dcp-len": { "name": "DCP-Datenlänge", "note": "Die Anzahl der Bytes in den folgenden Blöcken." },
+        "all": { "name": "Block: alle Geräte", "note": "Option FF, Suboption FF, Länge 0: Jedes Gerät muss antworten." },
+        "name-match": { "name": "Block: Stationsname, 8 Bytes", "note": "Option 02 (Geräteeigenschaften), Suboption 02 (NameOfStation), Länge 00 08. Nur das Gerät mit diesem Namen antwortet." },
+        "name-set": { "name": "Block: Stationsname, 10 Bytes", "note": "Option 02, Suboption 02 (NameOfStation), Länge 00 0A: der Qualifier und der Name." },
+        "name": { "name": "trafo-io", "note": "Der Name in ASCII. Namen folgen den Regeln von DNS: Kleinbuchstaben, Ziffern, Bindestriche und Punkte, höchstens 240 Zeichen." },
+        "permanent": { "name": "Qualifier: dauerhaft", "note": "00 01: den Namen auch nach einem Stromausfall behalten. 00 00 würde ihn nur bis dahin behalten." },
+        "temporary": { "name": "Qualifier: vorübergehend", "note": "00 00: die Adresse nur bis zum nächsten Stromausfall behalten. Die SPS vergibt sie bei jedem Anlauf neu." },
+        "ip-block": { "name": "Block: IP-Parameter", "note": "Option 01 (IP), Suboption 02 (IP-Parameter), Länge 00 0E: der Qualifier und drei Adressen zu je 4 Bytes." },
+        "ip": { "name": "IP-Adresse 192.168.0.10", "note": "C0 A8 00 0A." },
+        "mask": { "name": "Subnetzmaske 255.255.255.0", "note": "FF FF FF 00." },
+        "gateway": { "name": "Gateway 0.0.0.0", "note": "Kein Router: Die SPS und ihre Stationen teilen sich ein Netz." },
+        "pad": { "name": "Auffüllung", "note": "Ein Ethernet-Frame ist vor seiner Prüfsumme mindestens 60 Bytes lang; der Sender füllt den Rest mit Nullen." },
+        "vlan": { "name": "VLAN-Tag, Priorität 6", "note": "81 00 sagt, dass ein Tag folgt; C0 00 bedeutet Priorität 6 und VLAN 0. Switches senden Frames mit Priorität 6 vor normalem Verkehr." },
+        "fid-out": { "name": "Frame-ID 0xC000: Ausgänge", "note": "Zyklische Echtzeitdaten, Klasse 1 (0xC000 bis 0xF7FF). Der Connect hat diese Nummer dem Ausgangsstrom der SPS gegeben." },
+        "fid-in": { "name": "Frame-ID 0xC001: Eingänge", "note": "Die Nummer, die der Connect dem Eingangsstrom der Station gegeben hat." },
+        "iocs-head": { "name": "Verbraucherstatus: Stationskopf", "note": "IOCS 80 80 80 80: Die SPS nimmt den Status der vier Teile des Kopfs an (der Kopf, seine Schnittstelle und seine zwei Ports). Sie tragen keine Daten, nur einen Status." },
+        "iops-head": { "name": "Lieferantenstatus: Stationskopf", "note": "IOPS 80 80 80 80: Der Kopf, seine Schnittstelle und seine zwei Ports sind gut. Sie tragen keine Daten, nur einen Status." },
+        "iocs-ai": { "name": "Verbraucherstatus: Temperatur", "note": "80: Die SPS hat die letzte Temperatur angenommen." },
+        "fans-off": { "name": "Ausgänge: 00", "note": "Steckplatz 2, ein Byte: Bit 0 ist Lüftergruppe 1, Bit 1 Lüftergruppe 2. Beide aus." },
+        "fans-on": { "name": "Ausgänge: 03", "note": "Bits 0 und 1 gesetzt: beide Lüftergruppen an." },
+        "iops-dq": { "name": "Lieferantenstatus: Ausgänge", "note": "80: Die SPS bürgt für diese Ausgänge. Mit 00 würde die Station stattdessen ihre Ersatzwerte verwenden." },
+        "temp-725": { "name": "Öltemperatur oben: 725", "note": "Steckplatz 1, zwei Bytes, höchstwertiges zuerst: 0x02D5 = 725, in Zehntelgrad, wie beim Connect eingestellt: 72.5 °C." },
+        "temp-850": { "name": "Öltemperatur oben: 850", "note": "0x0352 = 850: 85.0 °C." },
+        "iops-ai": { "name": "Lieferantenstatus: Temperatur", "note": "80: Die Station bürgt für den Wert." },
+        "iocs-dq": { "name": "Verbraucherstatus: Ausgänge", "note": "80: Die Station hat die letzten Ausgänge der SPS angenommen." },
+        "fill": { "name": "Füllbytes", "note": "Der Datenteil eines zyklischen Frames ist mindestens 40 Bytes lang; der ungenutzte Rest sind Nullen. Der Connect hat festgelegt, wo jeder Wert steht." },
+        "cycle": { "name": "Zykluszähler", "note": "Steigt mit jedem Frame, so kann der Empfänger einen neuen Frame von einem alten unterscheiden." },
+        "status-run": { "name": "Datenstatus 0x35", "note": "Gültige Daten, der Sender läuft, kein Problem. Die Aufschlüsselung unten zerlegt ihn Bit für Bit." },
+        "transfer": { "name": "Transferstatus", "note": "00. Nur IRT verwendet ihn." },
+        "ds-ignore": { "name": "Bit 7, ignorieren: 0", "note": "0: dieses Byte auswerten. 1: es ignorieren." },
+        "ds-reserved": { "name": "Reserviert: 0", "note": "Bits 6 und 3 sind immer 0." },
+        "ds-problem": { "name": "Bit 5, Stationsproblem-Indikator: 1", "note": "1: normal. 0: Die Station hat ein Problem; ihre Diagnose lesen." },
+        "ds-run": { "name": "Bit 4, Provider-Zustand: 1", "note": "1: Der Sender läuft. 0 (Datenstatus 0x25): Das SPS-Programm ist gestoppt." },
+        "ds-valid": { "name": "Bit 2, Daten gültig: 1", "note": "1: Die Daten sind verwendbar. 0: sie ignorieren." },
+        "ds-redundancy": { "name": "Bit 1, Redundanz: 0", "note": "Für ein Paar redundanter SPSen; 0 bei einer einzelnen SPS." },
+        "ds-primary": { "name": "Bit 0, Zustand: 1", "note": "1: primär. Eine Backup-SPS sendet 0." }
+    },
+    "devices": {
+        "plc": "SPS (IO-Controller)",
+        "io": "I/O-Station trafo-io",
+        "t1": "Transformator T1",
+        "laptop": "Engineering-Laptop"
+    },
+    "facts": {
+        "standard": "IEC 61158 und IEC 61784-2, von PROFIBUS & PROFINET International; jedes Gerät wird durch eine GSDML-Datei beschrieben",
+        "between": "Eine SPS (der IO-Controller) und ihre I/O-Stationen, Antriebe und Messgeräte (die IO-Devices), mit einem Engineering-Werkzeug",
+        "transport": "Zyklische Daten, Alarme und DCP direkt auf Ethernet (EtherType 0x8892), ohne IP; Verbindungsaufbau und Einstellungen über UDP 34964 (DCE RPC)",
+        "security": "Keine im klassischen PROFINET: Jeder am Kabel kann ein Gerät umbenennen oder ihm Ausgänge senden. In einer eigenen Zelle hinter einer Firewall halten. Security Class 1 kann DCP-Änderungen sperren; Class 2 und 3 bringen signierte und verschlüsselte Frames auf neuen Geräten",
+        "speed": "Eine Aktualisierungszeit pro Gerät, von unter einer Millisekunde bis 512 ms; in Anlagen sind 2 bis 32 ms üblich. IRT reserviert Zeitschlitze in jedem Switch für Motion Control, mit einem Jitter unter einer Mikrosekunde"
+    },
+    "tips": [
+        "Der Name ist die Adresse. Ein Ersatzgerät muss denselben Namen bekommen oder von der SPS anhand der Verkabelung benannt werden: Dafür braucht es Nachbarinformationen (LLDP) und eine Station, die noch keinen Namen hat.",
+        "Zyklisches PROFINET ist kein IP: Ein Router leitet es nicht weiter, und eine Firewall, die nur TCP und UDP durchlässt, blockiert es. SPS und Stationen in einem Ethernet-Netz halten.",
+        "In Wireshark auf den Datenstatus und die Statusbytes achten: 0x35 und 0x80 sind gut. Ein Datenstatus von 0x25 heißt, dass das SPS-Programm gestoppt ist; ein Statusbyte von 00 heißt, dass dieser Wert schlecht ist.",
+        "Aktualisierungszeit × erlaubte verpasste Frames ist die Zeit, die Ausgänge nach einem Fehler warten, bevor sie auf ihre Ersatzwerte gehen. Sichere Ersatzwerte wählen, etwa Kühllüfter an."
+    ],
+    "points": {
+        "name": "Name",
+        "ip": "IP-Adresse",
+        "temp": "Öltemperatur oben",
+        "fans": "Lüftergruppen"
+    },
+    "values": {
+        "break": "Drahtbruch",
+        "off": "aus",
+        "on": "an"
+    },
+    "timing": {
+        "title": "Ein durchtrenntes Kabel, drei verpasste Frames später",
+        "note": "Jede Seite erwartet alle 2 ms einen Frame und akzeptiert 3 fehlende: ein Watchdog von 6 ms. Das Kabel wird bei 6.5 ms durchtrennt. Die SPS hat die Station zuletzt bei 5 ms gehört, also meldet sie bei 11 ms den Ausfall der Station. Die Station hat die SPS zuletzt bei 6 ms gehört, also setzt sie bei 12 ms ihre Ausgänge auf die Ersatzwerte: beide Lüftergruppen an.",
+        "out": "SPS → I/O-Station",
+        "in": "I/O-Station → SPS",
+        "cable": "Kabel",
+        "cut": "durchtrennt",
+        "down": "SPS: Station ausgefallen",
+        "safe": "Ausgänge auf Ersatzwerte"
+    },
+    "anatomy": {
+        "status": "Der Datenstatus 0x35, Bit für Bit"
+    },
+    "playground": {
+        "encoder": "PROFINET sendet Zahlen mit dem höchstwertigen Byte zuerst (ABCD). Gib einen Wert ein und sieh, wie 725, die Öltemperatur oben in Zehntelgrad, übertragen wird."
+    }
+}

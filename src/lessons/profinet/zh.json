@@ -1,0 +1,142 @@
+{
+    "intro": "PROFINET 是 PROFIBUS & PROFINET International 的 Ethernet 现场总线，也是 PROFIBUS 的继任者。作为 IO 控制器的 PLC 每隔几毫秒就与远程 I/O 站、驱动器和仪表（即 IO 设备）交换输入和输出。这些周期帧不经过 IP，直接走在 Ethernet 上（EtherType 0x8892）。设备用 DCP 按名称找到，经 UDP 连接，出故障时发送报警。在能源领域，它控制电厂辅助系统、水电机组、储能电站和变压器冷却。",
+    "plain": "PROFINET 是电厂的控制计算机 PLC 与散布在四周的开关和传感器箱子说话的方式。它像点名：每 2 毫秒 PLC 给每个箱子发去命令，每个箱子用自己的读数回答。如果一个箱子连续三次没应答，双方都认为线路断了，把一切置于安全状态，比如打开冷却风扇。",
+    "steps": {
+        "name": { "title": "给站点起名", "text": "调试时，工程师把一台笔记本电脑插到 PLC 的第二个端口。工程工具请网络上每台 PROFINET 设备报上名来（DCP Identify All）。变压器 T1 旁边新装的 I/O 站回答了自己的 MAC 地址，没有名字。工程师给它起名 trafo-io，它会一直保存这个名字。从此，这个名字就是它的地址。" },
+        "find": { "title": "按名称找到它", "text": "PLC 启动时，在 PROFINET 组播地址上按名称询问 trafo-io。只有这个站回答，并给出它的 MAC 地址。然后 PLC 用一条 DCP Set 把项目中的 IP 地址 192.168.0.10 分配给它。" },
+        "connect": { "title": "建立连接", "text": "PLC 经 UDP 34964 发出 Connect 请求：一个应用关系（AR），包括它在每个插槽期望的模块、两条每 2 ms 一次的周期数据流和一个报警通道。站点检查自己的模块是否相符。PLC 写入 PT100 的设置并表示完成；站点回答已就绪。" },
+        "cyclic": { "title": "每 2 ms", "text": "现在双方每 2 ms 互发一帧，不经过 IP：PLC 的输出（两组风扇都关）和站点的输入（顶层油温 72.5 °C）。每个值带一个表示良好的状态字节（0x80），每帧带数据状态 0x35：数据有效，程序运行中。" },
+        "hot": { "title": "开风扇", "text": "下午的负荷把油温升到 85.0 °C。PLC 程序在 80 °C 以上打开两组风扇：下一帧中两个输出位变为 1，站点闭合风扇接触器。" },
+        "alarm": { "title": "一根断线", "text": "PT100 传感器的一根导线断了。站点发送诊断报警：插槽 1，通道 0，断线。PLC 确认报警，通知运行人员，并在读不到温度期间让两组风扇一直运转。" }
+    },
+    "frames": {
+        "identify-all": "每台 PROFINET 设备：你是谁？",
+        "identify-new": "我还没有名字，也没有 IP 地址",
+        "set-name": "你叫 trafo-io；记住它",
+        "set-name-ok": "名字已保存",
+        "identify-name": "trafo-io 在哪里？",
+        "found": "在这里，这个 MAC 地址",
+        "set-ip": "你的 IP 地址是 192.168.0.10",
+        "set-ip-ok": "完成",
+        "connect-req": "我们连接吧：这些是我期望的模块",
+        "connect-res": "你的模块和我的一致",
+        "prm-end": "这是你的设置；就这些",
+        "app-ready": "我已就绪",
+        "out": "风扇关",
+        "in": "顶层油温 72.5 °C",
+        "in-hot": "顶层油温 85.0 °C",
+        "out-fans": "两组风扇都开",
+        "alarm": "温度传感器断线",
+        "alarm-ack": "报警已收到"
+    },
+    "notes": {
+        "identify-new": "帧 ID 0xFEFF，即 Identify 应答，只发给笔记本电脑。它列出设备的各个块：空名字、IP 地址 0.0.0.0、厂商 ID 和设备 ID、设备类型，以及它的角色：IO 设备。",
+        "set-name-ok": "帧 ID 0xFEFD，事务 ID 相同。它唯一的块说明名字已无错误地设置好。",
+        "found": "与之前相同的 Identify 应答，这次带着名字 trafo-io。PLC 得知站点的 MAC 地址，并把厂商 ID 和设备 ID 与项目核对。",
+        "set-ip-ok": "帧 ID 0xFEFD，事务 ID 相同。它唯一的块说明地址已无错误地设置好。",
+        "connect-req": "经 UDP 34964 的一次 DCE RPC 调用。它打开一个应用关系（AR），带有两条周期数据流（输入和输出，每 2 ms 一次，允许丢失 3 帧）、报警以及期望模块列表的块：插槽 0 是站点头，插槽 1 是温度输入，插槽 2 是输出模块。",
+        "connect-res": "站点接受 AR。如果某个模块缺失或类型不同，模块差异块会指出是哪个；PLC 仍会连接并报告此事。",
+        "prm-end": "写记录设置插槽 1 的输入：三线制 PT100 传感器，单位为十分之一度。随后是一次带 PrmEnd 的 Control 调用：所有设置都已发送。",
+        "app-ready": "现在由站点调用 PLC：一次带 ApplicationReady 的 Control 调用。PLC 应答，此后开始使用站点的输入。",
+        "alarm": "一帧直接走在 Ethernet 上的报警帧，在被确认前会重发，携带一条诊断：报警类型 Diagnosis appears，插槽 1，子插槽 1，通道 0，通道错误类型 0x0006，断线。站点还会点亮它的故障 LED。",
+        "alarm-ack": "PLC 确认报警，站点就知道它已送达。导线修好后，站点会发送一条 Diagnosis disappears 报警。"
+    },
+    "fields": {
+        "dst-dcp": { "name": "目的地址：PROFINET 组播", "note": "01-0E-CF-00-00-00，每台 PROFINET 设备监听 Identify 请求的地址。" },
+        "dst-io": { "name": "目的地址：I/O 站", "note": "它的 MAC 地址，从它对 Identify 的应答中得知。" },
+        "dst-plc": { "name": "目的地址：PLC", "note": "PLC 的 MAC 地址。" },
+        "src-laptop": { "name": "源地址：笔记本电脑", "note": "工程笔记本电脑的 MAC 地址。" },
+        "src-plc": { "name": "源地址：PLC", "note": "PLC 的 MAC 地址。" },
+        "src-io": { "name": "源地址：I/O 站", "note": "站点的 MAC 地址。" },
+        "ethertype": { "name": "EtherType 0x8892", "note": "PROFINET。后面既没有 IP 也没有 UDP：帧直接从一个 Ethernet 端口到另一个端口。" },
+        "fid-identify": { "name": "帧 ID 0xFEFE：DCP Identify", "note": "帧 ID 0xFEFC 到 0xFEFF 属于 DCP。0xFEFE 是发给所有设备的 Identify 请求；应答以 0xFEFF 返回。" },
+        "fid-set": { "name": "帧 ID 0xFEFD：DCP Get 或 Set", "note": "发给单台设备，设备用相同的帧 ID 应答。" },
+        "identify-req": { "name": "Identify 请求", "note": "服务 05（Identify），服务类型 00（请求）。" },
+        "set-req": { "name": "Set 请求", "note": "服务 04（Set），服务类型 00（请求）。" },
+        "xid": { "name": "事务 ID", "note": "由发送方选择。应答带着同一个号码，发送方就知道它回答的是哪个问题。" },
+        "delay": { "name": "应答延迟系数：1", "note": "1：立即应答。系数越大，应答分散在越长的时间里，免得数百台设备同时应答。" },
+        "reserved": { "name": "保留", "note": "在 Set 请求中总是 00 00。" },
+        "dcp-len": { "name": "DCP 数据长度", "note": "后面各块的字节数。" },
+        "all": { "name": "块：所有设备", "note": "选项 FF，子选项 FF，长度 0：每台设备都必须应答。" },
+        "name-match": { "name": "块：站名，8 字节", "note": "选项 02（设备属性），子选项 02（NameOfStation），长度 00 08。只有叫这个名字的设备应答。" },
+        "name-set": { "name": "块：站名，10 字节", "note": "选项 02，子选项 02（NameOfStation），长度 00 0A：限定符和名字。" },
+        "name": { "name": "trafo-io", "note": "ASCII 形式的名字。名字遵循 DNS 规则：小写字母、数字、连字符和点，最多 240 个字符。" },
+        "permanent": { "name": "限定符：永久", "note": "00 01：断电后也保留名字。00 00 只会保留到那时。" },
+        "temporary": { "name": "限定符：临时", "note": "00 00：地址只保留到下一次断电。PLC 每次启动都会重新分配。" },
+        "ip-block": { "name": "块：IP 参数", "note": "选项 01（IP），子选项 02（IP 参数），长度 00 0E：限定符和三个各 4 字节的地址。" },
+        "ip": { "name": "IP 地址 192.168.0.10", "note": "C0 A8 00 0A。" },
+        "mask": { "name": "子网掩码 255.255.255.0", "note": "FF FF FF 00。" },
+        "gateway": { "name": "网关 0.0.0.0", "note": "没有路由器：PLC 和它的站点在同一个网络里。" },
+        "pad": { "name": "填充", "note": "Ethernet 帧在校验和之前至少 60 字节；发送方用零补足其余部分。" },
+        "vlan": { "name": "VLAN 标签，优先级 6", "note": "81 00 表示后面跟着标签；C0 00 表示优先级 6、VLAN 0。交换机先于普通流量发送优先级 6 的帧。" },
+        "fid-out": { "name": "帧 ID 0xC000：输出", "note": "周期实时数据，1 类（0xC000 到 0xF7FF）。Connect 把这个号码分给了 PLC 的输出流。" },
+        "fid-in": { "name": "帧 ID 0xC001：输入", "note": "Connect 分给站点输入流的号码。" },
+        "iocs-head": { "name": "消费者状态：站点头", "note": "IOCS 80 80 80 80：PLC 接受站点头四个部分（站点头、它的接口和两个端口）的状态。它们不带数据，只带状态。" },
+        "iops-head": { "name": "提供者状态：站点头", "note": "IOPS 80 80 80 80：站点头、它的接口和两个端口都良好。它们不带数据，只带状态。" },
+        "iocs-ai": { "name": "消费者状态：温度", "note": "80：PLC 接受了上一个温度值。" },
+        "fans-off": { "name": "输出：00", "note": "插槽 2，一个字节：位 0 是风扇组 1，位 1 是风扇组 2。都关。" },
+        "fans-on": { "name": "输出：03", "note": "位 0 和 1 置位：两组风扇都开。" },
+        "iops-dq": { "name": "提供者状态：输出", "note": "80：PLC 为这些输出担保。若为 00，站点会改用自己的替代值。" },
+        "temp-725": { "name": "顶层油温：725", "note": "插槽 1，两个字节，高位字节在前：0x02D5 = 725，按 Connect 时的设置以十分之一度计：72.5 °C。" },
+        "temp-850": { "name": "顶层油温：850", "note": "0x0352 = 850：85.0 °C。" },
+        "iops-ai": { "name": "提供者状态：温度", "note": "80：站点为这个值担保。" },
+        "iocs-dq": { "name": "消费者状态：输出", "note": "80：站点接受了 PLC 上一次的输出。" },
+        "fill": { "name": "填充数据", "note": "周期帧的数据部分至少 40 字节；未用的部分为零。每个值的位置在 Connect 时就定好了。" },
+        "cycle": { "name": "周期计数器", "note": "每帧递增，接收方据此分辨新帧和旧帧。" },
+        "status-run": { "name": "数据状态 0x35", "note": "数据有效，发送方在运行，没有问题。下面的拆解逐位说明。" },
+        "transfer": { "name": "传输状态", "note": "00。只有 IRT 使用它。" },
+        "ds-ignore": { "name": "位 7，忽略：0", "note": "0：读取这个字节。1：忽略它。" },
+        "ds-reserved": { "name": "保留：0", "note": "位 6 和位 3 总是 0。" },
+        "ds-problem": { "name": "位 5，站点故障指示：1", "note": "1：正常。0：站点有问题；请读取它的诊断。" },
+        "ds-run": { "name": "位 4，提供者状态：1", "note": "1：发送方在运行。0（数据状态 0x25）：PLC 程序已停止。" },
+        "ds-valid": { "name": "位 2，数据有效：1", "note": "1：数据可用。0：忽略它们。" },
+        "ds-redundancy": { "name": "位 1，冗余：0", "note": "用于一对冗余 PLC；单台 PLC 时为 0。" },
+        "ds-primary": { "name": "位 0，状态：1", "note": "1：主站。备用 PLC 发送 0。" }
+    },
+    "devices": {
+        "plc": "PLC（IO 控制器）",
+        "io": "I/O 站 trafo-io",
+        "t1": "变压器 T1",
+        "laptop": "工程笔记本电脑"
+    },
+    "facts": {
+        "standard": "IEC 61158 和 IEC 61784-2，来自 PROFIBUS & PROFINET International；每台设备用一个 GSDML 文件描述",
+        "between": "PLC（IO 控制器）与它的 I/O 站、驱动器和仪表（IO 设备），外加一个工程工具",
+        "transport": "周期数据、报警和 DCP 直接走在 Ethernet 上（EtherType 0x8892），不经过 IP；建立连接和设置经 UDP 34964（DCE RPC）",
+        "security": "传统 PROFINET 没有安全机制：任何接触到电缆的人都能给设备改名或向它发送输出。把它放在防火墙后的独立单元中。安全等级 1 可以锁定 DCP 修改；等级 2 和 3 在新设备上加入签名和加密的帧",
+        "speed": "每台设备有自己的更新时间，从不到一毫秒到 512 ms；电厂中常见 2 到 32 ms。IRT 为运动控制在每台交换机中预留时间槽，抖动小于一微秒"
+    },
+    "tips": [
+        "名字就是地址。替换的设备必须得到同样的名字，或由 PLC 根据布线为它命名：这需要邻居信息（LLDP），并且该站点还没有名字。",
+        "周期 PROFINET 不是 IP：路由器不会转发它，只放行 TCP 和 UDP 的防火墙会把它挡住。让 PLC 和它的站点处于同一个 Ethernet 网络。",
+        "在 Wireshark 中查看数据状态和状态字节：0x35 和 0x80 表示良好。数据状态 0x25 表示 PLC 程序已停止；状态字节 00 表示那个值不良。",
+        "更新时间 × 允许丢失的帧数，就是故障后输出切换到替代值之前等待的时间。选择安全的替代值，比如打开冷却风扇。"
+    ],
+    "points": {
+        "name": "名字",
+        "ip": "IP 地址",
+        "temp": "顶层油温",
+        "fans": "风扇组"
+    },
+    "values": {
+        "break": "断线",
+        "off": "关",
+        "on": "开"
+    },
+    "timing": {
+        "title": "电缆被切断，三帧之后",
+        "note": "每一方每 2 ms 期待一帧，并容忍丢失 3 帧：一个 6 ms 的看门狗。电缆在 6.5 ms 被切断。PLC 最后一次收到站点的帧是在 5 ms，所以在 11 ms 报告站点故障。站点最后一次收到 PLC 的帧是在 6 ms，所以在 12 ms 把输出置为替代值：两组风扇都开。",
+        "out": "PLC → I/O 站",
+        "in": "I/O 站 → PLC",
+        "cable": "电缆",
+        "cut": "切断",
+        "down": "PLC：站点故障",
+        "safe": "输出置为替代值"
+    },
+    "anatomy": {
+        "status": "数据状态 0x35，逐位拆解"
+    },
+    "playground": {
+        "encoder": "PROFINET 发送数字时高位字节在前（ABCD）。输入一个值，看看以十分之一度计的顶层油温 725 是怎么传送的。"
+    }
+}

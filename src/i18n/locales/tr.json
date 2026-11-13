@@ -229,6 +229,8 @@
     "lesson.iec-61400-25.where": "Rüzgar türbinleri, park kontrolörleri",
     "lesson.canopen.summary": "Bir batarya rafının içindeki parçalar nasıl konuşur",
     "lesson.canopen.where": "Batarya yönetim sistemleri, konvertörler",
+    "lesson.profinet.summary": "Bir PLC'nin birkaç milisaniyede bir giriş ve çıkışları nasıl değiştirdiği",
+    "lesson.profinet.where": "Santral yardımcı sistemleri, trafo soğutması, hidroelektrik üniteleri",
     "lesson.ocpp.summary": "Şarj cihazından şarj istasyonu yönetim sistemine",
     "lesson.ocpp.where": "Elektrikli araç şarj cihazları, şarj yönetim sistemleri",
     "lesson.iso-15118.summary": "Araçtan şarj cihazına: Plug & Charge, araçtan şebekeye (V2G)",
