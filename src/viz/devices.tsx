@@ -22,7 +22,7 @@ const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     broker: { w: 34, d: 30, h: 48 },
     cloud: { w: 40, d: 34, h: 56 },
     pmu: { w: 26, d: 20, h: 26 },
-    building: { w: 60, d: 48, h: 84 },
+    building: { w: 60, d: 48, h: 86 },
     sensor: { w: 8, d: 8, h: 40 },
     laptop: { w: 30, d: 22, h: 16 },
     transformer: { w: 44, d: 30, h: 48 },
@@ -174,6 +174,16 @@ function hallParts(cx: number, cy: number) {
     return { floor: { cx, cy, w, d, h: 3 } satisfies Box, racks: [-1, 1].map((at): Box => ({ cx: cx + at * 9.5, cy: cy - 3, w: 17, d: 22, h: 30, z: 3 })) };
 }
 
+/** A building of six floors with a canopy over its door, and a cooling unit on its roof. */
+function buildingParts(cx: number, cy: number) {
+    const { w, d } = SIZE.building;
+    return {
+        body: { cx, cy, w, d, h: 80 } satisfies Box,
+        canopy: { cx, cy: cy + d / 2 + 3, w: 18, d: 6, h: 1.5, z: 12 } satisfies Box,
+        cooler: { cx: cx + 12, cy: cy - 10, w: 14, d: 10, h: 6, z: 80 } satisfies Box,
+    };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -191,6 +201,11 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "building") {
+        // The cooling unit's shadow falls on the roof, not on the ground
+        const { body, canopy } = buildingParts(cx, cy);
+        return [body, canopy];
+    }
     if (kind === "cloud") {
         const { floor, racks } = hallParts(cx, cy);
         return [floor, ...racks];
@@ -879,14 +894,42 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
                 </g>
             );
         }
-        case "building":
-            detail = (
-                <>
-                    {[0.2, 0.45, 0.7].flatMap((v) => [0.12, 0.42, 0.72].map((u) => <Panel key={`l${u}${v}`} on={f.onLeft} u0={u} v0={v} u1={u + 0.16} v1={v + 0.14} fill="var(--viz-screen)" />))}
-                    {[0.2, 0.45, 0.7].flatMap((v) => [0.15, 0.55].map((u) => <Panel key={`r${u}${v}`} on={f.onRight} u0={u} v0={v} u1={u + 0.22} v1={v + 0.14} fill="var(--viz-screen)" />))}
-                </>
+        case "building": {
+            // A glass door under a canopy, five floors of window bands (a few lit), and on the roof its rim, a cooling
+            // unit and two rows of solar panels
+            const { body, canopy, cooler } = buildingParts(cx, cy);
+            const box = faces(body);
+            const floors = [0.2, 0.344, 0.488, 0.632, 0.776];
+            const bands = (on: typeof box.onLeft, key: string, lit: number[]) =>
+                floors.map((v, i) => (
+                    <g key={`${key}${v}`}>
+                        <Panel on={on} u0={0.06} v0={v + 0.03} u1={0.94} v1={v + 0.11} fill="var(--viz-pv)" />
+                        {lit.includes(i) && <Panel on={on} u0={0.26} v0={v + 0.03} u1={0.42} v1={v + 0.11} fill="var(--viz-token)" />}
+                        <Lines list={[0.2, 0.34, 0.48, 0.62, 0.76].map((u) => [on(u, v + 0.03), on(u, v + 0.11)])} width={0.5} />
+                    </g>
+                ));
+            const [fx, fy] = faces(cooler).onTop(0.5, 0.5);
+            const panels = [-14, -6].map((dy) => {
+                const at = (x: number, y: number, z: number) => project(cx - 26 + x, cy + dy + y, 80 + z);
+                return quad(at(0, 0, 3), at(22, 0, 3), at(22, 5, 0.5), at(0, 5, 0.5));
+            });
+            return (
+                <g>
+                    <Solid box={body} active={active} />
+                    <Lines list={[[box.onTop(0.03, 0.03), box.onTop(0.97, 0.03), box.onTop(0.97, 0.97), box.onTop(0.03, 0.97), box.onTop(0.03, 0.03)]]} width={0.6} />
+                    {bands(box.onLeft, "l", [1, 3])}
+                    {bands(box.onRight, "r", [2])}
+                    <Panel on={box.onLeft} u0={0.4} v0={0} u1={0.6} v1={0.13} fill="var(--viz-pv)" />
+                    <Lines list={[[box.onLeft(0.5, 0), box.onLeft(0.5, 0.13)]]} width={0.6} />
+                    <Solid box={canopy} active={active} fine />
+                    {panels.map((points) => (
+                        <polygon key={points} points={points} fill="var(--viz-cell)" stroke={tone.edge} strokeWidth={0.6} />
+                    ))}
+                    <Solid box={cooler} active={active} fine />
+                    <ellipse cx={round(fx)} cy={round(fy)} rx={4} ry={2.3} fill={tone.right} stroke={tone.edge} strokeWidth={0.5} />
+                </g>
             );
-            break;
+        }
         case "sensor": {
             const head: Box = { cx, cy, w: 16, d: 12, h: 10, z: size.h };
             return (
