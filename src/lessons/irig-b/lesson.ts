@@ -133,5 +133,6 @@ export const lesson: Lesson = {
             also: "B124 · B004",
         },
     ],
+    playground: [{ kind: "irig" }],
     related: ["ptp", "iec-103", "c37-118"],
 };

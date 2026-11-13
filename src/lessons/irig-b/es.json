@@ -85,5 +85,8 @@
     },
     "anatomy": {
         "code": "El nombre de un código IRIG, pieza a pieza"
+    },
+    "playground": {
+        "irig": "Pruébalo: escribe una hora, un día del año y un año, y mira las 100 celdas de la trama que los lleva. Las 10:41:07 del día 316 de 2026 son la trama de esta lección."
     }
 }

@@ -85,5 +85,8 @@
     },
     "anatomy": {
         "code": "Un nom de code IRIG, décomposé"
+    },
+    "playground": {
+        "irig": "Essayez : tapez une heure, un jour de l'année et une année, et voyez les 100 cellules de la trame qui les porte. 10:41:07 le jour 316 de 2026, c'est la trame de cette leçon."
     }
 }

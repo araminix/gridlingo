@@ -85,5 +85,8 @@
     },
     "anatomy": {
         "code": "Ein IRIG-Codename, zerlegt"
+    },
+    "playground": {
+        "irig": "Probieren Sie es aus: Geben Sie Uhrzeit, Tag im Jahr und Jahr ein und sehen Sie die 100 Zellen des Frames, der sie trägt. 10:41:07 am Tag 316 von 2026 ist der Frame dieser Lektion."
     }
 }

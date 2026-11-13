@@ -85,5 +85,8 @@
     },
     "anatomy": {
         "code": "O nome de um código IRIG, desmontado"
+    },
+    "playground": {
+        "irig": "Experimente: digite uma hora, um dia do ano e um ano, e veja as 100 células do quadro que os leva. 10:41:07 do dia 316 de 2026 é o quadro desta lição."
     }
 }

@@ -85,5 +85,8 @@
     },
     "anatomy": {
         "code": "Bir IRIG kod adı, parça parça"
+    },
+    "playground": {
+        "irig": "Deneyin: bir saat, yılın bir günü ve bir yıl yazın; onları taşıyan çerçevenin 100 hücresini görün. 2026'nın 316. günündeki 10:41:07 bu dersin çerçevesidir."
     }
 }

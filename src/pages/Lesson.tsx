@@ -14,6 +14,7 @@ import { loadLesson, type Loaded } from "@/lessons/load";
 import type { Frame, Meta } from "@/lessons/types";
 import { wordsOf, type Words } from "@/lessons/words";
 import { Encoder } from "@/playground/Encoder";
+import { IrigFrame } from "@/playground/IrigFrame";
 import { PilotDuty } from "@/playground/PilotDuty";
 import { SampleFile } from "@/playground/SampleFile";
 import { SclExplorer } from "@/playground/SclExplorer";
@@ -318,6 +319,8 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                                     <Encoder key={i} type={item.type} order={item.order} value={item.value} intro={words.playground(item.intro ?? "encoder")} />
                                 ) : item.kind === "pwm" ? (
                                     <PilotDuty key={i} duty={item.duty} intro={words.playground(item.intro ?? "pwm")} />
+                                ) : item.kind === "irig" ? (
+                                    <IrigFrame key={i} intro={words.playground(item.intro ?? "irig")} />
                                 ) : item.kind === "scl" ? (
                                     <SclExplorer key={i} sample={item.sample} file={item.file} intro={words.playground(item.intro ?? "scl")} />
                                 ) : (

@@ -177,7 +177,9 @@ export type Playground =
     /** A sample file with notes on its lines: `playground.<note>` in the texts. */
     | { kind: "file"; sample: string; file: string; notes: Readonly<Record<number, string>>; intro?: string }
     /** A control pilot's duty cycle and the current it offers, both ways (IEC 61851). */
-    | { kind: "pwm"; duty: number; intro?: string };
+    | { kind: "pwm"; duty: number; intro?: string }
+    /** A time and the 100 cells of the IRIG-B frame that sends it. */
+    | { kind: "irig"; intro?: string };
 
 export interface Lesson {
     /** The columns of the sequence view, left to right. */
