@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
+import type { MessageKey } from "@/i18n/i18n";
 import { useI18n } from "@/i18n/i18n";
 import { Link } from "@/router";
+import { GroupIcon, groupVars } from "./GroupIcon";
 import { LanguageMenu } from "./LanguageMenu";
 import { Logo } from "./Logo";
+import { usePageTitle } from "./PageTitle";
 import { SearchButton, SearchDialog } from "./Search";
 import { ThemeSwitch } from "./ThemeSwitch";
 
@@ -19,21 +22,29 @@ function GithubMark() {
 
 export function Header({ search = true }: { search?: boolean }) {
     const { t } = useI18n();
+    const title = usePageTitle();
     return (
         <header className="sticky top-0 z-30 border-b bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/75">
-            <div className="flex h-14 items-center gap-2 px-3 sm:gap-3 sm:px-5">
+            <div className="flex h-12 items-center gap-2 px-3 sm:gap-3 sm:px-4">
                 <Link to="/" className="flex shrink-0 items-center gap-2.5 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
                     <Logo className="size-7" />
-                    <span className="flex flex-col leading-tight">
-                        <span className="text-lg font-bold tracking-tight">Gridlingo</span>
-                        <span className="text-xs text-muted-foreground max-md:hidden">{t("app.tagline")}</span>
-                    </span>
+                    <span className="text-lg font-bold tracking-tight">Gridlingo</span>
                 </Link>
+                {/* The open lesson's name and group, on wider screens; phones keep them on the page */}
+                {title && (
+                    <div className="flex min-w-0 items-center gap-3 border-s ps-3 max-md:hidden" style={groupVars(title.group)}>
+                        <h1 className="truncate text-xl font-bold tracking-tight">{title.name}</h1>
+                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-sm bg-[color-mix(in_oklab,var(--g)_12%,transparent)] py-0.5 ps-0.5 pe-2 text-[11px] font-semibold tracking-wider text-[var(--g)] uppercase max-lg:hidden">
+                            <GroupIcon group={title.group} className="size-5" />
+                            {t(`group.${title.group}` as MessageKey)}
+                        </span>
+                    </div>
+                )}
                 <div className="ms-auto flex items-center gap-2">
                     {search && <SearchButton />}
                     <LanguageMenu />
                     <ThemeSwitch />
-                    <Button variant="outline" size="icon" className="size-10 max-[380px]:hidden" asChild>
+                    <Button variant="outline" size="icon" className="size-9 max-[380px]:hidden" asChild>
                         <a href={REPOSITORY} aria-label={t("app.source")}>
                             <GithubMark />
                         </a>

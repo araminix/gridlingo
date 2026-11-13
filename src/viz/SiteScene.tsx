@@ -130,7 +130,7 @@ export function SiteScene({ scene, frame, words, plate = false }: { scene: Scene
     return (
         <svg
             viewBox={`${round(view.minX)} ${round(view.minY)} ${round(view.width)} ${round(view.height)}`}
-            className={plate ? "block h-auto max-h-[70vh] w-full overflow-visible" : "block h-auto max-h-[max(20rem,calc(100vh-21rem))] w-full"}
+            className={plate ? "block h-auto max-h-[70vh] w-full overflow-visible" : "block h-auto max-h-[max(20rem,calc(100vh-17rem))] w-full"}
             role="img"
             aria-label={scene.devices.map((device) => words.device(device.id)).join(", ")}
         >

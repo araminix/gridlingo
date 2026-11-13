@@ -1,5 +1,6 @@
 import { useI18n } from "@/i18n/i18n";
 import { Footer, Header } from "@/layout/Header";
+import { PageTitleProvider } from "@/layout/PageTitle";
 import { Home } from "@/pages/Home";
 import { NotFound } from "@/pages/NotFound";
 import { usePath } from "@/router";
@@ -17,6 +18,7 @@ export function App() {
     // stay left to right in Arabic and Persian
     return (
         <Direction.Provider dir={dir}>
+            <PageTitleProvider>
             <a href="#main" className="sr-only z-50 rounded-md bg-primary px-3 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:start-3 focus:top-3">
                 {t("app.skip")}
             </a>
@@ -31,6 +33,7 @@ export function App() {
                 <NotFound />
             )}
             <Footer />
+            </PageTitleProvider>
         </Direction.Provider>
     );
 }

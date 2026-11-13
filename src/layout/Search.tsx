@@ -34,7 +34,7 @@ export function SearchButton({ wide = false }: { wide?: boolean }) {
             <Kbd className="max-sm:hidden">Ctrl K</Kbd>
         </button>
     ) : (
-        <Button variant="outline" onClick={() => setOpen(true)} aria-label={t("search.label")} className="h-10 justify-start gap-2 px-3 text-muted-foreground sm:w-64">
+        <Button variant="outline" onClick={() => setOpen(true)} aria-label={t("search.label")} className="h-9 justify-start gap-2 px-3 text-muted-foreground sm:w-64">
             <SearchIcon />
             <span className="flex-1 text-start max-sm:sr-only">{t("search.label")}</span>
             <Kbd className="max-sm:hidden">Ctrl K</Kbd>

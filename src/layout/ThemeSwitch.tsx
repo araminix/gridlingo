@@ -16,7 +16,7 @@ export function ThemeSwitch() {
             aria-label={t("theme.dark")}
             title={t("theme.dark")}
             onClick={() => setTheme(dark ? "light" : "dark")}
-            className="relative flex h-10 w-[66px] shrink-0 items-center justify-between rounded-sm border bg-card px-[11px] text-muted-foreground outline-none hover:border-primary/60 focus-visible:ring-2 focus-visible:ring-ring"
+            className="relative flex h-9 w-[66px] shrink-0 items-center justify-between rounded-sm border bg-card px-[11px] text-muted-foreground outline-none hover:border-primary/60 focus-visible:ring-2 focus-visible:ring-ring"
         >
             <span
                 aria-hidden="true"

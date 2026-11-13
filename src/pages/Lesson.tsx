@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useI18n, type MessageKey } from "@/i18n/i18n";
 import { GroupIcon, groupVars } from "@/layout/GroupIcon";
+import { useSetPageTitle } from "@/layout/PageTitle";
 import { ProtocolNav } from "@/layout/ProtocolNav";
 import { metaOf } from "@/lessons/catalog";
 import { loadGlossary, type Glossary } from "@/glossary/glossary";
@@ -104,6 +105,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
     const [navOpen, setNavOpen] = useState(false);
     const [level, setLevel] = usePersisted<Level>("gridlingo.level", "technical", isLevel);
     const wide = useWide();
+    useSetPageTitle(meta.name, meta.group);
     const last = lesson.steps.length - 1;
 
     const stepIndex = useCallback((frame: Frame) => lesson.steps.findIndex((step) => step.id === frame.step), [lesson]);
@@ -199,13 +201,13 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
         // middle takes the rest. Narrow gaps between the panels.
         <div className="grid gap-2 px-2 py-2 sm:px-3 lg:grid-cols-[clamp(13rem,14vw,17rem)_minmax(0,1fr)] xl:grid-cols-[clamp(13rem,14vw,17rem)_minmax(0,1fr)_clamp(20rem,22vw,28rem)]">
             <aside className="hidden lg:block">
-                <div className="sticky top-16 max-h-[calc(100vh-4.5rem)] overflow-y-auto pe-1 pb-4">
+                <div className="sticky top-14 max-h-[calc(100vh-4rem)] overflow-y-auto pe-1 pb-4">
                     <ProtocolNav current={meta.id} />
                 </div>
             </aside>
 
             <main id="main" className="min-w-0 space-y-2">
-                <header className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <header className="flex flex-wrap items-center gap-x-3 gap-y-2 lg:hidden">
                     <Sheet open={navOpen} onOpenChange={setNavOpen}>
                         <SheetTrigger asChild>
                             <Button variant="outline" size="sm" className="h-9 lg:hidden">
@@ -221,10 +223,10 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                             <ProtocolNav current={meta.id} onPick={() => setNavOpen(false)} />
                         </SheetContent>
                     </Sheet>
-                    <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{meta.name}</h1>
+                    <h1 className="text-2xl font-bold tracking-tight md:hidden">{meta.name}</h1>
                     <span
                         style={groupVars(meta.group)}
-                        className="inline-flex items-center gap-2 rounded-sm bg-[color-mix(in_oklab,var(--g)_12%,transparent)] py-1 ps-1 pe-3 text-xs font-semibold tracking-wider text-[var(--g)] uppercase"
+                        className="inline-flex items-center gap-2 rounded-sm bg-[color-mix(in_oklab,var(--g)_12%,transparent)] py-1 ps-1 pe-3 text-xs font-semibold tracking-wider text-[var(--g)] uppercase md:hidden"
                     >
                         <GroupIcon group={meta.group} className="size-6" />
                         {t(`group.${meta.group}` as MessageKey)}

@@ -8,7 +8,7 @@ export function LanguageMenu() {
     const { lang, setLang, t } = useI18n();
     return (
         <Select value={lang} onValueChange={(value) => isLanguage(value) && setLang(value)}>
-            <SelectTrigger aria-label={t("lang.label")} className="h-10 gap-2 px-3">
+            <SelectTrigger aria-label={t("lang.label")} className="h-9 gap-2 px-3">
                 <SelectValue />
             </SelectTrigger>
             <SelectContent position="popper" align="end">
