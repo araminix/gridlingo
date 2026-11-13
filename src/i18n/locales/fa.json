@@ -265,6 +265,8 @@
     "lesson.modbus-security.where": "دستگاه‌های Modbus",
     "lesson.iec-62443.summary": "مرجع قواعد امنیت OT",
     "lesson.iec-62443.where": "همه سیستم‌های OT",
+    "lesson.snmp.summary": "پایش همه دستگاه‌های شبکه",
+    "lesson.snmp.where": "سوییچ‌ها، روترها، فایروال‌ها",
     "compare.title": "یک رویداد، چند پروتکل",
     "compare.lead": "خطایی روی فیدر F1: رله قطع می‌دهد و کلید Q1 باز می‌شود. چه کسی به چه کسی خبر می‌دهد، با چه سرعتی و با کدام بایت‌ها.",
     "compare.pick": "تا 4 تا را مقایسه کنید",

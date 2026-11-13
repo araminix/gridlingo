@@ -265,6 +265,8 @@
     "lesson.modbus-security.where": "Modbus-Geräte",
     "lesson.iec-62443.summary": "Das Regelwerk für OT-Sicherheit",
     "lesson.iec-62443.where": "Jedes OT-System",
+    "lesson.snmp.summary": "Jedes Netzgerät im Blick",
+    "lesson.snmp.where": "Switches, Router, Firewalls",
     "compare.title": "Ein Ereignis, mehrere Protokolle",
     "compare.lead": "Ein Fehler auf Abgang F1: Das Schutzgerät löst aus, Schalter Q1 öffnet. Wer wem was sagt, wie schnell und in welchen Bytes.",
     "compare.pick": "Bis zu 4 vergleichen",

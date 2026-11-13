@@ -265,6 +265,8 @@
     "lesson.modbus-security.where": "Modbus devices",
     "lesson.iec-62443.summary": "The rulebook for OT security",
     "lesson.iec-62443.where": "Every OT system",
+    "lesson.snmp.summary": "Watching every network device",
+    "lesson.snmp.where": "Switches, routers, firewalls",
     "compare.title": "One event, several protocols",
     "compare.lead": "A fault on feeder F1: the relay trips, breaker Q1 opens. Who tells whom, how fast, and in which bytes.",
     "compare.pick": "Compare up to 4",

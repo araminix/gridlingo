@@ -265,6 +265,8 @@
     "lesson.modbus-security.where": "Modbus 기기",
     "lesson.iec-62443.summary": "OT 보안의 규칙집",
     "lesson.iec-62443.where": "모든 OT 시스템",
+    "lesson.snmp.summary": "모든 네트워크 기기 지켜보기",
+    "lesson.snmp.where": "스위치, 라우터, 방화벽",
     "compare.title": "하나의 사건, 여러 프로토콜",
     "compare.lead": "피더 F1에서 고장: 계전기가 트립하고 차단기 Q1이 열려요. 누가 누구에게, 얼마나 빨리, 어떤 바이트로 알리는지.",
     "compare.pick": "최대 4개 비교",

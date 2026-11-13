@@ -1,0 +1,103 @@
+{
+    "intro": "SNMP (Simple Network Management Protocol) permite que un servidor vigile cada equipo de red de un sistema eléctrico: switches, routers, cortafuegos, RTU, relés, relojes. Ese servidor es el NMS (sistema de gestión de red). Cada equipo ejecuta un agente que responde a sus preguntas en el puerto UDP 161 y, cuando algo pasa, se lo dice al momento con un trap en el puerto 162. Cada valor tiene un nombre hecho de números, un OID (identificador de objeto), y una MIB (base de información de gestión) dice qué significa cada uno. Las versiones 1 y 2c solo se protegen con una palabra compartida; la versión 3 añade usuarios, firmas y cifrado.",
+    "plain": "SNMP es la ronda de un conserje por un gran edificio. Cada pocos minutos, el conserje pregunta a cada máquina: ¿funcionas?, ¿va bien cada conexión? Cada máquina responde según una lista numerada que es igual en todas partes. Y si algo se rompe entre dos rondas, la máquina no espera: llama al conserje al momento. Las versiones más antiguas usan una contraseña que cualquiera puede oír; la más nueva firma y sella cada mensaje.",
+    "steps": {
+        "ask": { "title": "Preguntar al switch", "text": "El NMS pregunta dos cosas al switch de la subestación, con un GetRequest SNMPv2c en el puerto UDP 161: cuánto tiempo lleva en marcha, sysUpTime, y si el puerto 3 funciona, ifOperStatus.3. El cortafuegos solo deja pasar al NMS hasta el switch." },
+        "answer": { "title": "El switch responde", "text": "El agente del switch envía una Response con el mismo request ID: lleva 36 días en marcha y el puerto 3 está up. El NMS pregunta así cada pocos minutos, por cada puerto de cada switch, y dibuja las respuestas como un mapa de la red." },
+        "trap": { "title": "Se desconecta un cable", "text": "Alguien desconecta el cable del relé del puerto 3. El switch no espera a que le pregunten: 0,17 s después envía un trap, un mensaje que nadie pidió, al NMS en el puerto UDP 162. linkDown, puerto 3, encendido pero down. El NMS da una alarma y vuelve a preguntar para asegurarse." },
+        "secure": { "title": "Protegerlo", "text": "La versión 2c no tiene seguridad real: la community es una contraseña que viaja en claro, y cualquiera en el camino puede leerla. SNMPv3 la sustituye por usuarios. Con authPriv, cada mensaje lleva un código hecho con la clave secreta del usuario (HMAC), y sus valores van cifrados con AES. La red sigue viendo quién habla con quién, pero no qué dicen, y nadie puede cambiarlo por el camino." }
+    },
+    "frames": {
+        "get": "¿Cuánto llevas en marcha? ¿Funciona el puerto 3?",
+        "response": "36 días. El puerto 3 está up.",
+        "trap": "¡El puerto 3 acaba de caer!",
+        "check": "¿De verdad está caído el puerto 3?",
+        "v3-get": "La misma pregunta, firmada y cifrada",
+        "v3-response": "La respuesta, firmada y cifrada"
+    },
+    "notes": {
+        "check": "El mismo GetRequest que antes, solo para ifOperStatus.3. La respuesta es down(2): la alarma se mantiene.",
+        "v3-get": "Legible en la línea: la versión (3), un ID de mensaje, los flags (authPriv), el engine ID del switch, sus contadores de arranques y de tiempo, y el nombre de usuario nmsread. Luego un código HMAC-SHA-256 de 24 bytes y una sal de 8 bytes para AES. La petición en sí va cifrada. Antes de su primera petición, el NMS conoce el engine ID en un intercambio de descubrimiento.",
+        "v3-response": "El switch comprueba el código con la clave de nmsread, descifra la petición y responde de la misma forma. Un mensaje cuyo código no coincide, o que tiene más de 150 s, se descarta."
+    },
+    "fields": {
+        "message": { "name": "SEQUENCE", "note": "0x30: una SEQUENCE en BER, la forma en que SNMP escribe ASN.1. Todo el mensaje es una." },
+        "len-get": { "name": "Longitud", "note": "Siguen 0x3B = 59 bytes: el resto del mensaje." },
+        "len-response": { "name": "Longitud", "note": "Siguen 0x40 = 64 bytes." },
+        "len-trap": { "name": "Longitud", "note": "Siguen 0x7B = 123 bytes." },
+        "version": { "name": "version", "note": "INTEGER 1: SNMPv2c. SNMPv1 envía 0 y SNMPv3 envía 3." },
+        "community": { "name": "community", "note": "OCTET STRING de 10 bytes: \"st4tion-ro\". La community es una contraseña compartida y viaja en claro." },
+        "pdu-get": { "name": "GetRequest", "note": "0xA0: un GetRequest, luego 0x2A = 42 bytes." },
+        "pdu-response": { "name": "Response", "note": "0xA2: una Response, luego 0x2F = 47 bytes." },
+        "pdu-trap": { "name": "SNMPv2-Trap", "note": "0xA7: un trap, luego 0x6A = 106 bytes." },
+        "request-id": { "name": "request-id", "note": "0x2C1B = 11291. Con este número el NMS empareja la respuesta con su pregunta." },
+        "request-id-copy": { "name": "request-id", "note": "11291, copiado de la petición." },
+        "trap-id": { "name": "request-id", "note": "0x0151 = 337. Nadie responde a un trap: el número solo distingue unos traps de otros." },
+        "no-error": { "name": "error-status · error-index", "note": "0 y 0: sin error." },
+        "varbinds-get": { "name": "variable-bindings", "note": "0x1E = 30 bytes: la lista de los valores pedidos." },
+        "varbinds-response": { "name": "variable-bindings", "note": "0x23 = 35 bytes: la misma lista, con los valores rellenos." },
+        "varbinds-trap": { "name": "variable-bindings", "note": "0x5E = 94 bytes: cinco valores que dicen qué ha pasado." },
+        "vb": { "name": "VarBind", "note": "Un par: el nombre de un objeto (su OID) y su valor. El segundo byte cuenta los bytes del par." },
+        "oid-uptime": { "name": "sysUpTime.0", "note": "OID 1.3.6.1.2.1.1.3.0: cuánto tiempo lleva en marcha el agente, en centésimas de segundo." },
+        "null": { "name": "NULL", "note": "0x05 0x00: sin valor. Una petición nombra lo que quiere y deja el valor vacío." },
+        "oid-oper": { "name": "ifOperStatus.3", "note": "OID 1.3.6.1.2.1.2.2.1.8.3: ¿funciona ahora el puerto 3? El último número es el puerto." },
+        "uptime": { "name": "TimeTicks", "note": "0x43, 4 bytes: 0x128A2DE0 = 311045600 centésimas de segundo, es decir, 36 días y 56 s." },
+        "oper-up": { "name": "up(1)", "note": "INTEGER 1: up, el enlace funciona." },
+        "uptime-trap": { "name": "TimeTicks", "note": "0x128A481D = 311052317: 36 días, 2 min 3,17 s. 67,17 s después de la respuesta de arriba." },
+        "oid-trapoid": { "name": "snmpTrapOID.0", "note": "OID 1.3.6.1.6.3.1.1.4.1.0: el siguiente valor dice qué trap es este." },
+        "linkdown": { "name": "linkDown", "note": "OID 1.3.6.1.6.3.1.1.5.3: un enlace ha caído." },
+        "oid-index": { "name": "ifIndex.3", "note": "OID 1.3.6.1.2.1.2.2.1.1.3: el número del puerto." },
+        "index": { "name": "3", "note": "INTEGER 3: el puerto 3, el del relé." },
+        "oid-admin": { "name": "ifAdminStatus.3", "note": "OID 1.3.6.1.2.1.2.2.1.7.3: ¿está el puerto encendido en la configuración?" },
+        "admin-up": { "name": "up(1)", "note": "INTEGER 1: el puerto sigue encendido. Nadie lo ha apagado." },
+        "oper-down": { "name": "down(2)", "note": "INTEGER 2: down, sin enlace. Con el puerto encendido, mire el cable o el relé." },
+        "a-iso": { "name": "1.3", "note": "0x2B = 43 = 40 × 1 + 3: BER mete los dos primeros números en un byte. iso(1), org(3)." },
+        "a-internet": { "name": "6.1", "note": "dod(6), internet(1)." },
+        "a-mib2": { "name": "2.1", "note": "mgmt(2), mib-2(1): los objetos estándar que tiene todo agente." },
+        "a-iftable": { "name": "2.2.1", "note": "interfaces(2), ifTable(2), ifEntry(1): la tabla con una fila por puerto." },
+        "a-column": { "name": "8", "note": "ifOperStatus, columna 8 de esa tabla." },
+        "a-index": { "name": "3", "note": "La fila: el puerto 3. Un valor único, como sysUpTime, termina en .0." }
+    },
+    "devices": {
+        "nms": "NMS (vigilancia de red)",
+        "firewall": "Cortafuegos",
+        "switch": "Switch de la subestación",
+        "relay": "Relé de línea F1"
+    },
+    "facts": {
+        "standard": "SNMPv3: RFC 3411 a 3418 (STD 62). SNMPv2c: RFC 1901 y 3416. Objetos de puerto: IF-MIB, RFC 2863. IEC 62351-7 añade objetos para equipos del sistema eléctrico",
+        "between": "Un NMS y los agentes de switches, routers, cortafuegos, RTU, relés y relojes",
+        "transport": "UDP 161 para peticiones, UDP 162 para traps; ASN.1 escrito en BER",
+        "security": "v1 y v2c: una community en claro. v3: usuarios, con firmas HMAC y cifrado AES (USM, el modelo de seguridad basado en usuarios)",
+        "speed": "Una consulta cada 1 a 5 minutos; un trap en menos de un segundo tras el evento"
+    },
+    "tips": [
+        "Cambie las communities por defecto public y private, o desactive v1 y v2c. Una community viaja en claro: cualquiera en el camino puede leerla.",
+        "Nadie responde a un trap: si se pierde, nadie lo sabe. Consulte también los valores importantes, o use un inform, una notificación que se confirma.",
+        "Vigilar solo necesita acceso de lectura. No dé acceso de escritura por SNMP, o solo desde una dirección de gestión.",
+        "Lea ifAdminStatus junto con ifOperStatus. Admin up y oper down: un cable, un transceptor o el equipo del otro extremo. Admin down: alguien ha apagado el puerto."
+    ],
+    "points": {
+        "uptime": "En marcha desde hace",
+        "admin": "Puerto 3 encendido",
+        "oper": "Enlace del puerto 3"
+    },
+    "values": {
+        "up": "up",
+        "down": "down"
+    },
+    "anatomy": {
+        "oid": "Un OID en BER: el nombre del estado del enlace del puerto 3"
+    },
+    "playground": {
+        "file": "Pruébelo: el mismo tipo de pregunta por SNMPv3, con snmpget de Net-SNMP, y la respuesta del switch para el puerto 3 tras desconectar el cable. Cada línea es un objeto: su MIB, su nombre y su fila, su tipo y su valor.",
+        "command": "authPriv: firmado con SHA-256 y cifrado con AES. Las contraseñas salen de las variables AUTH y PRIV, para que no queden en el historial de la shell.",
+        "descr": "ifDescr: el nombre del puerto, como lo llama el switch.",
+        "type": "ifType 6: un puerto Ethernet.",
+        "speed": "ifSpeed en bit/s: 100000000 son 100 Mbit/s.",
+        "admin": "Encendido en la configuración.",
+        "oper": "Pero el enlace está down: sin cable, sin luz o sin equipo en el otro extremo.",
+        "last": "ifLastChange: el tiempo en marcha del switch cuando cambió el enlace, 36 días 0:02:03, justo antes de salir el trap.",
+        "errors": "Sin errores de recepción: el puerto estaba sano hasta que cayó."
+    }
+}

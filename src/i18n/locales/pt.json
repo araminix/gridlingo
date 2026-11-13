@@ -265,6 +265,8 @@
     "lesson.modbus-security.where": "Equipamentos Modbus",
     "lesson.iec-62443.summary": "O livro de regras da segurança OT",
     "lesson.iec-62443.where": "Todo sistema OT",
+    "lesson.snmp.summary": "Vigiar cada equipamento de rede",
+    "lesson.snmp.where": "Switches, roteadores, firewalls",
     "compare.title": "Um evento, vários protocolos",
     "compare.lead": "Uma falta no alimentador F1: o relé dispara, o disjuntor Q1 abre. Quem avisa quem, com que rapidez e em quais bytes.",
     "compare.pick": "Compare até 4",

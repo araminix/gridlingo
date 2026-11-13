@@ -265,6 +265,8 @@
     "lesson.modbus-security.where": "Modbus डिवाइस",
     "lesson.iec-62443.summary": "OT सुरक्षा की नियम-पुस्तिका",
     "lesson.iec-62443.where": "हर OT सिस्टम",
+    "lesson.snmp.summary": "हर नेटवर्क डिवाइस पर नज़र",
+    "lesson.snmp.where": "स्विच, राउटर, फ़ायरवॉल",
     "compare.title": "एक घटना, कई प्रोटोकॉल",
     "compare.lead": "फ़ीडर F1 पर फ़ॉल्ट: रिले ट्रिप करता है, ब्रेकर Q1 खुलता है। कौन किसे बताता है, कितनी जल्दी और किन बाइटों में।",
     "compare.pick": "4 तक की तुलना करें",

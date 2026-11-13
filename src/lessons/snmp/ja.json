@@ -1,0 +1,103 @@
+{
+    "intro": "SNMP（Simple Network Management Protocol）を使うと、1台のサーバがエネルギーシステムのすべてのネットワーク機器を見守れます。スイッチ、ルータ、ファイアウォール、RTU、リレー、時計です。そのサーバがNMS（ネットワーク管理システム）です。各機器ではエージェントが動き、UDPポート161でNMSの問い合わせに答え、何かあればすぐにポート162へのtrapで知らせます。どの値にも数字でできた名前、OID（オブジェクト識別子）があり、MIB（管理情報ベース）がそれぞれの意味を定めます。バージョン1と2cは共有の合言葉でしか守られませんが、バージョン3はユーザ、署名、暗号化を加えます。",
+    "plain": "SNMPは大きな建物を回る管理人の見回りです。数分ごとに管理人は各機械に尋ねます。動いているか、どの接続も大丈夫か。各機械は、どこでも同じ番号付きのチェックリストで答えます。見回りの合間に何かが壊れたら、機械は待たずにすぐ管理人を呼びます。古いバージョンは誰でも聞き取れる合言葉を使い、最新のものはすべてのメッセージに署名して封をします。",
+    "steps": {
+        "ask": { "title": "スイッチに尋ねる", "text": "NMSは変電所のスイッチに、UDPポート161のSNMPv2c GetRequestで2つのことを尋ねます。どれだけ動き続けているか（sysUpTime）と、ポート3が動いているか（ifOperStatus.3）です。ファイアウォールはNMSだけをスイッチまで通します。" },
+        "answer": { "title": "スイッチが答える", "text": "スイッチのエージェントは同じrequest IDでResponseを返します。36日間動き続けていて、ポート3はupです。NMSは数分ごとに、すべてのスイッチのすべてのポートについてこう尋ね、答えをネットワークの地図として描きます。" },
+        "trap": { "title": "ケーブルが抜かれる", "text": "誰かがリレーのケーブルをポート3から抜きます。スイッチは問い合わせを待ちません。0.17 s後、誰も頼んでいないメッセージであるtrapを、UDPポート162でNMSに送ります。linkDown、ポート3、有効なのにdown。NMSは警報を出し、念のためもう一度尋ねます。" },
+        "secure": { "title": "鍵をかける", "text": "バージョン2cには本当のセキュリティがありません。communityは平文で流れるパスワードで、経路上の誰でも読めます。SNMPv3はこれをユーザに置き換えます。authPrivでは、どのメッセージにもユーザの秘密鍵で作ったコード（HMAC）が付き、値はAESで暗号化されます。誰と誰が話しているかは見えても、何を話しているかは見えず、途中で書き換えることもできません。" }
+    },
+    "frames": {
+        "get": "いつから動いている？ポート3は動いている？",
+        "response": "36日。ポート3はup。",
+        "trap": "ポート3がたった今落ちた！",
+        "check": "ポート3は本当にdown？",
+        "v3-get": "同じ質問を、署名と暗号化付きで",
+        "v3-response": "答えを、署名と暗号化付きで"
+    },
+    "notes": {
+        "check": "前と同じGetRequestで、ifOperStatus.3だけを尋ねます。答えはdown(2)。警報はそのままです。",
+        "v3-get": "回線上で読めるのは、バージョン（3）、メッセージID、フラグ（authPriv）、スイッチのengine ID、その起動回数と時刻のカウンタ、ユーザ名nmsreadです。続いて24バイトのHMAC-SHA-256コードとAES用の8バイトのソルト。要求そのものは暗号化されています。最初の要求の前に、NMSは探索のやり取りでengine IDを知ります。",
+        "v3-response": "スイッチはnmsreadの鍵でコードを確かめ、要求を復号して同じ方法で答えます。コードが合わないメッセージや、150 sより古いメッセージは捨てられます。"
+    },
+    "fields": {
+        "message": { "name": "SEQUENCE", "note": "0x30：BERのSEQUENCE。SNMPはASN.1をこう書きます。メッセージ全体が1つのSEQUENCEです。" },
+        "len-get": { "name": "長さ", "note": "続いて0x3B = 59バイト：メッセージの残り。" },
+        "len-response": { "name": "長さ", "note": "続いて0x40 = 64バイト。" },
+        "len-trap": { "name": "長さ", "note": "続いて0x7B = 123バイト。" },
+        "version": { "name": "version", "note": "INTEGER 1：SNMPv2c。SNMPv1は0、SNMPv3は3を送ります。" },
+        "community": { "name": "community", "note": "10バイトのOCTET STRING：\"st4tion-ro\"。communityは共有のパスワードで、平文で流れます。" },
+        "pdu-get": { "name": "GetRequest", "note": "0xA0：GetRequest、続いて0x2A = 42バイト。" },
+        "pdu-response": { "name": "Response", "note": "0xA2：Response、続いて0x2F = 47バイト。" },
+        "pdu-trap": { "name": "SNMPv2-Trap", "note": "0xA7：trap、続いて0x6A = 106バイト。" },
+        "request-id": { "name": "request-id", "note": "0x2C1B = 11291。NMSはこの番号で答えを自分の質問と対応づけます。" },
+        "request-id-copy": { "name": "request-id", "note": "11291、要求からのコピー。" },
+        "trap-id": { "name": "request-id", "note": "0x0151 = 337。trapには誰も答えません。番号はtrap同士を区別するだけです。" },
+        "no-error": { "name": "error-status · error-index", "note": "0と0：エラーなし。" },
+        "varbinds-get": { "name": "variable-bindings", "note": "0x1E = 30バイト：尋ねた値の一覧。" },
+        "varbinds-response": { "name": "variable-bindings", "note": "0x23 = 35バイト：同じ一覧に値を入れたもの。" },
+        "varbinds-trap": { "name": "variable-bindings", "note": "0x5E = 94バイト：何が起きたかを伝える5つの値。" },
+        "vb": { "name": "VarBind", "note": "1組のペア：オブジェクトの名前（OID）とその値。2バイト目がペアのバイト数です。" },
+        "oid-uptime": { "name": "sysUpTime.0", "note": "OID 1.3.6.1.2.1.1.3.0：エージェントが動き続けている時間、100分の1秒単位。" },
+        "null": { "name": "NULL", "note": "0x05 0x00：値なし。要求は欲しいものを名指しし、値は空にしておきます。" },
+        "oid-oper": { "name": "ifOperStatus.3", "note": "OID 1.3.6.1.2.1.2.2.1.8.3：ポート3は今動いているか。最後の数字がポートです。" },
+        "uptime": { "name": "TimeTicks", "note": "0x43、4バイト：0x128A2DE0 = 311045600（100分の1秒）、つまり36日と56 s。" },
+        "oper-up": { "name": "up(1)", "note": "INTEGER 1：up、リンクは動いています。" },
+        "uptime-trap": { "name": "TimeTicks", "note": "0x128A481D = 311052317：36日2分3.17 s。上の答えの67.17 s後。" },
+        "oid-trapoid": { "name": "snmpTrapOID.0", "note": "OID 1.3.6.1.6.3.1.1.4.1.0：次の値が、これがどのtrapかを示します。" },
+        "linkdown": { "name": "linkDown", "note": "OID 1.3.6.1.6.3.1.1.5.3：リンクが落ちました。" },
+        "oid-index": { "name": "ifIndex.3", "note": "OID 1.3.6.1.2.1.2.2.1.1.3：ポートの番号。" },
+        "index": { "name": "3", "note": "INTEGER 3：ポート3、リレーのポート。" },
+        "oid-admin": { "name": "ifAdminStatus.3", "note": "OID 1.3.6.1.2.1.2.2.1.7.3：ポートは設定で有効になっているか。" },
+        "admin-up": { "name": "up(1)", "note": "INTEGER 1：ポートは有効のまま。誰も無効にしていません。" },
+        "oper-down": { "name": "down(2)", "note": "INTEGER 2：down、リンクなし。ポートが有効なら、ケーブルかリレーを調べます。" },
+        "a-iso": { "name": "1.3", "note": "0x2B = 43 = 40 × 1 + 3：BERは最初の2つの数字を1バイトに詰めます。iso(1)、org(3)。" },
+        "a-internet": { "name": "6.1", "note": "dod(6)、internet(1)。" },
+        "a-mib2": { "name": "2.1", "note": "mgmt(2)、mib-2(1)：どのエージェントにもある標準のオブジェクト。" },
+        "a-iftable": { "name": "2.2.1", "note": "interfaces(2)、ifTable(2)、ifEntry(1)：ポートごとに1行の表。" },
+        "a-column": { "name": "8", "note": "ifOperStatus、その表の8列目。" },
+        "a-index": { "name": "3", "note": "行：ポート3。sysUpTimeのような単独の値は、代わりに.0で終わります。" }
+    },
+    "devices": {
+        "nms": "NMS（ネットワーク監視）",
+        "firewall": "ファイアウォール",
+        "switch": "変電所スイッチ",
+        "relay": "フィーダリレーF1"
+    },
+    "facts": {
+        "standard": "SNMPv3：RFC 3411〜3418（STD 62）。SNMPv2c：RFC 1901と3416。ポートのオブジェクト：IF-MIB、RFC 2863。IEC 62351-7が電力機器用のオブジェクトを追加",
+        "between": "NMSと、スイッチ、ルータ、ファイアウォール、RTU、リレー、時計のエージェント",
+        "transport": "要求はUDP 161、trapはUDP 162。BERで書いたASN.1",
+        "security": "v1とv2c：平文のcommunity文字列。v3：ユーザ、HMAC署名とAES暗号化付き（USM、ユーザベースのセキュリティモデル）",
+        "speed": "1〜5分ごとのポーリング。trapは事象から1秒以内"
+    },
+    "tips": [
+        "既定のcommunityであるpublicとprivateを変えるか、v1とv2cを無効にしましょう。communityは平文で流れ、経路上の誰でも読めます。",
+        "trapには誰も答えません。失われても誰も気づきません。重要な値はポーリングもするか、確認応答のある通知であるinformを使いましょう。",
+        "監視に必要なのは読み取りだけです。SNMPで書き込みを許さないか、1つの管理アドレスからだけにしましょう。",
+        "ifAdminStatusとifOperStatusを一緒に読みましょう。admin upでoper down：ケーブル、トランシーバ、または相手側の機器。admin down：誰かがポートを無効にしました。"
+    ],
+    "points": {
+        "uptime": "稼働時間",
+        "admin": "ポート3の有効化",
+        "oper": "ポート3のリンク"
+    },
+    "values": {
+        "up": "up",
+        "down": "down"
+    },
+    "anatomy": {
+        "oid": "BERのOID：ポート3のリンク状態の名前"
+    },
+    "playground": {
+        "file": "試してみましょう：同じ種類の質問をSNMPv3で、Net-SNMPのsnmpgetを使って送り、ケーブルを抜いた後のポート3についてのスイッチの答えを見ます。各行が1つのオブジェクトです：そのMIB、名前と行、型と値。",
+        "command": "authPriv：SHA-256で署名し、AESで暗号化。パスワードは変数AUTHとPRIVから取るので、シェルの履歴に残りません。",
+        "descr": "ifDescr：スイッチが付けたポートの名前。",
+        "type": "ifType 6：Ethernetポート。",
+        "speed": "ifSpeed（bit/s）：100000000は100 Mbit/s。",
+        "admin": "設定では有効。",
+        "oper": "でもリンクはdown：ケーブルがない、光がない、または相手側に機器がない。",
+        "last": "ifLastChange：リンクが変わったときのスイッチの稼働時間、36日0:02:03。trapが出る直前です。",
+        "errors": "受信エラーなし：ポートは落ちるまで健全でした。"
+    }
+}

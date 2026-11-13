@@ -1,0 +1,8 @@
+$ snmpget -v3 -l authPriv -u nmsread -a SHA-256 -A "$AUTH" -x AES -X "$PRIV" 10.20.0.2 ifDescr.3 ifType.3 ifSpeed.3 ifAdminStatus.3 ifOperStatus.3 ifLastChange.3 ifInErrors.3
+IF-MIB::ifDescr.3 = STRING: Port 3
+IF-MIB::ifType.3 = INTEGER: ethernetCsmacd(6)
+IF-MIB::ifSpeed.3 = Gauge32: 100000000
+IF-MIB::ifAdminStatus.3 = INTEGER: up(1)
+IF-MIB::ifOperStatus.3 = INTEGER: down(2)
+IF-MIB::ifLastChange.3 = Timeticks: (311052300) 36 days, 0:02:03.00
+IF-MIB::ifInErrors.3 = Counter32: 0

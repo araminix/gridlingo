@@ -265,6 +265,8 @@
     "lesson.modbus-security.where": "Modbus 设备",
     "lesson.iec-62443.summary": "OT 安全的规则手册",
     "lesson.iec-62443.where": "所有 OT 系统",
+    "lesson.snmp.summary": "监视每一台网络设备",
+    "lesson.snmp.where": "交换机、路由器、防火墙",
     "compare.title": "同一事件，多种协议",
     "compare.lead": "馈线 F1 发生故障：继电器跳闸，断路器 Q1 分闸。谁通知谁、多快、用哪些字节。",
     "compare.pick": "最多比较 4 个",

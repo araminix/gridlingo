@@ -265,6 +265,8 @@
     "lesson.modbus-security.where": "Modbus cihazları",
     "lesson.iec-62443.summary": "OT güvenliğinin kural kitabı",
     "lesson.iec-62443.where": "Her OT sistemi",
+    "lesson.snmp.summary": "Her ağ cihazını izlemek",
+    "lesson.snmp.where": "Anahtarlar, yönlendiriciler, güvenlik duvarları",
     "compare.title": "Bir olay, birkaç protokol",
     "compare.lead": "F1 fiderinde bir arıza: röle açar, Q1 kesicisi açılır. Kim kime haber verir, ne kadar hızlı ve hangi baytlarla.",
     "compare.pick": "En fazla 4 karşılaştırın",

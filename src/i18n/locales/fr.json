@@ -265,6 +265,8 @@
     "lesson.modbus-security.where": "Équipements Modbus",
     "lesson.iec-62443.summary": "Le référentiel de la sécurité OT",
     "lesson.iec-62443.where": "Tous les systèmes OT",
+    "lesson.snmp.summary": "Surveiller chaque équipement réseau",
+    "lesson.snmp.where": "Switchs, routeurs, pare-feu",
     "compare.title": "Un événement, plusieurs protocoles",
     "compare.lead": "Un défaut sur le départ F1 : le relais déclenche, le disjoncteur Q1 s'ouvre. Qui prévient qui, à quelle vitesse et avec quels octets.",
     "compare.pick": "Comparer jusqu'à 4",

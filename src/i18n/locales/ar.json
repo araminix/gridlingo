@@ -265,6 +265,8 @@
     "lesson.modbus-security.where": "أجهزة Modbus",
     "lesson.iec-62443.summary": "مرجع القواعد لأمن التقنيات التشغيلية (OT)",
     "lesson.iec-62443.where": "كل أنظمة OT",
+    "lesson.snmp.summary": "مراقبة كل جهاز في الشبكة",
+    "lesson.snmp.where": "المبدّلات، الموجّهات، جدران الحماية",
     "compare.title": "حدث واحد، بروتوكولات عدة",
     "compare.lead": "عطل على المغذّي F1: يفصل المرحّل وينفتح القاطع Q1. من يُبلغ من، وبأي سرعة، وبأي بايتات.",
     "compare.pick": "قارن حتى 4",

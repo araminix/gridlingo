@@ -50,6 +50,7 @@ export const CATALOG: readonly Meta[] = [
     { id: "dnp3-sa", name: "DNP3 Secure Authentication", group: "security", devices: ["rtu", "scada"], wire: "In DNP3" },
     { id: "modbus-security", name: "Modbus/TCP Security", group: "security", devices: ["inverter", "meter", "controller"], wire: "TCP 802" },
     { id: "iec-62443", name: "IEC 62443", group: "security", devices: ["scada", "switch", "controller"], wire: "Zones · conduits" },
+    { id: "snmp", name: "SNMP", group: "security", devices: ["switch", "firewall", "scada"], wire: "UDP 161 · 162" },
 ];
 
 export const metaOf = (id: string) => CATALOG.find((meta) => meta.id === id);

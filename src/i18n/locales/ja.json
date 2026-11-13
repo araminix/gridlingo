@@ -265,6 +265,8 @@
     "lesson.modbus-security.where": "Modbus機器",
     "lesson.iec-62443.summary": "OTセキュリティのルールブック",
     "lesson.iec-62443.where": "あらゆるOTシステム",
+    "lesson.snmp.summary": "すべてのネットワーク機器を見守る",
+    "lesson.snmp.where": "スイッチ、ルータ、ファイアウォール",
     "compare.title": "1つの出来事、いくつものプロトコル",
     "compare.lead": "フィーダF1で事故：リレーがトリップし、遮断器Q1が開きます。誰が誰に、どれだけ速く、どのバイトで伝えるか。",
     "compare.pick": "最大4つを比較",

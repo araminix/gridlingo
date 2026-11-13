@@ -1,0 +1,103 @@
+{
+    "intro": "SNMP (Simple Network Management Protocol) lets one server watch every network device in an energy system: switches, routers, firewalls, RTUs, relays, clocks. That server is the NMS (network management system). Each device runs an agent that answers its questions on UDP port 161 and, when something happens, tells it at once in a trap on port 162. Every value has a name made of numbers, an OID (object identifier), and a MIB (management information base) says what each one means. Versions 1 and 2c protect nothing but a shared word; version 3 adds users, signatures and encryption.",
+    "plain": "SNMP is a caretaker's round of a large building. Every few minutes the caretaker asks each machine: are you running, is every connection working? Each machine answers from a numbered checklist that is the same everywhere. And if something breaks between two rounds, the machine does not wait: it rings the caretaker at once. The oldest versions use one password everyone can overhear; the newest one signs and seals every message.",
+    "steps": {
+        "ask": { "title": "Ask the switch", "text": "The NMS asks the station switch two things, with an SNMPv2c GetRequest on UDP port 161: how long it has been running, sysUpTime, and whether port 3 works, ifOperStatus.3. The firewall lets only the NMS through to the switch." },
+        "answer": { "title": "The switch answers", "text": "The switch's agent sends a Response with the same request ID: it has been running for 36 days, and port 3 is up. The NMS asks like this every few minutes, for every port of every switch, and draws the answers as a map of the network." },
+        "trap": { "title": "A cable is pulled", "text": "Someone pulls the relay's cable from port 3. The switch does not wait to be asked: 0.17 s later it sends a trap, a message nobody asked for, to the NMS on UDP port 162. linkDown, port 3, switched on but down. The NMS raises an alarm and asks once more to be sure." },
+        "secure": { "title": "Lock it down", "text": "Version 2c has no real security: the community is a password sent in clear text, and anyone on the path can read it. SNMPv3 replaces it with users. With authPriv every message carries a code made with the user's secret key (HMAC), and its values are encrypted with AES. The network still sees who talks to whom, but not what they say, and nobody can change it on the way." }
+    },
+    "frames": {
+        "get": "How long have you been up? Is port 3 working?",
+        "response": "36 days. Port 3 is up.",
+        "trap": "Port 3 just went down!",
+        "check": "Is port 3 really down?",
+        "v3-get": "The same question, signed and encrypted",
+        "v3-response": "The answer, signed and encrypted"
+    },
+    "notes": {
+        "check": "The same GetRequest as before, for ifOperStatus.3 only. The answer is down(2): the alarm stands.",
+        "v3-get": "Readable on the wire: the version (3), a message ID, the flags (authPriv), the switch's engine ID, its boot and time counters, and the user name nmsread. Then a 24-byte HMAC-SHA-256 code and an 8-byte salt for AES. The request itself is encrypted. Before its first request, the NMS learns the engine ID in a discovery exchange.",
+        "v3-response": "The switch checks the code with nmsread's key, decrypts the request and answers the same way. A message whose code does not match, or that is more than 150 s old, is dropped."
+    },
+    "fields": {
+        "message": { "name": "SEQUENCE", "note": "0x30: a SEQUENCE in BER, the way SNMP writes ASN.1. The whole message is one." },
+        "len-get": { "name": "Length", "note": "0x3B = 59 bytes follow: the rest of the message." },
+        "len-response": { "name": "Length", "note": "0x40 = 64 bytes follow." },
+        "len-trap": { "name": "Length", "note": "0x7B = 123 bytes follow." },
+        "version": { "name": "version", "note": "INTEGER 1: SNMPv2c. SNMPv1 sends 0 and SNMPv3 sends 3." },
+        "community": { "name": "community", "note": "OCTET STRING of 10 bytes: \"st4tion-ro\". The community is a shared password, and it travels in clear text." },
+        "pdu-get": { "name": "GetRequest", "note": "0xA0: a GetRequest, then 0x2A = 42 bytes." },
+        "pdu-response": { "name": "Response", "note": "0xA2: a Response, then 0x2F = 47 bytes." },
+        "pdu-trap": { "name": "SNMPv2-Trap", "note": "0xA7: a trap, then 0x6A = 106 bytes." },
+        "request-id": { "name": "request-id", "note": "0x2C1B = 11291. The NMS matches the answer to its question by this number." },
+        "request-id-copy": { "name": "request-id", "note": "11291, copied from the request." },
+        "trap-id": { "name": "request-id", "note": "0x0151 = 337. Nobody answers a trap: the number only tells traps apart." },
+        "no-error": { "name": "error-status · error-index", "note": "0 and 0: no error." },
+        "varbinds-get": { "name": "variable-bindings", "note": "0x1E = 30 bytes: the list of the values asked for." },
+        "varbinds-response": { "name": "variable-bindings", "note": "0x23 = 35 bytes: the same list, with the values filled in." },
+        "varbinds-trap": { "name": "variable-bindings", "note": "0x5E = 94 bytes: five values that say what happened." },
+        "vb": { "name": "VarBind", "note": "One pair: an object's name (its OID) and its value. The second byte counts the bytes of the pair." },
+        "oid-uptime": { "name": "sysUpTime.0", "note": "OID 1.3.6.1.2.1.1.3.0: how long the agent has been running, in hundredths of a second." },
+        "null": { "name": "NULL", "note": "0x05 0x00: no value. A request names what it wants and leaves the value empty." },
+        "oid-oper": { "name": "ifOperStatus.3", "note": "OID 1.3.6.1.2.1.2.2.1.8.3: does port 3 work right now? The last number is the port." },
+        "uptime": { "name": "TimeTicks", "note": "0x43, 4 bytes: 0x128A2DE0 = 311045600 hundredths of a second, so 36 days and 56 s." },
+        "oper-up": { "name": "up(1)", "note": "INTEGER 1: up, the link works." },
+        "uptime-trap": { "name": "TimeTicks", "note": "0x128A481D = 311052317: 36 days, 2 min 3.17 s. 67.17 s after the answer above." },
+        "oid-trapoid": { "name": "snmpTrapOID.0", "note": "OID 1.3.6.1.6.3.1.1.4.1.0: the next value says which trap this is." },
+        "linkdown": { "name": "linkDown", "note": "OID 1.3.6.1.6.3.1.1.5.3: a link went down." },
+        "oid-index": { "name": "ifIndex.3", "note": "OID 1.3.6.1.2.1.2.2.1.1.3: the number of the port." },
+        "index": { "name": "3", "note": "INTEGER 3: port 3, the relay's port." },
+        "oid-admin": { "name": "ifAdminStatus.3", "note": "OID 1.3.6.1.2.1.2.2.1.7.3: is the port switched on in the settings?" },
+        "admin-up": { "name": "up(1)", "note": "INTEGER 1: the port is still switched on. Nobody turned it off." },
+        "oper-down": { "name": "down(2)", "note": "INTEGER 2: down, no link. With the port switched on, look at the cable or the relay." },
+        "a-iso": { "name": "1.3", "note": "0x2B = 43 = 40 × 1 + 3: BER packs the first two numbers into one byte. iso(1), org(3)." },
+        "a-internet": { "name": "6.1", "note": "dod(6), internet(1)." },
+        "a-mib2": { "name": "2.1", "note": "mgmt(2), mib-2(1): the standard objects that every agent has." },
+        "a-iftable": { "name": "2.2.1", "note": "interfaces(2), ifTable(2), ifEntry(1): the table with one row per port." },
+        "a-column": { "name": "8", "note": "ifOperStatus, column 8 of that table." },
+        "a-index": { "name": "3", "note": "The row: port 3. A single value, such as sysUpTime, ends in .0 instead." }
+    },
+    "devices": {
+        "nms": "NMS (network monitoring)",
+        "firewall": "Firewall",
+        "switch": "Station switch",
+        "relay": "Feeder relay F1"
+    },
+    "facts": {
+        "standard": "SNMPv3: RFC 3411 to 3418 (STD 62). SNMPv2c: RFC 1901 and 3416. Port objects: IF-MIB, RFC 2863. IEC 62351-7 adds objects for power-system devices",
+        "between": "An NMS and the agents in switches, routers, firewalls, RTUs, relays and clocks",
+        "transport": "UDP 161 for requests, UDP 162 for traps; ASN.1 written in BER",
+        "security": "v1 and v2c: a community string in clear text. v3: users, with HMAC signatures and AES encryption (USM, the user-based security model)",
+        "speed": "A poll every 1 to 5 minutes; a trap within a second of the event"
+    },
+    "tips": [
+        "Change the default communities public and private, or turn v1 and v2c off. A community travels in clear text: anyone on the path can read it.",
+        "Nobody answers a trap: if it is lost, nobody knows. Poll the important values too, or use an inform, a notification that is acknowledged.",
+        "Monitoring needs read-only access. Give no write access over SNMP, or only from one management address.",
+        "Read ifAdminStatus with ifOperStatus. Admin up and oper down: a cable, a transceiver or the device at the other end. Admin down: someone switched the port off."
+    ],
+    "points": {
+        "uptime": "Running for",
+        "admin": "Port 3 switched on",
+        "oper": "Port 3 link"
+    },
+    "values": {
+        "up": "up",
+        "down": "down"
+    },
+    "anatomy": {
+        "oid": "An OID in BER: the name of port 3's link state"
+    },
+    "playground": {
+        "file": "Try it: the same kind of question over SNMPv3, with Net-SNMP's snmpget, and the switch's answer for port 3 after the cable was pulled. Each line is one object: its MIB, its name and row, its type and its value.",
+        "command": "authPriv: signed with SHA-256 and encrypted with AES. The passwords come from the variables AUTH and PRIV, so they do not land in the shell's history.",
+        "descr": "ifDescr: the port's name, as the switch calls it.",
+        "type": "ifType 6: an Ethernet port.",
+        "speed": "ifSpeed in bit/s: 100000000 is 100 Mbit/s.",
+        "admin": "Switched on in the settings.",
+        "oper": "But the link is down: no cable, no light, or no device at the other end.",
+        "last": "ifLastChange: the switch's uptime when the link changed, 36 days 0:02:03, just before the trap left.",
+        "errors": "No receive errors: the port was healthy until it went down."
+    }
+}

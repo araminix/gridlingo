@@ -1,0 +1,103 @@
+{
+    "intro": "SNMP (Simple Network Management Protocol), bir sunucunun bir enerji sistemindeki her ağ cihazını izlemesini sağlar: anahtarlar, yönlendiriciler, güvenlik duvarları, RTU'lar, röleler, saatler. Bu sunucu NMS'tir (ağ yönetim sistemi). Her cihazda, sorularını UDP port 161'de yanıtlayan ve bir şey olunca bunu port 162'ye bir trap ile hemen bildiren bir ajan çalışır. Her değerin sayılardan oluşan bir adı, bir OID'si (nesne tanımlayıcısı) vardır ve bir MIB (yönetim bilgi tabanı) her birinin ne anlama geldiğini söyler. Sürüm 1 ve 2c yalnızca ortak bir sözcükle korunur; sürüm 3 kullanıcılar, imzalar ve şifreleme ekler.",
+    "plain": "SNMP, büyük bir binada bir bekçinin turudur. Birkaç dakikada bir bekçi her makineye sorar: çalışıyor musun, her bağlantı yerinde mi? Her makine her yerde aynı olan numaralı bir listeye göre yanıt verir. İki tur arasında bir şey bozulursa makine beklemez: bekçiyi hemen arar. En eski sürümler herkesin duyabileceği bir parola kullanır; en yenisi her mesajı imzalar ve mühürler.",
+    "steps": {
+        "ask": { "title": "Anahtara sor", "text": "NMS, istasyon anahtarına UDP port 161 üzerinden bir SNMPv2c GetRequest ile iki şey sorar: ne zamandır çalıştığını, sysUpTime, ve port 3'ün çalışıp çalışmadığını, ifOperStatus.3. Güvenlik duvarı anahtara yalnızca NMS'in ulaşmasına izin verir." },
+        "answer": { "title": "Anahtar yanıtlar", "text": "Anahtarın ajanı aynı request ID ile bir Response gönderir: 36 gündür çalışmaktadır ve port 3 up'tır. NMS birkaç dakikada bir, her anahtarın her portu için böyle sorar ve yanıtları ağın bir haritası olarak çizer." },
+        "trap": { "title": "Bir kablo çekilir", "text": "Biri rölenin kablosunu port 3'ten çeker. Anahtar sorulmayı beklemez: 0,17 s sonra NMS'e UDP port 162 üzerinden bir trap, kimsenin istemediği bir mesaj, gönderir. linkDown, port 3, açık ama down. NMS bir alarm verir ve emin olmak için bir kez daha sorar." },
+        "secure": { "title": "Kilitle", "text": "Sürüm 2c'nin gerçek bir güvenliği yoktur: community düz metin giden bir paroladır ve yoldaki herkes onu okuyabilir. SNMPv3 onun yerine kullanıcılar getirir. authPriv ile her mesaj, kullanıcının gizli anahtarıyla üretilmiş bir kod (HMAC) taşır ve değerleri AES ile şifrelenir. Ağ yine kimin kiminle konuştuğunu görür ama ne dediklerini görmez ve kimse yolda bunu değiştiremez." }
+    },
+    "frames": {
+        "get": "Ne zamandır çalışıyorsun? Port 3 çalışıyor mu?",
+        "response": "36 gün. Port 3 up.",
+        "trap": "Port 3 az önce düştü!",
+        "check": "Port 3 gerçekten down mı?",
+        "v3-get": "Aynı soru, imzalı ve şifreli",
+        "v3-response": "Yanıt, imzalı ve şifreli"
+    },
+    "notes": {
+        "check": "Öncekiyle aynı GetRequest, yalnızca ifOperStatus.3 için. Yanıt down(2): alarm geçerli.",
+        "v3-get": "Hatta okunabilenler: sürüm (3), bir mesaj ID'si, bayraklar (authPriv), anahtarın engine ID'si, açılış ve zaman sayaçları ve kullanıcı adı nmsread. Sonra 24 baytlık bir HMAC-SHA-256 kodu ve AES için 8 baytlık bir tuz. İsteğin kendisi şifrelidir. İlk isteğinden önce NMS, engine ID'yi bir keşif alışverişiyle öğrenir.",
+        "v3-response": "Anahtar kodu nmsread'in anahtarıyla doğrular, isteğin şifresini çözer ve aynı şekilde yanıt verir. Kodu tutmayan ya da 150 s'den eski bir mesaj atılır."
+    },
+    "fields": {
+        "message": { "name": "SEQUENCE", "note": "0x30: BER'de bir SEQUENCE, SNMP'nin ASN.1 yazma biçimi. Mesajın tamamı bir SEQUENCE'tır." },
+        "len-get": { "name": "Uzunluk", "note": "0x3B = 59 bayt izler: mesajın geri kalanı." },
+        "len-response": { "name": "Uzunluk", "note": "0x40 = 64 bayt izler." },
+        "len-trap": { "name": "Uzunluk", "note": "0x7B = 123 bayt izler." },
+        "version": { "name": "version", "note": "INTEGER 1: SNMPv2c. SNMPv1 0, SNMPv3 3 gönderir." },
+        "community": { "name": "community", "note": "10 baytlık OCTET STRING: \"st4tion-ro\". Community ortak bir paroladır ve düz metin olarak gider." },
+        "pdu-get": { "name": "GetRequest", "note": "0xA0: bir GetRequest, ardından 0x2A = 42 bayt." },
+        "pdu-response": { "name": "Response", "note": "0xA2: bir Response, ardından 0x2F = 47 bayt." },
+        "pdu-trap": { "name": "SNMPv2-Trap", "note": "0xA7: bir trap, ardından 0x6A = 106 bayt." },
+        "request-id": { "name": "request-id", "note": "0x2C1B = 11291. NMS yanıtı sorusuyla bu numarayla eşleştirir." },
+        "request-id-copy": { "name": "request-id", "note": "11291, istekten kopyalandı." },
+        "trap-id": { "name": "request-id", "note": "0x0151 = 337. Bir trap'i kimse yanıtlamaz: numara yalnızca trap'leri birbirinden ayırır." },
+        "no-error": { "name": "error-status · error-index", "note": "0 ve 0: hata yok." },
+        "varbinds-get": { "name": "variable-bindings", "note": "0x1E = 30 bayt: istenen değerlerin listesi." },
+        "varbinds-response": { "name": "variable-bindings", "note": "0x23 = 35 bayt: aynı liste, değerleri doldurulmuş." },
+        "varbinds-trap": { "name": "variable-bindings", "note": "0x5E = 94 bayt: ne olduğunu söyleyen beş değer." },
+        "vb": { "name": "VarBind", "note": "Bir çift: bir nesnenin adı (OID'si) ve değeri. İkinci bayt çiftin baytlarını sayar." },
+        "oid-uptime": { "name": "sysUpTime.0", "note": "OID 1.3.6.1.2.1.1.3.0: ajanın ne zamandır çalıştığı, saniyenin yüzde biri cinsinden." },
+        "null": { "name": "NULL", "note": "0x05 0x00: değer yok. Bir istek ne istediğini adlandırır ve değeri boş bırakır." },
+        "oid-oper": { "name": "ifOperStatus.3", "note": "OID 1.3.6.1.2.1.2.2.1.8.3: port 3 şu an çalışıyor mu? Son sayı porttur." },
+        "uptime": { "name": "TimeTicks", "note": "0x43, 4 bayt: 0x128A2DE0 = 311045600 salise, yani 36 gün ve 56 s." },
+        "oper-up": { "name": "up(1)", "note": "INTEGER 1: up, bağlantı çalışıyor." },
+        "uptime-trap": { "name": "TimeTicks", "note": "0x128A481D = 311052317: 36 gün, 2 dk 3,17 s. Yukarıdaki yanıttan 67,17 s sonra." },
+        "oid-trapoid": { "name": "snmpTrapOID.0", "note": "OID 1.3.6.1.6.3.1.1.4.1.0: sonraki değer bunun hangi trap olduğunu söyler." },
+        "linkdown": { "name": "linkDown", "note": "OID 1.3.6.1.6.3.1.1.5.3: bir bağlantı düştü." },
+        "oid-index": { "name": "ifIndex.3", "note": "OID 1.3.6.1.2.1.2.2.1.1.3: portun numarası." },
+        "index": { "name": "3", "note": "INTEGER 3: port 3, rölenin portu." },
+        "oid-admin": { "name": "ifAdminStatus.3", "note": "OID 1.3.6.1.2.1.2.2.1.7.3: port ayarlarda açık mı?" },
+        "admin-up": { "name": "up(1)", "note": "INTEGER 1: port hâlâ açık. Kimse onu kapatmadı." },
+        "oper-down": { "name": "down(2)", "note": "INTEGER 2: down, bağlantı yok. Port açıkken kabloya ya da röleye bakın." },
+        "a-iso": { "name": "1.3", "note": "0x2B = 43 = 40 × 1 + 3: BER ilk iki sayıyı tek bayta sığdırır. iso(1), org(3)." },
+        "a-internet": { "name": "6.1", "note": "dod(6), internet(1)." },
+        "a-mib2": { "name": "2.1", "note": "mgmt(2), mib-2(1): her ajanda bulunan standart nesneler." },
+        "a-iftable": { "name": "2.2.1", "note": "interfaces(2), ifTable(2), ifEntry(1): her port için bir satır olan tablo." },
+        "a-column": { "name": "8", "note": "ifOperStatus, o tablonun 8. sütunu." },
+        "a-index": { "name": "3", "note": "Satır: port 3. sysUpTime gibi tekil bir değer bunun yerine .0 ile biter." }
+    },
+    "devices": {
+        "nms": "NMS (ağ izleme)",
+        "firewall": "Güvenlik duvarı",
+        "switch": "İstasyon anahtarı",
+        "relay": "F1 fider rölesi"
+    },
+    "facts": {
+        "standard": "SNMPv3: RFC 3411 – 3418 (STD 62). SNMPv2c: RFC 1901 ve 3416. Port nesneleri: IF-MIB, RFC 2863. IEC 62351-7 enerji sistemi cihazları için nesneler ekler",
+        "between": "Bir NMS ile anahtarlar, yönlendiriciler, güvenlik duvarları, RTU'lar, röleler ve saatlerdeki ajanlar",
+        "transport": "İstekler için UDP 161, trap'ler için UDP 162; BER ile yazılmış ASN.1",
+        "security": "v1 ve v2c: düz metin bir community dizesi. v3: HMAC imzaları ve AES şifrelemesiyle kullanıcılar (USM, kullanıcı tabanlı güvenlik modeli)",
+        "speed": "Her 1 ila 5 dakikada bir sorgu; olaydan sonra bir saniye içinde bir trap"
+    },
+    "tips": [
+        "Varsayılan public ve private community'lerini değiştirin ya da v1 ve v2c'yi kapatın. Bir community düz metin gider: yoldaki herkes onu okuyabilir.",
+        "Bir trap'i kimse yanıtlamaz: kaybolursa kimsenin haberi olmaz. Önemli değerleri de sorgulayın ya da onaylanan bir bildirim olan inform kullanın.",
+        "İzleme için yalnızca okuma erişimi yeter. SNMP üzerinden yazma erişimi vermeyin ya da yalnızca tek bir yönetim adresinden verin.",
+        "ifAdminStatus'u ifOperStatus ile birlikte okuyun. Admin up ve oper down: bir kablo, bir alıcı-verici ya da karşı uçtaki cihaz. Admin down: biri portu kapatmıştır."
+    ],
+    "points": {
+        "uptime": "Çalışma süresi",
+        "admin": "Port 3 açık",
+        "oper": "Port 3 bağlantısı"
+    },
+    "values": {
+        "up": "up",
+        "down": "down"
+    },
+    "anatomy": {
+        "oid": "BER'de bir OID: port 3'ün bağlantı durumunun adı"
+    },
+    "playground": {
+        "file": "Deneyin: aynı türden bir soru SNMPv3 üzerinden, Net-SNMP'nin snmpget aracıyla, ve kablo çekildikten sonra anahtarın port 3 için yanıtı. Her satır bir nesnedir: MIB'i, adı ve satırı, türü ve değeri.",
+        "command": "authPriv: SHA-256 ile imzalı ve AES ile şifreli. Parolalar AUTH ve PRIV değişkenlerinden gelir; böylece kabuğun geçmişine düşmezler.",
+        "descr": "ifDescr: anahtarın verdiği port adı.",
+        "type": "ifType 6: bir Ethernet portu.",
+        "speed": "bit/s cinsinden ifSpeed: 100000000, 100 Mbit/s demektir.",
+        "admin": "Ayarlarda açık.",
+        "oper": "Ama bağlantı down: kablo yok, ışık yok ya da karşı uçta cihaz yok.",
+        "last": "ifLastChange: bağlantı değiştiğinde anahtarın çalışma süresi, 36 gün 0:02:03, trap gönderilmeden hemen önce.",
+        "errors": "Alma hatası yok: port düşene kadar sağlıklıydı."
+    }
+}

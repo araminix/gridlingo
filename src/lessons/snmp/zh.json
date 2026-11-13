@@ -1,0 +1,103 @@
+{
+    "intro": "SNMP（Simple Network Management Protocol）让一台服务器监视能源系统里的每台网络设备：交换机、路由器、防火墙、RTU、继电器、时钟。这台服务器就是 NMS（网络管理系统）。每台设备上运行一个代理，在 UDP 端口 161 上回答 NMS 的询问；一有情况，就立即用发往端口 162 的 trap 报告。每个值都有一个由数字组成的名称，即 OID（对象标识符），MIB（管理信息库）规定每个值的含义。版本 1 和 2c 只靠一个共享口令保护；版本 3 增加了用户、签名和加密。",
+    "plain": "SNMP 就像管理员在大楼里巡查。每隔几分钟，管理员问每台机器：在运行吗？每条连接都好吗？每台机器按一份处处相同的编号清单回答。如果两次巡查之间出了故障，机器不会等：它立刻叫管理员。最老的版本用一个谁都能偷听的口令；最新的版本给每条消息签名并封口。",
+    "steps": {
+        "ask": { "title": "询问交换机", "text": "NMS 用 UDP 端口 161 上的 SNMPv2c GetRequest 向站内交换机问两件事：它已经运行了多久（sysUpTime），以及端口 3 是否在工作（ifOperStatus.3）。防火墙只让 NMS 访问交换机。" },
+        "answer": { "title": "交换机回答", "text": "交换机的代理用同一个 request ID 发回 Response：它已运行 36 天，端口 3 为 up。NMS 每隔几分钟就这样询问每台交换机的每个端口，并把回答画成一张网络图。" },
+        "trap": { "title": "网线被拔", "text": "有人把继电器的网线从端口 3 拔下。交换机不等别人来问：0.17 s 后，它通过 UDP 端口 162 向 NMS 发出一个 trap，一条没人请求的消息。linkDown，端口 3，已启用但 down。NMS 发出告警，并再问一次以确认。" },
+        "secure": { "title": "加上锁", "text": "版本 2c 没有真正的安全：community 是以明文传送的口令，路径上谁都能读到。SNMPv3 用用户取而代之。在 authPriv 模式下，每条消息都带有用用户密钥算出的校验码（HMAC），其中的值用 AES 加密。网络仍能看出谁在和谁通信，却看不到内容，也没人能在途中篡改。" }
+    },
+    "frames": {
+        "get": "你运行多久了？端口 3 在工作吗？",
+        "response": "36 天。端口 3 为 up。",
+        "trap": "端口 3 刚刚断了！",
+        "check": "端口 3 真的 down 了吗？",
+        "v3-get": "同一个问题，签名并加密",
+        "v3-response": "回答，签名并加密"
+    },
+    "notes": {
+        "check": "和前面相同的 GetRequest，只问 ifOperStatus.3。回答是 down(2)：告警成立。",
+        "v3-get": "线路上可读的部分：版本（3）、消息 ID、标志（authPriv）、交换机的 engine ID、它的启动次数和时间计数器，以及用户名 nmsread。然后是 24 字节的 HMAC-SHA-256 校验码和 8 字节的 AES 盐值。请求本身是加密的。在第一次请求之前，NMS 通过一次发现交换得知 engine ID。",
+        "v3-response": "交换机用 nmsread 的密钥核对校验码，解密请求，并以同样的方式回答。校验码不符或超过 150 s 的消息会被丢弃。"
+    },
+    "fields": {
+        "message": { "name": "SEQUENCE", "note": "0x30：BER 中的 SEQUENCE，SNMP 就这样书写 ASN.1。整条消息就是一个 SEQUENCE。" },
+        "len-get": { "name": "长度", "note": "后跟 0x3B = 59 字节：消息的其余部分。" },
+        "len-response": { "name": "长度", "note": "后跟 0x40 = 64 字节。" },
+        "len-trap": { "name": "长度", "note": "后跟 0x7B = 123 字节。" },
+        "version": { "name": "version", "note": "INTEGER 1：SNMPv2c。SNMPv1 发送 0，SNMPv3 发送 3。" },
+        "community": { "name": "community", "note": "10 字节的 OCTET STRING：\"st4tion-ro\"。community 是共享口令，以明文传送。" },
+        "pdu-get": { "name": "GetRequest", "note": "0xA0：一个 GetRequest，随后 0x2A = 42 字节。" },
+        "pdu-response": { "name": "Response", "note": "0xA2：一个 Response，随后 0x2F = 47 字节。" },
+        "pdu-trap": { "name": "SNMPv2-Trap", "note": "0xA7：一个 trap，随后 0x6A = 106 字节。" },
+        "request-id": { "name": "request-id", "note": "0x2C1B = 11291。NMS 靠这个编号把回答和问题对上。" },
+        "request-id-copy": { "name": "request-id", "note": "11291，从请求复制。" },
+        "trap-id": { "name": "request-id", "note": "0x0151 = 337。没人回答 trap：编号只用来区分各个 trap。" },
+        "no-error": { "name": "error-status · error-index", "note": "0 和 0：没有错误。" },
+        "varbinds-get": { "name": "variable-bindings", "note": "0x1E = 30 字节：所询问的值的列表。" },
+        "varbinds-response": { "name": "variable-bindings", "note": "0x23 = 35 字节：同一个列表，填上了值。" },
+        "varbinds-trap": { "name": "variable-bindings", "note": "0x5E = 94 字节：说明发生了什么的五个值。" },
+        "vb": { "name": "VarBind", "note": "一对：对象的名称（它的 OID）和它的值。第二个字节是这一对的字节数。" },
+        "oid-uptime": { "name": "sysUpTime.0", "note": "OID 1.3.6.1.2.1.1.3.0：代理已运行的时间，以百分之一秒计。" },
+        "null": { "name": "NULL", "note": "0x05 0x00：没有值。请求只写明要什么，值留空。" },
+        "oid-oper": { "name": "ifOperStatus.3", "note": "OID 1.3.6.1.2.1.2.2.1.8.3：端口 3 现在工作吗？最后一个数字是端口号。" },
+        "uptime": { "name": "TimeTicks", "note": "0x43，4 字节：0x128A2DE0 = 311045600 个百分之一秒，即 36 天零 56 s。" },
+        "oper-up": { "name": "up(1)", "note": "INTEGER 1：up，链路正常。" },
+        "uptime-trap": { "name": "TimeTicks", "note": "0x128A481D = 311052317：36 天 2 分 3.17 s。比上面的回答晚 67.17 s。" },
+        "oid-trapoid": { "name": "snmpTrapOID.0", "note": "OID 1.3.6.1.6.3.1.1.4.1.0：下一个值说明这是哪种 trap。" },
+        "linkdown": { "name": "linkDown", "note": "OID 1.3.6.1.6.3.1.1.5.3：一条链路断了。" },
+        "oid-index": { "name": "ifIndex.3", "note": "OID 1.3.6.1.2.1.2.2.1.1.3：端口的编号。" },
+        "index": { "name": "3", "note": "INTEGER 3：端口 3，继电器所在的端口。" },
+        "oid-admin": { "name": "ifAdminStatus.3", "note": "OID 1.3.6.1.2.1.2.2.1.7.3：端口在设置中是否启用？" },
+        "admin-up": { "name": "up(1)", "note": "INTEGER 1：端口仍处于启用状态。没人关掉它。" },
+        "oper-down": { "name": "down(2)", "note": "INTEGER 2：down，没有链路。端口已启用，就检查网线或继电器。" },
+        "a-iso": { "name": "1.3", "note": "0x2B = 43 = 40 × 1 + 3：BER 把前两个数字合成一个字节。iso(1)、org(3)。" },
+        "a-internet": { "name": "6.1", "note": "dod(6)、internet(1)。" },
+        "a-mib2": { "name": "2.1", "note": "mgmt(2)、mib-2(1)：每个代理都有的标准对象。" },
+        "a-iftable": { "name": "2.2.1", "note": "interfaces(2)、ifTable(2)、ifEntry(1)：每个端口一行的表。" },
+        "a-column": { "name": "8", "note": "ifOperStatus，这张表的第 8 列。" },
+        "a-index": { "name": "3", "note": "行：端口 3。像 sysUpTime 这样的单个值则以 .0 结尾。" }
+    },
+    "devices": {
+        "nms": "NMS（网络监视）",
+        "firewall": "防火墙",
+        "switch": "站内交换机",
+        "relay": "馈线继电器 F1"
+    },
+    "facts": {
+        "standard": "SNMPv3：RFC 3411 至 3418（STD 62）。SNMPv2c：RFC 1901 和 3416。端口对象：IF-MIB，RFC 2863。IEC 62351-7 为电力系统设备增加了对象",
+        "between": "NMS 与交换机、路由器、防火墙、RTU、继电器和时钟中的代理",
+        "transport": "请求用 UDP 161，trap 用 UDP 162；以 BER 编码的 ASN.1",
+        "security": "v1 和 v2c：明文的 community 字符串。v3：用户，带 HMAC 签名和 AES 加密（USM，基于用户的安全模型）",
+        "speed": "每 1 到 5 分钟轮询一次；事件发生后一秒内发出 trap"
+    },
+    "tips": [
+        "修改默认的 community public 和 private，或关闭 v1 和 v2c。community 以明文传送：路径上谁都能读到。",
+        "没人回答 trap：丢了也没人知道。重要的值也要轮询，或者使用 inform，即需要确认的通知。",
+        "监视只需要只读权限。不要通过 SNMP 给写权限，或只允许从一个管理地址写。",
+        "把 ifAdminStatus 和 ifOperStatus 一起看。admin up 而 oper down：网线、光模块或对端设备的问题。admin down：有人关掉了端口。"
+    ],
+    "points": {
+        "uptime": "已运行",
+        "admin": "端口 3 已启用",
+        "oper": "端口 3 链路"
+    },
+    "values": {
+        "up": "up",
+        "down": "down"
+    },
+    "anatomy": {
+        "oid": "BER 中的 OID：端口 3 链路状态的名称"
+    },
+    "playground": {
+        "file": "试一试：用 Net-SNMP 的 snmpget 通过 SNMPv3 问同类问题，看网线拔掉后交换机对端口 3 的回答。每行是一个对象：它的 MIB、名称和行号、类型和值。",
+        "command": "authPriv：用 SHA-256 签名，用 AES 加密。口令取自变量 AUTH 和 PRIV，这样不会留在 shell 的历史记录里。",
+        "descr": "ifDescr：交换机给端口起的名字。",
+        "type": "ifType 6：一个 Ethernet 端口。",
+        "speed": "ifSpeed，单位 bit/s：100000000 即 100 Mbit/s。",
+        "admin": "在设置中已启用。",
+        "oper": "但链路是 down：没插网线、没有光，或对端没有设备。",
+        "last": "ifLastChange：链路变化时交换机的运行时间，36 天 0:02:03，就在 trap 发出之前。",
+        "errors": "没有接收错误：端口断开之前一直正常。"
+    }
+}
