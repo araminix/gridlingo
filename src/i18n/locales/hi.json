@@ -215,6 +215,8 @@
     "lesson.iccp.where": "ग्रिड ऑपरेटर, मार्केट ऑपरेटर",
     "lesson.c37-118.summary": "GPS समय के साथ ग्रिड मेज़रमेंट, एक सेकंड में कई बार",
     "lesson.c37-118.where": "PMU, फ़ेज़र डेटा कंसन्ट्रेटर",
+    "lesson.cim-cgmes.summary": "ग्रिड का एक साझा मॉडल, फ़ाइलों में अदला-बदली",
+    "lesson.cim-cgmes.where": "कंट्रोल सेंटर, ग्रिड योजना",
     "lesson.modbus-tcp.summary": "ईथरनेट पर रजिस्टर: प्लांट की आम भाषा",
     "lesson.modbus-tcp.where": "इन्वर्टर, मीटर, वेदर स्टेशन, बैटरी",
     "lesson.modbus-rtu.summary": "RS-485 केबल पर रजिस्टर",

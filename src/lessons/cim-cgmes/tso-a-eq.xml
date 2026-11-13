@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cim="http://iec.ch/TC57/2013/CIM-schema-cim16#" xmlns:md="http://iec.ch/TC57/61970-552/ModelDescription/1#">
+  <md:FullModel rdf:about="urn:uuid:3f6b2a1e-0c4d-4e8f-9a7b-1d2c3e4f5a6b">
+    <md:Model.scenarioTime>2026-11-13T09:30:00Z</md:Model.scenarioTime>
+    <md:Model.profile>http://entsoe.eu/CIM/EquipmentCore/3/1</md:Model.profile>
+    <md:Model.modelingAuthoritySet>http://tso-a.example/CGMES</md:Model.modelingAuthoritySet>
+  </md:FullModel>
+  <cim:BaseVoltage rdf:ID="_2f9a7c41-8e3b-4d06-a5c1-7b2e9d4f6038">
+    <cim:BaseVoltage.nominalVoltage>380</cim:BaseVoltage.nominalVoltage>
+  </cim:BaseVoltage>
+  <cim:ACLineSegment rdf:ID="_8d4e3b21-6f0a-4c7e-9b52-d31f08a644c2">
+    <cim:IdentifiedObject.name>L-1 North-South</cim:IdentifiedObject.name>
+    <cim:ConductingEquipment.BaseVoltage rdf:resource="#_2f9a7c41-8e3b-4d06-a5c1-7b2e9d4f6038"/>
+    <cim:Conductor.length>42.5</cim:Conductor.length>
+    <cim:ACLineSegment.r>1.275</cim:ACLineSegment.r>
+    <cim:ACLineSegment.x>13.6</cim:ACLineSegment.x>
+    <cim:ACLineSegment.bch>0.000154</cim:ACLineSegment.bch>
+  </cim:ACLineSegment>
+  <cim:Terminal rdf:ID="_5a7c9e1b-2d4f-4a6b-8c0e-f1a3b5c7d9e2">
+    <cim:ACDCTerminal.sequenceNumber>1</cim:ACDCTerminal.sequenceNumber>
+    <cim:Terminal.ConductingEquipment rdf:resource="#_8d4e3b21-6f0a-4c7e-9b52-d31f08a644c2"/>
+    <cim:Terminal.ConnectivityNode rdf:resource="#_c4e6a8b0-1f3d-4b5a-9c7e-0d2f4a6c8e1b"/>
+  </cim:Terminal>
+</rdf:RDF>

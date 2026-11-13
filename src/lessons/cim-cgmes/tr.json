@@ -1,0 +1,87 @@
+{
+    "intro": "CIM (Common Information Model, IEC 61970 ve IEC 61968), bir elektrik şebekesi için ortak bir sözlüktür: bir hattın, trafonun, kesicinin ya da yükün ne olduğu, hangi özniteliklere sahip olduğu ve nasıl bağlandığı. CGMES (Common Grid Model Exchange Standard), Avrupalı TSO'ların (iletim sistemi işletmecileri) şebeke modellerini değiş tokuş etmek için kullandığı kısmıdır. Bir hat üzerindeki protokol değildir. Her TSO'nun EMS'i (enerji yönetim sistemi) şebekesini profil başına bir dosya olmak üzere RDF/XML dosyaları olarak yazar ve her nesne ömür boyu tek bir UUID taşır. TSO'lar her gün ertesi günün her saati için modellerini gönderir; bölgesel bir merkez bunları tek bir modelde birleştirir ve risk arar.",
+    "plain": "Her şebeke şirketi hatlarının kendi haritasını çizer, ama bir kesinti sınırda durmaz. CIM, bir şebekeyi tanımlamanın ortak bir yoludur; böylece bir şirketin haritası bir sonrakine yapboz parçaları gibi oturur. Her akşam şirketler yarın için haritalarını gönderir. Bölgesel bir merkez bunları bütün bölgenin tek bir haritasında birleştirir ve sınar: ya bu hat düşerse? Bir şey aşırı yüklenecekse, olmadan önce neyi değiştireceklerinde anlaşırlar.",
+    "steps": {
+        "export": { "title": "Modeli dışa aktar", "text": "TSO A'nın EMS'i, yarın 10:30 (09:30 UTC) için bireysel şebeke modelini, IGM'i, dört dosya olarak dışa aktarır. EQ teçhizatı, SSH planlanan durumu (yükler, üretim, anahtar konumları), TP bağlantıları, SV hesaplanan akışları ve gerilimleri tutar. TSO B de kendi şebekesi için aynısını yapar." },
+        "check": { "title": "Kuralları denetle", "text": "ENTSO-E'nin veri platformu OPDE (Operational Planning Data Environment), her dosyayı CGMES profillerine ve kalite kurallarına göre denetler: her terminal bir teçhizata aittir, her başvuru var olan bir nesneyi gösterir, hesaplanan durum planla uyuşur. Her TSO bir rapor alır: geçerli, TSO A için iki uyarıyla." },
+        "merge": { "title": "Modelleri birleştir", "text": "RCC (bölgesel koordinasyon merkezi), tüm IGM'leri ve TSO şebekelerinin buluştuğu noktaları adlandıran sınır kümesini alır. Modelleri bu noktalarda birleştirir ve bütün bölge için tek bir yük akışı çözer: CGM, ortak şebeke modeli. A ile B arasındaki enterkonneksiyon hattı artık 640 MW taşır." },
+        "analyse": { "title": "Riskleri bul", "text": "RCC, CGM üzerinde bir N-1 analizi yapar: her seferinde bir elemanı çıkarır ve yeniden çözer. L-3 hattı açarsa enterkonneksiyon hattı sınırının %118'ini taşırdı. İki TSO da sonucu alır." },
+        "act": { "title": "Bir çözümde anlaş", "text": "TSO A bir düzeltici eylem önerir: yarın 10:30'da 150 MW üretimi sınırın öbür yanına kaydırmak (yeniden dağıtım). RCC bunu CGM üzerinde sınar: bu eylemle, aynı açmadan sonra enterkonneksiyon hattı %92'de kalır." }
+    },
+    "frames": {
+        "igm-a": "Yarın 10:30 için şebekemiz, dört dosyada",
+        "igm-b": "Bizimki de",
+        "qa-a": "Modeliniz geçerli, iki uyarıyla",
+        "qa-b": "Modeliniz geçerli",
+        "fetch": "10:30 için tüm modeller ve buluştukları yerler",
+        "cgm": "Bölgenin çözülmüş tek modeli",
+        "result-a": "L-3 açarsa enterkonneksiyon hattı aşırı yüklenir",
+        "result-b": "L-3 açarsa enterkonneksiyon hattı aşırı yüklenir",
+        "remedy": "150 MW kaydırıyoruz: enterkonneksiyon hattı %92'de kalıyor"
+    },
+    "notes": {
+        "igm-a": "Profil başına bir tane olmak üzere dört RDF/XML dosyasından oluşan, zamana, sürece ve sahibine göre adlandırılmış bir zip. EQ seyrek değişir; SSH, TP ve SV her saat için yenidir. Her dosyanın başlığı hangi diğer dosyalara bağlı olduğunu söyler.",
+        "igm-b": "TSO B'nin aynı saat için dosyaları. Nesneleri kendi UUID'lerini korur; TSO A ile yalnızca sınır noktaları paylaşılır.",
+        "qa-a": "İki uyarı, hata yok: örneğin olağan azamisinin üstünde bir üretici. Bir hata modeli engellerdi ve TSO A onu düzeltip yeniden göndermek zorunda kalırdı.",
+        "qa-b": "Ne hata ne uyarı. Birleştirmeye yalnızca geçerli modeller girer.",
+        "fetch": "RCC platformdan 09:30 UTC için her geçerli IGM'i ve güncel sınır kümesini indirir.",
+        "cgm": "Birleştirilmiş modelin yeni SV dosyası: bütün bölgenin hesaplanan akışları ve gerilimleri, enterkonneksiyon hattı 640 MW'ta. Her TSO'nun teçhizatı gönderildiği gibi kalır.",
+        "result-a": "Bir N-1 sonucu: olası arıza (L-3 devre dışı), aşırı yüklenen eleman (enterkonneksiyon hattı) ve sınırını ne kadar aştığı (%118).",
+        "result-b": "TSO B için aynı sonuç: enterkonneksiyon hattı ortaktır, bu yüzden ikisi de ondan sorumludur.",
+        "remedy": "Bir düzeltici eylem: sınırın bir yanında üretimi düşürüp öbür yanında artırmak, böylece enterkonneksiyon hattından daha az güç geçer. RCC, iki TSO da onaylamadan önce bunu CGM üzerinde sınar."
+    },
+    "fields": {
+        "a-ns": { "name": "cim:", "note": "Ad alanı öneki: CIM'den bir ad. Hangi CIM sürümü olduğunu dosyanın başı söyler, burada cim16 (CGMES 2.4.15)." },
+        "a-class": { "name": "Terminal", "note": "Bu ifadenin konusu olan nesnenin sınıfı: bir terminal, bir teçhizatın bir ucu." },
+        "a-role": { "name": ".ConductingEquipment", "note": "İlişki: bu terminalin hangi teçhizata ait olduğu." },
+        "a-target": { "name": "#_8d4e3b21…", "note": "L-1 hattının mRID'i, bir başvuru olarak yazılmış: # ve aynı modeldeki bir nesnenin rdf:ID'si." }
+    },
+    "devices": {
+        "tsoA": "TSO A · EMS",
+        "tsoB": "TSO B · EMS",
+        "opde": "ENTSO-E veri platformu (OPDE)",
+        "rcc": "Bölgesel koordinasyon merkezi"
+    },
+    "facts": {
+        "standard": "IEC 61970-301 (iletim için CIM), IEC 61968 (dağıtım) ve IEC 61970-552 (RDF/XML dosyaları); IEC 61970-600-1 ve 600-2 olarak yayımlanan CGMES 2.4.15 ve 3.0",
+        "between": "TSO'lar, bölgesel koordinasyon merkezleri ve ENTSO-E'nin veri platformu; bir şirketin içinde kontrol sistemi, şebeke haritası ve planlama araçları arasında",
+        "transport": "Hat protokolü değil, dosyalar: RDF/XML, sıkıştırılmış, platforma gönderilir",
+        "security": "Dosyalarda yok: değişim platformu tarafların kimliğini doğrular ve aktarımı şifreler",
+        "speed": "Her gün, ertesi günün her saati için bir model; TSO başına birkaç megabayttan yüzlerce megabayta"
+    },
+    "tips": [
+        "Bir nesnenin mRID'i asla değişmemelidir. Her dışa aktarımda yeni UUID'ler üreten bir TSO, başkalarının hatlarına ve kesicilerine tuttuğu her bağlantıyı koparır.",
+        "EQ seyrek değişir; SSH, TP ve SV her saat değişir. Her dosyayı bağlı olduğu dosyaların doğru sürümleriyle gönderin, yoksa birleştirme birbirine uymayan parçaları birleştirir.",
+        "Sürümü denetleyin: CGMES 2.4.15 (cim16, rdf:ID) ile 3.0 (CIM100) farklıdır ve birini okuyan bir araç ötekini reddedebilir.",
+        "Yüklenen bir dosya doğru bir model değildir. Göndermeden önce hesaplanan durumu ölçümlerle karşılaştırın."
+    ],
+    "points": {
+        "igm": "09:30Z modeli",
+        "tie": "A–B enterkonneksiyon hattı",
+        "n1": "L-3 açarsa enterkonneksiyon"
+    },
+    "values": {
+        "sent": "gönderildi",
+        "valid": "geçerli",
+        "merged": "birleştirildi"
+    },
+    "anatomy": {
+        "triple": "Modelin bir ifadesi: bu terminal L-1 hattına ait"
+    },
+    "playground": {
+        "file": "Deneyin: TSO A'nın teçhizat dosyasından (EQ), CGMES 2.4.15'te bir alıntı: bir baz gerilim, 380 kV'luk bir hat ve terminallerinden biri. Her öğe, kimliğiyle bulunan bir nesne hakkında bir ifadedir.",
+        "namespaces": "Üç sözlük: RDF, CIM sürümü (CGMES 2.4.15'in kullandığı cim16) ve model başlığı (md).",
+        "header": "Bu dosyanın kendi UUID'si olan başlığı. Bir model, profil başına bir tane olmak üzere birkaç dosyadır.",
+        "scenario": "Modelin tanımladığı an: yarın Orta Avrupa saatiyle 10:30, UTC olarak yazılmış.",
+        "profile": "Bu dosyanın profili: teçhizat çekirdeği (EQ).",
+        "authority": "Bu nesnelerin sahibi: TSO A. Onları yalnızca o değiştirebilir.",
+        "basevoltage": "380 kV'luk bir baz gerilim. Teçhizat sayıyı tekrarlamak yerine buna başvurur.",
+        "line": "L-1 hattı. rdf:ID onun mRID'idir; her dışa aktarımda ve her araçta aynı kalan bir UUID.",
+        "reference": "rdf:resource kimliğiyle başka bir nesneye başvurur: bu hat 380 kV'ta çalışır.",
+        "length": "Uzunluk, km cinsinden.",
+        "impedance": "Tüm hattın seri direnci ve reaktansı, ohm cinsinden: km başına yaklaşık 0,03 ve 0,32 Ω, 380 kV için olağan.",
+        "charging": "Şönt süseptans, siemens cinsinden: hattın bir kondansatör gibi ne kadar şarj olduğu.",
+        "terminal": "Terminal 1, hattın ilk ucu. Bağlantılar her zaman terminaller üzerinden yapılır, asla doğrudan teçhizatlar arasında değil.",
+        "node": "Bu ucun bağlı olduğu bağlantı düğümü: bir trafo merkezindeki baradaki bir nokta, dosyanın başka bir yerinde tanımlanır."
+    }
+}

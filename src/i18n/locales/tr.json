@@ -215,6 +215,8 @@
     "lesson.iccp.where": "Şebeke işletmecileri, piyasa işletmecileri",
     "lesson.c37-118.summary": "GPS zamanlı şebeke ölçümleri, saniyede birçok kez",
     "lesson.c37-118.where": "PMU'lar, fazör veri yoğunlaştırıcıları",
+    "lesson.cim-cgmes.summary": "Dosyalarla değiş tokuş edilen ortak şebeke modeli",
+    "lesson.cim-cgmes.where": "Kontrol merkezleri, şebeke planlama",
     "lesson.modbus-tcp.summary": "Ethernet üzerinden register'lar: santrallerin ortak dili",
     "lesson.modbus-tcp.where": "İnverterler, sayaçlar, meteoroloji istasyonları, bataryalar",
     "lesson.modbus-rtu.summary": "RS-485 kablosu üzerinden register'lar",

@@ -215,6 +215,8 @@
     "lesson.iccp.where": "Grid operators, market operators",
     "lesson.c37-118.summary": "Grid measurements with GPS time, many times a second",
     "lesson.c37-118.where": "PMUs, phasor data concentrators",
+    "lesson.cim-cgmes.summary": "One shared model of the grid, swapped as files",
+    "lesson.cim-cgmes.where": "Control centres, grid planning",
     "lesson.modbus-tcp.summary": "Registers over Ethernet: the common language of plants",
     "lesson.modbus-tcp.where": "Inverters, meters, weather stations, batteries",
     "lesson.modbus-rtu.summary": "Registers over an RS-485 cable",

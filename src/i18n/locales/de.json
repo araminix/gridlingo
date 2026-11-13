@@ -215,6 +215,8 @@
     "lesson.iccp.where": "Netzbetreiber, Marktbetreiber",
     "lesson.c37-118.summary": "Netzmesswerte mit GPS-Zeit, viele Male pro Sekunde",
     "lesson.c37-118.where": "PMUs, Phasor Data Concentrators",
+    "lesson.cim-cgmes.summary": "Ein gemeinsames Netzmodell, als Dateien getauscht",
+    "lesson.cim-cgmes.where": "Leitwarten, Netzplanung",
     "lesson.modbus-tcp.summary": "Register über Ethernet: die gemeinsame Sprache der Anlagen",
     "lesson.modbus-tcp.where": "Wechselrichter, Zähler, Wetterstationen, Batterien",
     "lesson.modbus-rtu.summary": "Register über ein RS-485-Kabel",

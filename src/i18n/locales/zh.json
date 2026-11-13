@@ -215,6 +215,8 @@
     "lesson.iccp.where": "电网调度机构、电力市场运营机构",
     "lesson.c37-118.summary": "带 GPS 时间、每秒多次的电网测量",
     "lesson.c37-118.where": "PMU、相量数据集中器",
+    "lesson.cim-cgmes.summary": "以文件交换的统一电网模型",
+    "lesson.cim-cgmes.where": "调度中心、电网规划",
     "lesson.modbus-tcp.summary": "以太网上的寄存器：电站的通用语言",
     "lesson.modbus-tcp.where": "逆变器、电表、气象站、电池",
     "lesson.modbus-rtu.summary": "RS-485 电缆上的寄存器",

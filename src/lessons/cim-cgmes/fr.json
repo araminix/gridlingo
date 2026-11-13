@@ -1,0 +1,87 @@
+{
+    "intro": "Le CIM (Common Information Model, IEC 61970 et IEC 61968) est un dictionnaire commun pour un réseau électrique : ce qu'est une ligne, un transformateur, un disjoncteur ou une charge, quels attributs il a et comment il est raccordé. CGMES (Common Grid Model Exchange Standard) en est la partie que les TSO (gestionnaires de réseau de transport) européens utilisent pour échanger leurs modèles de réseau. Ce n'est pas un protocole sur un câble. L'EMS (système de gestion de l'énergie) de chaque TSO écrit son réseau en fichiers RDF/XML, un par profil, et chaque objet garde un UUID à vie. Chaque jour, les TSO envoient leurs modèles pour chaque heure du lendemain ; un centre régional les assemble en un seul modèle et y cherche les risques.",
+    "plain": "Chaque gestionnaire de réseau dessine sa propre carte de ses lignes, mais une panne ne s'arrête pas à une frontière. Le CIM est une façon commune de décrire un réseau, pour que la carte d'un gestionnaire s'emboîte dans la suivante comme des pièces de puzzle. Chaque soir, les gestionnaires envoient leurs cartes pour le lendemain. Un centre régional les assemble en une carte de toute la région et la met à l'épreuve : et si cette ligne tombait ? Si quelque chose serait surchargé, ils conviennent de ce qu'il faut changer avant que cela arrive.",
+    "steps": {
+        "export": { "title": "Exporter le modèle", "text": "L'EMS du TSO A exporte son modèle de réseau individuel, l'IGM, pour demain 10 h 30 (09:30 UTC) en quatre fichiers. EQ contient les équipements, SSH l'état prévu (charges, production, positions des organes de coupure), TP les raccordements, SV les transits et tensions calculés. Le TSO B fait de même pour son propre réseau." },
+        "check": { "title": "Vérifier les règles", "text": "La plateforme de données d'ENTSO-E, OPDE (Operational Planning Data Environment), vérifie chaque fichier par rapport aux profils CGMES et aux règles de qualité : chaque terminal appartient à un équipement, chaque référence pointe vers un objet qui existe, l'état calculé correspond au plan. Chaque TSO reçoit un rapport : valide, avec deux avertissements pour le TSO A." },
+        "merge": { "title": "Assembler les modèles", "text": "Le RCC (centre de coordination régional) prend tous les IGM et le jeu de frontières, qui nomme les points où les réseaux des TSO se rejoignent. Il raccorde les modèles en ces points et résout un calcul de répartition pour toute la région : le CGM, modèle de réseau commun. La ligne d'interconnexion entre A et B transite maintenant 640 MW." },
+        "analyse": { "title": "Trouver les risques", "text": "Le RCC fait une analyse N-1 sur le CGM : il retire un élément à la fois et recalcule. Si la ligne L-3 déclenche, l'interconnexion transiterait 118 % de sa limite. Les deux TSO reçoivent le résultat." },
+        "act": { "title": "Convenir d'une parade", "text": "Le TSO A propose une action corrective : déplacer 150 MW de production de part et d'autre de la frontière demain à 10 h 30 (redispatching). Le RCC la teste sur le CGM : avec elle, l'interconnexion reste à 92 % après le même déclenchement." }
+    },
+    "frames": {
+        "igm-a": "Notre réseau pour demain 10 h 30, en quatre fichiers",
+        "igm-b": "Le nôtre aussi",
+        "qa-a": "Votre modèle est valide, avec deux avertissements",
+        "qa-b": "Votre modèle est valide",
+        "fetch": "Tous les modèles de 10 h 30, et où ils se rejoignent",
+        "cgm": "Un modèle résolu de la région",
+        "result-a": "Si L-3 déclenche, l'interconnexion est surchargée",
+        "result-b": "Si L-3 déclenche, l'interconnexion est surchargée",
+        "remedy": "Nous déplaçons 150 MW : l'interconnexion reste à 92 %"
+    },
+    "notes": {
+        "igm-a": "Un zip de quatre fichiers RDF/XML, un par profil, nommés d'après l'heure, le processus et le propriétaire. EQ change rarement ; SSH, TP et SV sont nouveaux à chaque heure. L'en-tête de chaque fichier dit de quels autres fichiers il dépend.",
+        "igm-b": "Les fichiers du TSO B pour la même heure. Ses objets gardent leurs propres UUID ; seuls les points frontière sont partagés avec le TSO A.",
+        "qa-a": "Deux avertissements, aucune erreur : par exemple un groupe au-dessus de son maximum habituel. Une erreur bloquerait le modèle, et le TSO A devrait le corriger et le renvoyer.",
+        "qa-b": "Ni erreur ni avertissement. Seuls les modèles valides entrent dans l'assemblage.",
+        "fetch": "Le RCC télécharge depuis la plateforme chaque IGM valide de 09:30 UTC et le jeu de frontières en vigueur.",
+        "cgm": "Le nouveau fichier SV du modèle assemblé : les transits et tensions calculés de toute la région, avec l'interconnexion à 640 MW. Les équipements de chaque TSO restent tels qu'ils ont été envoyés.",
+        "result-a": "Un résultat N-1 : l'aléa (L-3 hors service), l'élément surchargé (l'interconnexion) et de combien il dépasse sa limite (118 %).",
+        "result-b": "Le même résultat pour le TSO B : l'interconnexion est partagée, donc tous deux en sont responsables.",
+        "remedy": "Une action corrective : baisser la production d'un côté de la frontière et l'augmenter de l'autre, pour que moins de puissance traverse l'interconnexion. Le RCC la teste sur le CGM avant que les deux TSO l'acceptent."
+    },
+    "fields": {
+        "a-ns": { "name": "cim:", "note": "Le préfixe d'espace de noms : un nom du CIM. Le début du fichier dit quelle version, ici cim16 (CGMES 2.4.15)." },
+        "a-class": { "name": "Terminal", "note": "La classe de l'objet dont parle cet énoncé : un terminal, une extrémité d'un équipement." },
+        "a-role": { "name": ".ConductingEquipment", "note": "L'association : à quel équipement appartient ce terminal." },
+        "a-target": { "name": "#_8d4e3b21…", "note": "Le mRID de la ligne L-1, écrit comme une référence : # et le rdf:ID d'un objet du même modèle." }
+    },
+    "devices": {
+        "tsoA": "TSO A · EMS",
+        "tsoB": "TSO B · EMS",
+        "opde": "Plateforme de données ENTSO-E (OPDE)",
+        "rcc": "Centre de coordination régional"
+    },
+    "facts": {
+        "standard": "IEC 61970-301 (le CIM pour le transport), IEC 61968 (distribution) et IEC 61970-552 (les fichiers RDF/XML) ; CGMES 2.4.15 et 3.0, publiés comme IEC 61970-600-1 et 600-2",
+        "between": "TSO, centres de coordination régionaux et plateforme de données d'ENTSO-E ; dans une entreprise, entre le système de conduite, la cartographie du réseau et les outils de planification",
+        "transport": "Des fichiers, pas un protocole de ligne : RDF/XML, zippés, envoyés à la plateforme",
+        "security": "Aucune dans les fichiers : la plateforme d'échange authentifie les parties et chiffre le transfert",
+        "speed": "Chaque jour, un modèle pour chaque heure du lendemain ; de quelques à plusieurs centaines de mégaoctets par TSO"
+    },
+    "tips": [
+        "Le mRID d'un objet ne doit jamais changer. Un TSO qui crée de nouveaux UUID à chaque export casse tous les liens que d'autres tiennent vers ses lignes et ses disjoncteurs.",
+        "EQ change rarement ; SSH, TP et SV changent chaque heure. Envoyez chaque fichier avec les bonnes versions des fichiers dont il dépend, sinon l'assemblage joint des pièces qui ne s'emboîtent pas.",
+        "Vérifiez la version : CGMES 2.4.15 (cim16, rdf:ID) et 3.0 (CIM100) diffèrent, et un outil qui lit l'une peut refuser l'autre.",
+        "Un fichier qui se charge n'est pas un modèle juste. Comparez l'état calculé aux mesures avant de l'envoyer."
+    ],
+    "points": {
+        "igm": "Modèle de 09:30Z",
+        "tie": "Interconnexion A–B",
+        "n1": "Interconnexion si L-3 déclenche"
+    },
+    "values": {
+        "sent": "envoyé",
+        "valid": "valide",
+        "merged": "assemblé"
+    },
+    "anatomy": {
+        "triple": "Un énoncé du modèle : ce terminal appartient à la ligne L-1"
+    },
+    "playground": {
+        "file": "Essayez : un extrait du fichier d'équipements (EQ) du TSO A, en CGMES 2.4.15 : une tension de base, une ligne 380 kV et l'un de ses terminaux. Chaque élément est un énoncé sur un objet, retrouvé par son ID.",
+        "namespaces": "Trois vocabulaires : RDF, la version du CIM (cim16, celle de CGMES 2.4.15) et l'en-tête du modèle (md).",
+        "header": "L'en-tête de ce fichier, avec son propre UUID. Un modèle est fait de plusieurs fichiers, un par profil.",
+        "scenario": "L'instant que décrit le modèle : demain 10 h 30 heure d'Europe centrale, écrit en UTC.",
+        "profile": "Le profil de ce fichier : équipements, cœur (EQ).",
+        "authority": "À qui appartiennent ces objets : au TSO A. Lui seul peut les modifier.",
+        "basevoltage": "Une tension de base de 380 kV. Les équipements y renvoient au lieu de répéter le nombre.",
+        "line": "La ligne L-1. rdf:ID est son mRID, un UUID qui reste le même dans chaque export et chaque outil.",
+        "reference": "rdf:resource renvoie à un autre objet par son ID : cette ligne est exploitée à 380 kV.",
+        "length": "La longueur, en km.",
+        "impedance": "Résistance et réactance série de toute la ligne, en ohms : environ 0,03 et 0,32 Ω par km, l'ordre habituel en 380 kV.",
+        "charging": "Susceptance shunt, en siemens : à quel point la ligne se charge comme un condensateur.",
+        "terminal": "Le terminal 1, la première extrémité de la ligne. Les raccordements passent toujours par des terminaux, jamais directement entre équipements.",
+        "node": "Le nœud de connectivité auquel cette extrémité est reliée : un point d'un jeu de barres d'un poste, décrit ailleurs dans le fichier."
+    }
+}

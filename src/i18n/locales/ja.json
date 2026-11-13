@@ -215,6 +215,8 @@
     "lesson.iccp.where": "系統運用者、市場運営者",
     "lesson.c37-118.summary": "GPS時刻付きの系統計測を、1秒に何度も",
     "lesson.c37-118.where": "PMU、フェーザデータ集約装置",
+    "lesson.cim-cgmes.summary": "ファイルで交換する共通の系統モデル",
+    "lesson.cim-cgmes.where": "制御センター、系統計画",
     "lesson.modbus-tcp.summary": "Ethernetでレジスタを読み書き：プラントの共通語",
     "lesson.modbus-tcp.where": "インバータ、メーター、気象観測装置、蓄電池",
     "lesson.modbus-rtu.summary": "RS-485ケーブルでレジスタを読み書き",

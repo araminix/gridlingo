@@ -215,6 +215,8 @@
     "lesson.iccp.where": "مشغّلو الشبكات ومشغّلو الأسواق",
     "lesson.c37-118.summary": "قياسات الشبكة بتوقيت GPS، مرات عديدة في الثانية",
     "lesson.c37-118.where": "وحدات PMU ومركّزات بيانات الطوريات",
+    "lesson.cim-cgmes.summary": "نموذج مشترك للشبكة، يُتبادل ملفاتٍ",
+    "lesson.cim-cgmes.where": "مراكز التحكم، تخطيط الشبكة",
     "lesson.modbus-tcp.summary": "سجلات عبر الإيثرنت: اللغة المشتركة في المحطات",
     "lesson.modbus-tcp.where": "العواكس والعدّادات ومحطات الأرصاد والبطاريات",
     "lesson.modbus-rtu.summary": "سجلات عبر كبل RS-485",

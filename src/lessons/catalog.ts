@@ -20,6 +20,7 @@ export const CATALOG: readonly Meta[] = [
     { id: "dnp3", name: "DNP3", group: "control", devices: ["rtu", "scada"], wire: "TCP/UDP 20000 · serial" },
     { id: "iccp", name: "ICCP / TASE.2", group: "control", devices: ["scada"], wire: "TCP 102" },
     { id: "c37-118", name: "IEEE C37.118", group: "control", devices: ["pmu", "scada"], wire: "TCP 4712 · UDP 4713" },
+    { id: "cim-cgmes", name: "CIM / CGMES", group: "control", devices: ["scada", "cloud"], wire: "RDF/XML files · IEC 61970" },
 
     { id: "modbus-tcp", name: "Modbus TCP", group: "plant", devices: ["inverter", "meter", "battery", "controller", "sensor"], wire: "TCP 502" },
     { id: "modbus-rtu", name: "Modbus RTU", group: "plant", devices: ["inverter", "meter", "sensor"], wire: "RS-485" },

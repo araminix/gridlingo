@@ -1,0 +1,87 @@
+{
+    "intro": "CIM (Common Information Model, IEC 61970 and IEC 61968) is one shared dictionary for a power grid: what a line, a transformer, a breaker or a load is, which attributes it has, and how they connect. CGMES (Common Grid Model Exchange Standard) is the part of it that European TSOs (transmission system operators) use to swap grid models. It is not a protocol on a wire. Each TSO's EMS (energy management system) writes its grid as RDF/XML files, one per profile, and every object keeps one UUID for life. Every day the TSOs send their models for each hour of the next day; a regional centre merges them into one model and checks it for risks.",
+    "plain": "Every grid company draws its own map of its power lines, but a blackout does not stop at a border. CIM is a shared way of describing a grid, so that one company's map fits the next like puzzle pieces. Each evening the companies send their maps for tomorrow. A regional centre joins them into one map of the whole region and tests it: what if this line fails? If something would overload, they agree what to change before it happens.",
+    "steps": {
+        "export": { "title": "Export the model", "text": "TSO A's EMS exports its individual grid model, the IGM, for tomorrow 10:30 (09:30 UTC) as four files. EQ holds the equipment, SSH the planned state (loads, generation, switch positions), TP how it is connected, SV the solved flows and voltages. TSO B does the same for its own grid." },
+        "check": { "title": "Check the rules", "text": "ENTSO-E's data platform, OPDE (Operational Planning Data Environment), checks each file against the CGMES profiles and the quality rules: every terminal belongs to equipment, every reference points to an object that exists, the solved state fits the plan. Each TSO gets a report: valid, with two warnings for TSO A." },
+        "merge": { "title": "Merge the models", "text": "The RCC (regional coordination centre) takes all the IGMs and the boundary set, which names the points where the TSOs' grids meet. It joins the models at those points and solves one power flow for the whole region: the CGM, common grid model. The tie line between A and B now carries 640 MW." },
+        "analyse": { "title": "Find the risks", "text": "The RCC runs an N-1 analysis on the CGM: it takes out one element at a time and solves again. If line L-3 trips, the tie line would carry 118 % of its limit. Both TSOs get the result." },
+        "act": { "title": "Agree a remedy", "text": "TSO A proposes a remedial action: shift 150 MW of generation across the border tomorrow at 10:30 (redispatch). The RCC tests it on the CGM: with it, the tie line stays at 92 % after the same trip." }
+    },
+    "frames": {
+        "igm-a": "Our grid for tomorrow 10:30, in four files",
+        "igm-b": "Ours too",
+        "qa-a": "Your model is valid, with two warnings",
+        "qa-b": "Your model is valid",
+        "fetch": "All the models for 10:30, and where they meet",
+        "cgm": "One solved model of the region",
+        "result-a": "If L-3 trips, the tie line overloads",
+        "result-b": "If L-3 trips, the tie line overloads",
+        "remedy": "We shift 150 MW: the tie line stays at 92 %"
+    },
+    "notes": {
+        "igm-a": "A zip of four RDF/XML files, one per profile, named by time, process and owner. EQ changes rarely; SSH, TP and SV are new for every hour. Each file's header says which other files it depends on.",
+        "igm-b": "TSO B's files for the same hour. Its objects keep their own UUIDs; only the boundary points are shared with TSO A.",
+        "qa-a": "Two warnings, no errors: for example a generator above its usual maximum. An error would block the model, and TSO A would have to fix it and send it again.",
+        "qa-b": "No errors, no warnings. Only valid models go into the merge.",
+        "fetch": "The RCC downloads every valid IGM for 09:30 UTC and the current boundary set from the platform.",
+        "cgm": "The merged model's new SV file: the solved flows and voltages of the whole region, with the tie line at 640 MW. Each TSO's equipment stays as it was sent.",
+        "result-a": "An N-1 result: the contingency (L-3 out), the element that overloads (the tie line) and how far over its limit (118 %).",
+        "result-b": "The same result for TSO B: the tie line is shared, so both are responsible for it.",
+        "remedy": "A remedial action: lower generation on one side of the border and raise it on the other, so less power crosses the tie line. The RCC tests it on the CGM before both TSOs agree."
+    },
+    "fields": {
+        "a-ns": { "name": "cim:", "note": "The namespace prefix: a name from the CIM. The top of the file says which CIM version, here cim16 (CGMES 2.4.15)." },
+        "a-class": { "name": "Terminal", "note": "The class of the object this statement is about: a terminal, one end of a piece of equipment." },
+        "a-role": { "name": ".ConductingEquipment", "note": "The association: which piece of equipment this terminal belongs to." },
+        "a-target": { "name": "#_8d4e3b21…", "note": "The mRID of line L-1, written as a reference: # and the rdf:ID of an object in the same model." }
+    },
+    "devices": {
+        "tsoA": "TSO A · EMS",
+        "tsoB": "TSO B · EMS",
+        "opde": "ENTSO-E data platform (OPDE)",
+        "rcc": "Regional coordination centre"
+    },
+    "facts": {
+        "standard": "IEC 61970-301 (the CIM for transmission), IEC 61968 (distribution) and IEC 61970-552 (the RDF/XML files); CGMES 2.4.15 and 3.0, published as IEC 61970-600-1 and 600-2",
+        "between": "TSOs, regional coordination centres and ENTSO-E's data platform; inside a utility, between the control system, the network map and the planning tools",
+        "transport": "Files, not a wire protocol: RDF/XML, zipped, sent to the platform",
+        "security": "None in the files: the exchange platform authenticates the parties and encrypts the transfer",
+        "speed": "Every day, a model for each hour of the next day; from a few to hundreds of megabytes per TSO"
+    },
+    "tips": [
+        "An object's mRID must never change. A TSO that makes new UUIDs at every export breaks every link that others hold to its lines and breakers.",
+        "EQ changes rarely; SSH, TP and SV change every hour. Send each file with the right versions of the files it depends on, or the merge joins pieces that do not fit.",
+        "Check the version: CGMES 2.4.15 (cim16, rdf:ID) and 3.0 (CIM100) differ, and a tool that reads one may reject the other.",
+        "A file that loads is not a model that is right. Compare the solved state with the measurements before you send it."
+    ],
+    "points": {
+        "igm": "Model for 09:30Z",
+        "tie": "Tie line A–B",
+        "n1": "Tie line if L-3 trips"
+    },
+    "values": {
+        "sent": "sent",
+        "valid": "valid",
+        "merged": "merged"
+    },
+    "anatomy": {
+        "triple": "One statement of the model: this terminal belongs to line L-1"
+    },
+    "playground": {
+        "file": "Try it: an extract of TSO A's equipment file (EQ), in CGMES 2.4.15: a base voltage, a 380 kV line and one of its terminals. Every element is a statement about an object, found by its ID.",
+        "namespaces": "Three vocabularies: RDF, the CIM version (cim16, the one CGMES 2.4.15 uses) and the model header (md).",
+        "header": "The header of this file, with its own UUID. A model is several files, one per profile.",
+        "scenario": "The moment the model describes: tomorrow 10:30 Central European Time, written in UTC.",
+        "profile": "This file's profile: equipment core (EQ).",
+        "authority": "Who owns these objects: TSO A. Only it may change them.",
+        "basevoltage": "A base voltage of 380 kV. Equipment points to it instead of repeating the number.",
+        "line": "Line L-1. rdf:ID is its mRID, a UUID that stays the same in every export and every tool.",
+        "reference": "rdf:resource points to another object by its ID: this line runs at 380 kV.",
+        "length": "The length, in km.",
+        "impedance": "Series resistance and reactance of the whole line, in ohms: about 0.03 and 0.32 Ω per km, usual for 380 kV.",
+        "charging": "Shunt susceptance, in siemens: how much the line charges like a capacitor.",
+        "terminal": "Terminal 1, the line's first end. Connections are made through terminals, never straight between pieces of equipment.",
+        "node": "The connectivity node this end is attached to: a point on a busbar in a substation, described elsewhere in the file."
+    }
+}

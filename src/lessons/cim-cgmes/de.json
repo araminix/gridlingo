@@ -1,0 +1,87 @@
+{
+    "intro": "CIM (Common Information Model, IEC 61970 und IEC 61968) ist ein gemeinsames Wörterbuch für ein Stromnetz: was eine Leitung, ein Transformator, ein Leistungsschalter oder eine Last ist, welche Attribute sie haben und wie sie verbunden sind. CGMES (Common Grid Model Exchange Standard) ist der Teil davon, mit dem europäische TSOs (Übertragungsnetzbetreiber) Netzmodelle austauschen. Es ist kein Protokoll auf einer Leitung. Das EMS (Energiemanagementsystem) jedes TSO schreibt sein Netz als RDF/XML-Dateien, eine pro Profil, und jedes Objekt behält eine UUID fürs Leben. Jeden Tag senden die TSOs ihre Modelle für jede Stunde des nächsten Tages; ein regionales Zentrum führt sie zu einem Modell zusammen und prüft es auf Risiken.",
+    "plain": "Jeder Netzbetreiber zeichnet seine eigene Karte seiner Stromleitungen, aber ein Stromausfall hält an keiner Grenze. CIM ist eine gemeinsame Art, ein Netz zu beschreiben, sodass die Karte eines Betreibers an die nächste passt wie Puzzleteile. Jeden Abend senden die Betreiber ihre Karten für morgen. Ein regionales Zentrum fügt sie zu einer Karte der ganzen Region zusammen und prüft sie: Was, wenn diese Leitung ausfällt? Würde etwas überlastet, vereinbaren sie, was sie ändern, bevor es passiert.",
+    "steps": {
+        "export": { "title": "Das Modell exportieren", "text": "Das EMS von TSO A exportiert sein individuelles Netzmodell, das IGM, für morgen 10:30 (09:30 UTC) als vier Dateien. EQ enthält die Betriebsmittel, SSH den geplanten Zustand (Lasten, Erzeugung, Schaltzustände), TP wie alles verbunden ist, SV die berechneten Flüsse und Spannungen. TSO B tut dasselbe für sein eigenes Netz." },
+        "check": { "title": "Die Regeln prüfen", "text": "Die Datenplattform von ENTSO-E, OPDE (Operational Planning Data Environment), prüft jede Datei gegen die CGMES-Profile und die Qualitätsregeln: Jedes Terminal gehört zu einem Betriebsmittel, jeder Verweis zeigt auf ein vorhandenes Objekt, der berechnete Zustand passt zum Plan. Jeder TSO erhält einen Bericht: gültig, mit zwei Warnungen für TSO A." },
+        "merge": { "title": "Die Modelle zusammenführen", "text": "Das RCC (regionales Koordinierungszentrum) nimmt alle IGMs und das Boundary Set, das die Punkte nennt, an denen sich die Netze der TSOs treffen. Es verbindet die Modelle an diesen Punkten und berechnet einen Lastfluss für die ganze Region: das CGM, das gemeinsame Netzmodell. Die Kuppelleitung zwischen A und B trägt jetzt 640 MW." },
+        "analyse": { "title": "Die Risiken finden", "text": "Das RCC rechnet eine N-1-Analyse auf dem CGM: Es nimmt ein Element nach dem anderen heraus und rechnet erneut. Fällt Leitung L-3 aus, trüge die Kuppelleitung 118 % ihrer Grenze. Beide TSOs erhalten das Ergebnis." },
+        "act": { "title": "Eine Abhilfe vereinbaren", "text": "TSO A schlägt eine Abhilfemaßnahme vor: morgen um 10:30 150 MW Erzeugung über die Grenze verschieben (Redispatch). Das RCC prüft sie auf dem CGM: Damit bleibt die Kuppelleitung nach demselben Ausfall bei 92 %." }
+    },
+    "frames": {
+        "igm-a": "Unser Netz für morgen 10:30, in vier Dateien",
+        "igm-b": "Unseres auch",
+        "qa-a": "Ihr Modell ist gültig, mit zwei Warnungen",
+        "qa-b": "Ihr Modell ist gültig",
+        "fetch": "Alle Modelle für 10:30, und wo sie sich treffen",
+        "cgm": "Ein berechnetes Modell der Region",
+        "result-a": "Fällt L-3 aus, ist die Kuppelleitung überlastet",
+        "result-b": "Fällt L-3 aus, ist die Kuppelleitung überlastet",
+        "remedy": "Wir verschieben 150 MW: Die Kuppelleitung bleibt bei 92 %"
+    },
+    "notes": {
+        "igm-a": "Ein Zip mit vier RDF/XML-Dateien, eine pro Profil, benannt nach Zeit, Prozess und Eigentümer. EQ ändert sich selten; SSH, TP und SV sind für jede Stunde neu. Der Kopf jeder Datei sagt, von welchen anderen Dateien sie abhängt.",
+        "igm-b": "Die Dateien von TSO B für dieselbe Stunde. Seine Objekte behalten ihre eigenen UUIDs; nur die Grenzpunkte teilt es mit TSO A.",
+        "qa-a": "Zwei Warnungen, keine Fehler: zum Beispiel ein Generator über seinem üblichen Maximum. Ein Fehler würde das Modell blockieren, und TSO A müsste es korrigieren und neu senden.",
+        "qa-b": "Keine Fehler, keine Warnungen. Nur gültige Modelle gehen in die Zusammenführung.",
+        "fetch": "Das RCC lädt jedes gültige IGM für 09:30 UTC und das aktuelle Boundary Set von der Plattform.",
+        "cgm": "Die neue SV-Datei des zusammengeführten Modells: die berechneten Flüsse und Spannungen der ganzen Region, mit der Kuppelleitung bei 640 MW. Die Betriebsmittel jedes TSO bleiben, wie sie gesendet wurden.",
+        "result-a": "Ein N-1-Ergebnis: der Ausfall (L-3 aus), das Element, das überlastet wird (die Kuppelleitung), und wie weit über seiner Grenze (118 %).",
+        "result-b": "Dasselbe Ergebnis für TSO B: Die Kuppelleitung ist gemeinsam, also sind beide dafür verantwortlich.",
+        "remedy": "Eine Abhilfemaßnahme: Erzeugung auf einer Seite der Grenze senken und auf der anderen erhöhen, damit weniger Leistung über die Kuppelleitung fließt. Das RCC prüft sie auf dem CGM, bevor beide TSOs zustimmen."
+    },
+    "fields": {
+        "a-ns": { "name": "cim:", "note": "Das Namensraum-Präfix: ein Name aus dem CIM. Welche CIM-Version, sagt der Anfang der Datei, hier cim16 (CGMES 2.4.15)." },
+        "a-class": { "name": "Terminal", "note": "Die Klasse des Objekts, um das es in dieser Aussage geht: ein Terminal, ein Ende eines Betriebsmittels." },
+        "a-role": { "name": ".ConductingEquipment", "note": "Die Assoziation: zu welchem Betriebsmittel dieses Terminal gehört." },
+        "a-target": { "name": "#_8d4e3b21…", "note": "Die mRID der Leitung L-1, als Verweis geschrieben: # und die rdf:ID eines Objekts im selben Modell." }
+    },
+    "devices": {
+        "tsoA": "TSO A · EMS",
+        "tsoB": "TSO B · EMS",
+        "opde": "ENTSO-E-Datenplattform (OPDE)",
+        "rcc": "Regionales Koordinierungszentrum"
+    },
+    "facts": {
+        "standard": "IEC 61970-301 (das CIM für die Übertragung), IEC 61968 (Verteilung) und IEC 61970-552 (die RDF/XML-Dateien); CGMES 2.4.15 und 3.0, veröffentlicht als IEC 61970-600-1 und 600-2",
+        "between": "TSOs, regionale Koordinierungszentren und die Datenplattform von ENTSO-E; in einem Unternehmen zwischen Leitsystem, Netzkarte und Planungswerkzeugen",
+        "transport": "Dateien, kein Leitungsprotokoll: RDF/XML, gezippt, an die Plattform gesendet",
+        "security": "Keine in den Dateien: Die Austauschplattform authentifiziert die Beteiligten und verschlüsselt die Übertragung",
+        "speed": "Jeden Tag ein Modell für jede Stunde des nächsten Tages; von einigen bis Hunderten Megabyte pro TSO"
+    },
+    "tips": [
+        "Die mRID eines Objekts darf sich nie ändern. Ein TSO, der bei jedem Export neue UUIDs erzeugt, zerstört jeden Verweis, den andere auf seine Leitungen und Schalter halten.",
+        "EQ ändert sich selten; SSH, TP und SV ändern sich jede Stunde. Senden Sie jede Datei mit den richtigen Versionen der Dateien, von denen sie abhängt, sonst fügt die Zusammenführung Teile zusammen, die nicht passen.",
+        "Prüfen Sie die Version: CGMES 2.4.15 (cim16, rdf:ID) und 3.0 (CIM100) unterscheiden sich, und ein Werkzeug, das eine liest, kann die andere ablehnen.",
+        "Eine Datei, die sich laden lässt, ist noch kein richtiges Modell. Vergleichen Sie den berechneten Zustand mit den Messwerten, bevor Sie sie senden."
+    ],
+    "points": {
+        "igm": "Modell für 09:30Z",
+        "tie": "Kuppelleitung A–B",
+        "n1": "Kuppelleitung, wenn L-3 ausfällt"
+    },
+    "values": {
+        "sent": "gesendet",
+        "valid": "gültig",
+        "merged": "zusammengeführt"
+    },
+    "anatomy": {
+        "triple": "Eine Aussage des Modells: Dieses Terminal gehört zur Leitung L-1"
+    },
+    "playground": {
+        "file": "Probieren Sie es aus: ein Auszug aus der Betriebsmitteldatei (EQ) von TSO A, in CGMES 2.4.15: eine Bezugsspannung, eine 380-kV-Leitung und eines ihrer Terminals. Jedes Element ist eine Aussage über ein Objekt, das man über seine ID findet.",
+        "namespaces": "Drei Vokabulare: RDF, die CIM-Version (cim16, die von CGMES 2.4.15) und der Modellkopf (md).",
+        "header": "Der Kopf dieser Datei, mit eigener UUID. Ein Modell besteht aus mehreren Dateien, einer pro Profil.",
+        "scenario": "Der Zeitpunkt, den das Modell beschreibt: morgen 10:30 mitteleuropäischer Zeit, in UTC geschrieben.",
+        "profile": "Das Profil dieser Datei: Betriebsmittel, Kern (EQ).",
+        "authority": "Wem diese Objekte gehören: TSO A. Nur er darf sie ändern.",
+        "basevoltage": "Eine Bezugsspannung von 380 kV. Die Betriebsmittel verweisen darauf, statt die Zahl zu wiederholen.",
+        "line": "Leitung L-1. rdf:ID ist ihre mRID, eine UUID, die in jedem Export und jedem Werkzeug gleich bleibt.",
+        "reference": "rdf:resource verweist über seine ID auf ein anderes Objekt: Diese Leitung läuft mit 380 kV.",
+        "length": "Die Länge in km.",
+        "impedance": "Längswiderstand und Reaktanz der ganzen Leitung, in Ohm: etwa 0,03 und 0,32 Ω pro km, üblich für 380 kV.",
+        "charging": "Querblindleitwert in Siemens: wie stark sich die Leitung wie ein Kondensator auflädt.",
+        "terminal": "Terminal 1, das erste Ende der Leitung. Verbindungen laufen immer über Terminals, nie direkt zwischen Betriebsmitteln.",
+        "node": "Der Verbindungsknoten, an dem dieses Ende hängt: ein Punkt auf einer Sammelschiene in einem Umspannwerk, an anderer Stelle der Datei beschrieben."
+    }
+}

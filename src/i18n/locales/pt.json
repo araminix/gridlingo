@@ -215,6 +215,8 @@
     "lesson.iccp.where": "Operadores da rede, operadores do mercado",
     "lesson.c37-118.summary": "Medições da rede com hora GPS, muitas vezes por segundo",
     "lesson.c37-118.where": "PMUs, concentradores de dados fasoriais",
+    "lesson.cim-cgmes.summary": "Um modelo comum da rede, trocado em arquivos",
+    "lesson.cim-cgmes.where": "Centros de controle, planejamento da rede",
     "lesson.modbus-tcp.summary": "Registradores por Ethernet: a língua comum das usinas",
     "lesson.modbus-tcp.where": "Inversores, medidores, estações meteorológicas, baterias",
     "lesson.modbus-rtu.summary": "Registradores por um cabo RS-485",

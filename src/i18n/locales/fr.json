@@ -215,6 +215,8 @@
     "lesson.iccp.where": "Gestionnaires de réseau, opérateurs de marché",
     "lesson.c37-118.summary": "Des mesures du réseau datées par GPS, plusieurs fois par seconde",
     "lesson.c37-118.where": "PMU, concentrateurs de données de phaseurs",
+    "lesson.cim-cgmes.summary": "Un modèle commun du réseau, échangé en fichiers",
+    "lesson.cim-cgmes.where": "Centres de conduite, planification du réseau",
     "lesson.modbus-tcp.summary": "Des registres sur Ethernet : la langue commune des centrales",
     "lesson.modbus-tcp.where": "Onduleurs, compteurs, stations météo, batteries",
     "lesson.modbus-rtu.summary": "Des registres sur un câble RS-485",

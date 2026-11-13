@@ -215,6 +215,8 @@
     "lesson.iccp.where": "Gestori di rete, gestori di mercato",
     "lesson.c37-118.summary": "Misure di rete con tempo GPS, molte volte al secondo",
     "lesson.c37-118.where": "PMU, concentratori di dati fasoriali",
+    "lesson.cim-cgmes.summary": "Un modello comune della rete, scambiato in file",
+    "lesson.cim-cgmes.where": "Sale controllo, pianificazione della rete",
     "lesson.modbus-tcp.summary": "Registri su Ethernet: la lingua comune degli impianti",
     "lesson.modbus-tcp.where": "Inverter, contatori, stazioni meteo, batterie",
     "lesson.modbus-rtu.summary": "Registri su un cavo RS-485",

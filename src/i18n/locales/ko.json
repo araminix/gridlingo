@@ -215,6 +215,8 @@
     "lesson.iccp.where": "계통 운영자, 시장 운영자",
     "lesson.c37-118.summary": "GPS 시각이 붙은 계통 측정값을 1초에 여러 번",
     "lesson.c37-118.where": "PMU, 페이저 데이터 집중기",
+    "lesson.cim-cgmes.summary": "파일로 주고받는 공통 계통 모델",
+    "lesson.cim-cgmes.where": "제어 센터, 계통 계획",
     "lesson.modbus-tcp.summary": "이더넷 위의 레지스터: 발전소의 공용어",
     "lesson.modbus-tcp.where": "인버터, 계량기, 기상 관측 장치, 배터리",
     "lesson.modbus-rtu.summary": "RS-485 케이블 위의 레지스터",
