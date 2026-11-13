@@ -1,0 +1,95 @@
+{
+    "intro": "Mit HART spricht ein 4–20-mA-Feldgerät zusätzlich digital. Ein leiser Ton, 1200 bit/s FSK, reitet auf dem analogen Strom: Das Leitsystem liest den Messwert weiter aus dem Strom, während der Laptop eines Technikers oder die HART-Karte des Leitsystems das Gerät nach seinem Wert mit Einheit, seiner Identität und seinem Zustand fragt und Einstellungen ändert. HART ist das Protokoll der FieldComm Group und steckt in Druck-, Temperatur-, Füllstands- und Durchflussmessgeräten und Stellungsreglern in Kraftwerken, Wasserkraftanlagen, Gasnetzen und Wasserwerken.",
+    "plain": "Die meisten Messgeräte in einer Anlage senden ihren Messwert als elektrischen Strom auf zwei Drähten: 4 mA heißt unteres Ende der Skala, 20 mA oberes Ende. HART legt ein leises Pfeifen über diesen Strom, zu schnell, um den Messwert zu verändern, und das trägt Nachrichten. Damit kann ein Techniker einen Laptop an die zwei Drähte klemmen und das Gerät fragen, wer es ist, was es misst und ob es gesund ist, ohne etwas abzuklemmen.",
+    "steps": {
+        "analog": { "title": "Das Analogsignal", "text": "Der Druckmessumformer PT-101 misst den Wasserdruck in der Druckrohrleitung eines Wasserkraftmaschinensatzes: 27.6 bar. Sein Messbereich ist 0 bis 40 bar, also nimmt er 4 + 16 × 27.6 / 40 = 15.04 mA aus der Schleife auf. Die Anlagensteuerung liest diesen Strom über ihren 250-Ω-Eingang und zeigt 27.6 bar an. Dafür ist keine digitale Nachricht nötig." },
+        "identify": { "title": "Wer bist du?", "text": "Ein Techniker klemmt einen Laptop mit HART-Modem über den 250-Ω-Widerstand. Er sendet Kommando 0 an die Polling-Adresse 0, in einem kurzen Frame. Der Messumformer antwortet mit seinem Gerätetyp, seiner eindeutigen Geräte-ID und seiner HART-Revision, 7: alles, was für seine lange Adresse nötig ist." },
+        "read": { "title": "Die Werte lesen", "text": "Ab jetzt nutzt jeder Frame die lange Adresse. Kommando 3 fragt nach dem Schleifenstrom und den Messgrößen. Die Antwort: 15.04 mA und 27.6 bar, als Gleitkommazahlen, der Druck mit einem Einheitencode. Der Messwert der Steuerung bewegt sich nicht: Der Ton mittelt sich zu null." },
+        "test": { "title": "Schleifentest", "text": "Die Druckregelung der Maschine ist auf Hand geschaltet; der Techniker setzt den Strom mit Kommando 40 fest auf 12.000 mA. Die Steuerung sollte jetzt die Mitte des Bereichs anzeigen, 20.0 bar. Das tut sie, also stimmen Verdrahtung und Skalierung der Steuerung." },
+        "release": { "title": "Zurück zum Messen", "text": "Kommando 40 mit 0 mA beendet den festen Strom. Der Messumformer geht zurück auf 15.04 mA, die Steuerung zeigt wieder 27.6 bar, und die Druckregelung wird wieder auf Automatik geschaltet." }
+    },
+    "frames": {
+        "analog": "27.6 bar, als Strom",
+        "cmd0": "Wer an Adresse 0 ist: Wer bist du?",
+        "cmd0-res": "Das sind mein Typ, meine ID und meine HART-Revision",
+        "cmd3": "Deinen Strom und deine Messwerte, bitte",
+        "cmd3-res": "15.04 mA, 27.6 bar",
+        "cmd40": "Halte den Strom auf 12 mA",
+        "cmd40-res": "Halte 12.000 mA",
+        "fixed": "12 mA: halbe Skala",
+        "exit": "Miss wieder",
+        "exit-res": "Messe wieder",
+        "back": "Wieder 27.6 bar"
+    },
+    "notes": {
+        "analog": "Keine Nachricht: der Strom selbst. 4 mA sind 0 bar und 20 mA sind 40 bar, also ist jedes mA 2.5 bar. Ein Strom unter etwa 3.6 mA oder über etwa 21 mA bedeutet einen Fehler.",
+        "cmd0-res": "Delimiter 0x06, dieselbe kurze Adresse und dasselbe Kommando, dann 24 Bytes: Antwortcode und Gerätestatus (beide 0), dann 22 Bytes Identität: 254, der erweiterte Gerätetyp 0x2213, die Präambeln, die es braucht, HART-Revision 7, Geräte-, Software- und Hardware-Revision, Flags, die Geräte-ID 0x0A5E31 und mehr.",
+        "cmd40-res": "Dieselbe lange Adresse und Kommando 40, Antwortcode 0, dann der tatsächlich gesetzte Strom: 12.000 mA. Ab jetzt hat das Gerätestatusbyte Bit 3 gesetzt (0x08): Schleifenstrom fest. Ein Master, der das sieht, weiß, dass der Strom nicht der Messwert ist.",
+        "fixed": "Der Strom ist nicht mehr der Druck: Der Messumformer misst weiter 27.6 bar, aber die Schleife sagt 12.000 mA, was die Steuerung als 20.0 bar liest.",
+        "exit-res": "Antwortcode 0, Strom 0, und das Statusbyte ist wieder 0x00: Der Strom folgt wieder dem Druck.",
+        "back": "Der Schleifenstrom folgt wieder dem Messwert."
+    },
+    "fields": {
+        "preamble": { "name": "Präambel", "note": "Fünf Bytes FF: eine gleichmäßige Folge von Einsen, damit sich jedes Modem an der Schleife auf den Ton einstellen kann. Die Antwort auf Kommando 0 sagt, wie viele dieses Gerät braucht; 5 bis 20 sind erlaubt." },
+        "stx-short": { "name": "Delimiter 0x02: Anfrage, kurze Adresse", "note": "STX, ein Master an ein Feldgerät, mit 1-Byte-Adresse. Seit HART 6 darf nur Kommando 0 sie verwenden." },
+        "stx-long": { "name": "Delimiter 0x82: Anfrage, lange Adresse", "note": "STX, ein Master an ein Feldgerät, mit der 5-Byte-Adresse. Die Aufschlüsselung unten zerlegt ihn." },
+        "ack-long": { "name": "Delimiter 0x86: Antwort, lange Adresse", "note": "ACK, ein Feldgerät an einen Master. Ein Gerät im Burst-Modus würde stattdessen 0x81 senden." },
+        "short": { "name": "Kurze Adresse 0x80", "note": "Bit 7 = 1: vom primären Master, hier dem Laptop, denn sonst spricht niemand HART an dieser Schleife. Ein Handgerät arbeitet meist als sekundärer Master (0). Die unteren 6 Bits: Polling-Adresse 0." },
+        "long": { "name": "Lange Adresse", "note": "5 Bytes. Bit 7 des ersten: der primäre Master (1); Bit 6: Burst-Modus (0); dann 14 Bits des Gerätetyps, 0x2213, und die 3-Byte-Geräte-ID, 0x0A5E31, beide aus der Antwort auf Kommando 0. Keine zwei Geräte eines Typs haben dieselbe ID." },
+        "cmd-0": { "name": "Kommando 0", "note": "Eindeutige Kennung lesen. Jedes HART-Gerät beantwortet es, egal von welchem Hersteller." },
+        "cmd-3": { "name": "Kommando 3", "note": "Dynamische Variablen und Schleifenstrom lesen: der Strom, dann bis zu vier Variablen, jede mit ihrer Einheit." },
+        "cmd-40": { "name": "Kommando 40 (0x28)", "note": "Modus mit festem Strom ein- oder ausschalten." },
+        "count-0": { "name": "Byteanzahl: 0", "note": "Es folgen keine Daten." },
+        "count-4": { "name": "Byteanzahl: 4", "note": "Es folgt eine Gleitkommazahl." },
+        "count-11": { "name": "Byteanzahl: 11", "note": "2 Statusbytes, dann 9 Bytes Daten." },
+        "response-ok": { "name": "Antwortcode: 0", "note": "Erfolg. Mit gesetztem Bit 7 würde das Byte stattdessen einen Kommunikationsfehler melden, etwa einen Paritäts- oder Prüfbytefehler." },
+        "status-ok": { "name": "Gerätestatus: 0", "note": "Kein Bit gesetzt: keine Störung, keine Änderung, Strom nicht fest, nichts außerhalb der Grenzen." },
+        "current": { "name": "Schleifenstrom: 15.04 mA", "note": "0x4170A3D7, eine IEEE-754-Gleitkommazahl, höchstwertiges Byte zuerst." },
+        "unit-bar": { "name": "Einheitencode 7: bar", "note": "HARTs eigene Einheitentabelle: 7 ist bar, 12 kPa, 32 °C, 39 mA." },
+        "pv": { "name": "Primärvariable: 27.6 bar", "note": "0x41DCCCCD. Das Gerät hat nur eine Variable, also endet die Antwort hier." },
+        "fix-12": { "name": "Fester Strom: 12.0 mA", "note": "0x41400000: die Mitte von 4 bis 20 mA." },
+        "fix-0": { "name": "Fester Strom: 0", "note": "0 heißt: Modus mit festem Strom verlassen, wieder dem Messwert folgen." },
+        "check": { "name": "Prüfbyte", "note": "Das XOR aller Bytes ab dem Delimiter. Jedes Byte hat auf der Leitung außerdem sein eigenes ungerades Paritätsbit." },
+        "d-long": { "name": "Bit 7, Adresstyp: 1", "note": "1: eine lange 5-Byte-Adresse. 0: eine 1-Byte-Polling-Adresse." },
+        "d-expansion": { "name": "Bits 6–5, Erweiterungsbytes: 00", "note": "Keine Erweiterungsbytes nach der Adresse." },
+        "d-physical": { "name": "Bits 4–3, physikalische Schicht: 00", "note": "Asynchron, Byte für Byte, wie bei FSK." },
+        "d-stx": { "name": "Bits 2–0, Frame-Typ: 010", "note": "STX: Master an Feldgerät. 110 ist ACK, die Antwort; 001 ist BACK, eine Burst-Nachricht." }
+    },
+    "devices": {
+        "pt": "Druckmessumformer PT-101",
+        "controller": "Anlagensteuerung",
+        "laptop": "Laptop mit HART-Modem"
+    },
+    "facts": {
+        "standard": "HART 7, von der FieldComm Group; Teil von IEC 61158. WirelessHART ist IEC 62591",
+        "between": "Ein Feldgerät (Druck, Temperatur, Füllstand, Durchfluss, Stellungsregler) und ein Master: die HART-Karte des Leitsystems (der primäre Master) oder das Handgerät oder Laptop-Modem eines Technikers (oft der sekundäre Master)",
+        "transport": "Ein Ton auf denselben zwei Drähten wie der 4–20-mA-Strom: 1200 Hz für eine 1, 2200 Hz für eine 0, 1200 bit/s, 8 Datenbits mit ungerader Parität. Außerdem HART-IP über UDP und TCP 5094",
+        "security": "Keine auf der Leitung: Wer sich an die Schleife klemmen kann, kann die Einstellungen lesen und ändern. Viele Geräte haben einen Schreibschutzschalter; nutzen Sie ihn. Neueres HART-IP bringt TLS und DTLS",
+        "speed": "Etwa zwei Frage-Antwort-Paare pro Sekunde; ein Gerät im Burst-Modus sendet von sich aus, etwas schneller. Der 4–20-mA-Wert selbst hört nie auf"
+    },
+    "tips": [
+        "Eine HART-Schleife braucht mindestens etwa 230 Ω zwischen Speisung und Gerät, meist den 250-Ω-Eingangswiderstand. Ohne ihn hört das Modem nichts, egal wie gut die Verkabelung ist.",
+        "Den Regelkreis vor Kommando 40 auf Hand schalten: Solange der Strom fest ist, regelt die Steuerung auf einen Druck, der nicht echt ist.",
+        "Sprechen zwei Master gleichzeitig, kollidieren die Frames. Das Handgerät als sekundären Master einstellen, wenn das Leitsystem schon eine HART-Karte an der Schleife hat.",
+        "Eine Analogeingangskarte aus der Zeit vor HART filtert den Ton vielleicht nicht heraus. Zittert ihr Messwert nur, wenn HART spricht, eine HART-fähige Karte verwenden oder einen HART-Filter einbauen."
+    ],
+    "points": {
+        "current": "Schleifenstrom",
+        "pressure": "Druck"
+    },
+    "timing": {
+        "title": "Der Schleifenstrom während des Einsatzes",
+        "note": "Die Linie ist der Schleifenstrom, von 4 mA unten bis 20 mA oben. HART-Nachrichten reiten darauf als Ton von ±0.5 mA, der sich zu null mittelt, also bewegen sie ihn nicht. Nur Kommando 40 tut das, von 60 s bis 120 s.",
+        "current": "Schleifenstrom",
+        "hart": "HART",
+        "identify": "Kommandos 0 und 3",
+        "fix": "Kommando 40: 12 mA",
+        "release": "Kommando 40: 0"
+    },
+    "anatomy": {
+        "delimiter": "Der Delimiter 0x82, Bit für Bit"
+    },
+    "playground": {
+        "encoder": "HART sendet Gleitkommazahlen mit dem höchstwertigen Byte zuerst (ABCD). Gib einen Wert ein und sieh, wie 27.6, der Druck in bar, übertragen wird."
+    }
+}

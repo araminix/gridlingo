@@ -1,0 +1,95 @@
+{
+    "intro": "HART permette a uno strumento di campo 4–20 mA di parlare anche in digitale. Un tono leggero, 1200 bit/s in FSK, viaggia sopra la corrente analogica: il sistema di controllo continua a leggere la misura dalla corrente, mentre il portatile di un tecnico o la scheda HART del sistema di controllo chiede allo strumento il valore con l'unità, la sua identità e il suo stato, e ne cambia le impostazioni. HART è il protocollo del FieldComm Group, presente negli strumenti di pressione, temperatura, livello e portata e nei posizionatori di valvola di centrali elettriche, centrali idroelettriche, reti del gas e impianti idrici.",
+    "plain": "La maggior parte degli strumenti di misura di un impianto invia la lettura come corrente elettrica su due fili: 4 mA è il fondo della scala, 20 mA la cima. HART aggiunge sopra quella corrente un fischio leggero, troppo rapido per cambiare la lettura, che porta messaggi. Così un tecnico può agganciare un portatile ai due fili e chiedere allo strumento chi è, cosa misura e se sta bene, senza staccare nulla.",
+    "steps": {
+        "analog": { "title": "Il segnale analogico", "text": "Il trasmettitore di pressione PT-101 misura la pressione dell'acqua nella condotta forzata di un gruppo idroelettrico: 27.6 bar. Il suo campo va da 0 a 40 bar, quindi assorbe 4 + 16 × 27.6 / 40 = 15.04 mA dall'anello. Il controllore dell'impianto legge questa corrente sul suo ingresso da 250 Ω e mostra 27.6 bar. Per questo non serve alcun messaggio digitale." },
+        "identify": { "title": "Chi sei?", "text": "Un tecnico aggancia un portatile con modem HART ai capi del resistore da 250 Ω. Invia il comando 0 all'indirizzo di polling 0 in un frame corto. Il trasmettitore risponde con il suo tipo di dispositivo, il suo ID univoco e la sua revisione HART, 7: tutto ciò che serve per il suo indirizzo lungo." },
+        "read": { "title": "Leggere i valori", "text": "D'ora in poi ogni frame usa l'indirizzo lungo. Il comando 3 chiede la corrente d'anello e le variabili misurate. La risposta: 15.04 mA e 27.6 bar, come numeri in virgola mobile, la pressione con un codice di unità. La lettura del controllore non si muove: il tono ha media zero." },
+        "test": { "title": "Prova d'anello", "text": "Con la regolazione di pressione del gruppo in manuale, il tecnico fissa la corrente a 12.000 mA con il comando 40. Ora il controllore dovrebbe mostrare il centro del campo, 20.0 bar. Lo fa, quindi il cablaggio e la scalatura del controllore sono giusti." },
+        "release": { "title": "Si torna a misurare", "text": "Il comando 40 con 0 mA termina la corrente fissa. Il trasmettitore torna a 15.04 mA, il controllore mostra di nuovo 27.6 bar e la regolazione di pressione torna in automatico." }
+    },
+    "frames": {
+        "analog": "27.6 bar, come corrente",
+        "cmd0": "Chiunque sia all'indirizzo 0: chi sei?",
+        "cmd0-res": "Ecco il mio tipo, il mio ID e la mia revisione HART",
+        "cmd3": "La tua corrente e le tue misure, per favore",
+        "cmd3-res": "15.04 mA, 27.6 bar",
+        "cmd40": "Tieni la corrente a 12 mA",
+        "cmd40-res": "Tengo 12.000 mA",
+        "fixed": "12 mA: metà scala",
+        "exit": "Torna a misurare",
+        "exit-res": "Misuro di nuovo",
+        "back": "Di nuovo 27.6 bar"
+    },
+    "notes": {
+        "analog": "Non è un messaggio: è la corrente stessa. 4 mA sono 0 bar e 20 mA sono 40 bar, quindi ogni mA vale 2.5 bar. Una corrente sotto circa 3.6 mA o sopra circa 21 mA indica un guasto.",
+        "cmd0-res": "Delimitatore 0x06, lo stesso indirizzo corto e lo stesso comando, poi 24 byte: codice di risposta e stato del dispositivo (entrambi 0), poi 22 byte di identità: 254, il tipo di dispositivo esteso 0x2213, i preamboli che gli servono, la revisione HART 7, le revisioni di dispositivo, software e hardware, i flag, l'ID di dispositivo 0x0A5E31 e altro.",
+        "cmd40-res": "Lo stesso indirizzo lungo e il comando 40, codice di risposta 0, poi la corrente effettivamente impostata: 12.000 mA. D'ora in poi il byte di stato del dispositivo ha il bit 3 a uno (0x08): corrente d'anello fissa. Un master che lo vede sa che la corrente non è la misura.",
+        "fixed": "La corrente non è più la pressione: il trasmettitore misura ancora 27.6 bar, ma l'anello dice 12.000 mA, che il controllore legge come 20.0 bar.",
+        "exit-res": "Codice di risposta 0, corrente 0, e il byte di stato torna a 0x00: la corrente segue di nuovo la pressione.",
+        "back": "La corrente d'anello segue di nuovo la misura."
+    },
+    "fields": {
+        "preamble": { "name": "Preambolo", "note": "Cinque byte FF: una serie regolare di uno perché ogni modem sull'anello si agganci al tono. La risposta al comando 0 dice quanti ne servono a questo dispositivo; ne sono ammessi da 5 a 20." },
+        "stx-short": { "name": "Delimitatore 0x02: richiesta, indirizzo corto", "note": "STX, da un master a un dispositivo di campo, con un indirizzo di 1 byte. Da HART 6 solo il comando 0 può usarlo." },
+        "stx-long": { "name": "Delimitatore 0x82: richiesta, indirizzo lungo", "note": "STX, da un master a un dispositivo di campo, con l'indirizzo di 5 byte. La scomposizione qui sotto lo separa." },
+        "ack-long": { "name": "Delimitatore 0x86: risposta, indirizzo lungo", "note": "ACK, da un dispositivo di campo a un master. Un dispositivo in modalità burst invierebbe invece 0x81." },
+        "short": { "name": "Indirizzo corto 0x80", "note": "Bit 7 = 1: dal master primario, qui il portatile, poiché nient'altro parla HART su questo anello. Un comunicatore portatile lavora di solito come master secondario (0). I 6 bit bassi: indirizzo di polling 0." },
+        "long": { "name": "Indirizzo lungo", "note": "5 byte. Bit 7 del primo: il master primario (1); bit 6: modalità burst (0); poi 14 bit del tipo di dispositivo, 0x2213, e l'ID di dispositivo di 3 byte, 0x0A5E31, entrambi dalla risposta al comando 0. Due dispositivi dello stesso tipo non hanno mai lo stesso ID." },
+        "cmd-0": { "name": "Comando 0", "note": "Leggere l'identificativo univoco. Ogni dispositivo HART risponde, di qualunque costruttore sia." },
+        "cmd-3": { "name": "Comando 3", "note": "Leggere le variabili dinamiche e la corrente d'anello: la corrente, poi fino a quattro variabili, ognuna con la sua unità." },
+        "cmd-40": { "name": "Comando 40 (0x28)", "note": "Entrare o uscire dalla modalità a corrente fissa." },
+        "count-0": { "name": "Numero di byte: 0", "note": "Non seguono dati." },
+        "count-4": { "name": "Numero di byte: 4", "note": "Segue un numero in virgola mobile." },
+        "count-11": { "name": "Numero di byte: 11", "note": "2 byte di stato, poi 9 byte di dati." },
+        "response-ok": { "name": "Codice di risposta: 0", "note": "Successo. Con il bit 7 a uno, il byte segnalerebbe invece un errore di comunicazione, come un errore di parità o del byte di controllo." },
+        "status-ok": { "name": "Stato del dispositivo: 0", "note": "Nessun bit a uno: nessun guasto, nessuna modifica, corrente non fissa, niente fuori dai limiti." },
+        "current": { "name": "Corrente d'anello: 15.04 mA", "note": "0x4170A3D7, un numero in virgola mobile IEEE 754, il byte più significativo per primo." },
+        "unit-bar": { "name": "Codice di unità 7: bar", "note": "La tabella delle unità propria di HART: 7 è bar, 12 kPa, 32 °C, 39 mA." },
+        "pv": { "name": "Variabile primaria: 27.6 bar", "note": "0x41DCCCCD. Il dispositivo ha una sola variabile, quindi la risposta finisce qui." },
+        "fix-12": { "name": "Corrente fissa: 12.0 mA", "note": "0x41400000: il centro tra 4 e 20 mA." },
+        "fix-0": { "name": "Corrente fissa: 0", "note": "0 significa: uscire dalla modalità a corrente fissa e seguire di nuovo la misura." },
+        "check": { "name": "Byte di controllo", "note": "Lo XOR di tutti i byte dal delimitatore in poi. Sulla linea ogni byte ha anche il suo bit di parità dispari." },
+        "d-long": { "name": "Bit 7, tipo di indirizzo: 1", "note": "1: un indirizzo lungo di 5 byte. 0: un indirizzo di polling di 1 byte." },
+        "d-expansion": { "name": "Bit 6–5, byte di espansione: 00", "note": "Nessun byte di espansione dopo l'indirizzo." },
+        "d-physical": { "name": "Bit 4–3, livello fisico: 00", "note": "Asincrono, byte per byte, come in FSK." },
+        "d-stx": { "name": "Bit 2–0, tipo di frame: 010", "note": "STX: da master a dispositivo di campo. 110 è ACK, la risposta; 001 è BACK, un messaggio burst." }
+    },
+    "devices": {
+        "pt": "Trasmettitore di pressione PT-101",
+        "controller": "Controllore dell'impianto",
+        "laptop": "Portatile con modem HART"
+    },
+    "facts": {
+        "standard": "HART 7, del FieldComm Group; parte della IEC 61158. WirelessHART è la IEC 62591",
+        "between": "Uno strumento di campo (pressione, temperatura, livello, portata, posizionatore di valvola) e un master: la scheda HART del sistema di controllo (il master primario) o il comunicatore portatile o il modem per portatile di un tecnico (spesso il master secondario)",
+        "transport": "Un tono sugli stessi due fili della corrente 4–20 mA: 1200 Hz per un 1, 2200 Hz per uno 0, 1200 bit/s, 8 bit di dati con parità dispari. Anche HART-IP su UDP e TCP 5094",
+        "security": "Nessuna sulla linea: chi può agganciarsi all'anello può leggere e cambiare le impostazioni. Molti strumenti hanno un interruttore di protezione dalla scrittura; usatelo. Il HART-IP più recente aggiunge TLS e DTLS",
+        "speed": "Circa due coppie domanda-risposta al secondo; un dispositivo in modalità burst invia da solo, un po' più spesso. Il valore 4–20 mA non si ferma mai"
+    },
+    "tips": [
+        "Un anello HART richiede almeno circa 230 Ω tra l'alimentazione e lo strumento, di solito il resistore d'ingresso da 250 Ω. Senza, il modem non sente nulla, per quanto buono sia il cablaggio.",
+        "Mettete la regolazione in manuale prima del comando 40: finché la corrente è fissa, il controllore agisce su una pressione che non è reale.",
+        "Se due master parlano insieme, i frame si scontrano. Impostate il comunicatore portatile come master secondario quando il sistema di controllo ha già una scheda HART sull'anello.",
+        "Una scheda di ingressi analogici nata prima di HART può non filtrare il tono. Se la sua lettura trema solo quando HART parla, usate una scheda compatibile HART o aggiungete un filtro HART."
+    ],
+    "points": {
+        "current": "Corrente d'anello",
+        "pressure": "Pressione"
+    },
+    "timing": {
+        "title": "La corrente d'anello durante l'intervento",
+        "note": "La linea è la corrente d'anello, da 4 mA in basso a 20 mA in alto. I messaggi HART vi viaggiano sopra come un tono di ±0.5 mA a media zero, quindi non la spostano. Lo fa solo il comando 40, da 60 s a 120 s.",
+        "current": "Corrente d'anello",
+        "hart": "HART",
+        "identify": "comandi 0 e 3",
+        "fix": "comando 40: 12 mA",
+        "release": "comando 40: 0"
+    },
+    "anatomy": {
+        "delimiter": "Il delimitatore 0x82, bit per bit"
+    },
+    "playground": {
+        "encoder": "HART invia i numeri in virgola mobile con il byte più significativo per primo (ABCD). Inserite un valore per vedere come viaggia 27.6, la pressione in bar."
+    }
+}

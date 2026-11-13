@@ -1,0 +1,95 @@
+{
+    "intro": "HART permite que un instrumento de campo de 4–20 mA hable también en digital. Un tono suave, 1200 bit/s de FSK, viaja sobre la corriente analógica: el sistema de control sigue leyendo la medida en la corriente, mientras el portátil de un técnico o la tarjeta HART del sistema de control pide al instrumento su valor con unidad, su identidad y su estado, y cambia sus ajustes. HART es el protocolo de FieldComm Group y está en instrumentos de presión, temperatura, nivel y caudal y en posicionadores de válvula de centrales eléctricas, centrales hidráulicas, redes de gas y plantas de agua.",
+    "plain": "La mayoría de los instrumentos de medida de una planta envían su lectura como una corriente eléctrica por dos hilos: 4 mA es el fondo de la escala y 20 mA el tope. HART añade un silbido suave sobre esa corriente, demasiado rápido para cambiar la lectura, que lleva mensajes. Con él, un técnico puede enganchar un portátil a los dos hilos y preguntar al instrumento quién es, qué mide y si está sano, sin desconectar nada.",
+    "steps": {
+        "analog": { "title": "La señal analógica", "text": "El transmisor de presión PT-101 mide la presión del agua en la tubería forzada de un grupo hidráulico: 27.6 bar. Su rango es de 0 a 40 bar, así que toma 4 + 16 × 27.6 / 40 = 15.04 mA del lazo. El controlador de la planta lee esa corriente en su entrada de 250 Ω y muestra 27.6 bar. Para esto no hace falta ningún mensaje digital." },
+        "identify": { "title": "¿Quién eres?", "text": "Un técnico engancha un portátil con módem HART en paralelo con la resistencia de 250 Ω. Envía el comando 0 a la dirección de sondeo 0 en una trama corta. El transmisor responde con su tipo de dispositivo, su ID único y su revisión HART, 7: todo lo necesario para su dirección larga." },
+        "read": { "title": "Leer los valores", "text": "A partir de ahora cada trama usa la dirección larga. El comando 3 pide la corriente del lazo y las variables medidas. La respuesta: 15.04 mA y 27.6 bar, como números en coma flotante, la presión con un código de unidad. La lectura del controlador no se mueve: el tono promedia cero." },
+        "test": { "title": "Prueba de lazo", "text": "Con el control de presión del grupo pasado a manual, el técnico fija la corriente en 12.000 mA con el comando 40. El controlador debería mostrar ahora la mitad del rango, 20.0 bar. Así es, de modo que el cableado y la escala del controlador están bien." },
+        "release": { "title": "Volver a medir", "text": "El comando 40 con 0 mA termina la corriente fija. El transmisor vuelve a 15.04 mA, el controlador muestra de nuevo 27.6 bar y el control de presión vuelve a automático." }
+    },
+    "frames": {
+        "analog": "27.6 bar, como corriente",
+        "cmd0": "Quien esté en la dirección 0: ¿quién eres?",
+        "cmd0-res": "Este es mi tipo, mi ID y mi revisión HART",
+        "cmd3": "Tu corriente y tus medidas, por favor",
+        "cmd3-res": "15.04 mA, 27.6 bar",
+        "cmd40": "Mantén la corriente en 12 mA",
+        "cmd40-res": "Mantengo 12.000 mA",
+        "fixed": "12 mA: media escala",
+        "exit": "Vuelve a medir",
+        "exit-res": "Midiendo otra vez",
+        "back": "Otra vez 27.6 bar"
+    },
+    "notes": {
+        "analog": "No es un mensaje: es la propia corriente. 4 mA son 0 bar y 20 mA son 40 bar, así que cada mA vale 2.5 bar. Una corriente por debajo de unos 3.6 mA o por encima de unos 21 mA indica un fallo.",
+        "cmd0-res": "Delimitador 0x06, la misma dirección corta y el mismo comando, luego 24 bytes: código de respuesta y estado del dispositivo (ambos 0), y 22 bytes de identidad: 254, el tipo de dispositivo ampliado 0x2213, los preámbulos que necesita, la revisión HART 7, las revisiones de dispositivo, software y hardware, indicadores, el ID de dispositivo 0x0A5E31 y más.",
+        "cmd40-res": "La misma dirección larga y el comando 40, código de respuesta 0, y luego la corriente realmente fijada: 12.000 mA. Desde ahora el byte de estado del dispositivo tiene el bit 3 a uno (0x08): corriente de lazo fija. Un maestro que lo ve sabe que la corriente no es la medida.",
+        "fixed": "La corriente ya no es la presión: el transmisor sigue midiendo 27.6 bar, pero el lazo dice 12.000 mA, que el controlador lee como 20.0 bar.",
+        "exit-res": "Código de respuesta 0, corriente 0, y el byte de estado vuelve a 0x00: la corriente sigue otra vez a la presión.",
+        "back": "La corriente del lazo vuelve a seguir la medida."
+    },
+    "fields": {
+        "preamble": { "name": "Preámbulo", "note": "Cinco bytes FF: una serie regular de unos para que cada módem del lazo se enganche al tono. La respuesta al comando 0 dice cuántos necesita este dispositivo; se admiten de 5 a 20." },
+        "stx-short": { "name": "Delimitador 0x02: petición, dirección corta", "note": "STX, de un maestro a un dispositivo de campo, con una dirección de 1 byte. Desde HART 6 solo el comando 0 puede usarla." },
+        "stx-long": { "name": "Delimitador 0x82: petición, dirección larga", "note": "STX, de un maestro a un dispositivo de campo, con la dirección de 5 bytes. El desglose de abajo lo separa." },
+        "ack-long": { "name": "Delimitador 0x86: respuesta, dirección larga", "note": "ACK, de un dispositivo de campo a un maestro. Un dispositivo en modo ráfaga enviaría 0x81 en su lugar." },
+        "short": { "name": "Dirección corta 0x80", "note": "Bit 7 = 1: del maestro primario, aquí el portátil, ya que nada más habla HART en este lazo. Un comunicador de mano suele trabajar como maestro secundario (0). Los 6 bits bajos: dirección de sondeo 0." },
+        "long": { "name": "Dirección larga", "note": "5 bytes. Bit 7 del primero: el maestro primario (1); bit 6: modo ráfaga (0); luego 14 bits del tipo de dispositivo, 0x2213, y el ID de dispositivo de 3 bytes, 0x0A5E31, ambos de la respuesta al comando 0. No hay dos dispositivos de un mismo tipo con el mismo ID." },
+        "cmd-0": { "name": "Comando 0", "note": "Leer el identificador único. Todo dispositivo HART lo responde, sea del fabricante que sea." },
+        "cmd-3": { "name": "Comando 3", "note": "Leer las variables dinámicas y la corriente del lazo: la corriente y luego hasta cuatro variables, cada una con su unidad." },
+        "cmd-40": { "name": "Comando 40 (0x28)", "note": "Entrar o salir del modo de corriente fija." },
+        "count-0": { "name": "Número de bytes: 0", "note": "No siguen datos." },
+        "count-4": { "name": "Número de bytes: 4", "note": "Sigue un número en coma flotante." },
+        "count-11": { "name": "Número de bytes: 11", "note": "2 bytes de estado y luego 9 bytes de datos." },
+        "response-ok": { "name": "Código de respuesta: 0", "note": "Éxito. Con el bit 7 a uno, el byte indicaría en cambio un error de comunicación, como un error de paridad o del byte de comprobación." },
+        "status-ok": { "name": "Estado del dispositivo: 0", "note": "Ningún bit a uno: sin avería, sin cambios, corriente no fija, nada fuera de límites." },
+        "current": { "name": "Corriente del lazo: 15.04 mA", "note": "0x4170A3D7, un número en coma flotante IEEE 754, el byte más significativo primero." },
+        "unit-bar": { "name": "Código de unidad 7: bar", "note": "La tabla de unidades propia de HART: 7 es bar, 12 kPa, 32 °C, 39 mA." },
+        "pv": { "name": "Variable primaria: 27.6 bar", "note": "0x41DCCCCD. El dispositivo solo tiene una variable, así que la respuesta termina aquí." },
+        "fix-12": { "name": "Corriente fija: 12.0 mA", "note": "0x41400000: la mitad de 4 a 20 mA." },
+        "fix-0": { "name": "Corriente fija: 0", "note": "0 significa: salir del modo de corriente fija y seguir otra vez la medida." },
+        "check": { "name": "Byte de comprobación", "note": "El XOR de todos los bytes desde el delimitador. Cada byte lleva además en la línea su propio bit de paridad impar." },
+        "d-long": { "name": "Bit 7, tipo de dirección: 1", "note": "1: una dirección larga de 5 bytes. 0: una dirección de sondeo de 1 byte." },
+        "d-expansion": { "name": "Bits 6–5, bytes de expansión: 00", "note": "Ningún byte de expansión tras la dirección." },
+        "d-physical": { "name": "Bits 4–3, capa física: 00", "note": "Asíncrona, byte a byte, como en FSK." },
+        "d-stx": { "name": "Bits 2–0, tipo de trama: 010", "note": "STX: de maestro a dispositivo de campo. 110 es ACK, la respuesta; 001 es BACK, un mensaje en ráfaga." }
+    },
+    "devices": {
+        "pt": "Transmisor de presión PT-101",
+        "controller": "Controlador de la planta",
+        "laptop": "Portátil con módem HART"
+    },
+    "facts": {
+        "standard": "HART 7, de FieldComm Group; forma parte de IEC 61158. WirelessHART es IEC 62591",
+        "between": "Un instrumento de campo (presión, temperatura, nivel, caudal, posicionador de válvula) y un maestro: la tarjeta HART del sistema de control (el maestro primario) o el comunicador de mano o el módem de portátil de un técnico (a menudo el maestro secundario)",
+        "transport": "Un tono en los mismos dos hilos que la corriente de 4–20 mA: 1200 Hz para un 1, 2200 Hz para un 0, 1200 bit/s, 8 bits de datos con paridad impar. También HART-IP por UDP y TCP 5094",
+        "security": "Ninguna en el cable: quien pueda engancharse al lazo puede leer y cambiar los ajustes. Muchos instrumentos tienen un interruptor de protección contra escritura; úselo. El HART-IP más reciente añade TLS y DTLS",
+        "speed": "Unos dos pares de pregunta y respuesta por segundo; un dispositivo en modo ráfaga envía por su cuenta, algo más rápido. El valor de 4–20 mA nunca se detiene"
+    },
+    "tips": [
+        "Un lazo HART necesita al menos unos 230 Ω entre la fuente y el instrumento, normalmente la resistencia de entrada de 250 Ω. Sin ella, el módem no oye nada, por bueno que sea el cableado.",
+        "Pase el lazo de control a manual antes del comando 40: mientras la corriente está fija, el controlador actúa sobre una presión que no es real.",
+        "Si dos maestros hablan a la vez, las tramas chocan. Configure el comunicador de mano como maestro secundario cuando el sistema de control ya tenga una tarjeta HART en el lazo.",
+        "Una tarjeta de entradas analógicas anterior a HART puede no filtrar el tono. Si su lectura tiembla solo cuando HART habla, use una tarjeta compatible con HART o añada un filtro HART."
+    ],
+    "points": {
+        "current": "Corriente del lazo",
+        "pressure": "Presión"
+    },
+    "timing": {
+        "title": "La corriente del lazo durante la visita",
+        "note": "La línea es la corriente del lazo, de 4 mA abajo a 20 mA arriba. Los mensajes HART viajan sobre ella como un tono de ±0.5 mA que promedia cero, así que no la mueven. Solo el comando 40 lo hace, de 60 s a 120 s.",
+        "current": "Corriente del lazo",
+        "hart": "HART",
+        "identify": "comandos 0 y 3",
+        "fix": "comando 40: 12 mA",
+        "release": "comando 40: 0"
+    },
+    "anatomy": {
+        "delimiter": "El delimitador 0x82, bit a bit"
+    },
+    "playground": {
+        "encoder": "HART envía los números en coma flotante con el byte más significativo primero (ABCD). Introduzca un valor para ver cómo viaja 27.6, la presión en bar."
+    }
+}

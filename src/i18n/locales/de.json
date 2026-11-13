@@ -231,6 +231,8 @@
     "lesson.canopen.where": "Batteriemanagementsysteme, Umrichter",
     "lesson.profinet.summary": "Wie eine SPS alle paar Millisekunden Ein- und Ausgänge tauscht",
     "lesson.profinet.where": "Kraftwerks-Nebenanlagen, Trafokühlung, Wasserkraftmaschinen",
+    "lesson.hart.summary": "Wie ein 4–20-mA-Messgerät zusätzlich digital spricht",
+    "lesson.hart.where": "Druck-, Füllstands- und Durchflussmessgeräte, Stellungsregler",
     "lesson.ocpp.summary": "Ladestation an Lademanagementsystem",
     "lesson.ocpp.where": "Ladestationen, Lade-Backends",
     "lesson.iso-15118.summary": "Fahrzeug an Ladestation: Plug & Charge, Vehicle-to-Grid",

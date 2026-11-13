@@ -231,6 +231,8 @@
     "lesson.canopen.where": "Batarya yönetim sistemleri, konvertörler",
     "lesson.profinet.summary": "Bir PLC'nin birkaç milisaniyede bir giriş ve çıkışları nasıl değiştirdiği",
     "lesson.profinet.where": "Santral yardımcı sistemleri, trafo soğutması, hidroelektrik üniteleri",
+    "lesson.hart.summary": "4–20 mA'lik bir cihaz nasıl dijital de konuşur",
+    "lesson.hart.where": "Basınç, seviye ve debi cihazları, vana pozisyonerleri",
     "lesson.ocpp.summary": "Şarj cihazından şarj istasyonu yönetim sistemine",
     "lesson.ocpp.where": "Elektrikli araç şarj cihazları, şarj yönetim sistemleri",
     "lesson.iso-15118.summary": "Araçtan şarj cihazına: Plug & Charge, araçtan şebekeye (V2G)",

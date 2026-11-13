@@ -231,6 +231,8 @@
     "lesson.canopen.where": "Systèmes de gestion de batterie, convertisseurs",
     "lesson.profinet.summary": "Comment un automate échange entrées et sorties toutes les quelques millisecondes",
     "lesson.profinet.where": "Auxiliaires de centrales, refroidissement de transformateurs, groupes hydrauliques",
+    "lesson.hart.summary": "Comment un instrument 4–20 mA parle aussi en numérique",
+    "lesson.hart.where": "Instruments de pression, de niveau et de débit, positionneurs de vanne",
     "lesson.ocpp.summary": "De la borne au système de supervision des bornes",
     "lesson.ocpp.where": "Bornes de recharge, plateformes de supervision",
     "lesson.iso-15118.summary": "De la voiture à la borne : Plug & Charge, vehicle-to-grid",

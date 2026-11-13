@@ -1,0 +1,95 @@
+{
+    "intro": "HART permet à un instrument de terrain 4–20 mA de parler aussi en numérique. Un ton discret, 1200 bit/s en FSK, se superpose au courant analogique : le système de commande lit toujours la mesure dans le courant, tandis que le portable d'un technicien ou la carte HART du système de commande demande à l'instrument sa valeur avec son unité, son identité et son état, et modifie ses réglages. HART est le protocole du FieldComm Group, présent dans les instruments de pression, de température, de niveau et de débit et les positionneurs de vanne des centrales électriques, des centrales hydrauliques, des réseaux de gaz et des usines d'eau.",
+    "plain": "La plupart des instruments de mesure d'une installation envoient leur mesure sous forme de courant électrique sur deux fils : 4 mA, c'est le bas de l'échelle, 20 mA le haut. HART ajoute par-dessus ce courant un léger sifflement, trop rapide pour changer la mesure, qui transporte des messages. Grâce à lui, un technicien peut pincer un portable sur les deux fils et demander à l'instrument qui il est, ce qu'il mesure et s'il va bien, sans rien débrancher.",
+    "steps": {
+        "analog": { "title": "Le signal analogique", "text": "Le transmetteur de pression PT-101 mesure la pression de l'eau dans la conduite forcée d'un groupe hydraulique : 27.6 bar. Sa plage va de 0 à 40 bar, il tire donc 4 + 16 × 27.6 / 40 = 15.04 mA de la boucle. L'automate de la centrale lit ce courant sur son entrée de 250 Ω et affiche 27.6 bar. Aucun message numérique n'est nécessaire pour cela." },
+        "identify": { "title": "Qui es-tu ?", "text": "Un technicien pince un portable avec modem HART aux bornes de la résistance de 250 Ω. Il envoie la commande 0 à l'adresse d'interrogation 0 dans une trame courte. Le transmetteur répond avec son type d'appareil, son identifiant unique et sa révision HART, 7 : tout ce qu'il faut pour son adresse longue." },
+        "read": { "title": "Lire les valeurs", "text": "Désormais, chaque trame utilise l'adresse longue. La commande 3 demande le courant de boucle et les grandeurs mesurées. Réponse : 15.04 mA et 27.6 bar, en nombres à virgule flottante, la pression avec un code d'unité. La mesure de l'automate ne bouge pas : le ton a une moyenne nulle." },
+        "test": { "title": "Test de boucle", "text": "La régulation de pression du groupe passée en manuel, le technicien fixe le courant à 12.000 mA avec la commande 40. L'automate devrait maintenant afficher le milieu de la plage, 20.0 bar. C'est le cas : le câblage et la mise à l'échelle de l'automate sont bons." },
+        "release": { "title": "Retour à la mesure", "text": "La commande 40 avec 0 mA met fin au courant fixe. Le transmetteur revient à 15.04 mA, l'automate affiche de nouveau 27.6 bar et la régulation de pression repasse en automatique." }
+    },
+    "frames": {
+        "analog": "27.6 bar, sous forme de courant",
+        "cmd0": "Qui que tu sois à l'adresse 0 : qui es-tu ?",
+        "cmd0-res": "Voici mon type, mon identifiant et ma révision HART",
+        "cmd3": "Ton courant et tes mesures, s'il te plaît",
+        "cmd3-res": "15.04 mA, 27.6 bar",
+        "cmd40": "Garde le courant à 12 mA",
+        "cmd40-res": "Je garde 12.000 mA",
+        "fixed": "12 mA : mi-échelle",
+        "exit": "Mesure de nouveau",
+        "exit-res": "Je mesure de nouveau",
+        "back": "De nouveau 27.6 bar"
+    },
+    "notes": {
+        "analog": "Ce n'est pas un message : c'est le courant lui-même. 4 mA valent 0 bar et 20 mA valent 40 bar, donc chaque mA vaut 2.5 bar. Un courant sous environ 3.6 mA ou au-dessus d'environ 21 mA signale un défaut.",
+        "cmd0-res": "Délimiteur 0x06, la même adresse courte et la même commande, puis 24 octets : code de réponse et état de l'appareil (tous deux à 0), puis 22 octets d'identité : 254, le type d'appareil étendu 0x2213, les préambules qu'il lui faut, la révision HART 7, les révisions d'appareil, de logiciel et de matériel, des indicateurs, l'identifiant d'appareil 0x0A5E31 et plus encore.",
+        "cmd40-res": "La même adresse longue et la commande 40, code de réponse 0, puis le courant réellement réglé : 12.000 mA. Désormais, l'octet d'état de l'appareil a son bit 3 à un (0x08) : courant de boucle fixé. Un maître qui le voit sait que le courant n'est pas la mesure.",
+        "fixed": "Le courant n'est plus la pression : le transmetteur mesure toujours 27.6 bar, mais la boucle dit 12.000 mA, que l'automate lit comme 20.0 bar.",
+        "exit-res": "Code de réponse 0, courant 0, et l'octet d'état revient à 0x00 : le courant suit de nouveau la pression.",
+        "back": "Le courant de boucle suit de nouveau la mesure."
+    },
+    "fields": {
+        "preamble": { "name": "Préambule", "note": "Cinq octets FF : une suite régulière de uns pour que chaque modem de la boucle se cale sur le ton. La réponse à la commande 0 indique combien il en faut à cet appareil ; de 5 à 20 sont permis." },
+        "stx-short": { "name": "Délimiteur 0x02 : requête, adresse courte", "note": "STX, d'un maître vers un appareil de terrain, avec une adresse de 1 octet. Depuis HART 6, seule la commande 0 peut l'utiliser." },
+        "stx-long": { "name": "Délimiteur 0x82 : requête, adresse longue", "note": "STX, d'un maître vers un appareil de terrain, avec l'adresse de 5 octets. La décomposition ci-dessous le détaille." },
+        "ack-long": { "name": "Délimiteur 0x86 : réponse, adresse longue", "note": "ACK, d'un appareil de terrain vers un maître. Un appareil en mode rafale enverrait 0x81 à la place." },
+        "short": { "name": "Adresse courte 0x80", "note": "Bit 7 = 1 : du maître primaire, ici le portable, car rien d'autre ne parle HART sur cette boucle. Un terminal portatif travaille en général comme maître secondaire (0). Les 6 bits bas : adresse d'interrogation 0." },
+        "long": { "name": "Adresse longue", "note": "5 octets. Bit 7 du premier : le maître primaire (1) ; bit 6 : mode rafale (0) ; puis 14 bits du type d'appareil, 0x2213, et l'identifiant d'appareil sur 3 octets, 0x0A5E31, tous deux tirés de la réponse à la commande 0. Deux appareils d'un même type n'ont jamais le même identifiant." },
+        "cmd-0": { "name": "Commande 0", "note": "Lire l'identifiant unique. Tout appareil HART y répond, quel que soit son fabricant." },
+        "cmd-3": { "name": "Commande 3", "note": "Lire les variables dynamiques et le courant de boucle : le courant, puis jusqu'à quatre variables, chacune avec son unité." },
+        "cmd-40": { "name": "Commande 40 (0x28)", "note": "Entrer dans le mode courant fixe ou en sortir." },
+        "count-0": { "name": "Nombre d'octets : 0", "note": "Aucune donnée ne suit." },
+        "count-4": { "name": "Nombre d'octets : 4", "note": "Un nombre à virgule flottante suit." },
+        "count-11": { "name": "Nombre d'octets : 11", "note": "2 octets d'état, puis 9 octets de données." },
+        "response-ok": { "name": "Code de réponse : 0", "note": "Succès. Avec le bit 7 à un, l'octet signalerait plutôt une erreur de communication, comme une erreur de parité ou d'octet de contrôle." },
+        "status-ok": { "name": "État de l'appareil : 0", "note": "Aucun bit à un : pas de panne, pas de modification, courant non fixé, rien hors limites." },
+        "current": { "name": "Courant de boucle : 15.04 mA", "note": "0x4170A3D7, un flottant IEEE 754, octet de poids fort en premier." },
+        "unit-bar": { "name": "Code d'unité 7 : bar", "note": "La table d'unités propre à HART : 7 est le bar, 12 le kPa, 32 le °C, 39 le mA." },
+        "pv": { "name": "Variable primaire : 27.6 bar", "note": "0x41DCCCCD. L'appareil n'a qu'une variable, la réponse s'arrête donc ici." },
+        "fix-12": { "name": "Courant fixe : 12.0 mA", "note": "0x41400000 : le milieu de 4 à 20 mA." },
+        "fix-0": { "name": "Courant fixe : 0", "note": "0 signifie : quitter le mode courant fixe et suivre de nouveau la mesure." },
+        "check": { "name": "Octet de contrôle", "note": "Le XOR de tous les octets à partir du délimiteur. Sur la ligne, chaque octet a aussi son propre bit de parité impaire." },
+        "d-long": { "name": "Bit 7, type d'adresse : 1", "note": "1 : une adresse longue de 5 octets. 0 : une adresse d'interrogation de 1 octet." },
+        "d-expansion": { "name": "Bits 6–5, octets d'extension : 00", "note": "Aucun octet d'extension après l'adresse." },
+        "d-physical": { "name": "Bits 4–3, couche physique : 00", "note": "Asynchrone, octet par octet, comme en FSK." },
+        "d-stx": { "name": "Bits 2–0, type de trame : 010", "note": "STX : du maître vers l'appareil de terrain. 110 est ACK, la réponse ; 001 est BACK, un message en rafale." }
+    },
+    "devices": {
+        "pt": "Transmetteur de pression PT-101",
+        "controller": "Automate de la centrale",
+        "laptop": "Portable avec modem HART"
+    },
+    "facts": {
+        "standard": "HART 7, du FieldComm Group ; fait partie de l'IEC 61158. WirelessHART est l'IEC 62591",
+        "between": "Un instrument de terrain (pression, température, niveau, débit, positionneur de vanne) et un maître : la carte HART du système de commande (le maître primaire) ou le terminal portatif ou le modem pour portable d'un technicien (souvent le maître secondaire)",
+        "transport": "Un ton sur les deux mêmes fils que le courant 4–20 mA : 1200 Hz pour un 1, 2200 Hz pour un 0, 1200 bit/s, 8 bits de données avec parité impaire. Aussi HART-IP sur UDP et TCP 5094",
+        "security": "Aucune sur la ligne : quiconque peut se pincer sur la boucle peut lire et modifier les réglages. Beaucoup d'instruments ont un commutateur de protection en écriture ; utilisez-le. Le HART-IP récent ajoute TLS et DTLS",
+        "speed": "Environ deux paires question-réponse par seconde ; un appareil en mode rafale envoie de lui-même, un peu plus vite. La valeur 4–20 mA elle-même ne s'arrête jamais"
+    },
+    "tips": [
+        "Une boucle HART demande au moins environ 230 Ω entre l'alimentation et l'instrument, en général la résistance d'entrée de 250 Ω. Sans elle, le modem n'entend rien, aussi bon que soit le câblage.",
+        "Passez la boucle de régulation en manuel avant la commande 40 : tant que le courant est fixé, l'automate agit sur une pression qui n'est pas réelle.",
+        "Si deux maîtres parlent en même temps, les trames se percutent. Réglez le terminal portatif en maître secondaire quand le système de commande a déjà une carte HART sur la boucle.",
+        "Une carte d'entrées analogiques antérieure à HART peut ne pas filtrer le ton. Si sa mesure tremble seulement quand HART parle, utilisez une carte compatible HART ou ajoutez un filtre HART."
+    ],
+    "points": {
+        "current": "Courant de boucle",
+        "pressure": "Pression"
+    },
+    "timing": {
+        "title": "Le courant de boucle pendant l'intervention",
+        "note": "La ligne est le courant de boucle, de 4 mA en bas à 20 mA en haut. Les messages HART y circulent sous forme d'un ton de ±0.5 mA de moyenne nulle, ils ne le font donc pas bouger. Seule la commande 40 le fait, de 60 s à 120 s.",
+        "current": "Courant de boucle",
+        "hart": "HART",
+        "identify": "commandes 0 et 3",
+        "fix": "commande 40 : 12 mA",
+        "release": "commande 40 : 0"
+    },
+    "anatomy": {
+        "delimiter": "Le délimiteur 0x82, bit par bit"
+    },
+    "playground": {
+        "encoder": "HART envoie les nombres à virgule flottante octet de poids fort en premier (ABCD). Saisissez une valeur pour voir comment voyage 27.6, la pression en bar."
+    }
+}

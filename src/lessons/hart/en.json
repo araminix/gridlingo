@@ -1,0 +1,95 @@
+{
+    "intro": "HART lets a 4–20 mA field instrument talk digitally as well. A quiet tone, 1200 bit/s of FSK, rides on the analog current: the control system still reads the measurement from the current, while a technician's laptop or the control system's HART card asks the instrument for its value with a unit, its identity and its health, and changes its settings. HART is the FieldComm Group's protocol, found on pressure, temperature, level and flow instruments and valve positioners in power plants, hydro stations, gas networks and water works.",
+    "plain": "Most measuring instruments in a plant send their reading as an electric current on two wires: 4 mA means the bottom of the scale, 20 mA the top. HART adds a soft whistle on top of that current, too quick to change the reading, that carries messages. With it, a technician can clip a laptop onto the two wires and ask the instrument who it is, what it measures and whether it is healthy, without disconnecting anything.",
+    "steps": {
+        "analog": { "title": "The analog signal", "text": "Pressure transmitter PT-101 measures the water pressure in the penstock of a hydro unit: 27.6 bar. Its range is 0 to 40 bar, so it draws 4 + 16 × 27.6 / 40 = 15.04 mA from the loop. The plant controller reads that current across its 250 Ω input and shows 27.6 bar. No digital message is needed for this." },
+        "identify": { "title": "Who are you?", "text": "A technician clips a laptop with a HART modem across the 250 Ω resistor. It sends command 0 to polling address 0 in a short frame. The transmitter answers with its device type, its unique device ID and its HART revision, 7: everything needed for its long address." },
+        "read": { "title": "Reading the values", "text": "From now on every frame uses the long address. Command 3 asks for the loop current and the measured variables. The answer: 15.04 mA and 27.6 bar, as floating-point numbers, the pressure with a unit code. The controller's reading does not move: the tone averages to zero." },
+        "test": { "title": "Loop test", "text": "With the unit's pressure control switched to manual, the technician fixes the current at 12.000 mA with command 40. The controller should now show the middle of the range, 20.0 bar. It does, so the wiring and the controller's scaling are right." },
+        "release": { "title": "Back to measuring", "text": "Command 40 with 0 mA ends the fixed current. The transmitter goes back to 15.04 mA, the controller shows 27.6 bar again, and the pressure control is switched back to automatic." }
+    },
+    "frames": {
+        "analog": "27.6 bar, as a current",
+        "cmd0": "Whoever is at address 0: who are you?",
+        "cmd0-res": "This is my type, my ID and my HART revision",
+        "cmd3": "Your current and your measurements, please",
+        "cmd3-res": "15.04 mA, 27.6 bar",
+        "cmd40": "Hold the current at 12 mA",
+        "cmd40-res": "Holding 12.000 mA",
+        "fixed": "12 mA: half scale",
+        "exit": "Measure again",
+        "exit-res": "Measuring again",
+        "back": "27.6 bar again"
+    },
+    "notes": {
+        "analog": "Not a message: the current itself. 4 mA is 0 bar and 20 mA is 40 bar, so each mA is 2.5 bar. A current under about 3.6 mA or over about 21 mA means a fault.",
+        "cmd0-res": "Delimiter 0x06, the same short address and command, then 24 bytes: response code and device status (both 0), then 22 bytes of identity: 254, the expanded device type 0x2213, the preambles it needs, HART revision 7, the device, software and hardware revisions, flags, the device ID 0x0A5E31 and more.",
+        "cmd40-res": "The same long address and command 40, response code 0, then the current actually set: 12.000 mA. From now on the device status byte has bit 3 set (0x08): loop current fixed. A master that sees it knows the current is not the measurement.",
+        "fixed": "The current is no longer the pressure: the transmitter still measures 27.6 bar, but the loop says 12.000 mA, which the controller reads as 20.0 bar.",
+        "exit-res": "Response code 0, current 0, and the status byte is back to 0x00: the current follows the pressure again.",
+        "back": "The loop current follows the measurement again."
+    },
+    "fields": {
+        "preamble": { "name": "Preamble", "note": "Five bytes of FF: a steady run of ones that lets every modem on the loop lock on to the tone. The command 0 answer says how many this device needs; 5 to 20 are allowed." },
+        "stx-short": { "name": "Delimiter 0x02: request, short address", "note": "STX, a master to a field device, with a 1-byte address. Since HART 6 only command 0 may use it." },
+        "stx-long": { "name": "Delimiter 0x82: request, long address", "note": "STX, a master to a field device, with the 5-byte address. The breakdown below takes it apart." },
+        "ack-long": { "name": "Delimiter 0x86: answer, long address", "note": "ACK, a field device to a master. A device in burst mode would send 0x81 instead." },
+        "short": { "name": "Short address 0x80", "note": "Bit 7 = 1: from the primary master, here the laptop, as nothing else on this loop talks HART. A handheld usually works as the secondary master (0). The low 6 bits: polling address 0." },
+        "long": { "name": "Long address", "note": "5 bytes. Bit 7 of the first: the primary master (1); bit 6: burst mode (0); then 14 bits of the device type, 0x2213, and the 3-byte device ID, 0x0A5E31, both from the command 0 answer. No two devices of one type share an ID." },
+        "cmd-0": { "name": "Command 0", "note": "Read unique identifier. Every HART device answers it, from any maker." },
+        "cmd-3": { "name": "Command 3", "note": "Read dynamic variables and loop current: the current, then up to four variables, each with its unit." },
+        "cmd-40": { "name": "Command 40 (0x28)", "note": "Enter or exit fixed current mode." },
+        "count-0": { "name": "Byte count: 0", "note": "No data follows." },
+        "count-4": { "name": "Byte count: 4", "note": "One floating-point number follows." },
+        "count-11": { "name": "Byte count: 11", "note": "2 status bytes, then 9 bytes of data." },
+        "response-ok": { "name": "Response code: 0", "note": "Success. With bit 7 set, the byte would report a communication error instead, such as a parity or check byte error." },
+        "status-ok": { "name": "Device status: 0", "note": "No bit set: no malfunction, no change, current not fixed, nothing out of limits." },
+        "current": { "name": "Loop current: 15.04 mA", "note": "0x4170A3D7, an IEEE 754 float, most significant byte first." },
+        "unit-bar": { "name": "Unit code 7: bar", "note": "HART's own table of units: 7 is bar, 12 kPa, 32 °C, 39 mA." },
+        "pv": { "name": "Primary variable: 27.6 bar", "note": "0x41DCCCCD. The device has only one variable, so the answer stops here." },
+        "fix-12": { "name": "Fixed current: 12.0 mA", "note": "0x41400000: the middle of 4 to 20 mA." },
+        "fix-0": { "name": "Fixed current: 0", "note": "0 means: leave fixed current mode, follow the measurement again." },
+        "check": { "name": "Check byte", "note": "The XOR of every byte from the delimiter on. Each byte also has its own odd parity bit on the line." },
+        "d-long": { "name": "Bit 7, address type: 1", "note": "1: a 5-byte long address. 0: a 1-byte polling address." },
+        "d-expansion": { "name": "Bits 6–5, expansion bytes: 00", "note": "No expansion bytes after the address." },
+        "d-physical": { "name": "Bits 4–3, physical layer: 00", "note": "Asynchronous, byte by byte, as on FSK." },
+        "d-stx": { "name": "Bits 2–0, frame type: 010", "note": "STX: master to field device. 110 is ACK, the answer; 001 is BACK, a burst message." }
+    },
+    "devices": {
+        "pt": "Pressure transmitter PT-101",
+        "controller": "Plant controller",
+        "laptop": "Laptop with HART modem"
+    },
+    "facts": {
+        "standard": "HART 7, from the FieldComm Group; part of IEC 61158. WirelessHART is IEC 62591",
+        "between": "A field instrument (pressure, temperature, level, flow, valve positioner) and a master: the control system's HART card (the primary master) or a technician's handheld or laptop modem (often the secondary master)",
+        "transport": "A tone on the same two wires as the 4–20 mA current: 1200 Hz for a 1, 2200 Hz for a 0, 1200 bit/s, 8 data bits with odd parity. Also HART-IP over UDP and TCP 5094",
+        "security": "None on the wire: whoever can clip onto the loop can read and change the settings. Many instruments have a write-protect switch; use it. Newer HART-IP adds TLS and DTLS",
+        "speed": "About two question-and-answer pairs a second; a device in burst mode sends on its own, a little faster. The 4–20 mA value itself never stops"
+    },
+    "tips": [
+        "A HART loop needs at least about 230 Ω between the power supply and the instrument, usually the 250 Ω input resistor. Without it, the modem hears nothing, however good the cabling.",
+        "Put the control loop in manual before command 40: while the current is fixed, the controller acts on a pressure that is not real.",
+        "If two masters talk at once, frames collide. Set the handheld as secondary master when the control system already has a HART card on the loop.",
+        "An analog input card made before HART may not filter out the tone. If its reading jitters only while HART talks, use a HART-compatible card or add a HART filter."
+    ],
+    "points": {
+        "current": "Loop current",
+        "pressure": "Pressure"
+    },
+    "timing": {
+        "title": "The loop current during the visit",
+        "note": "The line is the loop current, from 4 mA at the bottom to 20 mA at the top. HART messages ride on it as a tone of ±0.5 mA that averages to zero, so they do not move it. Only command 40 does, from 60 s to 120 s.",
+        "current": "Loop current",
+        "hart": "HART",
+        "identify": "commands 0 and 3",
+        "fix": "command 40: 12 mA",
+        "release": "command 40: 0"
+    },
+    "anatomy": {
+        "delimiter": "The delimiter 0x82, bit by bit"
+    },
+    "playground": {
+        "encoder": "HART sends floating-point numbers most significant byte first (ABCD). Enter a value to see how 27.6, the pressure in bar, travels."
+    }
+}

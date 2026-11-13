@@ -231,6 +231,8 @@
     "lesson.canopen.where": "배터리 관리 시스템, 컨버터",
     "lesson.profinet.summary": "PLC가 몇 밀리초마다 입출력을 주고받는 방법",
     "lesson.profinet.where": "발전소 보조 설비, 변압기 냉각, 수력 발전 유닛",
+    "lesson.hart.summary": "4–20 mA 계기가 디지털로도 말하는 방법",
+    "lesson.hart.where": "압력·레벨·유량 계기, 밸브 포지셔너",
     "lesson.ocpp.summary": "충전기와 충전소 관리 시스템 사이",
     "lesson.ocpp.where": "EV 충전기, 충전 백엔드",
     "lesson.iso-15118.summary": "차와 충전기 사이: 플러그 앤 차지, V2G",

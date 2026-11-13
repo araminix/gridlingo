@@ -1,0 +1,95 @@
+{
+    "intro": "HART, 4–20 mA'lik bir saha cihazının dijital olarak da konuşmasını sağlar. Hafif bir ton, 1200 bit/s FSK, analog akımın üzerinde gider: kontrol sistemi ölçümü akımdan okumaya devam ederken, bir teknisyenin dizüstüsü ya da kontrol sisteminin HART kartı cihaza birimiyle birlikte değerini, kimliğini ve sağlığını sorar, ayarlarını değiştirir. HART, FieldComm Group'un protokolüdür; elektrik santrallerinde, hidroelektrik santrallerde, gaz şebekelerinde ve su tesislerindeki basınç, sıcaklık, seviye ve debi cihazlarında ve vana pozisyonerlerinde bulunur.",
+    "plain": "Bir tesisteki ölçü cihazlarının çoğu okumalarını iki tel üzerinden bir elektrik akımı olarak gönderir: 4 mA skalanın altı, 20 mA üstüdür. HART bu akımın üzerine, okumayı değiştiremeyecek kadar hızlı, mesaj taşıyan hafif bir ıslık ekler. Onunla bir teknisyen iki tele bir dizüstü bilgisayar kıskaçlayıp cihaza kim olduğunu, ne ölçtüğünü ve sağlıklı olup olmadığını, hiçbir şeyi sökmeden sorabilir.",
+    "steps": {
+        "analog": { "title": "Analog sinyal", "text": "PT-101 basınç transmitteri bir hidroelektrik ünitenin cebri borusundaki su basıncını ölçer: 27.6 bar. Aralığı 0 ile 40 bar arasıdır, bu yüzden döngüden 4 + 16 × 27.6 / 40 = 15.04 mA çeker. Tesis kontrolörü bu akımı 250 Ω'luk girişinden okur ve 27.6 bar gösterir. Bunun için hiçbir dijital mesaj gerekmez." },
+        "identify": { "title": "Sen kimsin?", "text": "Bir teknisyen HART modemli bir dizüstüyü 250 Ω'luk direncin uçlarına kıskaçlar. Kısa bir çerçeveyle 0 numaralı yoklama adresine komut 0'ı gönderir. Transmitter cihaz tipi, benzersiz cihaz kimliği ve HART revizyonu, 7 ile cevap verir: uzun adresi için gereken her şey." },
+        "read": { "title": "Değerleri okumak", "text": "Bundan sonra her çerçeve uzun adresi kullanır. Komut 3 döngü akımını ve ölçülen değişkenleri ister. Cevap: kayan noktalı sayılar olarak 15.04 mA ve 27.6 bar, basınç bir birim koduyla. Kontrolörün okuması kıpırdamaz: tonun ortalaması sıfırdır." },
+        "test": { "title": "Döngü testi", "text": "Ünitenin basınç kontrolü elle kumandaya alınmışken teknisyen komut 40 ile akımı 12.000 mA'e sabitler. Kontrolör şimdi aralığın ortasını, 20.0 bar'ı göstermelidir. Gösteriyor, demek ki kablolama ve kontrolörün ölçeklemesi doğru." },
+        "release": { "title": "Ölçüme dönüş", "text": "0 mA ile komut 40 sabit akımı bitirir. Transmitter 15.04 mA'e döner, kontrolör yeniden 27.6 bar gösterir ve basınç kontrolü yeniden otomatiğe alınır." }
+    },
+    "frames": {
+        "analog": "Akım olarak 27.6 bar",
+        "cmd0": "Adres 0'daki her kimse: sen kimsin?",
+        "cmd0-res": "Tipim, kimliğim ve HART revizyonum bunlar",
+        "cmd3": "Akımın ve ölçümlerin lütfen",
+        "cmd3-res": "15.04 mA, 27.6 bar",
+        "cmd40": "Akımı 12 mA'de tut",
+        "cmd40-res": "12.000 mA tutuyorum",
+        "fixed": "12 mA: yarım skala",
+        "exit": "Yeniden ölç",
+        "exit-res": "Yeniden ölçüyorum",
+        "back": "Yeniden 27.6 bar"
+    },
+    "notes": {
+        "analog": "Bir mesaj değil: akımın kendisi. 4 mA 0 bar, 20 mA 40 bar demektir, yani her mA 2.5 bar'dır. Yaklaşık 3.6 mA'in altında ya da yaklaşık 21 mA'in üstünde bir akım arıza demektir.",
+        "cmd0-res": "Ayraç 0x06, aynı kısa adres ve komut, ardından 24 bayt: cevap kodu ve cihaz durumu (ikisi de 0), sonra 22 bayt kimlik: 254, genişletilmiş cihaz tipi 0x2213, ihtiyaç duyduğu önsöz sayısı, HART revizyonu 7, cihaz, yazılım ve donanım revizyonları, bayraklar, cihaz kimliği 0x0A5E31 ve dahası.",
+        "cmd40-res": "Aynı uzun adres ve komut 40, cevap kodu 0, ardından gerçekten ayarlanan akım: 12.000 mA. Bundan sonra cihaz durum baytında bit 3 birdir (0x08): döngü akımı sabit. Bunu gören bir ana cihaz, akımın ölçüm olmadığını bilir.",
+        "fixed": "Akım artık basınç değil: transmitter hâlâ 27.6 bar ölçer, ama döngü 12.000 mA der ve kontrolör bunu 20.0 bar olarak okur.",
+        "exit-res": "Cevap kodu 0, akım 0 ve durum baytı yeniden 0x00: akım yeniden basıncı izler.",
+        "back": "Döngü akımı yeniden ölçümü izler."
+    },
+    "fields": {
+        "preamble": { "name": "Önsöz", "note": "Beş FF baytı: döngüdeki her modemin tona kilitlenmesi için düzenli bir birler dizisi. Komut 0'ın cevabı bu cihazın kaç tane istediğini söyler; 5 ile 20 arası izinlidir." },
+        "stx-short": { "name": "Ayraç 0x02: istek, kısa adres", "note": "STX, bir ana cihazdan saha cihazına, 1 baytlık adresle. HART 6'dan beri onu yalnızca komut 0 kullanabilir." },
+        "stx-long": { "name": "Ayraç 0x82: istek, uzun adres", "note": "STX, bir ana cihazdan saha cihazına, 5 baytlık adresle. Aşağıdaki çözümleme onu bit bit ayırır." },
+        "ack-long": { "name": "Ayraç 0x86: cevap, uzun adres", "note": "ACK, bir saha cihazından ana cihaza. Patlama modundaki bir cihaz bunun yerine 0x81 gönderirdi." },
+        "short": { "name": "Kısa adres 0x80", "note": "Bit 7 = 1: birincil ana cihazdan, burada dizüstüden, çünkü bu döngüde başka hiçbir şey HART konuşmuyor. El terminali genellikle ikincil ana cihaz (0) olarak çalışır. Alttaki 6 bit: yoklama adresi 0." },
+        "long": { "name": "Uzun adres", "note": "5 bayt. İlk baytın bit 7'si: birincil ana cihaz (1); bit 6: patlama modu (0); ardından cihaz tipinin 14 biti, 0x2213, ve 3 baytlık cihaz kimliği, 0x0A5E31, ikisi de komut 0'ın cevabından. Aynı tipte iki cihazın kimliği asla aynı olmaz." },
+        "cmd-0": { "name": "Komut 0", "note": "Benzersiz tanımlayıcıyı oku. Her HART cihazı, üreticisi kim olursa olsun, buna cevap verir." },
+        "cmd-3": { "name": "Komut 3", "note": "Dinamik değişkenleri ve döngü akımını oku: akım, sonra her biri kendi birimiyle en çok dört değişken." },
+        "cmd-40": { "name": "Komut 40 (0x28)", "note": "Sabit akım moduna gir ya da çık." },
+        "count-0": { "name": "Bayt sayısı: 0", "note": "Ardından veri gelmez." },
+        "count-4": { "name": "Bayt sayısı: 4", "note": "Ardından bir kayan noktalı sayı gelir." },
+        "count-11": { "name": "Bayt sayısı: 11", "note": "2 durum baytı, sonra 9 bayt veri." },
+        "response-ok": { "name": "Cevap kodu: 0", "note": "Başarılı. Bit 7 bir olsaydı, bu bayt bunun yerine eşlik ya da kontrol baytı hatası gibi bir iletişim hatası bildirirdi." },
+        "status-ok": { "name": "Cihaz durumu: 0", "note": "Hiçbir bit bir değil: arıza yok, değişiklik yok, akım sabit değil, sınır dışında bir şey yok." },
+        "current": { "name": "Döngü akımı: 15.04 mA", "note": "0x4170A3D7, bir IEEE 754 kayan noktalı sayı, en anlamlı bayt önce." },
+        "unit-bar": { "name": "Birim kodu 7: bar", "note": "HART'ın kendi birim tablosu: 7 bar, 12 kPa, 32 °C, 39 mA." },
+        "pv": { "name": "Birincil değişken: 27.6 bar", "note": "0x41DCCCCD. Cihazın tek bir değişkeni var, bu yüzden cevap burada biter." },
+        "fix-12": { "name": "Sabit akım: 12.0 mA", "note": "0x41400000: 4 ile 20 mA'in ortası." },
+        "fix-0": { "name": "Sabit akım: 0", "note": "0 şu demektir: sabit akım modundan çık, yeniden ölçümü izle." },
+        "check": { "name": "Kontrol baytı", "note": "Ayraçtan itibaren tüm baytların XOR'u. Hatta her baytın ayrıca kendi tek eşlik biti vardır." },
+        "d-long": { "name": "Bit 7, adres tipi: 1", "note": "1: 5 baytlık uzun adres. 0: 1 baytlık yoklama adresi." },
+        "d-expansion": { "name": "Bit 6–5, genişleme baytları: 00", "note": "Adresten sonra genişleme baytı yok." },
+        "d-physical": { "name": "Bit 4–3, fiziksel katman: 00", "note": "Asenkron, bayt bayt, FSK'deki gibi." },
+        "d-stx": { "name": "Bit 2–0, çerçeve tipi: 010", "note": "STX: ana cihazdan saha cihazına. 110 ACK'tir, cevap; 001 BACK'tir, bir patlama mesajı." }
+    },
+    "devices": {
+        "pt": "Basınç transmitteri PT-101",
+        "controller": "Tesis kontrolörü",
+        "laptop": "HART modemli dizüstü"
+    },
+    "facts": {
+        "standard": "FieldComm Group'tan HART 7; IEC 61158'in parçası. WirelessHART, IEC 62591'dir",
+        "between": "Bir saha cihazı (basınç, sıcaklık, seviye, debi, vana pozisyoneri) ile bir ana cihaz: kontrol sisteminin HART kartı (birincil ana cihaz) ya da bir teknisyenin el terminali veya dizüstü modemi (çoğu zaman ikincil ana cihaz)",
+        "transport": "4–20 mA akımla aynı iki tel üzerinde bir ton: 1 için 1200 Hz, 0 için 2200 Hz, 1200 bit/s, tek eşlikli 8 veri biti. Ayrıca UDP ve TCP 5094 üzerinden HART-IP",
+        "security": "Hatta yok: döngüye kıskaç takabilen herkes ayarları okuyabilir ve değiştirebilir. Birçok cihazın yazma koruma anahtarı vardır; kullanın. Yeni HART-IP, TLS ve DTLS ekler",
+        "speed": "Saniyede yaklaşık iki soru-cevap çifti; patlama modundaki bir cihaz kendiliğinden, biraz daha hızlı gönderir. 4–20 mA değerinin kendisi hiç durmaz"
+    },
+    "tips": [
+        "Bir HART döngüsü, besleme ile cihaz arasında en az yaklaşık 230 Ω ister; genellikle bu, 250 Ω'luk giriş direncidir. O olmadan kablolama ne kadar iyi olursa olsun modem hiçbir şey duymaz.",
+        "Komut 40'tan önce kontrol döngüsünü elle kumandaya alın: akım sabitken kontrolör gerçek olmayan bir basınca göre davranır.",
+        "İki ana cihaz aynı anda konuşursa çerçeveler çarpışır. Kontrol sisteminin döngüde zaten bir HART kartı varsa el terminalini ikincil ana cihaz olarak ayarlayın.",
+        "HART'tan önce yapılmış bir analog giriş kartı tonu süzmeyebilir. Okuması yalnızca HART konuşurken titriyorsa, HART uyumlu bir kart kullanın ya da bir HART filtresi ekleyin."
+    ],
+    "points": {
+        "current": "Döngü akımı",
+        "pressure": "Basınç"
+    },
+    "timing": {
+        "title": "Ziyaret boyunca döngü akımı",
+        "note": "Çizgi döngü akımıdır; altta 4 mA, üstte 20 mA. HART mesajları onun üzerinde ortalaması sıfır olan ±0.5 mA'lik bir ton olarak gider, bu yüzden onu oynatmaz. Yalnızca komut 40 oynatır, 60 s ile 120 s arasında.",
+        "current": "Döngü akımı",
+        "hart": "HART",
+        "identify": "komut 0 ve 3",
+        "fix": "komut 40: 12 mA",
+        "release": "komut 40: 0"
+    },
+    "anatomy": {
+        "delimiter": "Ayraç 0x82, bit bit"
+    },
+    "playground": {
+        "encoder": "HART kayan noktalı sayıları en anlamlı bayt önce gelecek şekilde gönderir (ABCD). Bar cinsinden basınç olan 27.6'nın nasıl gittiğini görmek için bir değer girin."
+    }
+}

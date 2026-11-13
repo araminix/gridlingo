@@ -231,6 +231,8 @@
     "lesson.canopen.where": "Battery management systems, converters",
     "lesson.profinet.summary": "How a PLC swaps inputs and outputs every few milliseconds",
     "lesson.profinet.where": "Power plant auxiliaries, transformer cooling, hydro units",
+    "lesson.hart.summary": "How a 4–20 mA instrument also talks digitally",
+    "lesson.hart.where": "Pressure, level and flow instruments, valve positioners",
     "lesson.ocpp.summary": "Charger to charging-station management system",
     "lesson.ocpp.where": "EV chargers, charging back ends",
     "lesson.iso-15118.summary": "Car to charger: plug and charge, vehicle to grid",

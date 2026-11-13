@@ -231,6 +231,8 @@
     "lesson.canopen.where": "Sistemas de gerenciamento de baterias, conversores",
     "lesson.profinet.summary": "Como um CLP troca entradas e saídas a cada poucos milissegundos",
     "lesson.profinet.where": "Serviços auxiliares de usinas, resfriamento de transformadores, unidades hidrelétricas",
+    "lesson.hart.summary": "Como um instrumento de 4–20 mA também fala em digital",
+    "lesson.hart.where": "Instrumentos de pressão, nível e vazão, posicionadores de válvula",
     "lesson.ocpp.summary": "Do carregador ao sistema de gestão da recarga",
     "lesson.ocpp.where": "Carregadores de VE, plataformas de gestão de recarga",
     "lesson.iso-15118.summary": "Do carro ao carregador: Plug & Charge, vehicle-to-grid",

@@ -231,6 +231,8 @@
     "lesson.canopen.where": "バッテリーマネジメントシステム、コンバータ",
     "lesson.profinet.summary": "PLCが数ミリ秒ごとに入出力をやり取りするしくみ",
     "lesson.profinet.where": "発電所の補機、変圧器の冷却、水力発電ユニット",
+    "lesson.hart.summary": "4–20 mAの計器がデジタルでも話すしくみ",
+    "lesson.hart.where": "圧力・レベル・流量の計器、バルブポジショナ",
     "lesson.ocpp.summary": "充電器から充電管理システムへ",
     "lesson.ocpp.where": "EV充電器、充電サービスのバックエンド",
     "lesson.iso-15118.summary": "クルマから充電器へ：プラグ・アンド・チャージ、V2G",

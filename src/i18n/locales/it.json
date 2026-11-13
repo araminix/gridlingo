@@ -231,6 +231,8 @@
     "lesson.canopen.where": "Sistemi di gestione batterie, convertitori",
     "lesson.profinet.summary": "Come un PLC scambia ingressi e uscite ogni pochi millisecondi",
     "lesson.profinet.where": "Ausiliari di centrale, raffreddamento dei trasformatori, gruppi idroelettrici",
+    "lesson.hart.summary": "Come uno strumento 4–20 mA parla anche in digitale",
+    "lesson.hart.where": "Strumenti di pressione, livello e portata, posizionatori di valvola",
     "lesson.ocpp.summary": "Dalla colonnina al sistema di gestione della ricarica",
     "lesson.ocpp.where": "Colonnine di ricarica, back end di ricarica",
     "lesson.iso-15118.summary": "Dall'auto alla colonnina: plug and charge, vehicle to grid",

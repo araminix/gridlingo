@@ -231,6 +231,8 @@
     "lesson.canopen.where": "Sistemas de gestión de baterías, convertidores",
     "lesson.profinet.summary": "Cómo un PLC intercambia entradas y salidas cada pocos milisegundos",
     "lesson.profinet.where": "Servicios auxiliares de centrales, refrigeración de transformadores, grupos hidráulicos",
+    "lesson.hart.summary": "Cómo un instrumento de 4–20 mA también habla en digital",
+    "lesson.hart.where": "Instrumentos de presión, nivel y caudal, posicionadores de válvula",
     "lesson.ocpp.summary": "Del cargador al sistema de gestión de estaciones de carga",
     "lesson.ocpp.where": "Cargadores de VE, plataformas de gestión de carga",
     "lesson.iso-15118.summary": "Del vehículo al cargador: Plug & Charge y del vehículo a la red (V2G)",

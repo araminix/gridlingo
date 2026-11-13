@@ -1,0 +1,95 @@
+{
+    "intro": "O HART permite que um instrumento de campo de 4–20 mA também fale em digital. Um tom discreto, 1200 bit/s de FSK, viaja sobre a corrente analógica: o sistema de controle continua lendo a medida na corrente, enquanto o notebook de um técnico ou a placa HART do sistema de controle pede ao instrumento o seu valor com unidade, a sua identidade e o seu estado, e muda os seus ajustes. O HART é o protocolo do FieldComm Group e está em instrumentos de pressão, temperatura, nível e vazão e em posicionadores de válvula de usinas termelétricas, hidrelétricas, redes de gás e estações de água.",
+    "plain": "A maioria dos instrumentos de medição de uma usina envia a sua leitura como uma corrente elétrica em dois fios: 4 mA é o fundo da escala, 20 mA o topo. O HART acrescenta um assobio suave sobre essa corrente, rápido demais para mudar a leitura, que carrega mensagens. Com ele, um técnico pode prender um notebook nos dois fios e perguntar ao instrumento quem ele é, o que mede e se está bem, sem desligar nada.",
+    "steps": {
+        "analog": { "title": "O sinal analógico", "text": "O transmissor de pressão PT-101 mede a pressão da água no conduto forçado de uma unidade hidrelétrica: 27.6 bar. A sua faixa é de 0 a 40 bar, então ele puxa 4 + 16 × 27.6 / 40 = 15.04 mA da malha. O controlador da usina lê essa corrente na sua entrada de 250 Ω e mostra 27.6 bar. Para isso não é preciso nenhuma mensagem digital." },
+        "identify": { "title": "Quem é você?", "text": "Um técnico prende um notebook com modem HART sobre o resistor de 250 Ω. Ele envia o comando 0 ao endereço de polling 0 num quadro curto. O transmissor responde com o seu tipo de dispositivo, o seu ID único e a sua revisão HART, 7: tudo o que é preciso para o seu endereço longo." },
+        "read": { "title": "Lendo os valores", "text": "Daqui em diante cada quadro usa o endereço longo. O comando 3 pede a corrente da malha e as variáveis medidas. A resposta: 15.04 mA e 27.6 bar, como números de ponto flutuante, a pressão com um código de unidade. A leitura do controlador não se mexe: o tom tem média zero." },
+        "test": { "title": "Teste de malha", "text": "Com o controle de pressão da unidade em manual, o técnico fixa a corrente em 12.000 mA com o comando 40. O controlador deve agora mostrar o meio da faixa, 20.0 bar. Mostra, então a fiação e a escala do controlador estão certas." },
+        "release": { "title": "De volta à medição", "text": "O comando 40 com 0 mA encerra a corrente fixa. O transmissor volta a 15.04 mA, o controlador mostra de novo 27.6 bar e o controle de pressão volta para automático." }
+    },
+    "frames": {
+        "analog": "27.6 bar, como corrente",
+        "cmd0": "Quem estiver no endereço 0: quem é você?",
+        "cmd0-res": "Este é o meu tipo, o meu ID e a minha revisão HART",
+        "cmd3": "A sua corrente e as suas medidas, por favor",
+        "cmd3-res": "15.04 mA, 27.6 bar",
+        "cmd40": "Segure a corrente em 12 mA",
+        "cmd40-res": "Segurando 12.000 mA",
+        "fixed": "12 mA: meia escala",
+        "exit": "Volte a medir",
+        "exit-res": "Medindo de novo",
+        "back": "De novo 27.6 bar"
+    },
+    "notes": {
+        "analog": "Não é uma mensagem: é a própria corrente. 4 mA são 0 bar e 20 mA são 40 bar, então cada mA vale 2.5 bar. Uma corrente abaixo de uns 3.6 mA ou acima de uns 21 mA indica falha.",
+        "cmd0-res": "Delimitador 0x06, o mesmo endereço curto e o mesmo comando, depois 24 bytes: código de resposta e estado do dispositivo (ambos 0), e então 22 bytes de identidade: 254, o tipo de dispositivo expandido 0x2213, os preâmbulos de que precisa, a revisão HART 7, as revisões de dispositivo, software e hardware, flags, o ID de dispositivo 0x0A5E31 e mais.",
+        "cmd40-res": "O mesmo endereço longo e o comando 40, código de resposta 0, e depois a corrente de fato ajustada: 12.000 mA. Daqui em diante o byte de estado do dispositivo tem o bit 3 em um (0x08): corrente da malha fixa. Um mestre que vê isso sabe que a corrente não é a medida.",
+        "fixed": "A corrente já não é a pressão: o transmissor continua medindo 27.6 bar, mas a malha diz 12.000 mA, que o controlador lê como 20.0 bar.",
+        "exit-res": "Código de resposta 0, corrente 0, e o byte de estado volta a 0x00: a corrente segue de novo a pressão.",
+        "back": "A corrente da malha segue de novo a medida."
+    },
+    "fields": {
+        "preamble": { "name": "Preâmbulo", "note": "Cinco bytes FF: uma sequência regular de uns para que cada modem da malha se sincronize com o tom. A resposta ao comando 0 diz quantos este dispositivo precisa; de 5 a 20 são permitidos." },
+        "stx-short": { "name": "Delimitador 0x02: pedido, endereço curto", "note": "STX, de um mestre para um dispositivo de campo, com endereço de 1 byte. Desde o HART 6, só o comando 0 pode usá-lo." },
+        "stx-long": { "name": "Delimitador 0x82: pedido, endereço longo", "note": "STX, de um mestre para um dispositivo de campo, com o endereço de 5 bytes. O detalhamento abaixo o separa." },
+        "ack-long": { "name": "Delimitador 0x86: resposta, endereço longo", "note": "ACK, de um dispositivo de campo para um mestre. Um dispositivo em modo rajada enviaria 0x81 no lugar." },
+        "short": { "name": "Endereço curto 0x80", "note": "Bit 7 = 1: do mestre primário, aqui o notebook, já que nada mais fala HART nesta malha. Um comunicador portátil costuma trabalhar como mestre secundário (0). Os 6 bits baixos: endereço de polling 0." },
+        "long": { "name": "Endereço longo", "note": "5 bytes. Bit 7 do primeiro: o mestre primário (1); bit 6: modo rajada (0); depois 14 bits do tipo de dispositivo, 0x2213, e o ID de dispositivo de 3 bytes, 0x0A5E31, ambos da resposta ao comando 0. Dois dispositivos do mesmo tipo nunca têm o mesmo ID." },
+        "cmd-0": { "name": "Comando 0", "note": "Ler o identificador único. Todo dispositivo HART responde, de qualquer fabricante." },
+        "cmd-3": { "name": "Comando 3", "note": "Ler as variáveis dinâmicas e a corrente da malha: a corrente e depois até quatro variáveis, cada uma com a sua unidade." },
+        "cmd-40": { "name": "Comando 40 (0x28)", "note": "Entrar no modo de corrente fixa ou sair dele." },
+        "count-0": { "name": "Contagem de bytes: 0", "note": "Não vêm dados." },
+        "count-4": { "name": "Contagem de bytes: 4", "note": "Vem um número de ponto flutuante." },
+        "count-11": { "name": "Contagem de bytes: 11", "note": "2 bytes de estado e depois 9 bytes de dados." },
+        "response-ok": { "name": "Código de resposta: 0", "note": "Sucesso. Com o bit 7 em um, o byte indicaria um erro de comunicação, como um erro de paridade ou do byte de verificação." },
+        "status-ok": { "name": "Estado do dispositivo: 0", "note": "Nenhum bit em um: sem defeito, sem alteração, corrente não fixa, nada fora dos limites." },
+        "current": { "name": "Corrente da malha: 15.04 mA", "note": "0x4170A3D7, um número de ponto flutuante IEEE 754, o byte mais significativo primeiro." },
+        "unit-bar": { "name": "Código de unidade 7: bar", "note": "A tabela de unidades própria do HART: 7 é bar, 12 kPa, 32 °C, 39 mA." },
+        "pv": { "name": "Variável primária: 27.6 bar", "note": "0x41DCCCCD. O dispositivo tem uma só variável, então a resposta termina aqui." },
+        "fix-12": { "name": "Corrente fixa: 12.0 mA", "note": "0x41400000: o meio de 4 a 20 mA." },
+        "fix-0": { "name": "Corrente fixa: 0", "note": "0 significa: sair do modo de corrente fixa e seguir a medida de novo." },
+        "check": { "name": "Byte de verificação", "note": "O XOR de todos os bytes a partir do delimitador. Na linha, cada byte também tem o seu próprio bit de paridade ímpar." },
+        "d-long": { "name": "Bit 7, tipo de endereço: 1", "note": "1: um endereço longo de 5 bytes. 0: um endereço de polling de 1 byte." },
+        "d-expansion": { "name": "Bits 6–5, bytes de expansão: 00", "note": "Nenhum byte de expansão depois do endereço." },
+        "d-physical": { "name": "Bits 4–3, camada física: 00", "note": "Assíncrona, byte a byte, como no FSK." },
+        "d-stx": { "name": "Bits 2–0, tipo de quadro: 010", "note": "STX: do mestre para o dispositivo de campo. 110 é ACK, a resposta; 001 é BACK, uma mensagem em rajada." }
+    },
+    "devices": {
+        "pt": "Transmissor de pressão PT-101",
+        "controller": "Controlador da usina",
+        "laptop": "Notebook com modem HART"
+    },
+    "facts": {
+        "standard": "HART 7, do FieldComm Group; parte da IEC 61158. O WirelessHART é a IEC 62591",
+        "between": "Um instrumento de campo (pressão, temperatura, nível, vazão, posicionador de válvula) e um mestre: a placa HART do sistema de controle (o mestre primário) ou o comunicador portátil ou o modem de notebook de um técnico (muitas vezes o mestre secundário)",
+        "transport": "Um tom nos mesmos dois fios da corrente de 4–20 mA: 1200 Hz para um 1, 2200 Hz para um 0, 1200 bit/s, 8 bits de dados com paridade ímpar. Também HART-IP sobre UDP e TCP 5094",
+        "security": "Nenhuma no fio: quem conseguir se prender à malha pode ler e mudar os ajustes. Muitos instrumentos têm uma chave de proteção contra escrita; use-a. O HART-IP mais novo traz TLS e DTLS",
+        "speed": "Cerca de dois pares de pergunta e resposta por segundo; um dispositivo em modo rajada envia por conta própria, um pouco mais rápido. O valor de 4–20 mA nunca para"
+    },
+    "tips": [
+        "Uma malha HART precisa de pelo menos uns 230 Ω entre a fonte e o instrumento, em geral o resistor de entrada de 250 Ω. Sem ele, o modem não ouve nada, por melhor que seja a fiação.",
+        "Coloque a malha de controle em manual antes do comando 40: enquanto a corrente está fixa, o controlador age sobre uma pressão que não é real.",
+        "Se dois mestres falam ao mesmo tempo, os quadros colidem. Configure o comunicador portátil como mestre secundário quando o sistema de controle já tem uma placa HART na malha.",
+        "Uma placa de entradas analógicas anterior ao HART pode não filtrar o tom. Se a sua leitura treme só quando o HART fala, use uma placa compatível com HART ou acrescente um filtro HART."
+    ],
+    "points": {
+        "current": "Corrente da malha",
+        "pressure": "Pressão"
+    },
+    "timing": {
+        "title": "A corrente da malha durante a visita",
+        "note": "A linha é a corrente da malha, de 4 mA embaixo a 20 mA em cima. As mensagens HART viajam sobre ela como um tom de ±0.5 mA com média zero, então não a movem. Só o comando 40 move, de 60 s a 120 s.",
+        "current": "Corrente da malha",
+        "hart": "HART",
+        "identify": "comandos 0 e 3",
+        "fix": "comando 40: 12 mA",
+        "release": "comando 40: 0"
+    },
+    "anatomy": {
+        "delimiter": "O delimitador 0x82, bit a bit"
+    },
+    "playground": {
+        "encoder": "O HART envia números de ponto flutuante com o byte mais significativo primeiro (ABCD). Digite um valor para ver como viaja 27.6, a pressão em bar."
+    }
+}
