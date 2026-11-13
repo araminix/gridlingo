@@ -121,6 +121,14 @@ test("the protocol list beside a lesson narrows as you type", async ({ page, isM
     await expect(list.getByText("Nothing found.")).toBeVisible();
 });
 
+test("an address with nothing behind it says so, and guesses what was meant", async ({ page }) => {
+    await open(page, "/p/modbus");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Nothing is connected at this address");
+    await expect(page).toHaveTitle("Nothing is connected at this address · Gridlingo");
+    await page.getByRole("main").getByRole("link", { name: "Modbus TCP", exact: true }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Modbus TCP");
+});
+
 test("a first visit starts light, even on a device set to dark", async ({ page }) => {
     await page.emulateMedia({ colorScheme: "dark" });
     await page.goto("/");
