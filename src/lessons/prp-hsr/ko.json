@@ -93,5 +93,15 @@
         "lost": "LAN A 쪽 사본은 오지 않아요: 케이블이 끊겼어요. 잃는 것도, 전환되는 것도 없어요. 트립은 이미 전달됐어요.",
         "supervision": "각 LAN에는 2초마다 감시 프레임이 흘러요. LAN B 쪽만 도착하니 컨트롤러는 LAN A가 끊겼다고 경보를 내요.",
         "trailer": "트레일러의 6바이트: SeqNr 0F 3C = 3900, LAN A(니블 A)와 크기 0x079 = 121바이트, 그다음 접미사 88 FB."
+    },
+    "singleLine": {
+        "title": "34.5 kV 모선 단선도",
+        "bus": "34.5 kV · 모선 A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "열림",
+        "fault": "고장 · 2.8 kA",
+        "station": "스테이션 버스 · PRP, LAN A와 LAN B",
+        "f1": "F1 · 가공 선로",
+        "f2": "F2 · 소내 전원"
     }
 }

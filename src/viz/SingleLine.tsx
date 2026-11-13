@@ -41,6 +41,10 @@ export function SingleLine({ diagram, steps, current, words }: { diagram: Diagra
     };
     const reached = flow?.to.filter((id) => boxes.has(id)) ?? [];
     const span = source ? [centre(flow!.from), ...reached.map(centre)] : [];
+    // The message's label starts beside its leftmost device, but after the station bus's own label when it lies on that
+    // bus (that label is mono 11px, about 6.6 per character), and never past the drawing's right end
+    const labelWidth = flow ? Math.max(150, flow.label.length * 6.8 + 16) : 0;
+    const labelX = flow ? Math.min(800 - labelWidth, Math.max(Math.min(...span) + 12, flowBus === STATION ? 84 + words.singleLine("station").length * 6.6 + 16 : 0)) : 0;
 
     return (
         <div dir="ltr" className="overflow-x-auto" tabIndex={0} role="region" aria-label={words.singleLine("title")}>
@@ -75,7 +79,7 @@ export function SingleLine({ diagram, steps, current, words }: { diagram: Diagra
                             <circle cx={x} cy={222} r={7} fill="var(--viz-ground)" stroke={below} strokeWidth={2} />
                             <path d={`M${x - 8},300 L${x + 8},300 L${x},314 Z`} fill={below} />
                             <text x={x - 14} y={189} textAnchor="end" className={`font-mono text-[11px] ${isOpen ? "fill-[var(--viz-alert)] font-semibold" : "fill-foreground"}`}>
-                                {isOpen ? `Q${index + 1} · ${words.singleLine("open")}` : `Q${index + 1}`}
+                                {isOpen ? `${feeder.breaker ?? `Q${index + 1}`} · ${words.singleLine("open")}` : (feeder.breaker ?? `Q${index + 1}`)}
                             </text>
                             <text x={x} y={334} textAnchor="middle" className="fill-muted-foreground text-[12px]">
                                 {words.singleLine(feeder.id)}
@@ -134,8 +138,8 @@ export function SingleLine({ diagram, steps, current, words }: { diagram: Diagra
                             const x = centre(id);
                             return <path key={id} d={`M${x},${flowBus} L${x},${toward + (toward > flowBus ? -4 : 4)}`} stroke="var(--primary)" strokeWidth={3} markerEnd="url(#sld-arrow)" />;
                         })}
-                        <rect x={Math.min(...span) + 12} y={flowBus - 30} width={Math.max(150, flow.label.length * 6.8 + 16)} height={22} rx={4} fill="var(--accent)" stroke="var(--primary)" />
-                        <text x={Math.min(...span) + 20} y={flowBus - 15} className="fill-primary font-mono text-[11px] font-semibold">
+                        <rect x={labelX} y={flowBus - 30} width={labelWidth} height={22} rx={4} fill="var(--accent)" stroke="var(--primary)" />
+                        <text x={labelX + 8} y={flowBus - 15} className="fill-primary font-mono text-[11px] font-semibold">
                             {flow.label}
                         </text>
                     </g>

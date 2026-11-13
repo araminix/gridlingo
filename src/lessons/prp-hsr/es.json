@@ -93,5 +93,15 @@
         "lost": "Su copia por la LAN A nunca llega: el cable está cortado. No se pierde nada ni hay conmutación; el disparo ya había pasado.",
         "supervision": "Cada LAN lleva una trama de supervisión cada 2 s. Solo llega la de la LAN B, así que el controlador da la alarma de que la LAN A está caída.",
         "trailer": "Los 6 bytes del tráiler: SeqNr 0F 3C = 3900, LAN A (el nibble A) y el tamaño 0x079 = 121 bytes, y luego el sufijo 88 FB."
+    },
+    "singleLine": {
+        "title": "Esquema unifilar de la barra de 34.5 kV",
+        "bus": "34.5 kV · barra A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "abierto",
+        "fault": "falla · 2.8 kA",
+        "station": "Bus de estación · PRP, LAN A y LAN B",
+        "f1": "F1 · Línea aérea",
+        "f2": "F2 · Servicios auxiliares"
     }
 }

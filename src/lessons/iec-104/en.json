@@ -102,5 +102,16 @@
         "double": "A double point: 2 bits for on, off, moving and faulty.",
         "spontaneous": "When it changes, it is sent at once with a time tag.",
         "time": "Write down which clock the time tags use."
+    },
+    "singleLine": {
+        "title": "Single-line diagram of the 34.5 kV busbar",
+        "bus": "34.5 kV · bus A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "open",
+        "fault": "fault · 2.8 kA",
+        "station": "Station LAN · IEC 104 to the control room",
+        "f1": "F1 · Overhead line",
+        "f2": "F2 · PV plant",
+        "f3": "F3 · Battery"
     }
 }

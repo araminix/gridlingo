@@ -93,5 +93,15 @@
         "lost": "它在 LAN A 上的那份始终没有到：电缆断了。没有丢失，也没有切换；跳闸早已送达。",
         "supervision": "每个 LAN 每 2 秒都有一帧监视帧。只有 LAN B 的到达，于是控制器报警：LAN A 故障。",
         "trailer": "尾部的 6 个字节：SeqNr 0F 3C = 3900，LAN A（半字节 A）加长度 0x079 = 121 字节，然后是后缀 88 FB。"
+    },
+    "singleLine": {
+        "title": "34.5 kV 母线单线图",
+        "bus": "34.5 kV · A 母线",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "分位",
+        "fault": "故障 · 2.8 kA",
+        "station": "站控层总线 · PRP，LAN A 和 LAN B",
+        "f1": "F1 · 架空线路",
+        "f2": "F2 · 站用电"
     }
 }

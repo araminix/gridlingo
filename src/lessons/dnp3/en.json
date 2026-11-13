@@ -135,5 +135,15 @@
         "class": "Class 1: IIN1.1 shows when its events are waiting.",
         "analog-event": "g32v4: a 16-bit analog input event with time.",
         "deadband": "A new analog event is made only when the value moves by more than 50 V."
+    },
+    "singleLine": {
+        "title": "Single-line diagram of the 34.5 kV busbar",
+        "bus": "34.5 kV · bus A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "open",
+        "fault": "fault · 2.8 kA",
+        "station": "Station LAN · DNP3 to the control room",
+        "f1": "F1 · Overhead line",
+        "f2": "F2 · Station supply"
     }
 }

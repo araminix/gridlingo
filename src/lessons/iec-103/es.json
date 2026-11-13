@@ -137,5 +137,15 @@
         "gi": "Un estado: se envía en cada interrogación general.",
         "trip": "Una indicación de falla: tipo 2, con tiempo relativo y número de falla. No forma parte de la GI.",
         "measurands": "Nueve valores medidos en un solo ASDU, enviados como datos de clase 2."
+    },
+    "singleLine": {
+        "title": "Esquema unifilar de la barra de 34.5 kV",
+        "bus": "34.5 kV · barra A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "abierto",
+        "fault": "falla · 2.8 kA",
+        "station": "Línea serie · IEC 60870-5-103",
+        "f12": "F12 · Línea aérea",
+        "f13": "F13 · Servicios auxiliares"
     }
 }

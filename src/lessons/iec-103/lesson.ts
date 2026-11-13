@@ -245,5 +245,24 @@ export const lesson: Lesson = {
         },
     ],
     playground: [{ kind: "file", sample: "relay-f12-103.json", file: pointList, notes: { 3: "link", 4: "common", 5: "baud", 6: "fun", 7: "scale", 9: "gi", 10: "trip", 11: "measurands" } }],
+    singleLine: {
+        feeders: [
+            { id: "f12", load: "line" },
+            { id: "f13", load: "supply" },
+        ],
+        ieds: [
+            { id: "relay", feeder: "f12", bus: "station" },
+            { id: "relay2", feeder: "f13", bus: "station" },
+        ],
+        extras: ["controller", "hmi"],
+        states: [
+            { step: "reset", flow: { from: "controller", to: ["relay"], label: "Reset CU" } },
+            { step: "ident", flow: { from: "relay", to: ["controller"], label: "ASDU 5 · identification" } },
+            { step: "gi", flow: { from: "controller", to: ["relay"], label: "ASDU 7 · general interrogation" } },
+            { step: "gidata", flow: { from: "relay", to: ["controller"], label: "ASDU 1 · states" } },
+            { step: "fault", fault: "f12", open: ["f12"] },
+            { step: "trip", open: ["f12"], flow: { from: "relay", to: ["controller"], label: "ASDU 2 · trip, relative time" } },
+        ],
+    },
     related: ["iec-101", "irig-b", "iec-61850-mms"],
 };

@@ -102,5 +102,16 @@
         "double": "Çift nokta: devrede, devre dışı, ara konum ve arıza için 2 bit.",
         "spontaneous": "Değiştiğinde, zaman etiketiyle hemen gönderilir.",
         "time": "Zaman etiketlerinin hangi saati kullandığını not edin."
+    },
+    "singleLine": {
+        "title": "34.5 kV baranın tek hat şeması",
+        "bus": "34.5 kV · A barası",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "açık",
+        "fault": "arıza · 2.8 kA",
+        "station": "İstasyon LAN'ı · kontrol merkezine IEC 104",
+        "f1": "F1 · Havai hat",
+        "f2": "F2 · GES",
+        "f3": "F3 · Batarya"
     }
 }

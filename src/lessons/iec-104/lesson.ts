@@ -126,5 +126,22 @@ export const lesson: Lesson = {
         { kind: "encoder", type: "float32", order: "DCBA", value: 4.82 },
         { kind: "file", sample: "points.json", file: points, notes: { 2: "common-address", 5: "ioa", 6: "type", 9: "scale", 20: "double", 22: "spontaneous", 23: "time" } },
     ],
+    singleLine: {
+        feeders: [
+            { id: "f1", load: "line", breaker: "CB-1" },
+            { id: "f2", load: "pv" },
+            { id: "f3", load: "battery" },
+        ],
+        ieds: [],
+        extras: ["rtu", "scada"],
+        states: [
+            { step: "connect", flow: { from: "scada", to: ["rtu"], label: "TCP · port 2404" } },
+            { step: "start", flow: { from: "scada", to: ["rtu"], label: "STARTDT act" } },
+            { step: "ask", flow: { from: "scada", to: ["rtu"], label: "C_IC_NA_1 · general interrogation" } },
+            { step: "values", flow: { from: "rtu", to: ["scada"], label: "M_ME_NC_1 · M_DP_NA_1" } },
+            { step: "ack", flow: { from: "scada", to: ["rtu"], label: "S-frame · N(R) 4" } },
+            { step: "trip", fault: "f1", open: ["f1"], flow: { from: "rtu", to: ["scada"], label: "M_DP_TB_1 · spont" } },
+        ],
+    },
     related: ["iec-101", "dnp3", "iec-62351"],
 };

@@ -186,5 +186,20 @@ export const lesson: Lesson = {
             notes: { 3: "addresses", 5: "port", 6: "keepalive", 9: "unsol-classes", 10: "confirm-timeout", 13: "buffer", 18: "index", 20: "static", 21: "event", 22: "class", 38: "analog-event", 40: "deadband" },
         },
     ],
+    singleLine: {
+        feeders: [
+            { id: "f1", load: "line", breaker: "CB-1" },
+            { id: "f2", load: "supply" },
+        ],
+        ieds: [{ id: "relay", feeder: "f1", bus: "station" }],
+        extras: ["rtu", "scada"],
+        states: [
+            { step: "connect", flow: { from: "scada", to: ["rtu"], label: "TCP · port 20000" } },
+            { step: "poll", flow: { from: "scada", to: ["rtu"], label: "READ · class 1, 2, 3, 0" } },
+            { step: "enable", flow: { from: "scada", to: ["rtu"], label: "ENABLE_UNSOLICITED" } },
+            { step: "trip", fault: "f1", open: ["f1"], flow: { from: "rtu", to: ["scada"], label: "UNSOLICITED_RESPONSE · 2 events" } },
+            { step: "confirm", open: ["f1"], flow: { from: "scada", to: ["rtu"], label: "CONFIRM" } },
+        ],
+    },
     related: ["dnp3-sa", "iec-104", "iec-101"],
 };

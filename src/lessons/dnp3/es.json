@@ -135,5 +135,15 @@
         "class": "Clase 1: IIN1.1 indica cuándo hay eventos suyos esperando.",
         "analog-event": "g32v4: un evento de entrada analógica de 16 bits con hora.",
         "deadband": "Solo se genera un nuevo evento analógico cuando el valor se mueve más de 50 V."
+    },
+    "singleLine": {
+        "title": "Esquema unifilar de la barra de 34.5 kV",
+        "bus": "34.5 kV · barra A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "abierto",
+        "fault": "falla · 2.8 kA",
+        "station": "LAN de la estación · DNP3 al centro de control",
+        "f1": "F1 · Línea aérea",
+        "f2": "F2 · Servicios auxiliares"
     }
 }

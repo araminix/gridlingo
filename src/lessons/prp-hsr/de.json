@@ -93,5 +93,15 @@
         "lost": "Ihre Kopie über LAN A kommt nie: Das Kabel ist durchtrennt. Nichts geht verloren, nichts schaltet um; die Auslösung war schon durch.",
         "supervision": "Jedes LAN trägt alle 2 s einen Supervision-Frame. Nur der von LAN B kommt an, also meldet die Steuerung, dass LAN A ausgefallen ist.",
         "trailer": "Die 6 Bytes des Trailers: SeqNr 0F 3C = 3900, LAN A (das Nibble A) und die Größe 0x079 = 121 Bytes, dann das Suffix 88 FB."
+    },
+    "singleLine": {
+        "title": "Übersichtsschaltplan der 34.5-kV-Sammelschiene",
+        "bus": "34.5 kV · Sammelschiene A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "offen",
+        "fault": "Fehler · 2.8 kA",
+        "station": "Stationsbus · PRP, LAN A und LAN B",
+        "f1": "F1 · Freileitung",
+        "f2": "F2 · Eigenbedarf"
     }
 }

@@ -137,5 +137,15 @@
         "gi": "Un état : envoyé à chaque interrogation générale.",
         "trip": "Une indication de défaut : type 2, avec temps relatif et numéro de défaut. Ne fait pas partie de l'IG.",
         "measurands": "Neuf valeurs mesurées dans un seul ASDU, envoyées comme données de classe 2."
+    },
+    "singleLine": {
+        "title": "Schéma unifilaire du jeu de barres 34.5 kV",
+        "bus": "34.5 kV · barre A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "ouvert",
+        "fault": "défaut · 2.8 kA",
+        "station": "Liaison série · IEC 60870-5-103",
+        "f12": "F12 · Ligne aérienne",
+        "f13": "F13 · Auxiliaires du poste"
     }
 }

@@ -137,5 +137,15 @@
         "gi": "A status: sent in every general interrogation.",
         "trip": "A fault indication: type 2, with relative time and fault number. Not part of the GI.",
         "measurands": "Nine measured values in one ASDU, sent as class 2 data."
+    },
+    "singleLine": {
+        "title": "Single-line diagram of the 34.5 kV busbar",
+        "bus": "34.5 kV · bus A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "open",
+        "fault": "fault · 2.8 kA",
+        "station": "Serial line · IEC 60870-5-103",
+        "f12": "F12 · Overhead line",
+        "f13": "F13 · Station supply"
     }
 }

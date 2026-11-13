@@ -93,5 +93,15 @@
         "lost": "Its copy on LAN A never comes: the cable is cut. Nothing is lost and nothing switches over; the trip was already through.",
         "supervision": "Each LAN carries a supervision frame every 2 s. Only LAN B's arrives, so the controller raises the alarm that LAN A is down.",
         "trailer": "The 6 bytes of the trailer: SeqNr 0F 3C = 3900, LAN A (the nibble A) and the size 0x079 = 121 bytes, then the suffix 88 FB."
+    },
+    "singleLine": {
+        "title": "Single-line diagram of the 34.5 kV busbar",
+        "bus": "34.5 kV · bus A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "open",
+        "fault": "fault · 2.8 kA",
+        "station": "Station bus · PRP, LAN A and LAN B",
+        "f1": "F1 · Overhead line",
+        "f2": "F2 · Station supply"
     }
 }

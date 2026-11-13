@@ -137,5 +137,15 @@
         "gi": "Ein Zustand: wird bei jeder Generalabfrage gesendet.",
         "trip": "Eine Fehlermeldung: Typ 2, mit Relativzeit und Fehlernummer. Nicht Teil der GA.",
         "measurands": "Neun Messwerte in einer ASDU, gesendet als Daten der Klasse 2."
+    },
+    "singleLine": {
+        "title": "Übersichtsschaltplan der 34.5-kV-Sammelschiene",
+        "bus": "34.5 kV · Sammelschiene A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "offen",
+        "fault": "Fehler · 2.8 kA",
+        "station": "Serielle Leitung · IEC 60870-5-103",
+        "f12": "F12 · Freileitung",
+        "f13": "F13 · Eigenbedarf"
     }
 }

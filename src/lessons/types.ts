@@ -154,7 +154,8 @@ export interface Timing {
 
 /** A single-line diagram of a substation bay or busbar, changing step by step. */
 export interface SingleLine {
-    feeders: readonly { id: string; load: "pv" | "battery" | "wind" | "line" | "supply" }[];
+    /** Each feeder, its load, and its breaker's name when the lesson gives one (Q1, Q2… otherwise). */
+    feeders: readonly { id: string; load: "pv" | "battery" | "wind" | "line" | "supply"; breaker?: string }[];
     /** Relays and controllers, each beside its feeder, on the station bus (or the process bus for merging units). */
     ieds: readonly { id: string; feeder?: string; bus: "station" | "process" }[];
     /** Boxes on the station bus beyond the feeders: HMI, gateway. */

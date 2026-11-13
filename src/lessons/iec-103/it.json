@@ -137,5 +137,15 @@
         "gi": "Uno stato: inviato in ogni interrogazione generale.",
         "trip": "Una segnalazione di guasto: tipo 2, con tempo relativo e numero di guasto. Non fa parte della GI.",
         "measurands": "Nove valori misurati in un solo ASDU, inviati come dati di classe 2."
+    },
+    "singleLine": {
+        "title": "Schema unifilare della sbarra a 34.5 kV",
+        "bus": "34.5 kV · sbarra A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "aperto",
+        "fault": "guasto · 2.8 kA",
+        "station": "Linea seriale · IEC 60870-5-103",
+        "f12": "F12 · Linea aerea",
+        "f13": "F13 · Servizi ausiliari"
     }
 }

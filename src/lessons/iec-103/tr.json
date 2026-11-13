@@ -137,5 +137,15 @@
         "gi": "Bir durum bilgisi: her genel sorgulamada gönderilir.",
         "trip": "Bir arıza bildirimi: göreli zaman ve arıza numarasıyla tür 2. GI'ın parçası değildir.",
         "measurands": "Tek bir ASDU'da, sınıf 2 verisi olarak gönderilen dokuz ölçüm değeri."
+    },
+    "singleLine": {
+        "title": "34.5 kV baranın tek hat şeması",
+        "bus": "34.5 kV · A barası",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "açık",
+        "fault": "arıza · 2.8 kA",
+        "station": "Seri hat · IEC 60870-5-103",
+        "f12": "F12 · Havai hat",
+        "f13": "F13 · İç ihtiyaç"
     }
 }

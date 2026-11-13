@@ -102,5 +102,16 @@
         "double": "Un point double : 2 bits pour ON, OFF, en manœuvre et en défaut.",
         "spontaneous": "Quand elle change, elle est envoyée aussitôt, avec un horodatage.",
         "time": "Notez par écrit l'horloge qu'utilisent les horodatages."
+    },
+    "singleLine": {
+        "title": "Schéma unifilaire du jeu de barres 34.5 kV",
+        "bus": "34.5 kV · barre A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "ouvert",
+        "fault": "défaut · 2.8 kA",
+        "station": "LAN du poste · IEC 104 vers le centre de conduite",
+        "f1": "F1 · Ligne aérienne",
+        "f2": "F2 · Centrale PV",
+        "f3": "F3 · Batterie"
     }
 }

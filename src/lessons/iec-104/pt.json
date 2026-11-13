@@ -102,5 +102,16 @@
         "double": "Um ponto duplo: 2 bits para ligado, desligado, em movimento e com defeito.",
         "spontaneous": "Quando muda, é enviado na hora, com estampa de tempo.",
         "time": "Anote qual relógio as estampas de tempo usam."
+    },
+    "singleLine": {
+        "title": "Diagrama unifilar do barramento de 34.5 kV",
+        "bus": "34.5 kV · barra A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "aberto",
+        "fault": "falta · 2.8 kA",
+        "station": "LAN da estação · IEC 104 até o centro de controle",
+        "f1": "F1 · Linha aérea",
+        "f2": "F2 · Usina FV",
+        "f3": "F3 · Bateria"
     }
 }

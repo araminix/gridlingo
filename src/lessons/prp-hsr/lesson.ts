@@ -85,5 +85,20 @@ export const lesson: Lesson = {
     playground: [
         { kind: "file", sample: "controller-capture.txt", file: capture, notes: { 2: "columns", 3: "first", 4: "drop", 5: "trip", 6: "lost", 7: "supervision", 9: "trailer" } },
     ],
+    singleLine: {
+        feeders: [
+            { id: "f1", load: "line" },
+            { id: "f2", load: "supply" },
+        ],
+        ieds: [{ id: "relay", feeder: "f1", bus: "station" }],
+        extras: ["controller"],
+        states: [
+            { step: "two", flow: { from: "relay", to: ["controller"], label: "Supervision · LAN A and B" } },
+            { step: "send", flow: { from: "relay", to: ["controller"], label: "GOOSE · SeqNr 3900 · LAN A" } },
+            { step: "drop", flow: { from: "relay", to: ["controller"], label: "SeqNr 3900 · LAN B: dropped" } },
+            { step: "break", fault: "f1", flow: { from: "relay", to: ["controller"], label: "GOOSE trip · SeqNr 3905 · LAN B" } },
+            { step: "alarm", open: ["f1"], flow: { from: "relay", to: ["controller"], label: "Supervision · LAN B only" } },
+        ],
+    },
     related: ["iec-61850-goose", "iec-61850-sv", "ptp", "iec-62443"],
 };

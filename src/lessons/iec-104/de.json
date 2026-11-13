@@ -102,5 +102,16 @@
         "double": "Eine Doppelmeldung: 2 Bits für Ein, Aus, Zwischen- und Störstellung.",
         "spontaneous": "Ändert sich der Wert, wird er sofort mit Zeitstempel gesendet.",
         "time": "Schriftlich festhalten, von welcher Uhr die Zeitstempel kommen."
+    },
+    "singleLine": {
+        "title": "Übersichtsschaltplan der 34.5-kV-Sammelschiene",
+        "bus": "34.5 kV · Sammelschiene A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "offen",
+        "fault": "Fehler · 2.8 kA",
+        "station": "Stations-LAN · IEC 104 zur Leitstelle",
+        "f1": "F1 · Freileitung",
+        "f2": "F2 · PV-Anlage",
+        "f3": "F3 · Batterie"
     }
 }

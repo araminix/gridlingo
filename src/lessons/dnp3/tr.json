@@ -135,5 +135,15 @@
         "class": "Sınıf 1: olayları beklerken IIN1.1 bunu gösterir.",
         "analog-event": "g32v4: zamanlı, 16 bitlik bir analog giriş olayı.",
         "deadband": "Yeni bir analog olay, ancak değer 50 V'tan fazla değiştiğinde oluşturulur."
+    },
+    "singleLine": {
+        "title": "34.5 kV baranın tek hat şeması",
+        "bus": "34.5 kV · A barası",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "açık",
+        "fault": "arıza · 2.8 kA",
+        "station": "İstasyon LAN'ı · kontrol merkezine DNP3",
+        "f1": "F1 · Havai hat",
+        "f2": "F2 · İç ihtiyaç"
     }
 }

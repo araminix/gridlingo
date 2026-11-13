@@ -135,5 +135,15 @@
         "class": "Klasse 1: IIN1.1 zeigt an, wenn seine Ereignisse warten.",
         "analog-event": "g32v4: ein Ereignis eines 16-Bit-Analogeingangs mit Zeit.",
         "deadband": "Ein neues Analogereignis entsteht erst, wenn sich der Wert um mehr als 50 V ändert."
+    },
+    "singleLine": {
+        "title": "Übersichtsschaltplan der 34.5-kV-Sammelschiene",
+        "bus": "34.5 kV · Sammelschiene A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "offen",
+        "fault": "Fehler · 2.8 kA",
+        "station": "Stations-LAN · DNP3 zur Leitstelle",
+        "f1": "F1 · Freileitung",
+        "f2": "F2 · Eigenbedarf"
     }
 }

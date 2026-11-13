@@ -102,5 +102,16 @@
         "double": "Un punto doble: 2 bits para on, off, en movimiento y en falla.",
         "spontaneous": "Cuando cambia, se envía al instante con una etiqueta de tiempo.",
         "time": "Anota qué reloj usan las etiquetas de tiempo."
+    },
+    "singleLine": {
+        "title": "Esquema unifilar de la barra de 34.5 kV",
+        "bus": "34.5 kV · barra A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "abierto",
+        "fault": "falla · 2.8 kA",
+        "station": "LAN de la estación · IEC 104 al centro de control",
+        "f1": "F1 · Línea aérea",
+        "f2": "F2 · Planta FV",
+        "f3": "F3 · Batería"
     }
 }

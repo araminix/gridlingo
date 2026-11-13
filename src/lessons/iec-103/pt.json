@@ -137,5 +137,15 @@
         "gi": "Um estado: enviado em toda interrogação geral.",
         "trip": "Uma indicação de falta: tipo 2, com tempo relativo e número da falta. Não faz parte da GI.",
         "measurands": "Nove valores medidos numa única ASDU, enviados como dados de classe 2."
+    },
+    "singleLine": {
+        "title": "Diagrama unifilar do barramento de 34.5 kV",
+        "bus": "34.5 kV · barra A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "aberto",
+        "fault": "falta · 2.8 kA",
+        "station": "Linha serial · IEC 60870-5-103",
+        "f12": "F12 · Linha aérea",
+        "f13": "F13 · Serviços auxiliares"
     }
 }

@@ -93,5 +93,15 @@
         "lost": "LAN A'daki kopyası hiç gelmez: kablo kesik. Hiçbir şey kaybolmaz, geçiş olmaz; açma zaten ulaşmıştı.",
         "supervision": "Her LAN 2 saniyede bir denetim çerçevesi taşır. Yalnızca LAN B'ninki gelir, bu yüzden denetleyici LAN A'nın düştüğü alarmını verir.",
         "trailer": "Trailer'ın 6 baytı: SeqNr 0F 3C = 3900, LAN A (A yarım baytı) ve boyut 0x079 = 121 bayt, ardından 88 FB son eki."
+    },
+    "singleLine": {
+        "title": "34.5 kV baranın tek hat şeması",
+        "bus": "34.5 kV · A barası",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "açık",
+        "fault": "arıza · 2.8 kA",
+        "station": "İstasyon veri yolu · PRP, LAN A ve LAN B",
+        "f1": "F1 · Havai hat",
+        "f2": "F2 · İç ihtiyaç"
     }
 }

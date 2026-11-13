@@ -93,5 +93,15 @@
         "lost": "La sua copia sulla LAN A non arriva mai: il cavo è tagliato. Non si perde nulla e non c'è commutazione; lo scatto era già passato.",
         "supervision": "Ogni LAN porta un frame di supervisione ogni 2 s. Arriva solo quello della LAN B, quindi il controllore segnala che la LAN A è guasta.",
         "trailer": "I 6 byte del trailer: SeqNr 0F 3C = 3900, LAN A (il nibble A) e la dimensione 0x079 = 121 byte, poi il suffisso 88 FB."
+    },
+    "singleLine": {
+        "title": "Schema unifilare della sbarra a 34.5 kV",
+        "bus": "34.5 kV · sbarra A",
+        "transformer": "TR1 · 154/34.5 kV",
+        "open": "aperto",
+        "fault": "guasto · 2.8 kA",
+        "station": "Bus di stazione · PRP, LAN A e LAN B",
+        "f1": "F1 · Linea aerea",
+        "f2": "F2 · Servizi ausiliari"
     }
 }
