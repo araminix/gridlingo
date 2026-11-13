@@ -5,7 +5,7 @@
 
 /* Colours of the interface (shadcn/ui tokens) and of the diagrams, for the light theme and the dark one */
 :root {
-    --radius: 0.75rem;
+    --radius: 2px;
     --background: #f7f6fb;
     --foreground: #1a1530;
     --card: #ffffff;
@@ -138,10 +138,13 @@
 @theme inline {
     --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
     --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
-    --radius-sm: calc(var(--radius) - 4px);
-    --radius-md: calc(var(--radius) - 2px);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) + 4px);
+    /* Square corners, as on switchgear and control panels: 1 to 3 px */
+    --radius-xs: 1px;
+    --radius-sm: 1px;
+    --radius-md: 2px;
+    --radius-lg: 2px;
+    --radius-xl: 3px;
+    --radius-2xl: 3px;
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-card: var(--card);

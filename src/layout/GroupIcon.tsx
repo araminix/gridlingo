@@ -12,7 +12,7 @@ export const groupVars = (group: Group) => ({ "--g": `var(--group-${group})` }) 
 export function GroupIcon({ group, className }: { group: Group; className?: string }) {
     const Icon = ICONS[group];
     return (
-        <span aria-hidden="true" style={groupVars(group)} className={cn("inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--g)_14%,transparent)] text-[var(--g)]", className)}>
+        <span aria-hidden="true" style={groupVars(group)} className={cn("inline-flex size-8 shrink-0 items-center justify-center rounded-sm bg-[color-mix(in_oklab,var(--g)_14%,transparent)] text-[var(--g)]", className)}>
             <Icon className="size-[55%]" />
         </span>
     );

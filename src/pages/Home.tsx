@@ -65,7 +65,7 @@ export function Home() {
             <section className="border-b bg-[radial-gradient(60rem_30rem_at_85%_-10%,color-mix(in_oklab,var(--primary)_18%,transparent),transparent),radial-gradient(40rem_24rem_at_0%_110%,color-mix(in_oklab,var(--gold)_18%,transparent),transparent)]">
                 <div className="mx-auto grid max-w-[1440px] items-center gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
                     <div className="max-w-3xl space-y-4">
-                        <p className="inline-flex items-center gap-2 rounded-full border border-[color-mix(in_oklab,var(--gold)_45%,transparent)] bg-gold-soft px-3 py-1 text-sm font-medium text-gold-foreground">
+                        <p className="inline-flex items-center gap-2 rounded-sm border border-[color-mix(in_oklab,var(--gold)_45%,transparent)] bg-gold-soft px-3 py-1 text-sm font-medium text-gold-foreground">
                             {t("home.badge", { count: CATALOG.length })}
                         </p>
                         <h1 className="text-3xl leading-tight font-bold tracking-tight sm:text-4xl">{t("home.title")}</h1>
@@ -74,7 +74,7 @@ export function Home() {
                         <p className="flex flex-wrap items-center gap-2 text-sm">
                             <span className="text-muted-foreground">{t("home.start")}</span>
                             {START.map((id) => (
-                                <Link key={id} to={`/p/${id}`} className="rounded-full border bg-card px-3 py-1.5 font-medium hover:border-primary hover:text-primary">
+                                <Link key={id} to={`/p/${id}`} className="rounded-sm border bg-card px-3 py-1.5 font-medium hover:border-primary hover:text-primary">
                                     {CATALOG.find((meta) => meta.id === id)!.name}
                                 </Link>
                             ))}
@@ -104,7 +104,7 @@ export function Home() {
                                 aria-pressed={device === kind}
                                 onClick={() => setDevice(kind)}
                                 className={cn(
-                                    "min-h-9 shrink-0 rounded-full border px-3 text-sm whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                                    "min-h-9 shrink-0 rounded-sm border px-3 text-sm whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-ring",
                                     device === kind ? "border-primary bg-primary font-semibold text-primary-foreground" : "bg-card hover:border-primary/60",
                                 )}
                             >
@@ -133,7 +133,7 @@ export function Home() {
                                     <li key={meta.id}>
                                         <Link
                                             to={`/p/${meta.id}`}
-                                            className="relative flex h-full flex-col gap-1.5 overflow-hidden rounded-xl border bg-[linear-gradient(180deg,color-mix(in_oklab,var(--g)_7%,var(--card)),var(--card)_60%)] p-3 pt-4 outline-none transition hover:-translate-y-0.5 hover:border-[var(--g)] hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring"
+                                            className="relative flex h-full flex-col gap-1.5 overflow-hidden rounded-xl border bg-[linear-gradient(180deg,color-mix(in_oklab,var(--g)_7%,var(--card)),var(--card)_60%)] p-3 pt-4 outline-none transition-colors hover:border-[var(--g)] focus-visible:ring-2 focus-visible:ring-ring"
                                         >
                                             <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-[var(--g)]" />
                                             <span className="flex items-start justify-between gap-2">
@@ -143,7 +143,7 @@ export function Home() {
                                             <span className="text-sm text-muted-foreground">{t(`lesson.${meta.id}.summary` as MessageKey)}</span>
                                             <span className="mt-auto space-y-1">
                                                 <span className="block text-xs text-muted-foreground">{t(`lesson.${meta.id}.where` as MessageKey)}</span>
-                                                <span dir="ltr" className="inline-block rounded bg-[color-mix(in_oklab,var(--g)_10%,transparent)] px-1.5 py-0.5 text-left font-mono text-xs text-[var(--g)] rtl:text-right">
+                                                <span dir="ltr" className="inline-block rounded-sm bg-[color-mix(in_oklab,var(--g)_10%,transparent)] px-1.5 py-0.5 text-left font-mono text-xs text-[var(--g)] rtl:text-right">
                                                     {meta.wire}
                                                 </span>
                                             </span>

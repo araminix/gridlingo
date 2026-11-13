@@ -89,7 +89,7 @@ function TreeNode({ node, depth, searching }: { node: SclNode; depth: number; se
         <>
             <span className={cn("w-7 shrink-0 text-[10px] font-bold tracking-wide text-muted-foreground")}>{node.kind}</span>
             <span className="font-mono text-[13px] font-medium">{node.name}</span>
-            {node.fc && <span className="rounded bg-muted px-1 font-mono text-[10px]">{node.fc}</span>}
+            {node.fc && <span className="rounded-sm bg-muted px-1 font-mono text-[10px]">{node.fc}</span>}
             <span dir="auto" className="min-w-0 truncate text-xs text-muted-foreground">
                 {known ? meaning : node.detail}
             </span>
@@ -99,7 +99,7 @@ function TreeNode({ node, depth, searching }: { node: SclNode; depth: number; se
     return (
         <li role="treeitem" aria-expanded={node.children.length ? open : undefined} aria-selected={false}>
             {node.children.length ? (
-                <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center gap-2 rounded px-1 py-1 text-start hover:bg-muted" style={{ paddingLeft: depth * 16 + 4 }}>
+                <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center gap-2 rounded-sm px-1 py-1 text-start hover:bg-muted" style={{ paddingLeft: depth * 16 + 4 }}>
                     <ChevronRight className={cn("size-3.5 shrink-0 transition-transform", open && "rotate-90")} />
                     {row}
                 </button>

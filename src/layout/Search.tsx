@@ -26,7 +26,7 @@ export function SearchButton({ wide = false }: { wide?: boolean }) {
         <button
             type="button"
             onClick={() => setOpen(true)}
-            className="flex h-12 w-full max-w-xl items-center gap-3 rounded-xl border bg-card px-4 text-start text-muted-foreground shadow-xs outline-none hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex h-12 w-full max-w-xl items-center gap-3 rounded-xl border bg-card px-4 text-start text-muted-foreground outline-none hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring"
         >
             <SearchIcon className="size-4.5 shrink-0" />
             <span className="min-w-0 flex-1 truncate">{t("search.placeholder")}</span>

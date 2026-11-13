@@ -178,7 +178,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                         </Sheet>
                         <span
                             style={groupVars(meta.group)}
-                            className="inline-flex items-center gap-2 rounded-full bg-[color-mix(in_oklab,var(--g)_12%,transparent)] py-1 ps-1 pe-3 text-xs font-semibold tracking-wider text-[var(--g)] uppercase"
+                            className="inline-flex items-center gap-2 rounded-sm bg-[color-mix(in_oklab,var(--g)_12%,transparent)] py-1 ps-1 pe-3 text-xs font-semibold tracking-wider text-[var(--g)] uppercase"
                         >
                             <GroupIcon group={meta.group} className="size-6" />
                             {t(`group.${meta.group}` as MessageKey)}

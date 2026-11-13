@@ -15,8 +15,8 @@ export function ProtocolNav({ current, onPick }: { current: string; onPick?: () 
             <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">{t("nav.progress", { done: done.length, total: CATALOG.length })}</p>
                 <p className="text-xs text-muted-foreground">{t("nav.progressHint")}</p>
-                <div className="h-1.5 rounded-full bg-muted" aria-hidden="true">
-                    <div className="h-1.5 rounded-full bg-[linear-gradient(90deg,var(--primary),var(--gold))]" style={{ width: `${(done.length / CATALOG.length) * 100}%` }} />
+                <div className="h-1.5 bg-muted" aria-hidden="true">
+                    <div className="h-1.5 bg-[linear-gradient(90deg,var(--primary),var(--gold))]" style={{ width: `${(done.length / CATALOG.length) * 100}%` }} />
                 </div>
             </div>
             {GROUPS.map((group) => (

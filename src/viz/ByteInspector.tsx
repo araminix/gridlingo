@@ -79,7 +79,7 @@ export function ByteInspector({ frame, words }: { frame: Frame; words: Words }) 
                         onPointerLeave={() => setHovered(null)}
                         className={cn("flex items-start gap-3 border-b py-2 text-sm", hovered === i && "bg-accent/60")}
                     >
-                        <dt dir="ltr" className="max-w-[45%] min-w-16 shrink-0 rounded px-1.5 py-0.5 text-center font-mono text-xs font-semibold break-words" style={{ background: roleColor(role) }}>
+                        <dt dir="ltr" className="max-w-[45%] min-w-16 shrink-0 rounded-sm px-1.5 py-0.5 text-center font-mono text-xs font-semibold break-words" style={{ background: roleColor(role) }}>
                             {hex}
                         </dt>
                         <dd>
