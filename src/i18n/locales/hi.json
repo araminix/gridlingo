@@ -203,6 +203,8 @@
     "lesson.r-goose.where": "सबस्टेशनों के बीच",
     "lesson.irig-b.summary": "केबल पर चलने वाला पुराना और भरोसेमंद टाइम कोड",
     "lesson.irig-b.where": "GPS क्लॉक, प्रोटेक्शन रिले",
+    "lesson.ntp.summary": "हर घड़ी को टाइम सर्वर से मिलाना",
+    "lesson.ntp.where": "RTU, रिले, SCADA सर्वर",
     "lesson.iec-104.summary": "TCP/IP पर RTU से SCADA तक",
     "lesson.iec-104.where": "RTU, गेटवे, प्लांट कंट्रोलर",
     "lesson.iec-101.summary": "वही टेलीकंट्रोल, सीरियल और रेडियो लिंक पर",

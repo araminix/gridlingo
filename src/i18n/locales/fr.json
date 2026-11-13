@@ -203,6 +203,8 @@
     "lesson.r-goose.where": "Entre postes",
     "lesson.irig-b.summary": "Le code horaire classique, sur un câble",
     "lesson.irig-b.where": "Horloges GPS, relais de protection",
+    "lesson.ntp.summary": "Régler chaque horloge sur un serveur de temps",
+    "lesson.ntp.where": "RTU, relais, serveurs SCADA",
     "lesson.iec-104.summary": "Du RTU au SCADA sur TCP/IP",
     "lesson.iec-104.where": "RTU, passerelles, contrôleurs de centrale",
     "lesson.iec-101.summary": "La même téléconduite, sur liaisons série et radio",

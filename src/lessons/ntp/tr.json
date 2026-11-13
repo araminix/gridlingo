@@ -1,0 +1,102 @@
+{
+    "intro": "NTP (Network Time Protocol), bir cihazın saatini ağ üzerinden bir zaman sunucusuna göre ayarlar. Bir trafo merkezinde sunucu bir GPS saatidir; istemciler ise RTU'lar (uzak terminal birimleri: bir tesisin sinyallerini bildiren kutular), röleler, ağ geçitleri ve SCADA sunucularıdır. SNTP (Simple NTP) aynı 48 baytlık mesajı gönderir, ama istemcisi tek bir sunucuya sorar ve yanıtı olduğu gibi alır. Biri sorudaki ikisi, biri yanıttaki ikisi olmak üzere dört zaman damgası, istemcinin hem saatinin ne kadar saptığını hem de ağın ne kadar sürdüğünü hesaplamasını sağlar. Bir istasyon LAN'ında bu yaklaşık bir milisaniyeye ulaşır: olayları sıraya koymaya yeter, örneklenmiş değerlere yetmez.",
+    "plain": "Bir trafo merkezindeki her cihazın kendi saati vardır ve her saat biraz kayar. NTP, saat ayarı hattını aramaya benzer: bir cihaz, uydudan ayarlanan ana saate saati sorar. Ne zaman sorduğunu ve yanıtın ne zaman geldiğini de not eder; böylece aramanın ne kadar sürdüğünü hesaba katabilir. Sonra kendi saatini ayarlar ve farklı cihazların kaydettiği olaylar doğru sıraya girer.",
+    "steps": {
+        "ask": { "title": "Saati sor", "text": "Bir elektrik kesintisinden sonra RTU'nun saati 1,5 s geridedir. GPS saatine UDP port 123 üzerinden bir SNTP isteği gönderir ve istek çıkarken kendi saatindeki zamanı içine yazar: t1 = 10:41:05.750. Gerçek zaman 10:41:07.250'dir." },
+        "answer": { "title": "Dört zamanı al", "text": "GPS saati isteğin ne zaman geldiğini, t2'yi, ve yanıtının ne zaman çıktığını, t3'ü not eder. t1'i geri kopyalar; böylece RTU yanıtı kendi isteğiyle eşleştirebilir. RTU yanıtın ne zaman geldiğini, t4'ü not eder. Kendi saati yanlıştır ama önemi yoktur: yalnızca farklar sayılır." },
+        "correct": { "title": "Saati ayarla", "text": "RTU, saatinin ne kadar saptığını, yani ofsetini hesaplar: θ = ((t2 − t1) + (t3 − t4)) / 2 = +1,500 s. Gidiş-dönüş gecikmesini de: δ = (t4 − t1) − (t3 − t2) = 0,8 ms. Saatini 1,5 s ileri alır. Her 64 s'de bir yeniden sorar ve sonraki yanıt onu yalnızca 0,08 ms sapmış bulur." },
+        "lost": { "title": "GPS kaybolur", "text": "Daha sonra GPS anten kablosu kesilir. GPS saati bir süre kendi osilatörüyle zamanı tutar (holdover). Zamanına artık kefil olamadığında yanıtları bunu söyler: artık saniye göstergesi 3, senkronize değil. RTU onu izlemeyi bırakır, kendi saatiyle çalışır ve SCADA'ya zamanının artık senkronize olmadığını bildirir." }
+    },
+    "frames": {
+        "request": "Saat kaç? Bunu t1'de gönderdim",
+        "reply": "Senin t1'in, benim t2 ve t3'üm: saat 10:41:07.250 500",
+        "next": "Aynı soru, 64 s sonra",
+        "next-reply": "Yine dört zaman",
+        "unsync": "Zamanıma güvenilmez: LI 3",
+        "alarm": "Zaman senkronizasyonu kayboldu"
+    },
+    "notes": {
+        "next": "Yeni bir t1 ile aynı istek. RTU, poll alanının söylediği gibi her 2^6 = 64 s'de bir sorar.",
+        "next-reply": "Şimdi θ = +0,08 ms: RTU'nun saati 64 s'de bu kadar kaydı. Her yanıtta onu biraz düzeltir.",
+        "unsync": "İlk bayt 0xE4 = 11 100 100: LI 3, saatin senkronize olmadığı anlamına gelir; sürüm 4 ve mod 4 önceki gibidir. Bir istemci saatini böyle bir yanıta göre ayarlamamalıdır.",
+        "alarm": "Zaman etiketli bir IEC 104 tekli bilgi (M_SP_TB_1), NTP değil: IEC 60870-5-104 dersi bu tür baytları gösterir. SCADA artık bu RTU'nun zaman damgalarının kayabileceğini bilir."
+    },
+    "fields": {
+        "first-request": { "name": "LI · VN · Mode", "note": "0x23 = 00 100 011: LI 0 (yakında artık saniye yok), sürüm 4, mod 3 (istemci)." },
+        "stratum-0": { "name": "Stratum", "note": "0: istekte kullanılmaz." },
+        "poll": { "name": "Poll", "note": "6: istemci her 2^6 = 64 s'de bir soracak." },
+        "precision-0": { "name": "Precision", "note": "0: istekte kullanılmaz." },
+        "unused-12": { "name": "Root delay · root dispersion · reference ID", "note": "12 bayt 0: bir istemcinin anlatacağı bir referansı yoktur." },
+        "unused-24": { "name": "Reference · origin · receive damgaları", "note": "24 bayt 0: sunucu yanıtında bunlara benzer zamanları doldurur." },
+        "t1": { "name": "Transmit timestamp", "note": "t1: isteğin çıktığı an, RTU'nun saatine göre. 0xEEA01641 s 10:41:05'tir ve 0xC0000000 / 2^32 = 0,75 s: 10:41:05.750 000. Gerçek zaman 10:41:07.250'ydi." },
+        "first-reply": { "name": "LI · VN · Mode", "note": "0x24 = 00 100 100: LI 0 (senkronize, yakında artık saniye yok), sürüm 4, mod 4 (sunucu)." },
+        "stratum-1": { "name": "Stratum", "note": "1: doğrudan bir referans saate, burada GPS'e göre ayarlanan birincil sunucu. İstemcileri stratum 2'dir." },
+        "poll-copy": { "name": "Poll", "note": "6, istekten kopyalandı." },
+        "precision": { "name": "Precision", "note": "0xEC = −20: saat zamanı 2^−20 s'lik, yaklaşık 1 µs'lik adımlarla okur." },
+        "delay-root": { "name": "Root delay", "note": "0: bu saat ile referansı arasında ağ yoktur." },
+        "dispersion": { "name": "Root dispersion", "note": "1/65536 s biriminde 0x0000000A: 0,15 ms, bu saatin en fazla sapabileceğini söylediği değer." },
+        "refid-gps": { "name": "Reference ID", "note": "ASCII'de \"GPS\": bu stratum 1 saatinin izlediği kaynak." },
+        "reference": { "name": "Reference timestamp", "note": "Saatin GPS'e göre son ayarlandığı an: 0xEEA01643 s = 10:41:07.000 UTC." },
+        "origin": { "name": "Origin timestamp", "note": "İstekten kopyalanan t1: RTU bu yanıtın kendi isteğine ait olduğunu bilir." },
+        "t2": { "name": "Receive timestamp", "note": "t2: isteğin geldiği an, 10:41:07.250 400 UTC." },
+        "t3": { "name": "Transmit timestamp", "note": "t3: bu yanıtın çıktığı an, 10:41:07.250 500 UTC, t2'den 0,1 ms sonra." },
+        "a-seconds": { "name": "Saniye", "note": "0xEEA01643 = 1 Ocak 1900, 00:00 UTC'den beri 4003468867 saniye: 2026-11-12 10:41:07." },
+        "a-fraction": { "name": "Kesir", "note": "0x4020C49C / 2^32 = 0,250 500 s. Bir adım 2^−32 s, yaklaşık 0,23 ns." }
+    },
+    "devices": {
+        "antenna": "GPS anteni",
+        "clock": "GPS saati (NTP sunucusu)",
+        "switch": "İstasyon anahtarı",
+        "rtu": "RTU 31",
+        "scada": "SCADA"
+    },
+    "facts": {
+        "standard": "RFC 5905: SNTP'yi de kapsayan NTP sürüm 4 (SNTP önce RFC 4330'da tanımlandı)",
+        "between": "Bir zaman sunucusu, burada bir GPS saati, ve saatini ona göre ayarlayan cihazlar: RTU'lar, röleler, ağ geçitleri, SCADA sunucuları",
+        "transport": "UDP port 123, 48 baytlık bir mesaj",
+        "security": "Varsayılan olarak yok. NTS (Network Time Security, RFC 8915) sunucuyu TLS üzerinden kararlaştırılan anahtarlarla doğrular; eski cihazlar ortak simetrik anahtarlar kullanır",
+        "speed": "İstasyon LAN'ında yaklaşık 1 ms, internet üzerinden birkaç ms ile onlarca ms; her 64 ila 1024 s'de bir istek"
+    },
+    "tips": [
+        "NTP yalnızca UTC taşır. Saat dilimi ve yaz saati her cihazın kendi ayarıdır: yanlış bir ayar, NTP sorunsuz görünürken her olayı bir saat ya da daha fazla kaydırır.",
+        "Ofset, istek ile yanıtın eşit sürdüğünü varsayar. Bir yönde daha yavaş olan bir yol, örneğin yoğun bir WAN bağlantısı, farkın yarısını saate katar.",
+        "İki sunucuyla bir istemci birinin arızalandığını fark eder, ama uyuşmazlarsa hangisinin haklı olduğunu bilemez. Bir tane kullanın ya da üç ve daha fazla.",
+        "Düz NTP'de kimlik doğrulama yoktur: sahte bir zaman sunucusu bir istasyondaki her zaman damgasını kaydırabilir. UDP 123'e yalnızca istemciler ile istasyonun kendi zaman sunucuları arasında izin verin ve cihazlar destekliyorsa NTS kullanın."
+    ],
+    "points": {
+        "time": "Saatindeki zaman",
+        "offset": "Ofset θ",
+        "delay": "Gidiş-dönüş gecikmesi δ",
+        "stratum": "Stratum",
+        "synced": "Senkronize"
+    },
+    "values": {
+        "reference": "referans",
+        "yes": "evet",
+        "no": "hayır"
+    },
+    "timing": {
+        "title": "Bir soru, dört zaman damgası",
+        "note": "İsteğin çıktığı andan itibaren gerçek zaman. İstek GPS saatine 0,4 ms'de gider, saat 0,1 ms sonra yanıt verir ve yanıt 0,4 ms'de geri döner. t1 ve t4, 1,5 s geride olan RTU'nun saatinde okunur; t2 ve t3 GPS saatinde. Ofset θ = ((t2 − t1) + (t3 − t4)) / 2 = +1,5 s. Gecikme δ = (t4 − t1) − (t3 − t2) = 0,8 ms.",
+        "rtu": "RTU 31",
+        "clock": "GPS saati",
+        "t1": "t1: istek çıkar",
+        "t2": "t2: giriş",
+        "t3": "t3: çıkış",
+        "t4": "t4: yanıt gelir"
+    },
+    "anatomy": {
+        "timestamp": "Bir NTP zaman damgası: 1900'den beri saniye ve bir kesir"
+    },
+    "playground": {
+        "file": "Deneyin: Linux tabanlı ağ geçitlerinde ve HMI'larda yaygın, tam bir NTP istemcisi olan chrony'nin ayarları. Bir SNTP istemcisinden farklı olarak birkaç sunucuya sorar, yanıtlarını süzer ve saati sıçratmak yerine kaydırır (biraz hızlı ya da yavaş çalıştırır).",
+        "servers": "İstasyonun ilk GPS saati, her 2^6 = 64 s'de bir sorulur. iburst: açılışta ilk dört istek 2 s arayla gider, böylece saat saniyeler içinde ayarlanır.",
+        "second": "İkinci GPS saati. İki sunucuyla chrony birinin arızalandığını fark eder; uyuşmazlarsa hangisinin haklı olduğunu söyleyemez.",
+        "makestep": "Saat ilk 3 güncellemede 1 s'den fazla sapmışsa hemen ayarla. Sonrasında yalnızca kaydır; böylece olay kaydında zaman asla geriye sıçramaz.",
+        "distance": "Root distance'ı (root delay'in yarısı artı root dispersion) 0,1 s'yi aşan bir sunucuyu yok say: zamanına yeterince kefil olamaz.",
+        "rtc": "Sistem zamanını her 11 dakikada bir pilli donanım saatine (RTC) kopyala; böylece zaman bir elektrik kesintisinden sağ çıkar.",
+        "drift": "Yerel saatin ne kadar hızlı çalıştığını hatırla; böylece yeniden başlatmadan sonra yakın bir değerden başlar.",
+        "leap": "Sunucular duyurmazsa diye artık saniyeleri sistemin saat dilimi dosyalarından oku.",
+        "serve": "Zamanı istasyon LAN'ına da ver: chrony istemci olduğu kadar sunucudur da."
+    }
+}

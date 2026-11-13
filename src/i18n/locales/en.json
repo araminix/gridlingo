@@ -203,6 +203,8 @@
     "lesson.r-goose.where": "Between substations",
     "lesson.irig-b.summary": "The classic time code on a cable",
     "lesson.irig-b.where": "GPS clocks, protection relays",
+    "lesson.ntp.summary": "Setting every clock from a time server",
+    "lesson.ntp.where": "RTUs, relays, SCADA servers",
     "lesson.iec-104.summary": "RTU to SCADA over TCP/IP",
     "lesson.iec-104.where": "RTUs, gateways, plant controllers",
     "lesson.iec-101.summary": "The same telecontrol, over serial and radio links",

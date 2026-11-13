@@ -203,6 +203,8 @@
     "lesson.r-goose.where": "میان پست‌ها",
     "lesson.irig-b.summary": "کد زمانی کلاسیک روی کابل",
     "lesson.irig-b.where": "ساعت‌های GPS، رله‌های حفاظتی",
+    "lesson.ntp.summary": "تنظیم همه ساعت‌ها از روی یک سرور زمان",
+    "lesson.ntp.where": "RTUها، رله‌ها، سرورهای SCADA",
     "lesson.iec-104.summary": "ارتباط RTU با SCADA روی TCP/IP",
     "lesson.iec-104.where": "RTUها، گیت‌وی‌ها، کنترلرهای نیروگاه",
     "lesson.iec-101.summary": "همان تله‌کنترل، روی لینک‌های سریال و رادیویی",

@@ -203,6 +203,8 @@
     "lesson.r-goose.where": "变电站之间",
     "lesson.irig-b.summary": "经典的电缆对时码",
     "lesson.irig-b.where": "GPS 时钟、保护装置",
+    "lesson.ntp.summary": "用时间服务器校准每一台时钟",
+    "lesson.ntp.where": "RTU、继电器、SCADA 服务器",
     "lesson.iec-104.summary": "RTU 经 TCP/IP 连接 SCADA",
     "lesson.iec-104.where": "RTU、网关、电站控制器",
     "lesson.iec-101.summary": "同样的远动，走串行和无线链路",

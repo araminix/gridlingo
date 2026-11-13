@@ -203,6 +203,8 @@
     "lesson.r-goose.where": "Trafo merkezleri arasında",
     "lesson.irig-b.summary": "Kablo üzerinden klasik zaman kodu",
     "lesson.irig-b.where": "GPS saatleri, koruma röleleri",
+    "lesson.ntp.summary": "Her saati bir zaman sunucusuna göre ayarlamak",
+    "lesson.ntp.where": "RTU'lar, röleler, SCADA sunucuları",
     "lesson.iec-104.summary": "TCP/IP üzerinden RTU'dan SCADA'ya",
     "lesson.iec-104.where": "RTU'lar, ağ geçitleri, santral kontrolörleri",
     "lesson.iec-101.summary": "Aynı telekontrol, seri hat ve telsiz bağlantıları üzerinden",

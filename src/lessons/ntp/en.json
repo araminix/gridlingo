@@ -1,0 +1,102 @@
+{
+    "intro": "NTP (Network Time Protocol) sets a device's clock from a time server over the network. In a substation the server is a GPS clock, and the clients are RTUs (remote terminal units: the boxes that report a site's signals), relays, gateways and SCADA servers. SNTP (Simple NTP) sends the same 48-byte message, but its client asks one server and takes the answer as it is. Four time stamps, two in the question and two in the answer, let the client work out both how far its clock is off and how long the network took. On a station LAN this reaches about a millisecond: enough to put events in order, not enough for sampled values.",
+    "plain": "Every device in a substation has its own clock, and every clock drifts a little. NTP is like calling a speaking clock: a device asks a master clock, set by satellite, for the time. It also notes when it asked and when the answer came, so it can allow for how long the call took. Then it sets its own clock, and events recorded by different devices fall in the right order.",
+    "steps": {
+        "ask": { "title": "Ask the time", "text": "After a power cut, the RTU's clock is 1.5 s slow. It sends an SNTP request to the GPS clock, on UDP port 123, and writes in it the time on its own clock as the request leaves: t1 = 10:41:05.750. The real time is 10:41:07.250." },
+        "answer": { "title": "Get four times", "text": "The GPS clock notes when the request arrived, t2, and when its reply leaves, t3. It copies t1 back, so the RTU can match the reply to its request. The RTU notes when the reply arrives, t4. Its own clock is wrong, but that does not matter: only differences count." },
+        "correct": { "title": "Set the clock", "text": "The RTU works out its offset, how far its clock is off: θ = ((t2 − t1) + (t3 − t4)) / 2 = +1.500 s. And the round-trip delay: δ = (t4 − t1) − (t3 − t2) = 0.8 ms. It moves its clock forward by 1.5 s. It asks again every 64 s, and the next answer finds it off by only 0.08 ms." },
+        "lost": { "title": "GPS is lost", "text": "Later, the GPS antenna cable is cut. The GPS clock keeps time on its own oscillator for a while (holdover). When it can no longer vouch for its time, its replies say so: leap indicator 3, not synchronized. The RTU stops following it, runs on its own clock and tells SCADA that its time is no longer synchronized." }
+    },
+    "frames": {
+        "request": "What time is it? I sent this at t1",
+        "reply": "Your t1, my t2 and t3: it is 10:41:07.250 500",
+        "next": "The same question, 64 s later",
+        "next-reply": "The four times again",
+        "unsync": "My time cannot be trusted: LI 3",
+        "alarm": "Time sync lost"
+    },
+    "notes": {
+        "next": "The same request with a new t1. The RTU asks every 2^6 = 64 s, as its poll field said.",
+        "next-reply": "Now θ = +0.08 ms: the RTU's clock drifted that much in 64 s. It corrects it a little at every answer.",
+        "unsync": "The first byte is 0xE4 = 11 100 100: LI 3 means the clock is not synchronized, with version 4 and mode 4 as before. A client must not set its clock from such a reply.",
+        "alarm": "An IEC 104 single point with a time tag (M_SP_TB_1), not NTP: the IEC 60870-5-104 lesson shows such bytes. SCADA now knows that this RTU's time stamps may drift."
+    },
+    "fields": {
+        "first-request": { "name": "LI · VN · Mode", "note": "0x23 = 00 100 011: LI 0 (no leap second ahead), version 4, mode 3 (client)." },
+        "stratum-0": { "name": "Stratum", "note": "0: not used in a request." },
+        "poll": { "name": "Poll", "note": "6: the client will ask every 2^6 = 64 s." },
+        "precision-0": { "name": "Precision", "note": "0: not used in a request." },
+        "unused-12": { "name": "Root delay · root dispersion · reference ID", "note": "12 bytes of 0: a client has no reference to describe." },
+        "unused-24": { "name": "Reference · origin · receive timestamps", "note": "24 bytes of 0: the server fills in times like these in its reply." },
+        "t1": { "name": "Transmit timestamp", "note": "t1: when the request left, on the RTU's clock. 0xEEA01641 s is 10:41:05, and 0xC0000000 / 2^32 = 0.75 s: 10:41:05.750 000. The real time was 10:41:07.250." },
+        "first-reply": { "name": "LI · VN · Mode", "note": "0x24 = 00 100 100: LI 0 (synchronized, no leap second ahead), version 4, mode 4 (server)." },
+        "stratum-1": { "name": "Stratum", "note": "1: a primary server, set straight from a reference clock, here GPS. Its clients are stratum 2." },
+        "poll-copy": { "name": "Poll", "note": "6, copied from the request." },
+        "precision": { "name": "Precision", "note": "0xEC = −20: the clock reads time in steps of 2^−20 s, about 1 µs." },
+        "delay-root": { "name": "Root delay", "note": "0: there is no network between this clock and its reference." },
+        "dispersion": { "name": "Root dispersion", "note": "0x0000000A in 1/65536 s: 0.15 ms, the most this clock says it may be off." },
+        "refid-gps": { "name": "Reference ID", "note": "\"GPS\" in ASCII: what this stratum 1 clock follows." },
+        "reference": { "name": "Reference timestamp", "note": "When the clock was last set from GPS: 0xEEA01643 s = 10:41:07.000 UTC." },
+        "origin": { "name": "Origin timestamp", "note": "t1, copied from the request: the RTU knows that this reply answers its request." },
+        "t2": { "name": "Receive timestamp", "note": "t2: when the request arrived, 10:41:07.250 400 UTC." },
+        "t3": { "name": "Transmit timestamp", "note": "t3: when this reply left, 10:41:07.250 500 UTC, 0.1 ms after t2." },
+        "a-seconds": { "name": "Seconds", "note": "0xEEA01643 = 4003468867 seconds since 1 January 1900, 00:00 UTC: 2026-11-12 10:41:07." },
+        "a-fraction": { "name": "Fraction", "note": "0x4020C49C / 2^32 = 0.250 500 s. One step is 2^−32 s, about 0.23 ns." }
+    },
+    "devices": {
+        "antenna": "GPS antenna",
+        "clock": "GPS clock (NTP server)",
+        "switch": "Station switch",
+        "rtu": "RTU 31",
+        "scada": "SCADA"
+    },
+    "facts": {
+        "standard": "RFC 5905: NTP version 4, which also covers SNTP (first described in RFC 4330)",
+        "between": "A time server, here a GPS clock, and the devices that set their clocks from it: RTUs, relays, gateways, SCADA servers",
+        "transport": "UDP port 123, a 48-byte message",
+        "security": "None by default. NTS (Network Time Security, RFC 8915) authenticates the server with keys agreed over TLS; older devices use shared symmetric keys",
+        "speed": "About 1 ms on a station LAN, a few to tens of ms over the internet; a request every 64 to 1024 s"
+    },
+    "tips": [
+        "NTP carries UTC only. The time zone and summer time are each device's own setting: a wrong one puts every event an hour or more off, while NTP looks fine.",
+        "The offset assumes the request and the reply take equally long. A route that is slower one way, such as a busy WAN link, puts half the difference into the clock.",
+        "With two servers, a client notices when one fails, but when they disagree it cannot tell which one is right. Use one, or three and more.",
+        "Plain NTP has no authentication: a false time server can shift every time stamp in a station. Allow UDP 123 only between the clients and the station's own time servers, and use NTS where the devices support it."
+    ],
+    "points": {
+        "time": "Time on its clock",
+        "offset": "Offset θ",
+        "delay": "Round-trip delay δ",
+        "stratum": "Stratum",
+        "synced": "Synchronized"
+    },
+    "values": {
+        "reference": "reference",
+        "yes": "yes",
+        "no": "no"
+    },
+    "timing": {
+        "title": "One question, four time stamps",
+        "note": "Real time from the moment the request leaves. The request takes 0.4 ms to the GPS clock, the clock answers 0.1 ms later, and the reply takes 0.4 ms back. t1 and t4 are read on the RTU's clock, which is 1.5 s slow; t2 and t3 on the GPS clock. Offset θ = ((t2 − t1) + (t3 − t4)) / 2 = +1.5 s. Delay δ = (t4 − t1) − (t3 − t2) = 0.8 ms.",
+        "rtu": "RTU 31",
+        "clock": "GPS clock",
+        "t1": "t1: the request leaves",
+        "t2": "t2: in",
+        "t3": "t3: out",
+        "t4": "t4: the reply arrives"
+    },
+    "anatomy": {
+        "timestamp": "An NTP timestamp: seconds since 1900, and a fraction"
+    },
+    "playground": {
+        "file": "Try it: the settings of chrony, a full NTP client common on Linux-based gateways and HMIs. Unlike an SNTP client, it asks several servers, filters their answers and slews the clock (runs it a little faster or slower) instead of jumping.",
+        "servers": "The station's first GPS clock, asked every 2^6 = 64 s. iburst: at start, the first four requests go 2 s apart, so the clock is set within seconds.",
+        "second": "The second GPS clock. With two servers chrony notices when one fails; when they disagree, it cannot tell which is right.",
+        "makestep": "If the clock is more than 1 s off in the first 3 updates, set it at once. After that, only slew it, so time never jumps backwards in the event log.",
+        "distance": "Ignore a server whose root distance (half its root delay plus its root dispersion) is above 0.1 s: it cannot vouch for its time well enough.",
+        "rtc": "Copy the system time to the battery-backed hardware clock (RTC) every 11 minutes, so the time survives a power cut.",
+        "drift": "Remember how fast the local clock runs, so that after a restart it starts close.",
+        "leap": "Read leap seconds from the system's time zone files, in case the servers do not announce them.",
+        "serve": "Give the time to the station LAN too: chrony is a server as well as a client."
+    }
+}

@@ -1,0 +1,102 @@
+{
+    "intro": "NTP (Network Time Protocol) regola l'orologio di un dispositivo su un server dell'ora, attraverso la rete. In una sottostazione il server è un orologio GPS, e i client sono RTU (unità terminali remote: le scatole che riportano i segnali di un impianto), relè, gateway e server SCADA. SNTP (Simple NTP) invia lo stesso messaggio di 48 byte, ma il suo client chiede a un solo server e prende la risposta così com'è. Quattro marche temporali, due nella domanda e due nella risposta, permettono al client di calcolare di quanto sbaglia il suo orologio e quanto tempo ha impiegato la rete. Sulla LAN di una stazione si arriva a circa un millisecondo: abbastanza per ordinare gli eventi, non per i valori campionati.",
+    "plain": "Ogni dispositivo di una sottostazione ha il suo orologio, e ogni orologio deriva un poco. NTP è come chiamare l'ora esatta al telefono: un dispositivo chiede l'ora a un orologio principale, regolato via satellite. Annota anche quando ha chiesto e quando è arrivata la risposta, così può togliere il tempo della chiamata. Poi regola il proprio orologio, e gli eventi registrati da dispositivi diversi si mettono nell'ordine giusto.",
+    "steps": {
+        "ask": { "title": "Chiedere l'ora", "text": "Dopo un'interruzione di corrente, l'orologio della RTU è indietro di 1,5 s. Invia una richiesta SNTP all'orologio GPS, sulla porta UDP 123, e ci scrive l'ora del proprio orologio quando la richiesta parte: t1 = 10:41:05.750. L'ora vera è 10:41:07.250." },
+        "answer": { "title": "Ottenere quattro ore", "text": "L'orologio GPS annota quando è arrivata la richiesta, t2, e quando parte la sua risposta, t3. Ricopia t1, così la RTU può abbinare la risposta alla sua richiesta. La RTU annota quando arriva la risposta, t4. Il suo orologio è sbagliato, ma non importa: contano solo le differenze." },
+        "correct": { "title": "Regolare l'orologio", "text": "La RTU calcola il suo offset, di quanto sbaglia il suo orologio: θ = ((t2 − t1) + (t3 − t4)) / 2 = +1,500 s. E il ritardo di andata e ritorno: δ = (t4 − t1) − (t3 − t2) = 0,8 ms. Porta avanti il suo orologio di 1,5 s. Richiede ogni 64 s, e la risposta successiva la trova sbagliata di soli 0,08 ms." },
+        "lost": { "title": "Il GPS si perde", "text": "Più tardi, il cavo dell'antenna GPS viene tagliato. L'orologio GPS mantiene l'ora con il proprio oscillatore per un po' (holdover). Quando non può più garantire la sua ora, le risposte lo dicono: indicatore di salto 3, non sincronizzato. La RTU smette di seguirlo, va avanti con il proprio orologio e avvisa lo SCADA che la sua ora non è più sincronizzata." }
+    },
+    "frames": {
+        "request": "Che ore sono? Ho inviato questo a t1",
+        "reply": "Il tuo t1, i miei t2 e t3: sono le 10:41:07.250 500",
+        "next": "La stessa domanda, 64 s dopo",
+        "next-reply": "Di nuovo le quattro ore",
+        "unsync": "La mia ora non è affidabile: LI 3",
+        "alarm": "Sincronizzazione oraria persa"
+    },
+    "notes": {
+        "next": "La stessa richiesta con un nuovo t1. La RTU chiede ogni 2^6 = 64 s, come diceva il suo campo poll.",
+        "next-reply": "Ora θ = +0,08 ms: tanto è derivato l'orologio della RTU in 64 s. Lo corregge un poco a ogni risposta.",
+        "unsync": "Il primo byte è 0xE4 = 11 100 100: LI 3 significa che l'orologio non è sincronizzato, con versione 4 e modo 4 come prima. Un client non deve regolare l'orologio su una risposta così.",
+        "alarm": "Un punto singolo IEC 104 con marca temporale (M_SP_TB_1), non NTP: la lezione IEC 60870-5-104 mostra byte di questo tipo. Lo SCADA ora sa che le marche temporali di questa RTU possono derivare."
+    },
+    "fields": {
+        "first-request": { "name": "LI · VN · Mode", "note": "0x23 = 00 100 011: LI 0 (nessun secondo intercalare in arrivo), versione 4, modo 3 (client)." },
+        "stratum-0": { "name": "Stratum", "note": "0: non usato in una richiesta." },
+        "poll": { "name": "Poll", "note": "6: il client chiederà ogni 2^6 = 64 s." },
+        "precision-0": { "name": "Precision", "note": "0: non usato in una richiesta." },
+        "unused-12": { "name": "Root delay · root dispersion · reference ID", "note": "12 byte a 0: un client non ha un riferimento da descrivere." },
+        "unused-24": { "name": "Marche reference · origin · receive", "note": "24 byte a 0: il server riempie ore come queste nella sua risposta." },
+        "t1": { "name": "Transmit timestamp", "note": "t1: quando è partita la richiesta, secondo l'orologio della RTU. 0xEEA01641 s sono le 10:41:05, e 0xC0000000 / 2^32 = 0,75 s: 10:41:05.750 000. L'ora vera era 10:41:07.250." },
+        "first-reply": { "name": "LI · VN · Mode", "note": "0x24 = 00 100 100: LI 0 (sincronizzato, nessun secondo intercalare in arrivo), versione 4, modo 4 (server)." },
+        "stratum-1": { "name": "Stratum", "note": "1: un server primario, regolato direttamente da un orologio di riferimento, qui il GPS. I suoi client sono di strato 2." },
+        "poll-copy": { "name": "Poll", "note": "6, ricopiato dalla richiesta." },
+        "precision": { "name": "Precision", "note": "0xEC = −20: l'orologio legge l'ora a passi di 2^−20 s, circa 1 µs." },
+        "delay-root": { "name": "Root delay", "note": "0: non c'è rete tra questo orologio e il suo riferimento." },
+        "dispersion": { "name": "Root dispersion", "note": "0x0000000A in 1/65536 s: 0,15 ms, il massimo di cui questo orologio dice di poter sbagliare." },
+        "refid-gps": { "name": "Reference ID", "note": "\"GPS\" in ASCII: ciò che segue questo orologio di strato 1." },
+        "reference": { "name": "Reference timestamp", "note": "Quando l'orologio è stato regolato dal GPS l'ultima volta: 0xEEA01643 s = 10:41:07.000 UTC." },
+        "origin": { "name": "Origin timestamp", "note": "t1, ricopiato dalla richiesta: la RTU sa che questa risposta risponde alla sua richiesta." },
+        "t2": { "name": "Receive timestamp", "note": "t2: quando è arrivata la richiesta, 10:41:07.250 400 UTC." },
+        "t3": { "name": "Transmit timestamp", "note": "t3: quando è partita questa risposta, 10:41:07.250 500 UTC, 0,1 ms dopo t2." },
+        "a-seconds": { "name": "Secondi", "note": "0xEEA01643 = 4003468867 secondi dal 1º gennaio 1900, 00:00 UTC: 2026-11-12 10:41:07." },
+        "a-fraction": { "name": "Frazione", "note": "0x4020C49C / 2^32 = 0,250 500 s. Un passo è 2^−32 s, circa 0,23 ns." }
+    },
+    "devices": {
+        "antenna": "Antenna GPS",
+        "clock": "Orologio GPS (server NTP)",
+        "switch": "Switch di stazione",
+        "rtu": "RTU 31",
+        "scada": "SCADA"
+    },
+    "facts": {
+        "standard": "RFC 5905: NTP versione 4, che copre anche SNTP (descritto prima nella RFC 4330)",
+        "between": "Un server dell'ora, qui un orologio GPS, e i dispositivi che regolano l'orologio su di esso: RTU, relè, gateway, server SCADA",
+        "transport": "Porta UDP 123, un messaggio di 48 byte",
+        "security": "Nessuna di default. NTS (Network Time Security, RFC 8915) autentica il server con chiavi concordate via TLS; i dispositivi più vecchi usano chiavi simmetriche condivise",
+        "speed": "Circa 1 ms sulla LAN di stazione, da pochi a decine di ms su internet; una richiesta ogni 64-1024 s"
+    },
+    "tips": [
+        "NTP porta solo l'UTC. Il fuso orario e l'ora legale sono un'impostazione di ogni dispositivo: una sbagliata sposta ogni evento di un'ora o più, mentre NTP sembra a posto.",
+        "L'offset presuppone che richiesta e risposta impieghino lo stesso tempo. Un percorso più lento in un senso, come un collegamento WAN carico, mette metà della differenza nell'orologio.",
+        "Con due server, un client si accorge se uno si guasta, ma se non concordano non può sapere quale ha ragione. Usatene uno, o tre e più.",
+        "NTP puro non ha autenticazione: un falso server dell'ora può spostare ogni marca temporale di una stazione. Consentite UDP 123 solo tra i client e i server dell'ora propri della stazione, e usate NTS dove i dispositivi lo supportano."
+    ],
+    "points": {
+        "time": "Ora sul suo orologio",
+        "offset": "Offset θ",
+        "delay": "Ritardo di andata e ritorno δ",
+        "stratum": "Strato",
+        "synced": "Sincronizzato"
+    },
+    "values": {
+        "reference": "riferimento",
+        "yes": "sì",
+        "no": "no"
+    },
+    "timing": {
+        "title": "Una domanda, quattro marche temporali",
+        "note": "Tempo reale dal momento in cui parte la richiesta. La richiesta impiega 0,4 ms fino all'orologio GPS, l'orologio risponde 0,1 ms dopo e la risposta impiega 0,4 ms per tornare. t1 e t4 si leggono sull'orologio della RTU, indietro di 1,5 s; t2 e t3 sull'orologio GPS. Offset θ = ((t2 − t1) + (t3 − t4)) / 2 = +1,5 s. Ritardo δ = (t4 − t1) − (t3 − t2) = 0,8 ms.",
+        "rtu": "RTU 31",
+        "clock": "Orologio GPS",
+        "t1": "t1: parte la richiesta",
+        "t2": "t2: entra",
+        "t3": "t3: esce",
+        "t4": "t4: arriva la risposta"
+    },
+    "anatomy": {
+        "timestamp": "Una marca temporale NTP: secondi dal 1900 e una frazione"
+    },
+    "playground": {
+        "file": "Provate: le impostazioni di chrony, un client NTP completo, diffuso su gateway e HMI basati su Linux. A differenza di un client SNTP, chiede a più server, filtra le risposte e fa scorrere l'orologio (lo fa andare un po' più veloce o più lento) invece di farlo saltare.",
+        "servers": "Il primo orologio GPS della stazione, interrogato ogni 2^6 = 64 s. iburst: all'avvio le prime quattro richieste partono a 2 s l'una dall'altra, così l'orologio è regolato in pochi secondi.",
+        "second": "Il secondo orologio GPS. Con due server chrony si accorge se uno si guasta; se non concordano, non può dire quale ha ragione.",
+        "makestep": "Se l'orologio sbaglia di più di 1 s nei primi 3 aggiornamenti, regolarlo subito. Dopo, solo farlo scorrere, così l'ora non salta mai indietro nel registro eventi.",
+        "distance": "Ignorare un server la cui root distance (metà del suo root delay più la sua root dispersion) supera 0,1 s: non può garantire abbastanza la sua ora.",
+        "rtc": "Copiare l'ora di sistema nell'orologio hardware a batteria (RTC) ogni 11 minuti, così l'ora sopravvive a un'interruzione di corrente.",
+        "drift": "Ricordare quanto corre l'orologio locale, così dopo un riavvio parte vicino.",
+        "leap": "Leggere i secondi intercalari dai file dei fusi orari del sistema, nel caso i server non li annuncino.",
+        "serve": "Dare l'ora anche alla LAN di stazione: chrony è server oltre che client."
+    }
+}

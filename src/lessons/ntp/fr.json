@@ -1,0 +1,102 @@
+{
+    "intro": "NTP (Network Time Protocol) règle l'horloge d'un équipement sur un serveur de temps, par le réseau. Dans un poste électrique, le serveur est une horloge GPS, et les clients sont des RTU (unités terminales distantes : les boîtiers qui remontent les signaux d'un site), des relais, des passerelles et des serveurs SCADA. SNTP (Simple NTP) envoie le même message de 48 octets, mais son client interroge un seul serveur et prend la réponse telle quelle. Quatre horodatages, deux dans la question et deux dans la réponse, permettent au client de calculer de combien son horloge est décalée et combien de temps le réseau a pris. Sur le LAN d'un poste, on atteint environ une milliseconde : assez pour ordonner des événements, pas assez pour les valeurs échantillonnées.",
+    "plain": "Chaque équipement d'un poste électrique a sa propre horloge, et chaque horloge dérive un peu. NTP, c'est comme appeler l'horloge parlante : un équipement demande l'heure à une horloge maîtresse, réglée par satellite. Il note aussi quand il a demandé et quand la réponse est arrivée, pour tenir compte de la durée de l'appel. Puis il règle sa propre horloge, et les événements enregistrés par différents équipements se rangent dans le bon ordre.",
+    "steps": {
+        "ask": { "title": "Demander l'heure", "text": "Après une coupure de courant, l'horloge de la RTU retarde de 1,5 s. Elle envoie une requête SNTP à l'horloge GPS, sur le port UDP 123, et y écrit l'heure de sa propre horloge au départ de la requête : t1 = 10:41:05.750. L'heure réelle est 10:41:07.250." },
+        "answer": { "title": "Obtenir quatre heures", "text": "L'horloge GPS note quand la requête est arrivée, t2, et quand sa réponse part, t3. Elle recopie t1, pour que la RTU puisse associer la réponse à sa requête. La RTU note quand la réponse arrive, t4. Sa propre horloge est fausse, mais peu importe : seules les différences comptent." },
+        "correct": { "title": "Régler l'horloge", "text": "La RTU calcule son décalage, de combien son horloge est fausse : θ = ((t2 − t1) + (t3 − t4)) / 2 = +1,500 s. Et le délai aller-retour : δ = (t4 − t1) − (t3 − t2) = 0,8 ms. Elle avance son horloge de 1,5 s. Elle redemande toutes les 64 s, et la réponse suivante ne la trouve décalée que de 0,08 ms." },
+        "lost": { "title": "Le GPS est perdu", "text": "Plus tard, le câble de l'antenne GPS est coupé. L'horloge GPS garde l'heure avec son propre oscillateur pendant un moment (holdover). Quand elle ne peut plus garantir son heure, ses réponses le disent : indicateur de saut 3, non synchronisée. La RTU cesse de la suivre, tourne sur sa propre horloge et signale à SCADA que son heure n'est plus synchronisée." }
+    },
+    "frames": {
+        "request": "Quelle heure est-il ? J'ai envoyé ceci à t1",
+        "reply": "Ton t1, mes t2 et t3 : il est 10:41:07.250 500",
+        "next": "La même question, 64 s plus tard",
+        "next-reply": "Les quatre heures, de nouveau",
+        "unsync": "Mon heure n'est pas fiable : LI 3",
+        "alarm": "Synchronisation horaire perdue"
+    },
+    "notes": {
+        "next": "La même requête avec un nouveau t1. La RTU demande toutes les 2^6 = 64 s, comme le disait son champ poll.",
+        "next-reply": "Maintenant θ = +0,08 ms : c'est la dérive de l'horloge de la RTU en 64 s. Elle la corrige un peu à chaque réponse.",
+        "unsync": "Le premier octet vaut 0xE4 = 11 100 100 : LI 3 signifie que l'horloge n'est pas synchronisée, avec la version 4 et le mode 4 comme avant. Un client ne doit pas régler son horloge sur une telle réponse.",
+        "alarm": "Une signalisation simple IEC 104 horodatée (M_SP_TB_1), pas du NTP : la leçon IEC 60870-5-104 montre de tels octets. SCADA sait maintenant que les horodatages de cette RTU peuvent dériver."
+    },
+    "fields": {
+        "first-request": { "name": "LI · VN · Mode", "note": "0x23 = 00 100 011 : LI 0 (pas de seconde intercalaire à venir), version 4, mode 3 (client)." },
+        "stratum-0": { "name": "Stratum", "note": "0 : inutilisé dans une requête." },
+        "poll": { "name": "Poll", "note": "6 : le client demandera toutes les 2^6 = 64 s." },
+        "precision-0": { "name": "Precision", "note": "0 : inutilisé dans une requête." },
+        "unused-12": { "name": "Root delay · root dispersion · reference ID", "note": "12 octets à 0 : un client n'a pas de référence à décrire." },
+        "unused-24": { "name": "Horodatages reference · origin · receive", "note": "24 octets à 0 : le serveur remplit de telles heures dans sa réponse." },
+        "t1": { "name": "Transmit timestamp", "note": "t1 : quand la requête est partie, selon l'horloge de la RTU. 0xEEA01641 s, c'est 10:41:05, et 0xC0000000 / 2^32 = 0,75 s : 10:41:05.750 000. L'heure réelle était 10:41:07.250." },
+        "first-reply": { "name": "LI · VN · Mode", "note": "0x24 = 00 100 100 : LI 0 (synchronisée, pas de seconde intercalaire à venir), version 4, mode 4 (serveur)." },
+        "stratum-1": { "name": "Stratum", "note": "1 : un serveur primaire, réglé directement sur une horloge de référence, ici le GPS. Ses clients sont de strate 2." },
+        "poll-copy": { "name": "Poll", "note": "6, recopié de la requête." },
+        "precision": { "name": "Precision", "note": "0xEC = −20 : l'horloge lit l'heure par pas de 2^−20 s, environ 1 µs." },
+        "delay-root": { "name": "Root delay", "note": "0 : il n'y a pas de réseau entre cette horloge et sa référence." },
+        "dispersion": { "name": "Root dispersion", "note": "0x0000000A en 1/65536 s : 0,15 ms, l'écart maximal que cette horloge s'attribue." },
+        "refid-gps": { "name": "Reference ID", "note": "« GPS » en ASCII : ce que suit cette horloge de strate 1." },
+        "reference": { "name": "Reference timestamp", "note": "Quand l'horloge a été réglée sur le GPS pour la dernière fois : 0xEEA01643 s = 10:41:07.000 UTC." },
+        "origin": { "name": "Origin timestamp", "note": "t1, recopié de la requête : la RTU sait que cette réponse répond à sa requête." },
+        "t2": { "name": "Receive timestamp", "note": "t2 : quand la requête est arrivée, 10:41:07.250 400 UTC." },
+        "t3": { "name": "Transmit timestamp", "note": "t3 : quand cette réponse est partie, 10:41:07.250 500 UTC, 0,1 ms après t2." },
+        "a-seconds": { "name": "Secondes", "note": "0xEEA01643 = 4003468867 secondes depuis le 1er janvier 1900, 00:00 UTC : 2026-11-12 10:41:07." },
+        "a-fraction": { "name": "Fraction", "note": "0x4020C49C / 2^32 = 0,250 500 s. Un pas vaut 2^−32 s, environ 0,23 ns." }
+    },
+    "devices": {
+        "antenna": "Antenne GPS",
+        "clock": "Horloge GPS (serveur NTP)",
+        "switch": "Switch du poste",
+        "rtu": "RTU 31",
+        "scada": "SCADA"
+    },
+    "facts": {
+        "standard": "RFC 5905 : NTP version 4, qui couvre aussi SNTP (décrit d'abord dans la RFC 4330)",
+        "between": "Un serveur de temps, ici une horloge GPS, et les équipements qui règlent leur horloge sur lui : RTU, relais, passerelles, serveurs SCADA",
+        "transport": "Port UDP 123, un message de 48 octets",
+        "security": "Aucune par défaut. NTS (Network Time Security, RFC 8915) authentifie le serveur avec des clés convenues par TLS ; les équipements plus anciens utilisent des clés symétriques partagées",
+        "speed": "Environ 1 ms sur le LAN du poste, de quelques ms à quelques dizaines de ms par internet ; une requête toutes les 64 à 1024 s"
+    },
+    "tips": [
+        "NTP ne transporte que l'UTC. Le fuseau horaire et l'heure d'été sont un réglage de chaque équipement : un réglage faux décale chaque événement d'une heure ou plus, alors que NTP semble fonctionner.",
+        "Le décalage suppose que la requête et la réponse prennent autant de temps. Un trajet plus lent dans un sens, comme une liaison WAN chargée, met la moitié de la différence dans l'horloge.",
+        "Avec deux serveurs, un client voit quand l'un tombe en panne, mais s'ils ne sont pas d'accord, il ne peut pas savoir lequel a raison. Utilisez-en un, ou trois et plus.",
+        "NTP seul n'a pas d'authentification : un faux serveur de temps peut décaler chaque horodatage d'un poste. N'autorisez UDP 123 qu'entre les clients et les serveurs de temps propres au poste, et utilisez NTS là où les équipements le permettent."
+    ],
+    "points": {
+        "time": "Heure sur son horloge",
+        "offset": "Décalage θ",
+        "delay": "Délai aller-retour δ",
+        "stratum": "Strate",
+        "synced": "Synchronisée"
+    },
+    "values": {
+        "reference": "référence",
+        "yes": "oui",
+        "no": "non"
+    },
+    "timing": {
+        "title": "Une question, quatre horodatages",
+        "note": "Temps réel à partir du départ de la requête. La requête met 0,4 ms jusqu'à l'horloge GPS, l'horloge répond 0,1 ms plus tard, et la réponse met 0,4 ms pour revenir. t1 et t4 se lisent sur l'horloge de la RTU, qui retarde de 1,5 s ; t2 et t3 sur l'horloge GPS. Décalage θ = ((t2 − t1) + (t3 − t4)) / 2 = +1,5 s. Délai δ = (t4 − t1) − (t3 − t2) = 0,8 ms.",
+        "rtu": "RTU 31",
+        "clock": "Horloge GPS",
+        "t1": "t1 : la requête part",
+        "t2": "t2 : entrée",
+        "t3": "t3 : sortie",
+        "t4": "t4 : la réponse arrive"
+    },
+    "anatomy": {
+        "timestamp": "Un horodatage NTP : des secondes depuis 1900, et une fraction"
+    },
+    "playground": {
+        "file": "Essayez : les réglages de chrony, un client NTP complet, courant sur les passerelles et IHM sous Linux. Contrairement à un client SNTP, il interroge plusieurs serveurs, filtre leurs réponses et fait glisser l'horloge (la fait tourner un peu plus vite ou plus lentement) au lieu de la faire sauter.",
+        "servers": "La première horloge GPS du poste, interrogée toutes les 2^6 = 64 s. iburst : au démarrage, les quatre premières requêtes partent à 2 s d'intervalle, pour régler l'horloge en quelques secondes.",
+        "second": "La deuxième horloge GPS. Avec deux serveurs, chrony voit quand l'un tombe en panne ; s'ils ne sont pas d'accord, il ne peut pas dire lequel a raison.",
+        "makestep": "Si l'horloge est décalée de plus de 1 s lors des 3 premières mises à jour, la régler d'un coup. Ensuite, seulement la faire glisser, pour que l'heure ne recule jamais dans le journal des événements.",
+        "distance": "Ignorer un serveur dont la root distance (la moitié de son root delay plus sa root dispersion) dépasse 0,1 s : il ne peut pas assez garantir son heure.",
+        "rtc": "Copier l'heure système dans l'horloge matérielle sur pile (RTC) toutes les 11 minutes, pour que l'heure survive à une coupure de courant.",
+        "drift": "Retenir à quelle vitesse tourne l'horloge locale, pour qu'après un redémarrage elle parte de près.",
+        "leap": "Lire les secondes intercalaires dans les fichiers de fuseaux horaires du système, au cas où les serveurs ne les annoncent pas.",
+        "serve": "Donner aussi l'heure au LAN du poste : chrony est serveur autant que client."
+    }
+}

@@ -1,0 +1,102 @@
+{
+    "intro": "O NTP (Network Time Protocol) acerta o relógio de um equipamento por um servidor de tempo, pela rede. Numa subestação o servidor é um relógio GPS, e os clientes são RTUs (unidades terminais remotas: as caixas que informam os sinais de uma instalação), relés, gateways e servidores SCADA. O SNTP (Simple NTP) envia a mesma mensagem de 48 bytes, mas o seu cliente pergunta a um só servidor e aceita a resposta como vem. Quatro etiquetas de tempo, duas na pergunta e duas na resposta, deixam o cliente calcular quanto o seu relógio está errado e quanto tempo a rede levou. Na LAN de uma subestação chega-se a cerca de um milissegundo: o bastante para pôr eventos em ordem, não para valores amostrados.",
+    "plain": "Cada equipamento de uma subestação tem o seu próprio relógio, e todo relógio se desvia um pouco. O NTP é como ligar para a hora certa: um equipamento pergunta a hora a um relógio mestre, acertado por satélite. Ele também anota quando perguntou e quando a resposta chegou, para descontar quanto durou a ligação. Depois acerta o seu próprio relógio, e os eventos gravados por equipamentos diferentes ficam na ordem certa.",
+    "steps": {
+        "ask": { "title": "Perguntar a hora", "text": "Depois de uma falta de energia, o relógio da RTU está 1,5 s atrasado. Ela envia um pedido SNTP ao relógio GPS, pela porta UDP 123, e escreve nele a hora do seu próprio relógio quando o pedido sai: t1 = 10:41:05.750. A hora real é 10:41:07.250." },
+        "answer": { "title": "Receber quatro horas", "text": "O relógio GPS anota quando o pedido chegou, t2, e quando a sua resposta sai, t3. Copia t1 de volta, para a RTU poder casar a resposta com o seu pedido. A RTU anota quando a resposta chega, t4. O seu próprio relógio está errado, mas não faz mal: só as diferenças contam." },
+        "correct": { "title": "Acertar o relógio", "text": "A RTU calcula o seu desvio, quanto o seu relógio está errado: θ = ((t2 − t1) + (t3 − t4)) / 2 = +1,500 s. E o atraso de ida e volta: δ = (t4 − t1) − (t3 − t2) = 0,8 ms. Adianta o seu relógio em 1,5 s. Pergunta de novo a cada 64 s, e a resposta seguinte a encontra desviada só 0,08 ms." },
+        "lost": { "title": "O GPS se perde", "text": "Mais tarde, o cabo da antena GPS é cortado. O relógio GPS mantém a hora com o seu próprio oscilador por um tempo (holdover). Quando já não pode garantir a sua hora, as suas respostas dizem isso: indicador de salto 3, não sincronizado. A RTU deixa de segui-lo, funciona com o seu próprio relógio e avisa o SCADA de que a sua hora já não está sincronizada." }
+    },
+    "frames": {
+        "request": "Que horas são? Enviei isto em t1",
+        "reply": "Seu t1, meu t2 e t3: são 10:41:07.250 500",
+        "next": "A mesma pergunta, 64 s depois",
+        "next-reply": "As quatro horas de novo",
+        "unsync": "Não confie na minha hora: LI 3",
+        "alarm": "Sincronização de hora perdida"
+    },
+    "notes": {
+        "next": "O mesmo pedido com um novo t1. A RTU pergunta a cada 2^6 = 64 s, como dizia o seu campo poll.",
+        "next-reply": "Agora θ = +0,08 ms: foi o quanto o relógio da RTU se desviou em 64 s. Ela o corrige um pouco a cada resposta.",
+        "unsync": "O primeiro byte é 0xE4 = 11 100 100: LI 3 quer dizer que o relógio não está sincronizado, com versão 4 e modo 4 como antes. Um cliente não deve acertar o relógio por uma resposta assim.",
+        "alarm": "Um ponto simples IEC 104 com etiqueta de tempo (M_SP_TB_1), não NTP: a lição IEC 60870-5-104 mostra bytes assim. O SCADA agora sabe que as etiquetas de tempo desta RTU podem se desviar."
+    },
+    "fields": {
+        "first-request": { "name": "LI · VN · Mode", "note": "0x23 = 00 100 011: LI 0 (nenhum segundo intercalar à frente), versão 4, modo 3 (cliente)." },
+        "stratum-0": { "name": "Stratum", "note": "0: não é usado num pedido." },
+        "poll": { "name": "Poll", "note": "6: o cliente vai perguntar a cada 2^6 = 64 s." },
+        "precision-0": { "name": "Precision", "note": "0: não é usado num pedido." },
+        "unused-12": { "name": "Root delay · root dispersion · reference ID", "note": "12 bytes a 0: um cliente não tem referência a descrever." },
+        "unused-24": { "name": "Etiquetas reference · origin · receive", "note": "24 bytes a 0: o servidor preenche horas como estas na sua resposta." },
+        "t1": { "name": "Transmit timestamp", "note": "t1: quando o pedido saiu, pelo relógio da RTU. 0xEEA01641 s são 10:41:05, e 0xC0000000 / 2^32 = 0,75 s: 10:41:05.750 000. A hora real era 10:41:07.250." },
+        "first-reply": { "name": "LI · VN · Mode", "note": "0x24 = 00 100 100: LI 0 (sincronizado, nenhum segundo intercalar à frente), versão 4, modo 4 (servidor)." },
+        "stratum-1": { "name": "Stratum", "note": "1: um servidor primário, acertado direto por um relógio de referência, aqui o GPS. Os seus clientes são estrato 2." },
+        "poll-copy": { "name": "Poll", "note": "6, copiado do pedido." },
+        "precision": { "name": "Precision", "note": "0xEC = −20: o relógio lê a hora em passos de 2^−20 s, cerca de 1 µs." },
+        "delay-root": { "name": "Root delay", "note": "0: não há rede entre este relógio e a sua referência." },
+        "dispersion": { "name": "Root dispersion", "note": "0x0000000A em 1/65536 s: 0,15 ms, o máximo que este relógio diz que pode estar errado." },
+        "refid-gps": { "name": "Reference ID", "note": "\"GPS\" em ASCII: o que este relógio de estrato 1 segue." },
+        "reference": { "name": "Reference timestamp", "note": "Quando o relógio foi acertado pelo GPS pela última vez: 0xEEA01643 s = 10:41:07.000 UTC." },
+        "origin": { "name": "Origin timestamp", "note": "t1, copiado do pedido: a RTU sabe que esta resposta responde ao seu pedido." },
+        "t2": { "name": "Receive timestamp", "note": "t2: quando o pedido chegou, 10:41:07.250 400 UTC." },
+        "t3": { "name": "Transmit timestamp", "note": "t3: quando esta resposta saiu, 10:41:07.250 500 UTC, 0,1 ms depois de t2." },
+        "a-seconds": { "name": "Segundos", "note": "0xEEA01643 = 4003468867 segundos desde 1 de janeiro de 1900, 00:00 UTC: 2026-11-12 10:41:07." },
+        "a-fraction": { "name": "Fração", "note": "0x4020C49C / 2^32 = 0,250 500 s. Um passo é 2^−32 s, cerca de 0,23 ns." }
+    },
+    "devices": {
+        "antenna": "Antena GPS",
+        "clock": "Relógio GPS (servidor NTP)",
+        "switch": "Switch da subestação",
+        "rtu": "RTU 31",
+        "scada": "SCADA"
+    },
+    "facts": {
+        "standard": "RFC 5905: NTP versão 4, que também cobre o SNTP (descrito primeiro na RFC 4330)",
+        "between": "Um servidor de tempo, aqui um relógio GPS, e os equipamentos que acertam o relógio por ele: RTUs, relés, gateways, servidores SCADA",
+        "transport": "Porta UDP 123, uma mensagem de 48 bytes",
+        "security": "Nenhuma por padrão. O NTS (Network Time Security, RFC 8915) autentica o servidor com chaves combinadas por TLS; equipamentos mais antigos usam chaves simétricas compartilhadas",
+        "speed": "Cerca de 1 ms na LAN da subestação, de alguns a dezenas de ms pela internet; um pedido a cada 64 a 1024 s"
+    },
+    "tips": [
+        "O NTP só leva UTC. O fuso horário e o horário de verão são um ajuste de cada equipamento: um ajuste errado desloca cada evento uma hora ou mais, enquanto o NTP parece certo.",
+        "O desvio supõe que o pedido e a resposta levam o mesmo tempo. Um caminho mais lento num sentido, como um enlace WAN carregado, põe metade da diferença no relógio.",
+        "Com dois servidores, um cliente percebe quando um falha, mas, se discordam, não consegue saber qual tem razão. Use um, ou três ou mais.",
+        "O NTP simples não tem autenticação: um servidor de tempo falso pode deslocar cada etiqueta de tempo de uma subestação. Libere UDP 123 só entre os clientes e os servidores de tempo da própria subestação, e use NTS onde os equipamentos suportarem."
+    ],
+    "points": {
+        "time": "Hora no seu relógio",
+        "offset": "Desvio θ",
+        "delay": "Atraso de ida e volta δ",
+        "stratum": "Estrato",
+        "synced": "Sincronizado"
+    },
+    "values": {
+        "reference": "referência",
+        "yes": "sim",
+        "no": "não"
+    },
+    "timing": {
+        "title": "Uma pergunta, quatro etiquetas de tempo",
+        "note": "Tempo real a partir do momento em que o pedido sai. O pedido leva 0,4 ms até o relógio GPS, o relógio responde 0,1 ms depois, e a resposta leva 0,4 ms para voltar. t1 e t4 são lidos no relógio da RTU, 1,5 s atrasado; t2 e t3 no relógio GPS. Desvio θ = ((t2 − t1) + (t3 − t4)) / 2 = +1,5 s. Atraso δ = (t4 − t1) − (t3 − t2) = 0,8 ms.",
+        "rtu": "RTU 31",
+        "clock": "Relógio GPS",
+        "t1": "t1: o pedido sai",
+        "t2": "t2: entra",
+        "t3": "t3: sai",
+        "t4": "t4: a resposta chega"
+    },
+    "anatomy": {
+        "timestamp": "Uma etiqueta de tempo NTP: segundos desde 1900 e uma fração"
+    },
+    "playground": {
+        "file": "Experimente: os ajustes do chrony, um cliente NTP completo, comum em gateways e IHMs com Linux. Ao contrário de um cliente SNTP, ele pergunta a vários servidores, filtra as respostas e ajusta o relógio aos poucos (faz ele andar um pouco mais rápido ou mais devagar) em vez de saltar.",
+        "servers": "O primeiro relógio GPS da subestação, consultado a cada 2^6 = 64 s. iburst: ao iniciar, os quatro primeiros pedidos saem a 2 s um do outro, para o relógio ficar certo em segundos.",
+        "second": "O segundo relógio GPS. Com dois servidores o chrony percebe quando um falha; se discordam, não consegue dizer qual tem razão.",
+        "makestep": "Se o relógio estiver mais de 1 s errado nas 3 primeiras atualizações, acertá-lo de uma vez. Depois, só ajustá-lo aos poucos, para a hora nunca saltar para trás no registro de eventos.",
+        "distance": "Ignorar um servidor cuja root distance (metade do seu root delay mais a sua root dispersion) passe de 0,1 s: ele não consegue garantir a sua hora o bastante.",
+        "rtc": "Copiar a hora do sistema para o relógio de hardware com bateria (RTC) a cada 11 minutos, para a hora sobreviver a uma falta de energia.",
+        "drift": "Lembrar a que ritmo anda o relógio local, para que depois de um reinício ele comece perto.",
+        "leap": "Ler os segundos intercalares dos arquivos de fusos horários do sistema, caso os servidores não os anunciem.",
+        "serve": "Dar a hora também à LAN da subestação: o chrony é servidor além de cliente."
+    }
+}

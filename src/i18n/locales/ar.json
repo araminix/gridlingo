@@ -203,6 +203,8 @@
     "lesson.r-goose.where": "بين محطات التحويل",
     "lesson.irig-b.summary": "رمز التوقيت الكلاسيكي عبر كبل",
     "lesson.irig-b.where": "ساعات GPS ومرحّلات الحماية",
+    "lesson.ntp.summary": "ضبط كل ساعة من خادم وقت",
+    "lesson.ntp.where": "وحدات RTU، المرحّلات، خوادم SCADA",
     "lesson.iec-104.summary": "من RTU إلى SCADA عبر TCP/IP",
     "lesson.iec-104.where": "وحدات RTU والبوابات ووحدات تحكم المحطات",
     "lesson.iec-101.summary": "التحكم عن بُعد نفسه، عبر الخطوط التسلسلية والوصلات اللاسلكية",

@@ -203,6 +203,8 @@
     "lesson.r-goose.where": "Tra sottostazioni",
     "lesson.irig-b.summary": "Il classico codice orario su cavo",
     "lesson.irig-b.where": "Orologi GPS, relè di protezione",
+    "lesson.ntp.summary": "Regolare ogni orologio su un server di tempo",
+    "lesson.ntp.where": "RTU, relè, server SCADA",
     "lesson.iec-104.summary": "Da RTU a SCADA su TCP/IP",
     "lesson.iec-104.where": "RTU, gateway, controllori d'impianto",
     "lesson.iec-101.summary": "Lo stesso telecontrollo, su linee seriali e radio",

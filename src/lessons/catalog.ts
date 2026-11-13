@@ -13,6 +13,7 @@ export const CATALOG: readonly Meta[] = [
     { id: "ptp", name: "PTP power profile", group: "substation", devices: ["clock", "merging-unit", "relay"], wire: "Ethernet · 0x88F7" },
     { id: "r-goose", name: "R-GOOSE / R-SV", group: "substation", devices: ["relay"], wire: "UDP 102" },
     { id: "irig-b", name: "IRIG-B", group: "substation", devices: ["clock", "relay"], wire: "Coax · twisted pair" },
+    { id: "ntp", name: "NTP / SNTP", group: "substation", devices: ["clock", "rtu", "scada"], wire: "UDP 123" },
 
     { id: "iec-104", name: "IEC 60870-5-104", group: "control", devices: ["rtu", "scada", "gateway"], wire: "TCP 2404 · TLS 19998" },
     { id: "iec-101", name: "IEC 60870-5-101", group: "control", devices: ["rtu", "scada", "radio"], wire: "Serial · FT 1.2" },

@@ -203,6 +203,8 @@
     "lesson.r-goose.where": "Между подстанциями",
     "lesson.irig-b.summary": "Классический код времени по кабелю",
     "lesson.irig-b.where": "GPS-часы, терминалы защиты",
+    "lesson.ntp.summary": "Каждые часы — по серверу времени",
+    "lesson.ntp.where": "RTU, реле, серверы SCADA",
     "lesson.iec-104.summary": "От RTU к SCADA по TCP/IP",
     "lesson.iec-104.where": "RTU, шлюзы, контроллеры станций",
     "lesson.iec-101.summary": "Та же телемеханика по последовательным линиям и радиоканалам",

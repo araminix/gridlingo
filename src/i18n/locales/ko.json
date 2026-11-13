@@ -203,6 +203,8 @@
     "lesson.r-goose.where": "변전소와 변전소 사이",
     "lesson.irig-b.summary": "케이블로 보내는 전통적인 타임 코드",
     "lesson.irig-b.where": "GPS 클럭, 보호 계전기",
+    "lesson.ntp.summary": "모든 시계를 시간 서버에 맞추기",
+    "lesson.ntp.where": "RTU, 계전기, SCADA 서버",
     "lesson.iec-104.summary": "TCP/IP로 RTU와 SCADA 연결",
     "lesson.iec-104.where": "RTU, 게이트웨이, 발전소 제어기",
     "lesson.iec-101.summary": "같은 원격 제어를 직렬·무선 회선으로",

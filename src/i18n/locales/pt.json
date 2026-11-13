@@ -203,6 +203,8 @@
     "lesson.r-goose.where": "Entre subestações",
     "lesson.irig-b.summary": "O clássico código de tempo por cabo",
     "lesson.irig-b.where": "Relógios GPS, relés de proteção",
+    "lesson.ntp.summary": "Acertar cada relógio por um servidor de tempo",
+    "lesson.ntp.where": "RTUs, relés, servidores SCADA",
     "lesson.iec-104.summary": "Da RTU ao SCADA por TCP/IP",
     "lesson.iec-104.where": "RTUs, gateways, controladores de usina",
     "lesson.iec-101.summary": "O mesmo telecontrole, por linhas seriais e rádio",

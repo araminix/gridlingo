@@ -1,0 +1,102 @@
+{
+    "intro": "NTP (Network Time Protocol) pone en hora el reloj de un equipo con un servidor de tiempo a través de la red. En una subestación el servidor es un reloj GPS, y los clientes son RTU (unidades terminales remotas: las cajas que informan de las señales de una instalación), relés, pasarelas y servidores SCADA. SNTP (Simple NTP) envía el mismo mensaje de 48 bytes, pero su cliente pregunta a un solo servidor y toma la respuesta tal cual. Cuatro marcas de tiempo, dos en la pregunta y dos en la respuesta, permiten al cliente calcular cuánto se desvía su reloj y cuánto tardó la red. En la LAN de una subestación se llega a cerca de un milisegundo: suficiente para ordenar eventos, no para valores muestreados.",
+    "plain": "Cada equipo de una subestación tiene su propio reloj, y todos los relojes se desvían un poco. NTP es como llamar a la hora exacta por teléfono: un equipo pregunta la hora a un reloj maestro, ajustado por satélite. Además anota cuándo preguntó y cuándo llegó la respuesta, para descontar lo que tardó la llamada. Luego pone en hora su propio reloj, y los eventos que registran distintos equipos quedan en el orden correcto.",
+    "steps": {
+        "ask": { "title": "Preguntar la hora", "text": "Tras un corte de corriente, el reloj de la RTU va 1,5 s atrasado. Envía una petición SNTP al reloj GPS, por el puerto UDP 123, y escribe en ella la hora de su propio reloj cuando sale la petición: t1 = 10:41:05.750. La hora real es 10:41:07.250." },
+        "answer": { "title": "Recibir cuatro horas", "text": "El reloj GPS anota cuándo llegó la petición, t2, y cuándo sale su respuesta, t3. Copia t1 de vuelta, para que la RTU pueda emparejar la respuesta con su petición. La RTU anota cuándo llega la respuesta, t4. Su propio reloj está mal, pero da igual: solo cuentan las diferencias." },
+        "correct": { "title": "Poner el reloj en hora", "text": "La RTU calcula su desfase, cuánto se desvía su reloj: θ = ((t2 − t1) + (t3 − t4)) / 2 = +1,500 s. Y el retardo de ida y vuelta: δ = (t4 − t1) − (t3 − t2) = 0,8 ms. Adelanta su reloj 1,5 s. Vuelve a preguntar cada 64 s, y la siguiente respuesta la encuentra desviada solo 0,08 ms." },
+        "lost": { "title": "Se pierde el GPS", "text": "Más tarde, se corta el cable de la antena GPS. El reloj GPS mantiene la hora con su propio oscilador durante un tiempo (holdover). Cuando ya no puede responder de su hora, sus respuestas lo dicen: indicador de salto 3, no sincronizado. La RTU deja de seguirlo, funciona con su propio reloj y avisa a SCADA de que su hora ya no está sincronizada." }
+    },
+    "frames": {
+        "request": "¿Qué hora es? Envié esto en t1",
+        "reply": "Tu t1, mi t2 y mi t3: son las 10:41:07.250 500",
+        "next": "La misma pregunta, 64 s después",
+        "next-reply": "Otra vez las cuatro horas",
+        "unsync": "No te fíes de mi hora: LI 3",
+        "alarm": "Sincronización horaria perdida"
+    },
+    "notes": {
+        "next": "La misma petición con un t1 nuevo. La RTU pregunta cada 2^6 = 64 s, como decía su campo poll.",
+        "next-reply": "Ahora θ = +0,08 ms: eso se ha desviado el reloj de la RTU en 64 s. Lo corrige un poco con cada respuesta.",
+        "unsync": "El primer byte es 0xE4 = 11 100 100: LI 3 significa que el reloj no está sincronizado, con versión 4 y modo 4 como antes. Un cliente no debe poner su reloj en hora con una respuesta así.",
+        "alarm": "Una señal simple IEC 104 con marca de tiempo (M_SP_TB_1), no NTP: la lección IEC 60870-5-104 muestra bytes así. SCADA sabe ahora que las marcas de tiempo de esta RTU pueden desviarse."
+    },
+    "fields": {
+        "first-request": { "name": "LI · VN · Mode", "note": "0x23 = 00 100 011: LI 0 (ningún segundo intercalar por delante), versión 4, modo 3 (cliente)." },
+        "stratum-0": { "name": "Stratum", "note": "0: no se usa en una petición." },
+        "poll": { "name": "Poll", "note": "6: el cliente preguntará cada 2^6 = 64 s." },
+        "precision-0": { "name": "Precision", "note": "0: no se usa en una petición." },
+        "unused-12": { "name": "Root delay · root dispersion · reference ID", "note": "12 bytes a 0: un cliente no tiene referencia que describir." },
+        "unused-24": { "name": "Marcas reference · origin · receive", "note": "24 bytes a 0: el servidor rellena horas como estas en su respuesta." },
+        "t1": { "name": "Transmit timestamp", "note": "t1: cuándo salió la petición, según el reloj de la RTU. 0xEEA01641 s son las 10:41:05, y 0xC0000000 / 2^32 = 0,75 s: 10:41:05.750 000. La hora real era 10:41:07.250." },
+        "first-reply": { "name": "LI · VN · Mode", "note": "0x24 = 00 100 100: LI 0 (sincronizado, ningún segundo intercalar por delante), versión 4, modo 4 (servidor)." },
+        "stratum-1": { "name": "Stratum", "note": "1: un servidor primario, ajustado directamente por un reloj de referencia, aquí GPS. Sus clientes son estrato 2." },
+        "poll-copy": { "name": "Poll", "note": "6, copiado de la petición." },
+        "precision": { "name": "Precision", "note": "0xEC = −20: el reloj lee la hora en pasos de 2^−20 s, cerca de 1 µs." },
+        "delay-root": { "name": "Root delay", "note": "0: no hay red entre este reloj y su referencia." },
+        "dispersion": { "name": "Root dispersion", "note": "0x0000000A en 1/65536 s: 0,15 ms, lo máximo que este reloj dice que puede desviarse." },
+        "refid-gps": { "name": "Reference ID", "note": "\"GPS\" en ASCII: lo que sigue este reloj de estrato 1." },
+        "reference": { "name": "Reference timestamp", "note": "Cuándo se ajustó el reloj por GPS por última vez: 0xEEA01643 s = 10:41:07.000 UTC." },
+        "origin": { "name": "Origin timestamp", "note": "t1, copiado de la petición: la RTU sabe que esta respuesta contesta a su petición." },
+        "t2": { "name": "Receive timestamp", "note": "t2: cuándo llegó la petición, 10:41:07.250 400 UTC." },
+        "t3": { "name": "Transmit timestamp", "note": "t3: cuándo salió esta respuesta, 10:41:07.250 500 UTC, 0,1 ms después de t2." },
+        "a-seconds": { "name": "Segundos", "note": "0xEEA01643 = 4003468867 segundos desde el 1 de enero de 1900, 00:00 UTC: 2026-11-12 10:41:07." },
+        "a-fraction": { "name": "Fracción", "note": "0x4020C49C / 2^32 = 0,250 500 s. Un paso es 2^−32 s, cerca de 0,23 ns." }
+    },
+    "devices": {
+        "antenna": "Antena GPS",
+        "clock": "Reloj GPS (servidor NTP)",
+        "switch": "Switch de la subestación",
+        "rtu": "RTU 31",
+        "scada": "SCADA"
+    },
+    "facts": {
+        "standard": "RFC 5905: NTP versión 4, que también cubre SNTP (descrito primero en la RFC 4330)",
+        "between": "Un servidor de tiempo, aquí un reloj GPS, y los equipos que ponen su reloj en hora con él: RTU, relés, pasarelas, servidores SCADA",
+        "transport": "Puerto UDP 123, un mensaje de 48 bytes",
+        "security": "Ninguna por defecto. NTS (Network Time Security, RFC 8915) autentica el servidor con claves acordadas por TLS; los equipos antiguos usan claves simétricas compartidas",
+        "speed": "Cerca de 1 ms en la LAN de la subestación, de unos pocos a decenas de ms por internet; una petición cada 64 a 1024 s"
+    },
+    "tips": [
+        "NTP solo lleva UTC. La zona horaria y el horario de verano son un ajuste de cada equipo: uno equivocado desplaza cada evento una hora o más, mientras NTP parece estar bien.",
+        "El desfase supone que la petición y la respuesta tardan lo mismo. Una ruta más lenta en un sentido, como un enlace WAN cargado, mete la mitad de la diferencia en el reloj.",
+        "Con dos servidores, un cliente nota cuando uno falla, pero si no coinciden no puede saber cuál tiene razón. Use uno, o tres o más.",
+        "NTP sin más no tiene autenticación: un servidor de tiempo falso puede desplazar cada marca de tiempo de una subestación. Permita UDP 123 solo entre los clientes y los servidores de tiempo propios de la subestación, y use NTS donde los equipos lo admitan."
+    ],
+    "points": {
+        "time": "Hora en su reloj",
+        "offset": "Desfase θ",
+        "delay": "Retardo de ida y vuelta δ",
+        "stratum": "Estrato",
+        "synced": "Sincronizado"
+    },
+    "values": {
+        "reference": "referencia",
+        "yes": "sí",
+        "no": "no"
+    },
+    "timing": {
+        "title": "Una pregunta, cuatro marcas de tiempo",
+        "note": "Tiempo real desde que sale la petición. La petición tarda 0,4 ms hasta el reloj GPS, el reloj responde 0,1 ms después y la respuesta tarda 0,4 ms en volver. t1 y t4 se leen en el reloj de la RTU, que va 1,5 s atrasado; t2 y t3 en el reloj GPS. Desfase θ = ((t2 − t1) + (t3 − t4)) / 2 = +1,5 s. Retardo δ = (t4 − t1) − (t3 − t2) = 0,8 ms.",
+        "rtu": "RTU 31",
+        "clock": "Reloj GPS",
+        "t1": "t1: sale la petición",
+        "t2": "t2: entra",
+        "t3": "t3: sale",
+        "t4": "t4: llega la respuesta"
+    },
+    "anatomy": {
+        "timestamp": "Una marca de tiempo NTP: segundos desde 1900 y una fracción"
+    },
+    "playground": {
+        "file": "Pruébelo: los ajustes de chrony, un cliente NTP completo, habitual en pasarelas y HMI basadas en Linux. A diferencia de un cliente SNTP, pregunta a varios servidores, filtra sus respuestas y ajusta el reloj poco a poco (lo hace ir algo más rápido o más lento) en lugar de saltar.",
+        "servers": "El primer reloj GPS de la subestación, consultado cada 2^6 = 64 s. iburst: al arrancar, las cuatro primeras peticiones salen con 2 s de separación, así que el reloj queda en hora en segundos.",
+        "second": "El segundo reloj GPS. Con dos servidores chrony nota cuando uno falla; si no coinciden, no puede saber cuál tiene razón.",
+        "makestep": "Si el reloj se desvía más de 1 s en las 3 primeras actualizaciones, se pone en hora de golpe. Después solo se ajusta poco a poco, para que la hora nunca salte hacia atrás en el registro de eventos.",
+        "distance": "Ignorar un servidor cuya root distance (la mitad de su root delay más su root dispersion) pase de 0,1 s: no puede responder lo bastante de su hora.",
+        "rtc": "Copiar la hora del sistema al reloj de hardware con pila (RTC) cada 11 minutos, para que la hora sobreviva a un corte de corriente.",
+        "drift": "Recordar a qué ritmo va el reloj local, para que tras un reinicio empiece cerca.",
+        "leap": "Leer los segundos intercalares de los archivos de zonas horarias del sistema, por si los servidores no los anuncian.",
+        "serve": "Dar la hora también a la LAN de la subestación: chrony es servidor además de cliente."
+    }
+}

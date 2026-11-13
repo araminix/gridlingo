@@ -1,0 +1,102 @@
+{
+    "intro": "NTP (Network Time Protocol) stellt die Uhr eines Geräts über das Netz nach einem Zeitserver. In einem Umspannwerk ist der Server eine GPS-Uhr, und die Clients sind RTUs (Fernwirkgeräte: die Kästen, die die Signale einer Anlage melden), Schutzgeräte, Gateways und SCADA-Server. SNTP (Simple NTP) sendet dieselbe 48-Byte-Nachricht, aber sein Client fragt einen einzigen Server und übernimmt die Antwort, wie sie ist. Vier Zeitstempel, zwei in der Frage und zwei in der Antwort, lassen den Client ausrechnen, wie weit seine Uhr abweicht und wie lange das Netz gebraucht hat. Im Stationsnetz (LAN) erreicht das etwa eine Millisekunde: genug, um Ereignisse zu ordnen, nicht genug für Sampled Values.",
+    "plain": "Jedes Gerät in einem Umspannwerk hat seine eigene Uhr, und jede Uhr geht ein wenig falsch. NTP ist wie ein Anruf bei der Zeitansage: Ein Gerät fragt eine Hauptuhr, die per Satellit gestellt wird, nach der Zeit. Es merkt sich auch, wann es gefragt hat und wann die Antwort kam, und kann so die Dauer des Anrufs herausrechnen. Dann stellt es seine eigene Uhr, und Ereignisse, die verschiedene Geräte aufzeichnen, stehen in der richtigen Reihenfolge.",
+    "steps": {
+        "ask": { "title": "Nach der Zeit fragen", "text": "Nach einem Stromausfall geht die Uhr der RTU 1,5 s nach. Sie schickt eine SNTP-Anfrage an die GPS-Uhr, über UDP-Port 123, und schreibt die Zeit ihrer eigenen Uhr hinein, wenn die Anfrage abgeht: t1 = 10:41:05.750. Die wirkliche Zeit ist 10:41:07.250." },
+        "answer": { "title": "Vier Zeiten erhalten", "text": "Die GPS-Uhr merkt sich, wann die Anfrage ankam, t2, und wann ihre Antwort abgeht, t3. Sie kopiert t1 zurück, damit die RTU die Antwort ihrer Anfrage zuordnen kann. Die RTU merkt sich, wann die Antwort ankommt, t4. Ihre eigene Uhr geht falsch, aber das macht nichts: Nur Differenzen zählen." },
+        "correct": { "title": "Die Uhr stellen", "text": "Die RTU berechnet ihren Offset, wie weit ihre Uhr abweicht: θ = ((t2 − t1) + (t3 − t4)) / 2 = +1,500 s. Und die Umlaufverzögerung: δ = (t4 − t1) − (t3 − t2) = 0,8 ms. Sie stellt ihre Uhr um 1,5 s vor. Sie fragt alle 64 s erneut, und die nächste Antwort findet sie nur noch 0,08 ms daneben." },
+        "lost": { "title": "GPS fällt aus", "text": "Später wird das Kabel der GPS-Antenne durchtrennt. Die GPS-Uhr hält die Zeit eine Weile mit ihrem eigenen Oszillator (Holdover). Wenn sie nicht mehr für ihre Zeit bürgen kann, sagen ihre Antworten das: Leap Indicator 3, nicht synchronisiert. Die RTU folgt ihr nicht mehr, läuft mit ihrer eigenen Uhr weiter und meldet SCADA, dass ihre Zeit nicht mehr synchronisiert ist." }
+    },
+    "frames": {
+        "request": "Wie spät ist es? Ich habe das um t1 gesendet",
+        "reply": "Dein t1, mein t2 und t3: Es ist 10:41:07.250 500",
+        "next": "Dieselbe Frage, 64 s später",
+        "next-reply": "Wieder die vier Zeiten",
+        "unsync": "Meiner Zeit ist nicht zu trauen: LI 3",
+        "alarm": "Zeitsynchronisation verloren"
+    },
+    "notes": {
+        "next": "Dieselbe Anfrage mit einem neuen t1. Die RTU fragt alle 2^6 = 64 s, wie ihr Poll-Feld sagte.",
+        "next-reply": "Jetzt ist θ = +0,08 ms: So weit ist die Uhr der RTU in 64 s abgedriftet. Sie korrigiert sie bei jeder Antwort ein wenig.",
+        "unsync": "Das erste Byte ist 0xE4 = 11 100 100: LI 3 heißt, die Uhr ist nicht synchronisiert, mit Version 4 und Modus 4 wie zuvor. Ein Client darf seine Uhr nicht nach so einer Antwort stellen.",
+        "alarm": "Eine IEC-104-Einzelmeldung mit Zeitstempel (M_SP_TB_1), kein NTP: Die Lektion IEC 60870-5-104 zeigt solche Bytes. SCADA weiß jetzt, dass die Zeitstempel dieser RTU abdriften können."
+    },
+    "fields": {
+        "first-request": { "name": "LI · VN · Mode", "note": "0x23 = 00 100 011: LI 0 (keine Schaltsekunde angekündigt), Version 4, Modus 3 (Client)." },
+        "stratum-0": { "name": "Stratum", "note": "0: in einer Anfrage nicht benutzt." },
+        "poll": { "name": "Poll", "note": "6: Der Client wird alle 2^6 = 64 s fragen." },
+        "precision-0": { "name": "Precision", "note": "0: in einer Anfrage nicht benutzt." },
+        "unused-12": { "name": "Root Delay · Root Dispersion · Reference ID", "note": "12 Bytes mit 0: Ein Client hat keine Referenz zu beschreiben." },
+        "unused-24": { "name": "Reference-, Origin-, Receive-Zeitstempel", "note": "24 Bytes mit 0: Solche Zeiten trägt der Server in seine Antwort ein." },
+        "t1": { "name": "Transmit Timestamp", "note": "t1: wann die Anfrage abging, nach der Uhr der RTU. 0xEEA01641 s ist 10:41:05, und 0xC0000000 / 2^32 = 0,75 s: 10:41:05.750 000. Die wirkliche Zeit war 10:41:07.250." },
+        "first-reply": { "name": "LI · VN · Mode", "note": "0x24 = 00 100 100: LI 0 (synchronisiert, keine Schaltsekunde angekündigt), Version 4, Modus 4 (Server)." },
+        "stratum-1": { "name": "Stratum", "note": "1: ein Primärserver, direkt nach einer Referenzuhr gestellt, hier GPS. Seine Clients sind Stratum 2." },
+        "poll-copy": { "name": "Poll", "note": "6, aus der Anfrage kopiert." },
+        "precision": { "name": "Precision", "note": "0xEC = −20: Die Uhr liest die Zeit in Schritten von 2^−20 s, etwa 1 µs." },
+        "delay-root": { "name": "Root Delay", "note": "0: Zwischen dieser Uhr und ihrer Referenz liegt kein Netz." },
+        "dispersion": { "name": "Root Dispersion", "note": "0x0000000A in 1/65536 s: 0,15 ms, so weit kann diese Uhr nach eigener Angabe höchstens danebenliegen." },
+        "refid-gps": { "name": "Reference ID", "note": "\"GPS\" in ASCII: dem folgt diese Stratum-1-Uhr." },
+        "reference": { "name": "Reference Timestamp", "note": "Wann die Uhr zuletzt nach GPS gestellt wurde: 0xEEA01643 s = 10:41:07.000 UTC." },
+        "origin": { "name": "Origin Timestamp", "note": "t1, aus der Anfrage kopiert: Die RTU weiß, dass diese Antwort zu ihrer Anfrage gehört." },
+        "t2": { "name": "Receive Timestamp", "note": "t2: wann die Anfrage ankam, 10:41:07.250 400 UTC." },
+        "t3": { "name": "Transmit Timestamp", "note": "t3: wann diese Antwort abging, 10:41:07.250 500 UTC, 0,1 ms nach t2." },
+        "a-seconds": { "name": "Sekunden", "note": "0xEEA01643 = 4003468867 Sekunden seit dem 1. Januar 1900, 00:00 UTC: 2026-11-12 10:41:07." },
+        "a-fraction": { "name": "Bruchteil", "note": "0x4020C49C / 2^32 = 0,250 500 s. Ein Schritt ist 2^−32 s, etwa 0,23 ns." }
+    },
+    "devices": {
+        "antenna": "GPS-Antenne",
+        "clock": "GPS-Uhr (NTP-Server)",
+        "switch": "Stations-Switch",
+        "rtu": "RTU 31",
+        "scada": "SCADA"
+    },
+    "facts": {
+        "standard": "RFC 5905: NTP Version 4, das auch SNTP abdeckt (zuerst beschrieben in RFC 4330)",
+        "between": "Ein Zeitserver, hier eine GPS-Uhr, und die Geräte, die ihre Uhr danach stellen: RTUs, Schutzgeräte, Gateways, SCADA-Server",
+        "transport": "UDP-Port 123, eine 48-Byte-Nachricht",
+        "security": "Standardmäßig keine. NTS (Network Time Security, RFC 8915) authentifiziert den Server mit Schlüsseln, die über TLS vereinbart werden; ältere Geräte nutzen gemeinsame symmetrische Schlüssel",
+        "speed": "Etwa 1 ms im Stationsnetz, einige bis einige zehn ms über das Internet; eine Anfrage alle 64 bis 1024 s"
+    },
+    "tips": [
+        "NTP überträgt nur UTC. Zeitzone und Sommerzeit sind eine Einstellung jedes Geräts: Eine falsche verschiebt jedes Ereignis um eine Stunde oder mehr, während NTP in Ordnung aussieht.",
+        "Der Offset nimmt an, dass Anfrage und Antwort gleich lange brauchen. Ein Weg, der in eine Richtung langsamer ist, etwa eine ausgelastete WAN-Strecke, bringt die halbe Differenz in die Uhr.",
+        "Mit zwei Servern merkt ein Client, wenn einer ausfällt, aber wenn sie sich widersprechen, kann er nicht sagen, welcher recht hat. Nehmen Sie einen, oder drei und mehr.",
+        "Reines NTP hat keine Authentifizierung: Ein falscher Zeitserver kann jeden Zeitstempel einer Station verschieben. Erlauben Sie UDP 123 nur zwischen den Clients und den eigenen Zeitservern der Station, und nutzen Sie NTS, wo die Geräte es können."
+    ],
+    "points": {
+        "time": "Zeit auf seiner Uhr",
+        "offset": "Offset θ",
+        "delay": "Umlaufverzögerung δ",
+        "stratum": "Stratum",
+        "synced": "Synchronisiert"
+    },
+    "values": {
+        "reference": "Referenz",
+        "yes": "ja",
+        "no": "nein"
+    },
+    "timing": {
+        "title": "Eine Frage, vier Zeitstempel",
+        "note": "Wirkliche Zeit ab dem Moment, in dem die Anfrage abgeht. Die Anfrage braucht 0,4 ms zur GPS-Uhr, die Uhr antwortet 0,1 ms später, und die Antwort braucht 0,4 ms zurück. t1 und t4 werden auf der Uhr der RTU abgelesen, die 1,5 s nachgeht; t2 und t3 auf der GPS-Uhr. Offset θ = ((t2 − t1) + (t3 − t4)) / 2 = +1,5 s. Verzögerung δ = (t4 − t1) − (t3 − t2) = 0,8 ms.",
+        "rtu": "RTU 31",
+        "clock": "GPS-Uhr",
+        "t1": "t1: Anfrage geht ab",
+        "t2": "t2: ein",
+        "t3": "t3: aus",
+        "t4": "t4: Antwort kommt an"
+    },
+    "anatomy": {
+        "timestamp": "Ein NTP-Zeitstempel: Sekunden seit 1900 und ein Bruchteil"
+    },
+    "playground": {
+        "file": "Probieren Sie es aus: die Einstellungen von chrony, einem vollständigen NTP-Client, der auf Linux-basierten Gateways und HMIs verbreitet ist. Anders als ein SNTP-Client fragt er mehrere Server, filtert ihre Antworten und lässt die Uhr gleiten (etwas schneller oder langsamer laufen), statt sie springen zu lassen.",
+        "servers": "Die erste GPS-Uhr der Station, alle 2^6 = 64 s gefragt. iburst: Beim Start gehen die ersten vier Anfragen im Abstand von 2 s ab, sodass die Uhr in Sekunden gestellt ist.",
+        "second": "Die zweite GPS-Uhr. Mit zwei Servern merkt chrony, wenn einer ausfällt; wenn sie sich widersprechen, kann es nicht sagen, welcher recht hat.",
+        "makestep": "Liegt die Uhr bei den ersten 3 Aktualisierungen mehr als 1 s daneben, wird sie sofort gestellt. Danach lässt man sie nur noch gleiten, damit die Zeit im Ereignisprotokoll nie zurückspringt.",
+        "distance": "Einen Server ignorieren, dessen Root Distance (halbe Root Delay plus Root Dispersion) über 0,1 s liegt: Er kann nicht gut genug für seine Zeit bürgen.",
+        "rtc": "Die Systemzeit alle 11 Minuten in die batteriegestützte Hardware-Uhr (RTC) kopieren, damit die Zeit einen Stromausfall übersteht.",
+        "drift": "Sich merken, wie schnell die lokale Uhr läuft, damit sie nach einem Neustart nah dran beginnt.",
+        "leap": "Schaltsekunden aus den Zeitzonendateien des Systems lesen, falls die Server sie nicht ankündigen.",
+        "serve": "Die Zeit auch an das Stationsnetz weitergeben: chrony ist Server und Client zugleich."
+    }
+}

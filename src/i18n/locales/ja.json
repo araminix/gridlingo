@@ -203,6 +203,8 @@
     "lesson.r-goose.where": "変電所と変電所のあいだ",
     "lesson.irig-b.summary": "ケーブルで送る定番のタイムコード",
     "lesson.irig-b.where": "GPSクロック、保護リレー",
+    "lesson.ntp.summary": "すべての時計をタイムサーバに合わせる",
+    "lesson.ntp.where": "RTU、リレー、SCADAサーバ",
     "lesson.iec-104.summary": "TCP/IPでRTUからSCADAへ",
     "lesson.iec-104.where": "RTU、ゲートウェイ、発電所コントローラ",
     "lesson.iec-101.summary": "同じ遠方監視制御を、シリアル回線と無線回線で",

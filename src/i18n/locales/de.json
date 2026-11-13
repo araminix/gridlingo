@@ -203,6 +203,8 @@
     "lesson.r-goose.where": "Zwischen Umspannwerken",
     "lesson.irig-b.summary": "Der klassische Zeitcode auf einem Kabel",
     "lesson.irig-b.where": "GPS-Uhren, Schutzgeräte",
+    "lesson.ntp.summary": "Jede Uhr nach einem Zeitserver stellen",
+    "lesson.ntp.where": "RTUs, Schutzgeräte, SCADA-Server",
     "lesson.iec-104.summary": "RTU an SCADA über TCP/IP",
     "lesson.iec-104.where": "RTUs, Gateways, Parkregler",
     "lesson.iec-101.summary": "Dieselbe Fernwirktechnik über serielle Leitungen und Funk",
