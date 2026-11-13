@@ -8,7 +8,7 @@ const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     rtu: { w: 28, d: 22, h: 62 },
     gateway: { w: 30, d: 22, h: 22 },
     relay: { w: 26, d: 20, h: 52 },
-    breaker: { w: 24, d: 24, h: 30 },
+    breaker: { w: 24, d: 24, h: 44 },
     "merging-unit": { w: 24, d: 20, h: 20 },
     clock: { w: 26, d: 20, h: 24 },
     switch: { w: 44, d: 24, h: 12 },
@@ -85,6 +85,19 @@ function meterParts(cx: number, cy: number) {
     return { pillar: { cx, cy, w, d, h: h - 2 } satisfies Box, meter: { cx, cy: cy + d / 2 + 1.5, w: w - 6, d: 3, h: 15, z: 10 } satisfies Box, cap: { cx, cy, w: w + 2, d: d + 2, h: 2, z: h - 2 } satisfies Box };
 }
 
+/** An outdoor circuit breaker: a pad, a steel frame (two legs and a beam), one insulator column per phase on the beam,
+ * and the operating mechanism's cabinet in front. */
+function breakerParts(cx: number, cy: number) {
+    const y = cy - 2;
+    return {
+        pad: { cx, cy, w: SIZE.breaker.w, d: SIZE.breaker.d, h: 1.5 } satisfies Box,
+        legs: [-1, 1].map((at): Box => ({ cx: cx + at * 9, cy: y, w: 2.5, d: 2.5, h: 18, z: 1.5 })),
+        beam: { cx, cy: y, w: 22, d: 4, h: 3, z: 18 } satisfies Box,
+        poles: [-8.5, 0, 8.5].map((dx) => [cx + dx, y] as const),
+        cabinet: { cx, cy: cy + 5, w: 12, d: 7, h: 14, z: 1.5 } satisfies Box,
+    };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -102,6 +115,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "breaker") {
+        const { pad, beam, cabinet } = breakerParts(cx, cy);
+        return [pad, { ...beam, h: 21, z: 0 }, cabinet, { ...beam, w: 20, h: 23, z: 21 }];
+    }
     if (kind === "meter") {
         const { pillar, meter } = meterParts(cx, cy);
         return [pillar, meter];
@@ -414,12 +431,43 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
                 />
             );
             break;
-        case "breaker":
+        case "breaker": {
+            // Each column is an insulator: a core with round sheds stacked up it, a clamp for the line on top
+            const { pad, legs, beam, poles, cabinet } = breakerParts(cx, cy);
+            const door = faces(cabinet).onLeft;
+            const column = ([x, y]: readonly [number, number]) => {
+                const [bx, by] = project(x, y, 21);
+                const [tx, ty] = project(x, y, 42);
+                return (
+                    <g key={x}>
+                        <polygon points={quad([bx - 1.5, by], [tx - 1.5, ty], [tx + 1.5, ty], [bx + 1.5, by])} fill={tone.left} stroke={tone.edge} strokeWidth={0.6} />
+                        {[23.5, 27.5, 31.5, 35.5, 39.5].map((z) => {
+                            const [sx, sy] = project(x, y, z);
+                            return <ellipse key={z} cx={round(sx)} cy={round(sy)} rx={3.1} ry={1.8} fill={tone.top} stroke={tone.edge} strokeWidth={0.6} />;
+                        })}
+                        <Lines list={[[project(x, y - 3, 43), project(x, y + 3, 43)]]} stroke={tone.edge} width={1.6} />
+                    </g>
+                );
+            };
+            return (
+                <g>
+                    <Solid box={pad} active={active} fine />
+                    {legs.map((leg) => (
+                        <Solid key={leg.cx} box={leg} active={active} fine />
+                    ))}
+                    <Solid box={beam} active={active} fine />
+                    {poles.map(column)}
+                    <Solid box={cabinet} active={active} />
+                    <Lines list={[[door(0.5, 0.08), door(0.5, 0.92)]]} width={0.6} />
+                    <Panel on={door} u0={0.62} v0={0.58} u1={0.86} v1={0.78} fill="var(--viz-screen)" />
+                </g>
+            );
+        }
         case "transformer": {
-            const tops = kind === "breaker" ? [0.3, 0.7] : [0.25, 0.5, 0.75];
+            const tops = [0.25, 0.5, 0.75];
             detail = (
                 <>
-                    {kind === "transformer" && <Lines list={[0.2, 0.35, 0.5, 0.65, 0.8].map((u) => [f.onLeft(u, 0.12), f.onLeft(u, 0.88)])} />}
+                    <Lines list={[0.2, 0.35, 0.5, 0.65, 0.8].map((u) => [f.onLeft(u, 0.12), f.onLeft(u, 0.88)])} />
                     {tops.map((u) => {
                         const [x, y] = f.onTop(u, 0.5);
                         return (
