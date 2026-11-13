@@ -9,7 +9,7 @@ const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     gateway: { w: 30, d: 22, h: 30 },
     relay: { w: 26, d: 20, h: 52 },
     breaker: { w: 24, d: 24, h: 44 },
-    "merging-unit": { w: 24, d: 20, h: 20 },
+    "merging-unit": { w: 24, d: 20, h: 22 },
     clock: { w: 26, d: 20, h: 24 },
     switch: { w: 44, d: 24, h: 28 },
     inverter: { w: 26, d: 20, h: 40 },
@@ -142,6 +142,15 @@ function pmuParts(cx: number, cy: number) {
     return { plinth: { cx, cy, w, d, h: 3 } satisfies Box, body: { cx, cy, w, d, h: 18, z: 3 } satisfies Box, chassis: { cx, cy: cy + d / 2 + 0.75, w: w - 4, d: 1.5, h: 10, z: 8 } satisfies Box };
 }
 
+/** A merging unit: a rugged box mounted on a steel post out in the switchyard, the post on its foot plate. */
+function mergingParts(cx: number, cy: number) {
+    return {
+        foot: { cx, cy: cy - 4, w: 10, d: 10, h: 1.5 } satisfies Box,
+        post: { cx, cy: cy - 4, w: 3, d: 3, h: SIZE["merging-unit"].h, z: 1.5 } satisfies Box,
+        unit: { cx, cy: cy + 1, w: 22, d: 9, h: 13, z: 8 } satisfies Box,
+    };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -159,6 +168,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "merging-unit") {
+        const { foot, post, unit } = mergingParts(cx, cy);
+        return [foot, post, unit];
+    }
     if (kind === "pmu") {
         const { plinth, body, chassis } = pmuParts(cx, cy);
         return [plinth, body, chassis];
@@ -485,9 +498,36 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
                 </g>
             );
         }
-        case "merging-unit":
-            detail = <Leds on={f.onLeft} v={0.55} />;
-            break;
+        case "merging-unit": {
+            // Copper wires from the instrument transformers come into its terminals; fibres leave its ports with the
+            // samples
+            const { foot, post, unit } = mergingParts(cx, cy);
+            const front = faces(unit).onLeft;
+            const x0 = unit.cx - unit.w / 2;
+            const fibre = (u: number, color: string, out: number) => {
+                const [a, b, c, d] = [front(u, 0.55), project(x0 + u * unit.w, cy + 9, 4), project(cx + out, cy + 9, 2), project(cx + out, cy + 7, 0)];
+                return <path key={u} d={`M${pair(a)} C${pair(b)} ${pair(c)} ${pair(d)}`} fill="none" stroke={color} strokeWidth={1} />;
+            };
+            return (
+                <g>
+                    <Solid box={foot} active={active} fine />
+                    <Solid box={post} active={active} fine />
+                    <Lines list={[0.14, 0.24, 0.34, 0.44].map((u) => [front(u, 0), project(x0 + u * unit.w, cy + 6, 0)])} width={0.7} />
+                    <Solid box={unit} active={active} />
+                    <Panel on={front} u0={0.08} v0={0.52} u1={0.56} v1={0.76} fill={tone.right} />
+                    <Lines list={[0.12, 0.2, 0.28, 0.36, 0.44, 0.52].map((u) => [front(u, 0.56), front(u, 0.72)])} stroke="var(--viz-token)" width={1.2} />
+                    {[0.64, 0.71, 0.78, 0.85].map((u) => (
+                        <Panel key={u} on={front} u0={u} v0={0.56} u1={u + 0.05} v1={0.72} fill="var(--viz-screen)" />
+                    ))}
+                    {[0.66, 0.74, 0.82].map((u) => {
+                        const [x, y] = front(u, 0.88);
+                        return <circle key={u} cx={round(x)} cy={round(y)} r={0.7} fill="var(--viz-ok)" />;
+                    })}
+                    {fibre(0.665, "var(--viz-token)", 8)}
+                    {fibre(0.735, "var(--primary)", 11)}
+                </g>
+            );
+        }
         case "relay": {
             // A relay panel: the relay's faceplate stands out from its front (screen, a column of lights with the trip
             // light on top, keys), and below it the close and open buttons and a row of test switches
