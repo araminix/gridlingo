@@ -94,5 +94,18 @@
     },
     "anatomy": {
         "line": "Uma linha da leitura"
+    },
+    "playground": {
+        "file": "Experimente: uma leitura completa, como o medidor a envia no modo C depois do ACK desta lição. Cada linha é um endereço e depois o valor entre parênteses.",
+        "ident": "A identificação enviada a 300 baud: fabricante EXA, velocidade máxima 5 (9600 baud) e depois o tipo do medidor.",
+        "id": "0.0.0: o endereço do medidor. Uma abertura de sessão pode citá-lo (/?10641207!) para acordar só este medidor numa linha compartilhada.",
+        "clock": "0.9.1: o relógio do medidor, como hhmmss: 10:41:07.",
+        "date": "0.9.2: a data, como AAMMDD: 12 de novembro de 2026.",
+        "total": "1.8.0: energia tirada da rede, todas as tarifas juntas: o valor desta lição.",
+        "tariffs": "1.8.1 e 1.8.2: a mesma energia dividida por tarifa, aqui dia e noite. Juntas somam 1.8.0.",
+        "export": "2.8.0: energia devolvida à rede, por painéis solares, por exemplo.",
+        "demand": "1.6.0: a maior demanda do mês e quando ela ocorreu: 10 de novembro de 2026 às 14:15.",
+        "errors": "F.F: o registro de erros. Tudo zero: o medidor não informa nenhuma falha.",
+        "end": "! encerra os dados. Seguem ETX e o byte de verificação BCC; eles não são imprimíveis."
     }
 }

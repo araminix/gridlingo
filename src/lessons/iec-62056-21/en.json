@@ -94,5 +94,18 @@
     },
     "anatomy": {
         "line": "A line of the readout"
+    },
+    "playground": {
+        "file": "Try it: a whole readout, as the meter sends it in mode C after this lesson's ACK. Each line is an address, then the value in brackets.",
+        "ident": "The identification sent at 300 baud: maker EXA, top speed 5 (9600 baud), then the meter's type.",
+        "id": "0.0.0: the meter's address. A sign-on can name it (/?10641207!) to wake only this meter on a shared line.",
+        "clock": "0.9.1: the meter's clock, as hhmmss: 10:41:07.",
+        "date": "0.9.2: the date, as YYMMDD: 12 November 2026.",
+        "total": "1.8.0: energy taken from the grid, all tariffs together: the value of this lesson.",
+        "tariffs": "1.8.1 and 1.8.2: the same energy split by tariff, day and night here. Together they make 1.8.0.",
+        "export": "2.8.0: energy sent back to the grid, by solar panels for example.",
+        "demand": "1.6.0: the highest demand of the month, then when it happened: 10 November 2026 at 14:15.",
+        "errors": "F.F: the error register. All zeros: the meter reports no fault.",
+        "end": "! ends the data. ETX and the BCC check byte follow; they are not printable."
     }
 }

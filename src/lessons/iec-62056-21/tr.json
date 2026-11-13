@@ -94,5 +94,18 @@
     },
     "anatomy": {
         "line": "Okuma listesinden bir satır"
+    },
+    "playground": {
+        "file": "Deneyin: sayacın bu dersteki ACK'den sonra C modunda gönderdiği tam bir okuma. Her satır bir adres, ardından parantez içinde değerdir.",
+        "ident": "300 baud ile gönderilen tanıtım: üretici EXA, en yüksek hız 5 (9600 baud), ardından sayacın tipi.",
+        "id": "0.0.0: sayacın adresi. Bir oturum açma isteği onu adıyla çağırabilir (/?10641207!), böylece ortak bir hatta yalnızca bu sayaç uyanır.",
+        "clock": "0.9.1: sayacın saati, ssddss biçiminde: 10:41:07.",
+        "date": "0.9.2: tarih, YYAAGG biçiminde: 12 Kasım 2026.",
+        "total": "1.8.0: şebekeden çekilen enerji, tüm tarifeler birlikte: bu dersin değeri.",
+        "tariffs": "1.8.1 ve 1.8.2: aynı enerjinin tarifelere göre bölünmüşü, burada gündüz ve gece. Toplamları 1.8.0'dır.",
+        "export": "2.8.0: şebekeye geri verilen enerji, örneğin güneş panellerinden.",
+        "demand": "1.6.0: ayın en yüksek talebi, ardından ne zaman olduğu: 10 Kasım 2026, 14:15.",
+        "errors": "F.F: hata kaydı. Hepsi sıfır: sayaç hiçbir arıza bildirmiyor.",
+        "end": "! verileri bitirir. Ardından ETX ve BCC kontrol baytı gelir; bunlar yazdırılamaz."
     }
 }

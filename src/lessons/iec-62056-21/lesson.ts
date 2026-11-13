@@ -1,4 +1,5 @@
 import type { Field, Lesson } from "../types";
+import readout from "./meter-readout.txt?raw";
 
 /** "/?!" CR LF: the sign-on, at 300 baud. */
 const signOn: Field[] = [
@@ -136,6 +137,9 @@ export const lesson: Lesson = {
             ],
             also: "1.8.0(012345.678*kWh)  ·  in DLMS: OBIS 1-0:1.8.0*255",
         },
+    ],
+    playground: [
+        { kind: "file", sample: "meter-readout.txt", file: readout, notes: { 1: "ident", 3: "id", 4: "clock", 5: "date", 6: "total", 7: "tariffs", 9: "export", 10: "demand", 11: "errors", 12: "end" } },
     ],
     related: ["dlms-cosem", "m-bus", "ansi-c12"],
 };

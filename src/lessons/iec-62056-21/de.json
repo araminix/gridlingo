@@ -94,5 +94,18 @@
     },
     "anatomy": {
         "line": "Eine Zeile der Auslesung"
+    },
+    "playground": {
+        "file": "Probieren Sie es aus: ein ganzes Auslesen, wie der Zähler es in Modus C nach dem ACK dieser Lektion sendet. Jede Zeile ist eine Adresse, dann der Wert in Klammern.",
+        "ident": "Die Kennung, gesendet mit 300 Baud: Hersteller EXA, Höchstgeschwindigkeit 5 (9600 Baud), dann der Zählertyp.",
+        "id": "0.0.0: die Adresse des Zählers. Eine Anmeldung kann sie nennen (/?10641207!), um auf einer gemeinsamen Leitung nur diesen Zähler zu wecken.",
+        "clock": "0.9.1: die Uhr des Zählers, als hhmmss: 10:41:07.",
+        "date": "0.9.2: das Datum, als JJMMTT: 12. November 2026.",
+        "total": "1.8.0: aus dem Netz bezogene Energie, alle Tarife zusammen: der Wert dieser Lektion.",
+        "tariffs": "1.8.1 und 1.8.2: dieselbe Energie nach Tarif aufgeteilt, hier Tag und Nacht. Zusammen ergeben sie 1.8.0.",
+        "export": "2.8.0: ins Netz zurückgespeiste Energie, zum Beispiel von Solarmodulen.",
+        "demand": "1.6.0: die höchste Leistung des Monats, dann wann sie auftrat: 10. November 2026 um 14:15.",
+        "errors": "F.F: das Fehlerregister. Alles Nullen: Der Zähler meldet keinen Fehler.",
+        "end": "! beendet die Daten. Es folgen ETX und das Prüfbyte BCC; sie sind nicht druckbar."
     }
 }

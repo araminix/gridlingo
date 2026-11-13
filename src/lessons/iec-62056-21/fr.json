@@ -94,5 +94,18 @@
     },
     "anatomy": {
         "line": "Une ligne de la lecture"
+    },
+    "playground": {
+        "file": "Essayez : une relève complète, telle que le compteur l'envoie en mode C après l'ACK de cette leçon. Chaque ligne est une adresse, puis la valeur entre parenthèses.",
+        "ident": "L'identification envoyée à 300 bauds : fabricant EXA, vitesse maximale 5 (9600 bauds), puis le type du compteur.",
+        "id": "0.0.0 : l'adresse du compteur. Une ouverture de session peut la donner (/?10641207!) pour ne réveiller que ce compteur sur une ligne partagée.",
+        "clock": "0.9.1 : l'horloge du compteur, en hhmmss : 10:41:07.",
+        "date": "0.9.2 : la date, en AAMMJJ : 12 novembre 2026.",
+        "total": "1.8.0 : énergie prise au réseau, tous tarifs confondus : la valeur de cette leçon.",
+        "tariffs": "1.8.1 et 1.8.2 : la même énergie répartie par tarif, ici jour et nuit. Ensemble, elles font 1.8.0.",
+        "export": "2.8.0 : énergie renvoyée au réseau, par des panneaux solaires par exemple.",
+        "demand": "1.6.0 : la puissance maximale du mois, puis le moment où elle a eu lieu : le 10 novembre 2026 à 14 h 15.",
+        "errors": "F.F : le registre d'erreurs. Que des zéros : le compteur ne signale aucun défaut.",
+        "end": "! termine les données. Suivent ETX et l'octet de contrôle BCC ; ils ne sont pas imprimables."
     }
 }
