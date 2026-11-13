@@ -11,7 +11,7 @@ const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     breaker: { w: 24, d: 24, h: 44 },
     "merging-unit": { w: 24, d: 20, h: 20 },
     clock: { w: 26, d: 20, h: 24 },
-    switch: { w: 44, d: 24, h: 12 },
+    switch: { w: 44, d: 24, h: 28 },
     inverter: { w: 26, d: 20, h: 40 },
     pv: { w: 112, d: 52, h: 18 },
     battery: { w: 92, d: 34, h: 38 },
@@ -112,6 +112,19 @@ function transformerParts(cx: number, cy: number) {
     };
 }
 
+/** A network switch in a two-post rack: two posts on their feet joined at the top, a patch panel, the switch below it. */
+function switchParts(cx: number, cy: number) {
+    const { w, d, h } = SIZE.switch;
+    const ends = [-1, 1].map((at) => cx + at * (w / 2 - 2));
+    return {
+        feet: ends.map((x): Box => ({ cx: x, cy, w: 4, d: d - 6, h: 1.5 })),
+        posts: ends.map((x): Box => ({ cx: x, cy, w: 3, d: 3, h: h - 2, z: 1.5 })),
+        bar: { cx, cy, w: w - 1, d: 3, h: 2, z: h - 2 } satisfies Box,
+        panel: { cx, cy: cy + 1, w: w - 7, d: 4, h: 4, z: 18 } satisfies Box,
+        unit: { cx, cy, w: w - 7, d: d - 6, h: 5, z: 10 } satisfies Box,
+    };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -129,6 +142,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "switch") {
+        const { feet, posts, bar, panel, unit } = switchParts(cx, cy);
+        return [...feet, ...posts, bar, panel, unit];
+    }
     if (kind === "transformer") {
         const { pad, tank, fins, tap, conservator: c } = transformerParts(cx, cy);
         return [pad, tank, fins, tap, { cx: c.x, cy: (c.y0 + c.y1) / 2, w: 2 * c.r, d: c.y1 - c.y0, h: 2 * c.r, z: c.z - c.r }];
@@ -384,15 +401,43 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             );
             break;
         }
-        case "switch":
-            detail = (
-                <>
-                    {[0.12, 0.28, 0.44, 0.6, 0.76].map((u) => (
-                        <Panel key={u} on={f.onLeft} u0={u} v0={0.25} u1={u + 0.1} v1={0.75} fill="var(--viz-screen)" />
+        case "switch": {
+            // Two rows of ports, two fibre cages and link lights on the switch; patch cords loop down to it from the panel
+            const { feet, posts, bar, panel, unit } = switchParts(cx, cy);
+            const front = faces(unit).onLeft;
+            const patch = faces(panel).onLeft;
+            const row = (v: number) => `M${pair(front(0.07, v))} L${pair(front(0.7, v))}`;
+            const cords = [
+                [0.15, 0.2, "var(--primary)"],
+                [0.32, 0.38, "var(--viz-token)"],
+                [0.5, 0.56, "var(--viz-ok)"],
+            ] as const;
+            return (
+                <g>
+                    {feet.map((foot) => (
+                        <Solid key={foot.cx} box={foot} active={active} fine />
                     ))}
-                </>
+                    <Solid box={posts[0]!} active={active} fine />
+                    <Solid box={unit} active={active} />
+                    <path d={`${row(0.68)} ${row(0.32)}`} stroke="var(--viz-screen)" strokeWidth={1.4} strokeDasharray="1.5 1" />
+                    <Panel on={front} u0={0.76} v0={0.25} u1={0.83} v1={0.75} fill="var(--viz-screen)" />
+                    <Panel on={front} u0={0.86} v0={0.25} u1={0.93} v1={0.75} fill="var(--viz-screen)" />
+                    {[0.1, 0.22, 0.34, 0.52].map((u) => {
+                        const [x, y] = front(u, 0.9);
+                        return <circle key={u} cx={round(x)} cy={round(y)} r={0.6} fill="var(--viz-ok)" />;
+                    })}
+                    <Solid box={panel} active={active} fine />
+                    <path d={`M${pair(patch(0.07, 0.5))} L${pair(patch(0.93, 0.5))}`} stroke="var(--viz-screen)" strokeWidth={1.2} strokeDasharray="1.2 1" />
+                    {cords.map(([from, to, color]) => {
+                        const [a, d] = [patch(from, 0.5), front(to, 0.68)];
+                        const [b, c] = [project(unit.cx - unit.w / 2 + from * unit.w, cy + 13, 16), project(unit.cx - unit.w / 2 + to * unit.w, cy + 13, 14)];
+                        return <path key={from} d={`M${pair(a)} C${pair(b)} ${pair(c)} ${pair(d)}`} fill="none" stroke={color} strokeWidth={0.9} />;
+                    })}
+                    <Solid box={posts[1]!} active={active} fine />
+                    <Solid box={bar} active={active} fine />
+                </g>
             );
-            break;
+        }
         case "inverter": {
             // Fins on its side to shed heat; in front a display and lights, and the yellow DC switch with its red handle
             const { body, posts } = inverterParts(cx, cy);
