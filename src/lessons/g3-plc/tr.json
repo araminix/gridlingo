@@ -1,0 +1,97 @@
+{
+    "intro": "G3-PLC ve PRIME, veriyi alçak gerilim kablolarının kendisi üzerinden, dağıtım trafosundaki bir veri yoğunlaştırıcıdan çıkışlarındaki her elektrik sayacına gönderir. İkisi de yaklaşık 35 ile 91 kHz arasında, Avrupa'da CENELEC A bandında, OFDM (aynı anda birçok taşıyıcı) kullanır. Yoğunlaştırıcıyı duyamayan bir sayaç komşuları üzerinden konuşur. G3-PLC bir örgü ağ kurar ve 6LoWPAN ile sıkıştırılmış IPv6, üstünde de DLMS/COSEM taşır. PRIME ise bir ağaç kurar; bazı sayaçlar diğerleri için anahtar görevi görür ve genellikle DLMS/COSEM'i IPv6 olmadan taşır. İkisi birlikte Avrupa'da on milyonlarca sayacı okur.",
+    "plain": "Her eve elektrik getiren kablo mesaj da taşıyabilir, telin üstünde giden bir fısıltı gibi. Mahalle trafosunun yanındaki bir kutu her elektrik sayacıyla böyle konuşur. Duyulamayacak kadar uzaktaki bir sayaç mesajlarını bir komşusuna verir, o da bir sonrakine aktarır, elden ele geçen kovalar gibi. Sayaçlar her gün böyle okunur, kimsenin gitmesine gerek kalmaz.",
+    "steps": {
+        "join": { "title": "Ağa katıl", "text": "Sokağın sonuna yeni bir sayaç, M2, takılır. Yoğunlaştırıcıyı doğrudan duyamaz, yalnızca komşusu M1'i duyar. M1 üzerinden katılır: fabrikada sayaca konmuş bir anahtarla oturum açan EAP-PSK ile kim olduğunu kanıtlar. Ağ anahtarını ve 0x0002 kısa adresini alır." },
+        "route": { "title": "Bir yol bul", "text": "M2'ye ulaşmak için yoğunlaştırıcı, küçük cihazlar için bir yönlendirme protokolü olan LOADng ile sayaçlar arasında bir yol isteği yayar. M2 en ucuz yoldan, M1 üzerinden yanıt verir. Yoldaki her sayaç bir sonraki atlamayı not eder: örgüyü sayaçların kendisi kurar." },
+        "read": { "title": "Sayacı oku", "text": "Yoğunlaştırıcı, bir DLMS/COSEM GET ile M2'den 1-0:1.8.0 enerji kaydını ister. İstek, 6LoWPAN'ın 48 baytlık başlıklardan 9 bayta sıkıştırdığı bir IPv6 paketinde gider. Bir mesh başlığı der ki: 0x0000'dan 0x0002'ye. M1 bunu kabloda duyar ve iletir." },
+        "answer": { "title": "Yanıt geri gelir", "text": "M2 aynı şekilde, 0x0002'den 0x0000'a, M1 üzerinden yanıt verir: on vatsaat cinsinden 303603, yani 3036,03 kWh. Kabloda MAC katmanı ayrıca her atlamayı ağ anahtarıyla şifreler ve bir CRC ekler." },
+        "upload": { "title": "İlet", "text": "Her saat ya da her gece yoğunlaştırıcı, tüm sayaçlarının okumalarını hücresel ağ veya fiber üzerinden merkezi sisteme, dağıtım şirketinin sayaç sunucusuna gönderir." }
+    },
+    "frames": {
+        "discover": "Beni kim duyuyor?",
+        "join": "Ben M2 sayacıyım: işte kanıtım",
+        "accepted": "Hoş geldin: sen 0x0002'sin, işte ağ anahtarı",
+        "rreq": "0x0002'ye giden yolu kim biliyor?",
+        "rrep": "0x0001 üzerinden",
+        "get": "M2, enerji kaydın ne gösteriyor?",
+        "response": "303603 (×10 Wh)",
+        "upload": "Bugünün okumaları"
+    },
+    "notes": {
+        "discover": "M2 kabloya bir beacon isteği gönderir. Onu duyan her düğüm, yoğunlaştırıcıya olan yol maliyetini veren bir beacon ile yanıt verir. M2 en ucuz olan M1'i, katılımını iletecek komşu olarak seçer.",
+        "join": "LoWPAN Bootstrapping Protocol (LBP), M1'in ilettiği bir EAP-PSK alışverişi taşır. Dört mesajı, anahtarın kendisini göndermeden, M2'nin ve yoğunlaştırıcının M2'nin önceden paylaşılan anahtarını bildiğini kanıtlar.",
+        "accepted": "Alışverişin sonunda, oturum anahtarıyla korunarak, M2 ağ anahtarını (GMK) ve 0x0002 kısa adresini alır. LBP ACCEPTED katılımı tamamlar.",
+        "rreq": "0x0002 için yayılan bir LOADng yol isteği: onu duyan her sayaç geldiği bağlantının maliyetini ekler ve bir kez daha gönderir.",
+        "rrep": "M2 en ucuz yoldan, atlama atlama yanıt verir: M1 üzerinden. Yoldaki her düğüm 0x0002'ye ve 0x0000'a giden bir sonraki atlamayı kaydeder.",
+        "upload": "G3-PLC değil: yoğunlaştırıcı günün okumalarını hücresel ağ veya fiber üzerinden merkezi sisteme, çoğu zaman bir web servisiyle dosya olarak ya da TCP üzerinden DLMS/COSEM ile gönderir (DLMS/COSEM dersine bakın)."
+    },
+    "fields": {
+        "mesh": { "name": "Mesh başlığı", "note": "0xB8 = 10 1 1 1000: bir mesh başlığı (10), iki adres de kısa (1, 1), kalan atlama 8. M1 çerçeveyi iletirken bunu 7'ye düşürür." },
+        "mesh-dc-m2": { "name": "Kaynak · son hedef", "note": "0x0000, yoğunlaştırıcı, 0x0002'ye, M2 sayacına. Öndeki MAC başlığı yalnızca bir sonraki atlamayı, M1'i adlandırır." },
+        "mesh-m2-dc": { "name": "Kaynak · son hedef", "note": "0x0002'den 0x0000'a: M2'den yoğunlaştırıcıya geri." },
+        "iphc": { "name": "IPHC", "note": "0x7E33: sıkıştırılmış bir IPv6 başlığı (RFC 6282). Trafik sınıfı ve akış etiketi çıkarılmış, sonraki başlık sıkıştırılmış, atlama sınırı 64 ve iki adres de mesh başlığından yeniden kurulmuş: 2 baytta 40 bayt IPv6." },
+        "nhc-udp": { "name": "Sıkıştırılmış UDP başlığı", "note": "0xF0: iki port ve sağlama toplamı tam olarak, sıkıştırılmış bir UDP başlığı izler." },
+        "ports": { "name": "Portlar", "note": "4059 ve 4059 (0x0FDB): DLMS/COSEM portu, burada iki uçta da. UDP uzunluğu çıkarılmıştır: çerçevenin uzunluğundan çıkar." },
+        "checksum-get": { "name": "UDP sağlama toplamı", "note": "0xC190; yeniden kurulan IPv6 adresleri, UDP başlığı ve veri üzerinden. Sayaç bunu denetler." },
+        "checksum-response": { "name": "UDP sağlama toplamı", "note": "0xC9FF, aynı şekilde hesaplanmış." },
+        "version": { "name": "Sürüm", "note": "1: TCP'dekiyle aynı DLMS/COSEM sarmalayıcısı." },
+        "wports-dc": { "name": "wPorts", "note": "İstemci 0x0011'den sayacın yönetim mantıksal cihazı 0x0001'e." },
+        "wports-m2": { "name": "wPorts", "note": "Sayacın 0x0001 mantıksal cihazından istemci 0x0011'e geri." },
+        "len-13": { "name": "Uzunluk", "note": "13 bayt DLMS/COSEM izler." },
+        "len-9": { "name": "Uzunluk", "note": "9 bayt izler." },
+        "get-req": { "name": "GET isteği", "note": "0xC0 0x01: normal bir get-request: tek bir öznitelik." },
+        "invoke": { "name": "Invoke ID ve öncelik", "note": "0xC1: yüksek öncelik, onaylı, invoke ID 1. Yanıt aynı baytı taşır." },
+        "class-3": { "name": "Sınıf 3", "note": "Register: ölçeği ve birimi olan bir değer." },
+        "obis": { "name": "OBIS 1-0:1.8.0*255", "note": "Çekilen aktif enerji, toplam." },
+        "attr-2": { "name": "Öznitelik 2", "note": "Değer." },
+        "no-selection": { "name": "Erişim seçimi yok", "note": "0: değerin tamamı." },
+        "get-resp": { "name": "GET yanıtı", "note": "0xC4 0x01: normal bir get-response." },
+        "data": { "name": "Sonuç", "note": "0: hata değil, veri izler." },
+        "uint32": { "name": "double-long-unsigned", "note": "0x06: işaretsiz 32 bitlik bir sayı." },
+        "raw": { "name": "Değer", "note": "0x0004A1F3 = 303603. Bu sayacın ölçeği ×10 Wh: 3036,03 kWh." },
+        "a-prefix": { "name": "fe80::/64", "note": "Link-local önek: yalnızca bu PLC ağının içinde geçerli." },
+        "a-pan": { "name": "PAN ID", "note": "0x4C21: yoğunlaştırıcının ağı." },
+        "a-fill": { "name": "00 FF FE 00", "note": "PAN ID ile kısa adres arasında sabit bir dolgu." },
+        "a-short": { "name": "Kısa adres", "note": "0x0002: M2 sayacı, katılırken aldığı adres." }
+    },
+    "devices": {
+        "hes": "Merkezi sistem",
+        "dc": "Veri yoğunlaştırıcı",
+        "transformer": "Trafo 20/0,4 kV",
+        "m1": "Sayaç M1",
+        "m2": "Sayaç M2"
+    },
+    "facts": {
+        "standard": "ITU-T G.9903 (G3-PLC) ve ITU-T G.9904 (PRIME). G3-PLC, 6LoWPAN ile IPv6 taşır (RFC 4944, RFC 6282) ve LOADng ile yönlendirir",
+        "between": "OG/AG trafosundaki bir veri yoğunlaştırıcı ile alçak gerilim çıkışlarındaki elektrik sayaçları",
+        "transport": "Elektrik kablosu üzerinde OFDM; Avrupa'da CENELEC A bandı, yaklaşık 35 – 91 kHz",
+        "security": "G3-PLC: her sayaç EAP-PSK ile katılır ve ağ anahtarını alır; MAC katmanı AES-128 ile şifreler. DLMS/COSEM üstüne kendi AES-GCM'ini ekler",
+        "speed": "Onlarca kbit/s; her atlama gecikme ekler, bu yüzden yüzlerce sayacı okumak dakikalar sürer"
+    },
+    "tips": [
+        "Kablodaki gürültü ve yükler erişimi saatten saate değiştirir: yeni bir evirici veya şarj istasyonu sayaçları koparabilir. Her sayacın bağlantı kalitesine tek bir okumada değil, günler boyunca bakın.",
+        "Sinyaller kabloların buluştuğu yerde geçer: bir sayaç başka bir trafonun arkasındaki komşu yoğunlaştırıcıya katılabilir. Her sayacın gerçekte hangi PAN'a katıldığını denetleyin.",
+        "Her sayacın önceden paylaşılan anahtarını kurulumdan önce merkezi sisteme yükleyin. O olmadan sayaç katılamaz.",
+        "DLMS/COSEM katmanında da şifreleyin: PLC ağ anahtarını bir yoğunlaştırıcının tüm sayaçları paylaşır."
+    ],
+    "points": {
+        "short": "Kısa adres",
+        "route": "Yol",
+        "energy": "Çekilen enerji"
+    },
+    "values": {
+        "via": "M1 üzerinden, 2 atlama"
+    },
+    "anatomy": {
+        "address": "M2'nin mesh başlığından yeniden kurulan IPv6 adresi"
+    },
+    "playground": {
+        "file": "Deneyin: bir yoğunlaştırıcının dışa aktarabileceği topoloji: duyduğu her sayaç ve ona nasıl ulaşılacağı. Dosya uydurmadır; her yoğunlaştırıcı markasının kendi biçimi vardır.",
+        "columns": "Kısa adres, sayacın EUI-64'ü (fabrika adresi), bir sonraki atlama, atlama sayısı, yol maliyeti (düşük olan iyi), bağlantı kalitesi (yüksek olan iyi) ve faz.",
+        "direct": "M1 kendi bir sonraki atlamasıdır: yoğunlaştırıcı onu doğrudan duyar.",
+        "relayed": "M2'ye 0x0001, yani M1 sayacı üzerinden 2 atlamada ulaşılır: daha yüksek maliyet ve daha zayıf bir bağlantı.",
+        "phase": "Bu sayaç L2 fazına bağlı. G3-PLC, her çerçevenin şebeke dalgasına göre ne zaman geldiğinden fazı anlayabilir.",
+        "far": "3 atlama uzakta, en zayıf bağlantıyla: kablo gürültülü olduğunda ilk düşen sayaç."
+    }
+}

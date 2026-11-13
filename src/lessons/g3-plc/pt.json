@@ -1,0 +1,97 @@
+{
+    "intro": "G3-PLC e PRIME enviam dados pelos próprios cabos de baixa tensão, de um concentrador de dados no transformador até cada medidor de energia dos seus circuitos. Os dois usam OFDM (muitas portadoras ao mesmo tempo) entre cerca de 35 e 91 kHz, a banda A da CENELEC na Europa. Um medidor que não ouve o concentrador fala através dos vizinhos. O G3-PLC forma uma malha e leva IPv6, espremido pelo 6LoWPAN, com DLMS/COSEM por cima. O PRIME forma uma árvore, em que alguns medidores servem de switch para outros, e costuma levar DLMS/COSEM sem IPv6. Juntos, leem dezenas de milhões de medidores na Europa.",
+    "plain": "O cabo que leva energia a cada casa também pode levar mensagens, como um sussurro que viaja pelo fio. Uma caixa ao lado do transformador do bairro conversa assim com cada medidor. Um medidor longe demais para ser ouvido passa as mensagens a um vizinho, que as passa adiante, como baldes numa corrente. É assim que os medidores são lidos todo dia sem ninguém ir até lá.",
+    "steps": {
+        "join": { "title": "Entrar na rede", "text": "Um medidor novo, M2, é instalado no fim da rua. Ele não ouve o concentrador diretamente, só o vizinho M1. Entra através de M1: com EAP-PSK, um login com uma chave colocada no medidor na fábrica, prova quem é. Recebe a chave da rede e um endereço curto, 0x0002." },
+        "route": { "title": "Achar um caminho", "text": "Para chegar a M2, o concentrador espalha um pedido de rota pelos medidores com o LOADng, um protocolo de roteamento para equipamentos pequenos. M2 responde pelo caminho mais barato, através de M1. Cada medidor no caminho anota o próximo salto: os próprios medidores montam a malha." },
+        "read": { "title": "Ler o medidor", "text": "O concentrador pede a M2 o seu registrador de energia 1-0:1.8.0 com um GET de DLMS/COSEM. Ele viaja num pacote IPv6 que o 6LoWPAN espreme de 48 bytes de cabeçalhos para 9. Um cabeçalho de malha diz: de 0x0000 para 0x0002. M1 ouve no cabo e passa adiante." },
+        "answer": { "title": "A resposta volta", "text": "M2 responde do mesmo jeito, de 0x0002 para 0x0000, através de M1: 303603, em dezenas de watt-hora, ou seja, 3036,03 kWh. No cabo, a camada MAC também criptografa cada salto com a chave da rede e acrescenta um CRC." },
+        "upload": { "title": "Mandar adiante", "text": "A cada hora ou toda noite, o concentrador envia as leituras de todos os seus medidores ao sistema central, o servidor de medição da distribuidora, por rede celular ou fibra." }
+    },
+    "frames": {
+        "discover": "Quem me ouve?",
+        "join": "Sou o medidor M2: aqui está a minha prova",
+        "accepted": "Bem-vindo: você é 0x0002, aqui está a chave da rede",
+        "rreq": "Quem conhece o caminho para 0x0002?",
+        "rrep": "Através de 0x0001",
+        "get": "M2, o que marca o seu registrador de energia?",
+        "response": "303603 (×10 Wh)",
+        "upload": "As leituras de hoje"
+    },
+    "notes": {
+        "discover": "M2 envia um pedido de beacon no cabo. Cada nó que o ouve responde com um beacon que dá o seu custo de rota até o concentrador. M2 escolhe M1, o mais barato, como o vizinho que vai repassar a sua entrada.",
+        "join": "O LoWPAN Bootstrapping Protocol (LBP) leva uma troca EAP-PSK, repassada por M1. As suas quatro mensagens provam que M2 e o concentrador conhecem a chave pré-compartilhada de M2, sem enviar a chave.",
+        "accepted": "No fim da troca, protegida pela chave de sessão, M2 recebe a chave da rede (GMK) e o seu endereço curto 0x0002. O LBP ACCEPTED encerra a entrada.",
+        "rreq": "Um pedido de rota LOADng para 0x0002, espalhado: cada medidor que o ouve soma o custo do enlace por onde ele chegou e o reenvia uma vez.",
+        "rrep": "M2 responde pelo caminho mais barato, salto a salto: através de M1. Cada nó no caminho registra o próximo salto para 0x0002 e para 0x0000.",
+        "upload": "Não é G3-PLC: o concentrador envia as leituras do dia ao sistema central por rede celular ou fibra, muitas vezes como arquivo por um serviço web, ou com DLMS/COSEM sobre TCP (veja a lição DLMS/COSEM)."
+    },
+    "fields": {
+        "mesh": { "name": "Cabeçalho de malha", "note": "0xB8 = 10 1 1 1000: um cabeçalho de malha (10), os dois endereços curtos (1, 1), restam 8 saltos. M1 baixa para 7 ao repassar o quadro." },
+        "mesh-dc-m2": { "name": "Origem · destino final", "note": "0x0000, o concentrador, para 0x0002, o medidor M2. O cabeçalho MAC na frente só nomeia o próximo salto, M1." },
+        "mesh-m2-dc": { "name": "Origem · destino final", "note": "0x0002 para 0x0000: de M2 de volta ao concentrador." },
+        "iphc": { "name": "IPHC", "note": "0x7E33: um cabeçalho IPv6 comprimido (RFC 6282). Classe de tráfego e rótulo de fluxo omitidos, próximo cabeçalho comprimido, limite de saltos 64 e os dois endereços reconstruídos a partir do cabeçalho de malha: 40 bytes de IPv6 em 2." },
+        "nhc-udp": { "name": "Cabeçalho UDP comprimido", "note": "0xF0: segue um cabeçalho UDP comprimido, com as duas portas e o checksum completos." },
+        "ports": { "name": "Portas", "note": "4059 e 4059 (0x0FDB): a porta do DLMS/COSEM, usada aqui nas duas pontas. O comprimento UDP é omitido: vem do comprimento do quadro." },
+        "checksum-get": { "name": "Checksum UDP", "note": "0xC190, sobre os endereços IPv6 reconstruídos, o cabeçalho UDP e os dados. O medidor o confere." },
+        "checksum-response": { "name": "Checksum UDP", "note": "0xC9FF, calculado do mesmo jeito." },
+        "version": { "name": "Versão", "note": "1: o wrapper DLMS/COSEM, igual ao do TCP." },
+        "wports-dc": { "name": "wPorts", "note": "Do cliente 0x0011 para o dispositivo lógico de gerência 0x0001 do medidor." },
+        "wports-m2": { "name": "wPorts", "note": "Do dispositivo lógico 0x0001 do medidor de volta ao cliente 0x0011." },
+        "len-13": { "name": "Comprimento", "note": "Seguem 13 bytes de DLMS/COSEM." },
+        "len-9": { "name": "Comprimento", "note": "Seguem 9 bytes." },
+        "get-req": { "name": "Pedido GET", "note": "0xC0 0x01: um get-request normal: um atributo." },
+        "invoke": { "name": "Invoke ID e prioridade", "note": "0xC1: prioridade alta, confirmado, invoke ID 1. A resposta leva o mesmo byte." },
+        "class-3": { "name": "Classe 3", "note": "Register: um valor com escala e unidade." },
+        "obis": { "name": "OBIS 1-0:1.8.0*255", "note": "Energia ativa consumida, total." },
+        "attr-2": { "name": "Atributo 2", "note": "O valor." },
+        "no-selection": { "name": "Sem seleção de acesso", "note": "0: o valor inteiro." },
+        "get-resp": { "name": "Resposta GET", "note": "0xC4 0x01: uma get-response normal." },
+        "data": { "name": "Resultado", "note": "0: seguem dados, não um erro." },
+        "uint32": { "name": "double-long-unsigned", "note": "0x06: um número sem sinal de 32 bits." },
+        "raw": { "name": "Valor", "note": "0x0004A1F3 = 303603. A escala deste medidor é ×10 Wh: 3036,03 kWh." },
+        "a-prefix": { "name": "fe80::/64", "note": "O prefixo link-local: só vale dentro desta rede PLC." },
+        "a-pan": { "name": "PAN ID", "note": "0x4C21: a rede do concentrador." },
+        "a-fill": { "name": "00 FF FE 00", "note": "Um enchimento fixo entre o PAN ID e o endereço curto." },
+        "a-short": { "name": "Endereço curto", "note": "0x0002: o medidor M2, o endereço que recebeu ao entrar." }
+    },
+    "devices": {
+        "hes": "Sistema central",
+        "dc": "Concentrador de dados",
+        "transformer": "Transformador 20/0,4 kV",
+        "m1": "Medidor M1",
+        "m2": "Medidor M2"
+    },
+    "facts": {
+        "standard": "ITU-T G.9903 (G3-PLC) e ITU-T G.9904 (PRIME). O G3-PLC leva IPv6 com 6LoWPAN (RFC 4944, RFC 6282) e roteia com LOADng",
+        "between": "Um concentrador de dados no transformador MT/BT e os medidores de energia dos seus circuitos de baixa tensão",
+        "transport": "OFDM no cabo de energia; na Europa a banda A da CENELEC, cerca de 35 – 91 kHz",
+        "security": "G3-PLC: cada medidor entra com EAP-PSK e recebe a chave da rede; a camada MAC criptografa com AES-128. O DLMS/COSEM acrescenta o seu próprio AES-GCM",
+        "speed": "Dezenas de kbit/s; cada salto acrescenta atraso, então ler centenas de medidores leva minutos"
+    },
+    "tips": [
+        "Ruído e cargas no cabo mudam o alcance de hora em hora: um inversor ou carregador novo pode desligar medidores. Olhe a qualidade de enlace de cada medidor ao longo de dias, não numa leitura só.",
+        "Os sinais passam onde os cabos se encontram: um medidor pode entrar no concentrador vizinho, atrás de outro transformador. Confira em que PAN cada medidor entrou de fato.",
+        "Carregue a chave pré-compartilhada de cada medidor no sistema central antes da instalação. Sem ela, o medidor não consegue entrar.",
+        "Criptografe também na camada DLMS/COSEM: a chave da rede PLC é compartilhada por todos os medidores de um concentrador."
+    ],
+    "points": {
+        "short": "Endereço curto",
+        "route": "Rota",
+        "energy": "Energia consumida"
+    },
+    "values": {
+        "via": "através de M1, 2 saltos"
+    },
+    "anatomy": {
+        "address": "O endereço IPv6 de M2, reconstruído a partir do cabeçalho de malha"
+    },
+    "playground": {
+        "file": "Experimente: a topologia que um concentrador poderia exportar: cada medidor de que ele ouviu falar, e como chegar a ele. O arquivo é inventado; cada marca de concentrador tem o seu próprio formato.",
+        "columns": "O endereço curto, o EUI-64 do medidor (o seu endereço de fábrica), o próximo salto, o número de saltos, o custo da rota (quanto menor, melhor), a qualidade do enlace (quanto maior, melhor) e a fase.",
+        "direct": "M1 é o seu próprio próximo salto: o concentrador o ouve diretamente.",
+        "relayed": "M2 é alcançado através de 0x0001, o medidor M1, em 2 saltos: um custo maior e um enlace mais fraco.",
+        "phase": "Este medidor está na fase L2. O G3-PLC consegue saber a fase pelo momento em que cada quadro chega em relação ao ciclo da rede.",
+        "far": "A 3 saltos, com o enlace mais fraco: o primeiro medidor a cair quando o cabo fica ruidoso."
+    }
+}

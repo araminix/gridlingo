@@ -1,0 +1,97 @@
+{
+    "intro": "G3-PLC und PRIME senden Daten über die Niederspannungskabel selbst, von einem Datenkonzentrator an der Trafostation zu jedem Stromzähler an ihren Abgängen. Beide nutzen OFDM (viele Träger zugleich) zwischen etwa 35 und 91 kHz, in Europa das CENELEC-A-Band. Ein Zähler, der den Konzentrator nicht hört, spricht über seine Nachbarn. G3-PLC baut ein Maschennetz und trägt IPv6, von 6LoWPAN zusammengedrückt, mit DLMS/COSEM darüber. PRIME baut stattdessen einen Baum, in dem manche Zähler als Switch für andere dienen, und trägt DLMS/COSEM meist ohne IPv6. Zusammen lesen sie in Europa Zehnmillionen Zähler aus.",
+    "plain": "Das Stromkabel, das Strom in jedes Haus bringt, kann auch Nachrichten tragen, wie ein Flüstern, das auf dem Draht mitfährt. Ein Kasten neben dem Trafo des Viertels spricht so mit jedem Stromzähler. Ein Zähler, der zu weit weg ist, um gehört zu werden, reicht seine Nachrichten an einen Nachbarn weiter, der sie weitergibt, wie Eimer in einer Kette. So werden Zähler jeden Tag ausgelesen, ohne dass jemand vorbeikommt.",
+    "steps": {
+        "join": { "title": "Dem Netz beitreten", "text": "Ein neuer Zähler, M2, wird am Ende der Straße eingebaut. Er hört den Konzentrator nicht direkt, nur seinen Nachbarn M1. Er tritt über M1 bei: Mit EAP-PSK, einer Anmeldung mit einem Schlüssel, der im Werk in den Zähler gelegt wurde, beweist er, wer er ist. Er erhält den Netzschlüssel und eine Kurzadresse, 0x0002." },
+        "route": { "title": "Einen Weg finden", "text": "Um M2 zu erreichen, flutet der Konzentrator mit LOADng, einem Routing-Protokoll für kleine Geräte, eine Routenanfrage durch die Zähler. M2 antwortet auf dem günstigsten Weg, über M1. Jeder Zähler auf dem Weg merkt sich den nächsten Hop: Die Zähler bauen das Maschennetz selbst." },
+        "read": { "title": "Den Zähler auslesen", "text": "Der Konzentrator fragt M2 mit einem DLMS/COSEM-GET nach seinem Energieregister 1-0:1.8.0. Es reist in einem IPv6-Paket, das 6LoWPAN von 48 Bytes Header auf 9 zusammendrückt. Ein Mesh-Header sagt: von 0x0000 an 0x0002. M1 hört es auf dem Kabel und gibt es weiter." },
+        "answer": { "title": "Die Antwort kommt zurück", "text": "M2 antwortet auf dieselbe Weise, von 0x0002 an 0x0000, über M1: 303603, in Zehn-Wattstunden, also 3036,03 kWh. Auf dem Kabel verschlüsselt die MAC-Schicht außerdem jeden Hop mit dem Netzschlüssel und fügt eine CRC an." },
+        "upload": { "title": "Weitergeben", "text": "Jede Stunde oder jede Nacht sendet der Konzentrator die Werte all seiner Zähler an das Head-End-System, den Zählerserver des Netzbetreibers, über Mobilfunk oder Glasfaser." }
+    },
+    "frames": {
+        "discover": "Wer kann mich hören?",
+        "join": "Ich bin Zähler M2: hier mein Nachweis",
+        "accepted": "Willkommen: Du bist 0x0002, hier der Netzschlüssel",
+        "rreq": "Wer kennt den Weg zu 0x0002?",
+        "rrep": "Über 0x0001",
+        "get": "M2, was zeigt dein Energieregister?",
+        "response": "303603 (×10 Wh)",
+        "upload": "Die Werte von heute"
+    },
+    "notes": {
+        "discover": "M2 sendet eine Beacon-Anfrage auf das Kabel. Jeder Knoten, der sie hört, antwortet mit einem Beacon mit seinen Routenkosten zum Konzentrator. M2 wählt M1, den günstigsten, als Nachbarn, der seinen Beitritt weiterleitet.",
+        "join": "Das LoWPAN Bootstrapping Protocol (LBP) trägt einen EAP-PSK-Austausch, von M1 weitergeleitet. Seine vier Nachrichten beweisen, dass M2 und der Konzentrator den vorab geteilten Schlüssel von M2 kennen, ohne den Schlüssel selbst zu senden.",
+        "accepted": "Am Ende des Austauschs erhält M2, geschützt durch den Sitzungsschlüssel, den Netzschlüssel (GMK) und seine Kurzadresse 0x0002. LBP ACCEPTED schließt den Beitritt ab.",
+        "rreq": "Eine LOADng-Routenanfrage für 0x0002, geflutet: Jeder Zähler, der sie hört, addiert die Kosten der Verbindung, über die sie kam, und sendet sie einmal weiter.",
+        "rrep": "M2 antwortet auf dem günstigsten Weg, Hop für Hop: über M1. Jeder Knoten auf dem Weg notiert den nächsten Hop zu 0x0002 und zu 0x0000.",
+        "upload": "Kein G3-PLC: Der Konzentrator sendet die Tageswerte über Mobilfunk oder Glasfaser an das Head-End, oft als Datei über einen Webdienst oder mit DLMS/COSEM über TCP (siehe die Lektion DLMS/COSEM)."
+    },
+    "fields": {
+        "mesh": { "name": "Mesh-Header", "note": "0xB8 = 10 1 1 1000: ein Mesh-Header (10), beide Adressen kurz (1, 1), noch 8 Hops. M1 senkt ihn auf 7, wenn es den Frame weitergibt." },
+        "mesh-dc-m2": { "name": "Absender · Endziel", "note": "0x0000, der Konzentrator, an 0x0002, Zähler M2. Der MAC-Header davor nennt nur den nächsten Hop, M1." },
+        "mesh-m2-dc": { "name": "Absender · Endziel", "note": "0x0002 an 0x0000: von M2 zurück zum Konzentrator." },
+        "iphc": { "name": "IPHC", "note": "0x7E33: ein komprimierter IPv6-Header (RFC 6282). Traffic Class und Flow Label weggelassen, nächster Header komprimiert, Hop Limit 64, und beide Adressen aus dem Mesh-Header wiederhergestellt: 40 Bytes IPv6 in 2." },
+        "nhc-udp": { "name": "UDP-Header, komprimiert", "note": "0xF0: Es folgt ein komprimierter UDP-Header, mit beiden Ports und der Prüfsumme in voller Länge." },
+        "ports": { "name": "Ports", "note": "4059 und 4059 (0x0FDB): der DLMS/COSEM-Port, hier an beiden Enden. Die UDP-Länge fehlt: Sie ergibt sich aus der Länge des Frames." },
+        "checksum-get": { "name": "UDP-Prüfsumme", "note": "0xC190, über die wiederhergestellten IPv6-Adressen, den UDP-Header und die Daten. Der Zähler prüft sie." },
+        "checksum-response": { "name": "UDP-Prüfsumme", "note": "0xC9FF, genauso berechnet." },
+        "version": { "name": "Version", "note": "1: der DLMS/COSEM-Wrapper, wie bei TCP." },
+        "wports-dc": { "name": "wPorts", "note": "Von Client 0x0011 an das logische Management-Gerät 0x0001 des Zählers." },
+        "wports-m2": { "name": "wPorts", "note": "Vom logischen Gerät 0x0001 des Zählers zurück an Client 0x0011." },
+        "len-13": { "name": "Länge", "note": "13 Bytes DLMS/COSEM folgen." },
+        "len-9": { "name": "Länge", "note": "9 Bytes folgen." },
+        "get-req": { "name": "GET-Anfrage", "note": "0xC0 0x01: ein get-request, normal: ein Attribut." },
+        "invoke": { "name": "Invoke-ID und Priorität", "note": "0xC1: hohe Priorität, bestätigt, Invoke-ID 1. Die Antwort trägt dasselbe Byte." },
+        "class-3": { "name": "Klasse 3", "note": "Register: ein Wert mit Skalierung und Einheit." },
+        "obis": { "name": "OBIS 1-0:1.8.0*255", "note": "Bezogene Wirkenergie, gesamt." },
+        "attr-2": { "name": "Attribut 2", "note": "Der Wert." },
+        "no-selection": { "name": "Keine Zugriffsauswahl", "note": "0: der ganze Wert." },
+        "get-resp": { "name": "GET-Antwort", "note": "0xC4 0x01: eine get-response, normal." },
+        "data": { "name": "Ergebnis", "note": "0: Daten folgen, kein Fehler." },
+        "uint32": { "name": "double-long-unsigned", "note": "0x06: eine vorzeichenlose 32-Bit-Zahl." },
+        "raw": { "name": "Wert", "note": "0x0004A1F3 = 303603. Die Skalierung dieses Zählers ist ×10 Wh: 3036,03 kWh." },
+        "a-prefix": { "name": "fe80::/64", "note": "Das Link-Local-Präfix: nur innerhalb dieses PLC-Netzes gültig." },
+        "a-pan": { "name": "PAN-ID", "note": "0x4C21: das Netz des Konzentrators." },
+        "a-fill": { "name": "00 FF FE 00", "note": "Ein fester Füller zwischen PAN-ID und Kurzadresse." },
+        "a-short": { "name": "Kurzadresse", "note": "0x0002: Zähler M2, die Adresse, die er beim Beitritt erhielt." }
+    },
+    "devices": {
+        "hes": "Head-End-System",
+        "dc": "Datenkonzentrator",
+        "transformer": "Trafo 20/0,4 kV",
+        "m1": "Zähler M1",
+        "m2": "Zähler M2"
+    },
+    "facts": {
+        "standard": "ITU-T G.9903 (G3-PLC) und ITU-T G.9904 (PRIME). G3-PLC trägt IPv6 mit 6LoWPAN (RFC 4944, RFC 6282) und routet mit LOADng",
+        "between": "Ein Datenkonzentrator am MS/NS-Trafo und die Stromzähler an seinen Niederspannungsabgängen",
+        "transport": "OFDM auf dem Stromkabel; in Europa das CENELEC-A-Band, etwa 35 – 91 kHz",
+        "security": "G3-PLC: Jeder Zähler tritt mit EAP-PSK bei und erhält den Netzschlüssel; die MAC-Schicht verschlüsselt mit AES-128. DLMS/COSEM fügt sein eigenes AES-GCM hinzu",
+        "speed": "Einige zehn kbit/s; jeder Hop kostet Zeit, das Auslesen von Hunderten Zählern dauert daher Minuten"
+    },
+    "tips": [
+        "Störungen und Lasten auf dem Kabel ändern die Reichweite von Stunde zu Stunde: Ein neuer Wechselrichter oder eine Ladestation kann Zähler abschneiden. Betrachten Sie die Verbindungsqualität jedes Zählers über Tage, nicht bei einer Ablesung.",
+        "Signale wechseln dort über, wo Kabel sich treffen: Ein Zähler kann einem benachbarten Konzentrator hinter einem anderen Trafo beitreten. Prüfen Sie, welchem PAN jeder Zähler wirklich beigetreten ist.",
+        "Laden Sie den vorab geteilten Schlüssel jedes Zählers vor dem Einbau ins Head-End. Ohne ihn kann der Zähler nicht beitreten.",
+        "Verschlüsseln Sie auch in der DLMS/COSEM-Schicht: Den PLC-Netzschlüssel teilen alle Zähler eines Konzentrators."
+    ],
+    "points": {
+        "short": "Kurzadresse",
+        "route": "Route",
+        "energy": "Bezogene Energie"
+    },
+    "values": {
+        "via": "über M1, 2 Hops"
+    },
+    "anatomy": {
+        "address": "Die IPv6-Adresse von M2, aus dem Mesh-Header wiederhergestellt"
+    },
+    "playground": {
+        "file": "Probieren Sie es aus: die Topologie, die ein Konzentrator exportieren könnte: jeder Zähler, von dem er gehört hat, und wie er ihn erreicht. Die Datei ist erfunden; jedes Konzentratormodell hat sein eigenes Format.",
+        "columns": "Die Kurzadresse, die EUI-64 des Zählers (seine Werksadresse), der nächste Hop, die Zahl der Hops, die Routenkosten (weniger ist besser), die Verbindungsqualität (mehr ist besser) und die Phase.",
+        "direct": "M1 ist sein eigener nächster Hop: Der Konzentrator hört ihn direkt.",
+        "relayed": "M2 wird über 0x0001, Zähler M1, in 2 Hops erreicht: höhere Kosten und eine schwächere Verbindung.",
+        "phase": "Dieser Zähler hängt an Phase L2. G3-PLC kann die Phase daran erkennen, wann jeder Frame gegenüber der Netzschwingung ankommt.",
+        "far": "3 Hops entfernt, mit der schwächsten Verbindung: der erste Zähler, der wegfällt, wenn das Kabel gestört ist."
+    }
+}

@@ -247,6 +247,8 @@
     "lesson.m-bus.where": "열량계, 수도 계량기, 가스 계량기",
     "lesson.ansi-c12.summary": "북미 계량기의 테이블과 메시지",
     "lesson.ansi-c12.where": "전력량계",
+    "lesson.g3-plc.summary": "전력 케이블로 보내는 계량 데이터",
+    "lesson.g3-plc.where": "스마트 계량기, 데이터 집중기",
     "lesson.mqtt.summary": "원격 측정을 위한 발행·구독",
     "lesson.mqtt.where": "엣지 게이트웨이, 클라우드 플랫폼",
     "lesson.sparkplug-b.summary": "birth·death 메시지와 데이터 모델을 갖춘 MQTT",

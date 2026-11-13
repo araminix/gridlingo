@@ -62,8 +62,8 @@ function leaves(value: unknown, path = ""): [string, string][] {
 const get = (text: unknown, path: string) => path.split(".").reduce<unknown>((value, key) => (value as Record<string, unknown> | undefined)?.[key], text);
 
 describe("the catalog", () => {
-    it("has 40 protocols with unique ids, each with a lesson and English texts", () => {
-        expect(CATALOG).toHaveLength(40);
+    it("has 41 protocols with unique ids, each with a lesson and English texts", () => {
+        expect(CATALOG).toHaveLength(41);
         expect(new Set(CATALOG.map((meta) => meta.id)).size).toBe(CATALOG.length);
         for (const meta of CATALOG) {
             expect(lessons[`./${meta.id}/lesson.ts`], `${meta.id}/lesson.ts`).toBeDefined();

@@ -1,0 +1,97 @@
+{
+    "intro": "G3-PLC y PRIME envían datos por los propios cables de baja tensión, desde un concentrador de datos en el centro de transformación hasta cada contador eléctrico de sus salidas. Ambos usan OFDM (muchas portadoras a la vez) entre unos 35 y 91 kHz, la banda A de CENELEC en Europa. Un contador que no oye al concentrador habla a través de sus vecinos. G3-PLC forma una malla y lleva IPv6, comprimido por 6LoWPAN, con DLMS/COSEM encima. PRIME forma en cambio un árbol, en el que algunos contadores hacen de switch para otros, y suele llevar DLMS/COSEM sin IPv6. Entre los dos leen decenas de millones de contadores en Europa.",
+    "plain": "El cable que lleva la electricidad a cada casa también puede llevar mensajes, como un susurro que viaja por el hilo. Una caja junto al transformador del barrio habla así con cada contador. Un contador demasiado lejos para que lo oigan pasa sus mensajes a un vecino, que los pasa a su vez, como cubos en una cadena. Así se leen los contadores cada día sin que nadie vaya a verlos.",
+    "steps": {
+        "join": { "title": "Unirse a la red", "text": "Se instala un contador nuevo, M2, al final de la calle. No oye al concentrador directamente, solo a su vecino M1. Se une a través de M1: con EAP-PSK, un inicio de sesión con una clave puesta en el contador en fábrica, demuestra quién es. Recibe la clave de la red y una dirección corta, 0x0002." },
+        "route": { "title": "Encontrar un camino", "text": "Para llegar a M2, el concentrador difunde una petición de ruta por los contadores con LOADng, un protocolo de encaminamiento para equipos pequeños. M2 responde por el camino más barato, a través de M1. Cada contador del camino anota el siguiente salto: los contadores construyen la malla ellos mismos." },
+        "read": { "title": "Leer el contador", "text": "El concentrador pide a M2 su registro de energía 1-0:1.8.0 con un GET de DLMS/COSEM. Viaja en un paquete IPv6 que 6LoWPAN reduce de 48 bytes de cabeceras a 9. Una cabecera de malla dice: de 0x0000 a 0x0002. M1 lo oye en el cable y lo reenvía." },
+        "answer": { "title": "Vuelve la respuesta", "text": "M2 responde del mismo modo, de 0x0002 a 0x0000, a través de M1: 303603, en decenas de vatios hora, es decir, 3036,03 kWh. En el cable, la capa MAC además cifra cada salto con la clave de la red y añade un CRC." },
+        "upload": { "title": "Enviarlo", "text": "Cada hora o cada noche, el concentrador envía las lecturas de todos sus contadores al sistema central, el servidor de medida de la distribuidora, por red móvil o fibra." }
+    },
+    "frames": {
+        "discover": "¿Quién me oye?",
+        "join": "Soy el contador M2: aquí está mi prueba",
+        "accepted": "Bienvenido: eres 0x0002, aquí está la clave de la red",
+        "rreq": "¿Quién conoce el camino a 0x0002?",
+        "rrep": "A través de 0x0001",
+        "get": "M2, ¿qué marca tu registro de energía?",
+        "response": "303603 (×10 Wh)",
+        "upload": "Las lecturas de hoy"
+    },
+    "notes": {
+        "discover": "M2 envía una petición de beacon por el cable. Cada nodo que la oye responde con un beacon que da su coste de ruta hasta el concentrador. M2 elige a M1, el más barato, como el vecino que reenviará su unión.",
+        "join": "El LoWPAN Bootstrapping Protocol (LBP) lleva un intercambio EAP-PSK, reenviado por M1. Sus cuatro mensajes demuestran que M2 y el concentrador conocen la clave precompartida de M2, sin enviar la clave.",
+        "accepted": "Al final del intercambio, protegido por la clave de sesión, M2 recibe la clave de la red (GMK) y su dirección corta 0x0002. LBP ACCEPTED cierra la unión.",
+        "rreq": "Una petición de ruta LOADng para 0x0002, difundida: cada contador que la oye suma el coste del enlace por el que llegó y la reenvía una vez.",
+        "rrep": "M2 responde por el camino más barato, salto a salto: a través de M1. Cada nodo del camino anota el siguiente salto hacia 0x0002 y hacia 0x0000.",
+        "upload": "No es G3-PLC: el concentrador envía las lecturas del día al sistema central por red móvil o fibra, a menudo como un archivo por un servicio web, o con DLMS/COSEM sobre TCP (vea la lección DLMS/COSEM)."
+    },
+    "fields": {
+        "mesh": { "name": "Cabecera de malla", "note": "0xB8 = 10 1 1 1000: una cabecera de malla (10), ambas direcciones cortas (1, 1), quedan 8 saltos. M1 lo baja a 7 al reenviar la trama." },
+        "mesh-dc-m2": { "name": "Origen · destino final", "note": "0x0000, el concentrador, a 0x0002, el contador M2. La cabecera MAC de delante solo nombra el siguiente salto, M1." },
+        "mesh-m2-dc": { "name": "Origen · destino final", "note": "0x0002 a 0x0000: de M2 de vuelta al concentrador." },
+        "iphc": { "name": "IPHC", "note": "0x7E33: una cabecera IPv6 comprimida (RFC 6282). Clase de tráfico y etiqueta de flujo omitidas, siguiente cabecera comprimida, límite de saltos 64 y ambas direcciones reconstruidas desde la cabecera de malla: 40 bytes de IPv6 en 2." },
+        "nhc-udp": { "name": "Cabecera UDP, comprimida", "note": "0xF0: sigue una cabecera UDP comprimida, con ambos puertos y la suma de comprobación completos." },
+        "ports": { "name": "Puertos", "note": "4059 y 4059 (0x0FDB): el puerto de DLMS/COSEM, usado aquí en ambos extremos. La longitud UDP se omite: se deduce de la longitud de la trama." },
+        "checksum-get": { "name": "Suma de comprobación UDP", "note": "0xC190, sobre las direcciones IPv6 reconstruidas, la cabecera UDP y los datos. El contador la comprueba." },
+        "checksum-response": { "name": "Suma de comprobación UDP", "note": "0xC9FF, calculada igual." },
+        "version": { "name": "Versión", "note": "1: el envoltorio DLMS/COSEM, igual que en TCP." },
+        "wports-dc": { "name": "wPorts", "note": "Del cliente 0x0011 al dispositivo lógico de gestión 0x0001 del contador." },
+        "wports-m2": { "name": "wPorts", "note": "Del dispositivo lógico 0x0001 del contador de vuelta al cliente 0x0011." },
+        "len-13": { "name": "Longitud", "note": "Siguen 13 bytes de DLMS/COSEM." },
+        "len-9": { "name": "Longitud", "note": "Siguen 9 bytes." },
+        "get-req": { "name": "Petición GET", "note": "0xC0 0x01: un get-request normal: un atributo." },
+        "invoke": { "name": "Invoke ID y prioridad", "note": "0xC1: prioridad alta, confirmado, invoke ID 1. La respuesta lleva el mismo byte." },
+        "class-3": { "name": "Clase 3", "note": "Register: un valor con escala y unidad." },
+        "obis": { "name": "OBIS 1-0:1.8.0*255", "note": "Energía activa importada, total." },
+        "attr-2": { "name": "Atributo 2", "note": "El valor." },
+        "no-selection": { "name": "Sin selección de acceso", "note": "0: el valor entero." },
+        "get-resp": { "name": "Respuesta GET", "note": "0xC4 0x01: una get-response normal." },
+        "data": { "name": "Resultado", "note": "0: siguen datos, no un error." },
+        "uint32": { "name": "double-long-unsigned", "note": "0x06: un número sin signo de 32 bits." },
+        "raw": { "name": "Valor", "note": "0x0004A1F3 = 303603. La escala de este contador es ×10 Wh: 3036,03 kWh." },
+        "a-prefix": { "name": "fe80::/64", "note": "El prefijo de enlace local: solo vale dentro de esta red PLC." },
+        "a-pan": { "name": "PAN ID", "note": "0x4C21: la red del concentrador." },
+        "a-fill": { "name": "00 FF FE 00", "note": "Un relleno fijo entre el PAN ID y la dirección corta." },
+        "a-short": { "name": "Dirección corta", "note": "0x0002: el contador M2, la dirección que recibió al unirse." }
+    },
+    "devices": {
+        "hes": "Sistema central",
+        "dc": "Concentrador de datos",
+        "transformer": "Transformador 20/0,4 kV",
+        "m1": "Contador M1",
+        "m2": "Contador M2"
+    },
+    "facts": {
+        "standard": "ITU-T G.9903 (G3-PLC) e ITU-T G.9904 (PRIME). G3-PLC lleva IPv6 con 6LoWPAN (RFC 4944, RFC 6282) y encamina con LOADng",
+        "between": "Un concentrador de datos en el transformador MT/BT y los contadores eléctricos de sus salidas de baja tensión",
+        "transport": "OFDM por el cable eléctrico; en Europa la banda A de CENELEC, unos 35 – 91 kHz",
+        "security": "G3-PLC: cada contador se une con EAP-PSK y recibe la clave de la red; la capa MAC cifra con AES-128. DLMS/COSEM añade su propio AES-GCM encima",
+        "speed": "Decenas de kbit/s; cada salto añade retardo, así que leer cientos de contadores lleva minutos"
+    },
+    "tips": [
+        "El ruido y las cargas en el cable cambian el alcance de una hora a otra: un inversor o un cargador nuevos pueden dejar contadores sin conexión. Mire la calidad de enlace de cada contador durante días, no en una sola lectura.",
+        "Las señales se cruzan donde se juntan los cables: un contador puede unirse a un concentrador vecino, detrás de otro transformador. Compruebe a qué PAN se unió de verdad cada contador.",
+        "Cargue la clave precompartida de cada contador en el sistema central antes de instalarlo. Sin ella, el contador no puede unirse.",
+        "Cifre también en la capa DLMS/COSEM: la clave de la red PLC la comparten todos los contadores de un concentrador."
+    ],
+    "points": {
+        "short": "Dirección corta",
+        "route": "Ruta",
+        "energy": "Energía importada"
+    },
+    "values": {
+        "via": "a través de M1, 2 saltos"
+    },
+    "anatomy": {
+        "address": "La dirección IPv6 de M2, reconstruida desde la cabecera de malla"
+    },
+    "playground": {
+        "file": "Pruébelo: la topología que podría exportar un concentrador: cada contador del que ha oído hablar y cómo llegar a él. El archivo es inventado; cada marca de concentrador tiene su propio formato.",
+        "columns": "La dirección corta, el EUI-64 del contador (su dirección de fábrica), el siguiente salto, el número de saltos, el coste de ruta (mejor cuanto menor), la calidad de enlace (mejor cuanto mayor) y la fase.",
+        "direct": "M1 es su propio siguiente salto: el concentrador lo oye directamente.",
+        "relayed": "A M2 se llega a través de 0x0001, el contador M1, en 2 saltos: más coste y un enlace más débil.",
+        "phase": "Este contador cuelga de la fase L2. G3-PLC puede deducir la fase de cuándo llega cada trama respecto al ciclo de la red.",
+        "far": "A 3 saltos, con el enlace más débil: el primer contador que se pierde cuando el cable tiene ruido."
+    }
+}

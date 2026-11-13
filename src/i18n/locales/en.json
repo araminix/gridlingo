@@ -247,6 +247,8 @@
     "lesson.m-bus.where": "Heat, water and gas meters",
     "lesson.ansi-c12.summary": "North American meter tables and messages",
     "lesson.ansi-c12.where": "Electricity meters",
+    "lesson.g3-plc.summary": "Meter data over the power cable",
+    "lesson.g3-plc.where": "Smart meters, data concentrators",
     "lesson.mqtt.summary": "Publish and subscribe for telemetry",
     "lesson.mqtt.where": "Edge gateways, cloud platforms",
     "lesson.sparkplug-b.summary": "MQTT with birth and death messages and a data model",

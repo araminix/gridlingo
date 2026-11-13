@@ -247,6 +247,8 @@
     "lesson.m-bus.where": "کنتورهای حرارتی، آب و گاز",
     "lesson.ansi-c12.summary": "جدول‌ها و پیام‌های کنتورهای آمریکای شمالی",
     "lesson.ansi-c12.where": "کنتورهای برق",
+    "lesson.g3-plc.summary": "داده کنتورها روی کابل برق",
+    "lesson.g3-plc.where": "کنتورهای هوشمند، کنسانتریتورهای داده",
     "lesson.mqtt.summary": "انتشار و اشتراک برای تله‌متری",
     "lesson.mqtt.where": "گیت‌وی‌های لبه، پلتفرم‌های ابری",
     "lesson.sparkplug-b.summary": "MQTT با پیام‌های تولد و مرگ و یک مدل داده",

@@ -247,6 +247,8 @@
     "lesson.m-bus.where": "Wärme-, Wasser- und Gaszähler",
     "lesson.ansi-c12.summary": "Nordamerikanische Zählertabellen und -nachrichten",
     "lesson.ansi-c12.where": "Stromzähler",
+    "lesson.g3-plc.summary": "Zählerdaten über das Stromkabel",
+    "lesson.g3-plc.where": "Smart Meter, Datenkonzentratoren",
     "lesson.mqtt.summary": "Publish und Subscribe für Telemetrie",
     "lesson.mqtt.where": "Edge-Gateways, Cloud-Plattformen",
     "lesson.sparkplug-b.summary": "MQTT mit Birth- und Death-Nachrichten und einem Datenmodell",

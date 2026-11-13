@@ -1,0 +1,97 @@
+{
+    "intro": "G3-PLC and PRIME send data over the low-voltage power cables themselves, from a data concentrator at the transformer to every electricity meter on its feeders. Both use OFDM (many carriers at once) between about 35 and 91 kHz, the CENELEC A band in Europe. A meter that cannot hear the concentrator talks through its neighbours. G3-PLC builds a mesh and carries IPv6, squeezed by 6LoWPAN, with DLMS/COSEM on top. PRIME builds a tree instead, some meters acting as switches for others, and usually carries DLMS/COSEM without IPv6. Together they read tens of millions of meters in Europe.",
+    "plain": "The power cable that brings electricity to every house can carry messages too, like a whisper riding on the wire. A box next to the neighbourhood transformer talks to every electricity meter this way. A meter too far away to be heard hands its messages to a neighbour, who passes them on, like buckets along a chain. That is how meters are read every day without anyone visiting.",
+    "steps": {
+        "join": { "title": "Join the network", "text": "A new meter, M2, is installed at the end of the street. It cannot hear the concentrator directly, only its neighbour M1. It joins through M1: with EAP-PSK, a login with a key put into the meter at the factory, it proves who it is. It gets the network key and a short address, 0x0002." },
+        "route": { "title": "Find a way", "text": "To reach M2, the concentrator floods a route request through the meters with LOADng, a routing protocol for small devices. M2 answers along the cheapest path, through M1. Each meter on the way notes the next hop: the meters build the mesh themselves." },
+        "read": { "title": "Read the meter", "text": "The concentrator asks M2 for its energy register 1-0:1.8.0 with a DLMS/COSEM GET. It travels in an IPv6 packet that 6LoWPAN squeezes from 48 bytes of headers to 9. A mesh header says: from 0x0000 to 0x0002. M1 hears it on the cable and passes it on." },
+        "answer": { "title": "The answer comes back", "text": "M2 answers the same way, from 0x0002 to 0x0000, through M1: 303603, in tens of watt-hours, so 3036.03 kWh. On the cable, the MAC layer also encrypts each hop with the network key and adds a CRC." },
+        "upload": { "title": "Send it on", "text": "Every hour or every night, the concentrator sends the readings of all its meters to the head-end system, the utility's metering server, over cellular or fibre." }
+    },
+    "frames": {
+        "discover": "Who can hear me?",
+        "join": "I am meter M2: here is my proof",
+        "accepted": "Welcome: you are 0x0002, here is the network key",
+        "rreq": "Who knows the way to 0x0002?",
+        "rrep": "Through 0x0001",
+        "get": "M2, what does your energy register say?",
+        "response": "303603 (×10 Wh)",
+        "upload": "Today's readings"
+    },
+    "notes": {
+        "discover": "M2 sends a beacon request on the cable. Every node that hears it answers with a beacon that gives its route cost to the concentrator. M2 picks M1, the cheapest, as the neighbour that will relay its joining.",
+        "join": "The LoWPAN Bootstrapping Protocol (LBP) carries an EAP-PSK exchange, relayed by M1. Its four messages prove that M2 and the concentrator know M2's pre-shared key, without sending the key itself.",
+        "accepted": "At the end of the exchange, protected by the session key, M2 receives the network key (GMK) and its short address 0x0002. LBP ACCEPTED closes the joining.",
+        "rreq": "A LOADng route request for 0x0002, flooded: every meter that hears it adds the cost of the link it came over and sends it on once.",
+        "rrep": "M2 answers along the cheapest path, hop by hop: through M1. Each node on the way records the next hop towards 0x0002 and towards 0x0000.",
+        "upload": "Not G3-PLC: the concentrator sends the day's readings to the head-end over cellular or fibre, often as a file through a web service, or with DLMS/COSEM over TCP (see the DLMS/COSEM lesson)."
+    },
+    "fields": {
+        "mesh": { "name": "Mesh header", "note": "0xB8 = 10 1 1 1000: a mesh header (10), both addresses short (1, 1), hops left 8. M1 lowers it to 7 when it passes the frame on." },
+        "mesh-dc-m2": { "name": "Originator · final destination", "note": "0x0000, the concentrator, to 0x0002, meter M2. The MAC header in front names only the next hop, M1." },
+        "mesh-m2-dc": { "name": "Originator · final destination", "note": "0x0002 to 0x0000: from M2 back to the concentrator." },
+        "iphc": { "name": "IPHC", "note": "0x7E33: a compressed IPv6 header (RFC 6282). Traffic class and flow label left out, next header compressed, hop limit 64, and both addresses rebuilt from the mesh header: 40 bytes of IPv6 in 2." },
+        "nhc-udp": { "name": "UDP header, compressed", "note": "0xF0: a compressed UDP header follows, with both ports and the checksum in full." },
+        "ports": { "name": "Ports", "note": "4059 and 4059 (0x0FDB): the DLMS/COSEM port, used at both ends here. The UDP length is left out: it follows from the length of the frame." },
+        "checksum-get": { "name": "UDP checksum", "note": "0xC190, over the rebuilt IPv6 addresses, the UDP header and the data. The meter checks it." },
+        "checksum-response": { "name": "UDP checksum", "note": "0xC9FF, computed the same way." },
+        "version": { "name": "Version", "note": "1: the DLMS/COSEM wrapper, the same as on TCP." },
+        "wports-dc": { "name": "wPorts", "note": "From client 0x0011 to the meter's management logical device 0x0001." },
+        "wports-m2": { "name": "wPorts", "note": "From the meter's logical device 0x0001 back to client 0x0011." },
+        "len-13": { "name": "Length", "note": "13 bytes of DLMS/COSEM follow." },
+        "len-9": { "name": "Length", "note": "9 bytes follow." },
+        "get-req": { "name": "GET request", "note": "0xC0 0x01: a get-request, normal: one attribute." },
+        "invoke": { "name": "Invoke ID and priority", "note": "0xC1: high priority, confirmed, invoke ID 1. The answer carries the same byte." },
+        "class-3": { "name": "Class 3", "note": "Register: a value with a scaler and a unit." },
+        "obis": { "name": "OBIS 1-0:1.8.0*255", "note": "Active energy imported, total." },
+        "attr-2": { "name": "Attribute 2", "note": "The value." },
+        "no-selection": { "name": "No access selection", "note": "0: the whole value." },
+        "get-resp": { "name": "GET response", "note": "0xC4 0x01: a get-response, normal." },
+        "data": { "name": "Result", "note": "0: data follows, not an error." },
+        "uint32": { "name": "double-long-unsigned", "note": "0x06: an unsigned 32-bit number." },
+        "raw": { "name": "Value", "note": "0x0004A1F3 = 303603. This meter's scaler is ×10 Wh: 3036.03 kWh." },
+        "a-prefix": { "name": "fe80::/64", "note": "The link-local prefix: valid only inside this PLC network." },
+        "a-pan": { "name": "PAN ID", "note": "0x4C21: the concentrator's network." },
+        "a-fill": { "name": "00 FF FE 00", "note": "A fixed filler between the PAN ID and the short address." },
+        "a-short": { "name": "Short address", "note": "0x0002: meter M2, the address it got when it joined." }
+    },
+    "devices": {
+        "hes": "Head-end system",
+        "dc": "Data concentrator",
+        "transformer": "Transformer 20/0.4 kV",
+        "m1": "Meter M1",
+        "m2": "Meter M2"
+    },
+    "facts": {
+        "standard": "ITU-T G.9903 (G3-PLC) and ITU-T G.9904 (PRIME). G3-PLC carries IPv6 with 6LoWPAN (RFC 4944, RFC 6282) and routes with LOADng",
+        "between": "A data concentrator at the MV/LV transformer and the electricity meters on its low-voltage feeders",
+        "transport": "OFDM on the power cable; in Europe the CENELEC A band, about 35 – 91 kHz",
+        "security": "G3-PLC: each meter joins with EAP-PSK and gets the network key; the MAC layer encrypts with AES-128. DLMS/COSEM adds its own AES-GCM on top",
+        "speed": "Tens of kbit/s; every hop adds delay, so reading hundreds of meters takes minutes"
+    },
+    "tips": [
+        "Noise and loads on the cable change the reach hour by hour: a new inverter or charger can cut meters off. Look at each meter's link quality over days, not at one reading.",
+        "Signals cross where cables meet: a meter may join a neighbouring concentrator, behind another transformer. Check which PAN each meter really joined.",
+        "Load every meter's pre-shared key into the head-end before installation. Without it, the meter cannot join.",
+        "Encrypt at the DLMS/COSEM layer too: the PLC network key is shared by all the meters of a concentrator."
+    ],
+    "points": {
+        "short": "Short address",
+        "route": "Route",
+        "energy": "Energy imported"
+    },
+    "values": {
+        "via": "through M1, 2 hops"
+    },
+    "anatomy": {
+        "address": "M2's IPv6 address, rebuilt from the mesh header"
+    },
+    "playground": {
+        "file": "Try it: the topology a concentrator might export: every meter it has heard of, and how to reach it. The file is made up; every make of concentrator has its own format.",
+        "columns": "The short address, the meter's EUI-64 (its factory address), the next hop, the number of hops, the route cost (lower is better), the link quality (higher is better) and the phase.",
+        "direct": "M1 is its own next hop: the concentrator hears it directly.",
+        "relayed": "M2 is reached through 0x0001, meter M1, in 2 hops: a higher cost and a weaker link.",
+        "phase": "This meter hangs on phase L2. G3-PLC can tell the phase from when each frame arrives against the mains cycle.",
+        "far": "3 hops away, with the weakest link: the first meter to drop out when the cable gets noisy."
+    }
+}

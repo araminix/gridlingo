@@ -247,6 +247,8 @@
     "lesson.m-bus.where": "熱量計、水道メーター、ガスメーター",
     "lesson.ansi-c12.summary": "北米のメーターのテーブルとメッセージ",
     "lesson.ansi-c12.where": "電力量計",
+    "lesson.g3-plc.summary": "電力ケーブルで運ぶ計量データ",
+    "lesson.g3-plc.where": "スマートメーター、データ集約装置",
     "lesson.mqtt.summary": "テレメトリのためのパブリッシュ／サブスクライブ",
     "lesson.mqtt.where": "エッジゲートウェイ、クラウドプラットフォーム",
     "lesson.sparkplug-b.summary": "BIRTH・DEATHメッセージとデータモデルを加えたMQTT",

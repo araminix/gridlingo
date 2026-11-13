@@ -39,6 +39,7 @@ export const CATALOG: readonly Meta[] = [
     { id: "iec-62056-21", name: "IEC 62056-21", group: "metering", devices: ["meter", "laptop"], wire: "Optical port" },
     { id: "m-bus", name: "M-Bus / wM-Bus", group: "metering", devices: ["meter", "radio"], wire: "2-wire · 868 MHz" },
     { id: "ansi-c12", name: "ANSI C12.18 / 19 / 22", group: "metering", devices: ["meter", "laptop"], wire: "Optical · TCP 1153" },
+    { id: "g3-plc", name: "G3-PLC / PRIME", group: "metering", devices: ["meter", "gateway", "transformer"], wire: "Power line · CENELEC A" },
 
     { id: "mqtt", name: "MQTT", group: "iot", devices: ["gateway", "broker", "cloud"], wire: "TCP 1883 · TLS 8883" },
     { id: "sparkplug-b", name: "Sparkplug B", group: "iot", devices: ["gateway", "broker", "scada"], wire: "MQTT · Protobuf" },
