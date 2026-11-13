@@ -19,6 +19,7 @@
     "home.done": "Tamamlandı",
     "nav.protocols": "Protokoller",
     "nav.all": "Tüm protokoller",
+    "nav.filter": "Protokolleri filtrele",
     "nav.progress": "İlerlemeniz: {{total}} dersten {{done}} tanesi tamamlandı",
     "nav.progressHint": "Bir ders, son adımına kadar oynatıldığında tamamlanmış sayılır. Yalnızca bu tarayıcıda saklanır.",
     "lesson.loading": "Ders yükleniyor",

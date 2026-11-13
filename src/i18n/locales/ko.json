@@ -19,6 +19,7 @@
     "home.done": "완료",
     "nav.protocols": "프로토콜",
     "nav.all": "모든 프로토콜",
+    "nav.filter": "프로토콜 필터",
     "nav.progress": "내 진도: 레슨 {{total}}개 중 {{done}}개 완료",
     "nav.progressHint": "레슨은 마지막 단계까지 재생하면 완료로 쳐요. 기록은 이 브라우저에만 남아요.",
     "lesson.loading": "레슨을 불러오는 중",

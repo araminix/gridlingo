@@ -104,6 +104,17 @@ test("the theme and the language are kept, and Arabic reads right to left", asyn
     await expect(page.locator("html")).toHaveClass(/dark/);
 });
 
+test("the protocol list beside a lesson narrows as you type", async ({ page, isMobile }) => {
+    test.skip(isMobile, "the list stands beside the lesson on a desktop");
+    await open(page, "/p/iec-104");
+    const list = page.getByRole("navigation", { name: "Protocols" });
+    await list.getByRole("searchbox", { name: "Filter protocols" }).fill("modbus tcp");
+    await expect(list.getByRole("link", { name: "Modbus TCP", exact: true })).toBeVisible();
+    await expect(list.getByRole("link", { name: "DNP3", exact: true })).toBeHidden();
+    await list.getByRole("searchbox", { name: "Filter protocols" }).fill("no such protocol");
+    await expect(list.getByText("Nothing found.")).toBeVisible();
+});
+
 test("a first visit starts light, even on a device set to dark", async ({ page }) => {
     await page.emulateMedia({ colorScheme: "dark" });
     await page.goto("/");

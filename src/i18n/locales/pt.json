@@ -19,6 +19,7 @@
     "home.done": "Concluído",
     "nav.protocols": "Protocolos",
     "nav.all": "Todos os protocolos",
+    "nav.filter": "Filtrar protocolos",
     "nav.progress": "Seu progresso: {{done}} de {{total}} lições concluídas",
     "nav.progressHint": "Uma lição conta como concluída quando você a reproduz até o último passo. Isso fica guardado só neste navegador.",
     "lesson.loading": "Carregando a lição",

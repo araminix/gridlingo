@@ -19,6 +19,7 @@
     "home.done": "Erledigt",
     "nav.protocols": "Protokolle",
     "nav.all": "Alle Protokolle",
+    "nav.filter": "Protokolle filtern",
     "nav.progress": "Dein Fortschritt: {{done}} von {{total}} Lektionen abgeschlossen",
     "nav.progressHint": "Eine Lektion gilt als abgeschlossen, wenn du sie bis zum letzten Schritt abspielst. Nur in diesem Browser gespeichert.",
     "lesson.loading": "Lektion wird geladen",

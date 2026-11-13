@@ -19,6 +19,7 @@
     "home.done": "Done",
     "nav.protocols": "Protocols",
     "nav.all": "All protocols",
+    "nav.filter": "Filter protocols",
     "nav.progress": "Your progress: {{done}} of {{total}} lessons finished",
     "nav.progressHint": "A lesson counts as finished when you play it to its last step. Kept only in this browser.",
     "lesson.loading": "Loading the lesson",

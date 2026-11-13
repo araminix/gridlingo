@@ -5,6 +5,7 @@ import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, C
 import { Kbd } from "@/components/ui/kbd";
 import { useI18n, type MessageKey } from "@/i18n/i18n";
 import { CATALOG, GROUPS } from "@/lessons/catalog";
+import type { Meta } from "@/lessons/types";
 import { navigate } from "@/router";
 
 // One search for the whole site: every button opens the same dialog
@@ -45,6 +46,11 @@ export function SearchButton({ wide = false }: { wide?: boolean }) {
  * The search dialog, once per page: finds a protocol by its name, its port, the devices it is met on or what it does.
  * Ctrl K or ⌘ K opens it, and "/" when no field has the focus.
  */
+/** The words a protocol is found by, in the reader's language: its name, how it travels, its summary, its devices. */
+export function wordsOf(meta: Meta, t: ReturnType<typeof useI18n>["t"]): string[] {
+    return [meta.name, meta.wire, t(`lesson.${meta.id}.summary` as MessageKey), ...meta.devices.map((device) => t(`device.${device}` as MessageKey))];
+}
+
 export function SearchDialog() {
     const { t } = useI18n();
     const isOpen = useSyncExternalStore(subscribe, () => open, () => false);
@@ -72,7 +78,7 @@ export function SearchDialog() {
                             <CommandItem
                                 key={meta.id}
                                 value={meta.id}
-                                keywords={[meta.name, meta.wire, t(`lesson.${meta.id}.summary` as MessageKey), ...meta.devices.map((device) => t(`device.${device}` as MessageKey))]}
+                                keywords={wordsOf(meta, t)}
                                 onSelect={() => {
                                     setOpen(false);
                                     navigate(`/p/${meta.id}`);

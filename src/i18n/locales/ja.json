@@ -19,6 +19,7 @@
     "home.done": "完了",
     "nav.protocols": "プロトコル",
     "nav.all": "すべてのプロトコル",
+    "nav.filter": "プロトコルを絞り込む",
     "nav.progress": "進み具合：{{total}}レッスン中{{done}}レッスン完了",
     "nav.progressHint": "レッスンは、最後のステップまで再生すると完了になります。記録はこのブラウザの中にだけ保存されます。",
     "lesson.loading": "レッスンを読み込んでいます",

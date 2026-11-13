@@ -19,6 +19,7 @@
     "home.done": "已学完",
     "nav.protocols": "协议",
     "nav.all": "全部协议",
+    "nav.filter": "筛选协议",
     "nav.progress": "学习进度：已学完 {{done}} / {{total}} 课",
     "nav.progressHint": "一课播放到最后一步，就算学完。进度只保存在本浏览器中。",
     "lesson.loading": "正在加载课程",
