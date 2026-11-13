@@ -129,6 +129,32 @@ test("an address with nothing behind it says so, and guesses what was meant", as
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Modbus TCP");
 });
 
+test("the comparison page sets up to four protocols side by side, and keeps the choice in the address", async ({ page }) => {
+    await open(page, "/p/iec-101");
+    await page.getByRole("link", { name: "See this trip in other protocols" }).click();
+    await expect(page).toHaveURL(/\/compare\?p=iec-61850-goose,iec-104,iec-101,dnp3$/);
+    await expect(page.getByRole("main").getByRole("heading", { level: 1 })).toHaveText("One event, several protocols");
+    await expect(page).toHaveTitle("One event, several protocols · Gridlingo");
+    await expect(page.getByTestId("column-iec-101")).toContainText("68 10 10 68");
+    // A fifth cannot join until one leaves
+    const pick = page.getByRole("group", { name: "Compare up to 4" });
+    await expect(pick.getByRole("button", { name: "Modbus TCP" })).toBeDisabled();
+    await pick.getByRole("button", { name: "DNP3" }).click();
+    await pick.getByRole("button", { name: "Modbus TCP" }).click();
+    await expect(page).toHaveURL(/\?p=iec-61850-goose,iec-104,iec-101,modbus-tcp$/);
+    await expect(page.getByTestId("column-modbus-tcp")).toContainText("00 05");
+    await expect(page.getByTestId("column-dnp3")).toHaveCount(0);
+    // Lighting up a meaning dims the rest, and says so where a frame has none
+    await page.getByRole("button", { name: "Reason" }).click();
+    await expect(page.getByTestId("column-modbus-tcp")).toContainText("This frame has none.");
+    await page.reload();
+    await expect(page.getByTestId("column-modbus-tcp")).toBeVisible();
+    await page.getByRole("link", { name: "Gridlingo" }).first().click();
+    await page.getByRole("link", { name: "One event, several protocols: compare them side by side" }).click();
+    await expect(page).toHaveURL(/\/compare$/);
+    await expect(page.getByTestId("column-dnp3")).toBeVisible();
+});
+
 test("a first visit starts light, even on a device set to dark", async ({ page }) => {
     await page.emulateMedia({ colorScheme: "dark" });
     await page.goto("/");
@@ -165,7 +191,7 @@ for (const theme of ["light", "dark"] as const)
     test(`the home page and a lesson pass the accessibility checks (${theme})`, async ({ page }) => {
         await open(page, "/");
         await page.evaluate((value) => localStorage.setItem("gridlingo.theme", JSON.stringify(value)), theme);
-        for (const path of ["/", "/p/iec-61850-goose"]) {
+        for (const path of ["/", "/p/iec-61850-goose", "/compare"]) {
             await page.goto(path);
             await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
             const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();

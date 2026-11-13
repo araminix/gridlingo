@@ -32,10 +32,18 @@ messages between them, every byte of each frame and what it means, and what each
 - **Timing**, when time is the point: GOOSE repeats, sample streams, time codes, the charging pilot signal.
 - **Names taken apart**: IEC 61850 object references, OBIS codes, MQTT topics.
 - **A playground**: turn a number into bytes in each byte order (and see what a wrong order makes of it), walk an
-  IEC 61850 SCL file as a tree (the sample or your own, read in your browser), read sample files line by line.
+  IEC 61850 SCL file as a tree (the sample or your own, read in your browser), read sample files line by line, turn
+  a charger's current into its pilot duty cycle and back, write a time as an IRIG-B frame.
 - **Watch out in the field**: the mistakes people really make.
 - **A glossary on every term**: abbreviations such as ACK, RTU or CRC are underlined; a tap shows the full name and
   one plain sentence, in your language.
+
+## One event, several protocols
+
+A fault on a feeder, a relay trips, a breaker opens: the comparison page (`/compare`) tells that one event in up to
+four protocols side by side (IEC 61850 GOOSE, IEC 60870-5-104, -101 and -103, DNP3, Modbus TCP). It shows when each
+receiver learns of it, the bytes of each frame with one meaning lit up across all of them, and what each frame can say
+about the time, the quality and the reason. The choice stays in the address, so it can be shared.
 
 ## 38 protocols
 
@@ -91,8 +99,8 @@ src/
   lessons/        one folder per protocol: lesson.ts (data and bytes), <lang>.json (texts), lesson.test.ts (byte checks)
   glossary/       the terms explained on a tap, one file per language
   viz/            the site, the sequence, the single-line diagram, the byte inspector, timing, the step player
-  playground/     the number encoder, the SCL explorer, sample files
-  pages/          the library and the lesson workspace
+  playground/     the number encoder, the SCL explorer, sample files, the pilot signal and IRIG-B tools
+  pages/          the library, the lesson workspace and the comparison page
   components/ui/  shadcn/ui components
   i18n/           the 14 interface languages
 e2e/              end-to-end and visual tests (Playwright), on a desktop and a phone

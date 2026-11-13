@@ -67,6 +67,13 @@ test("the library, dark", async ({ page, isMobile }) => {
     await expect(page).toHaveScreenshot(`home-dark-${isMobile ? "phone" : "desktop"}.png`);
 });
 
+test("the comparison page", async ({ page, isMobile }) => {
+    await open(page, "/compare");
+    await expect(page.getByTestId("column-modbus-tcp")).toContainText("00 05");
+    await expect(page.getByTestId("column-iec-104")).toContainText("68");
+    await expect(page).toHaveScreenshot(`compare-${isMobile ? "phone" : "desktop"}.png`, { fullPage: true });
+});
+
 test("a lesson, dark", async ({ page, isMobile }) => {
     await open(page, "/p/iec-104", { theme: "dark" });
     await page.getByTestId("stage").getByRole("button", { name: "Values arrive" }).click();

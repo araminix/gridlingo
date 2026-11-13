@@ -30,6 +30,9 @@ const lessons: Page[] = CATALOG.map((meta) => ({
     title: `${meta.name} · Gridlingo`,
     description: `${meta.name}: ${en[`lesson.${meta.id}.summary`] ?? ""}. ${en["home.lead"]}`,
 }));
+const compare: Page = { path: "compare/", title: `${en["compare.title"]} · Gridlingo`, description: en["compare.lead"] ?? "" };
+/** Every address besides the home page that has its own HTML file. */
+const others: Page[] = [...lessons, compare];
 
 const attribute = (text: string) => text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -41,9 +44,9 @@ const fill = (html: string, page: Page) =>
         .replaceAll("%SITE%", SITE);
 
 /**
- * One HTML file per lesson (p/<id>/index.html), so that a lesson's address opens on GitHub Pages and search engines and
- * link previews see its own title and description; 404.html for any other address; the sitemap. While developing, the
- * page served gets the title of its address.
+ * One HTML file per lesson (p/<id>/index.html) and for the comparison page (compare/index.html), so that their
+ * addresses open on GitHub Pages and search engines and link previews see their own title and description; 404.html for
+ * any other address; the sitemap. While developing, the page served gets the title of its address.
  */
 function pages(): Plugin {
     return {
@@ -54,8 +57,8 @@ function pages(): Plugin {
             handler(html, context) {
                 html = html.replace("</title>", `</title>\n        <script>${START}</script>`);
                 if (!context.server) return html.replace("<head>", `<head>\n        <meta http-equiv="Content-Security-Policy" content="${POLICY}" />`);
-                const lesson = lessons.find((page) => context.originalUrl?.replace(/^\//, "").replace(/\/?$/, "/") === page.path);
-                return fill(html, lesson ?? home);
+                const page = others.find((item) => context.originalUrl?.replace(/^\//, "").replace(/[?#].*$/, "").replace(/\/?$/, "/") === item.path);
+                return fill(html, page ?? home);
             },
         },
         generateBundle(_, bundle) {
@@ -63,9 +66,9 @@ function pages(): Plugin {
             if (index?.type !== "asset") return;
             const template = String(index.source);
             index.source = fill(template, home);
-            for (const page of lessons) this.emitFile({ type: "asset", fileName: `${page.path}index.html`, source: fill(template, page) });
+            for (const page of others) this.emitFile({ type: "asset", fileName: `${page.path}index.html`, source: fill(template, page) });
             this.emitFile({ type: "asset", fileName: "404.html", source: fill(template, home).replace("<head>", '<head>\n        <meta name="robots" content="noindex" />') });
-            const urls = [home, ...lessons].map((page) => `  <url><loc>${SITE}${page.path}</loc></url>`).join("\n");
+            const urls = [home, ...others].map((page) => `  <url><loc>${SITE}${page.path}</loc></url>`).join("\n");
             this.emitFile({ type: "asset", fileName: "sitemap.xml", source: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n` });
         },
     };

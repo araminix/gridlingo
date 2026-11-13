@@ -1,4 +1,4 @@
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, Columns3 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useI18n, type MessageKey } from "@/i18n/i18n";
 import { GroupIcon, groupVars } from "@/layout/GroupIcon";
@@ -79,6 +79,10 @@ export function Home() {
                                 </Link>
                             ))}
                         </p>
+                        <Link to="/compare" className="inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline">
+                            <Columns3 className="size-4 shrink-0" aria-hidden="true" />
+                            {t("compare.home")}
+                        </Link>
                     </div>
                     <div className="hidden lg:block" aria-hidden="true">
                         <HeroScene />

@@ -1,4 +1,4 @@
-import { Binary, Lightbulb, ListTree } from "lucide-react";
+import { Binary, Columns3, Lightbulb, ListTree } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -31,6 +31,7 @@ import { SingleLine } from "@/viz/SingleLine";
 import { SiteScene } from "@/viz/SiteScene";
 import { StepCaption, StepControls, StepStrip } from "@/viz/StepPlayer";
 import { TimingChart } from "@/viz/TimingChart";
+import { COMPARED, compareFrom } from "./compared";
 import { NotFound } from "./NotFound";
 
 const PLAY_EVERY_MS = 2600;
@@ -336,6 +337,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                 <div className="space-y-2 xl:hidden">
                     {facts}
                     <Tips words={words} />
+                    <CompareLink id={meta.id} />
                     <Related ids={lesson.related ?? []} />
                 </div>
             </main>
@@ -345,6 +347,7 @@ function Workspace({ meta, loaded }: { meta: Meta; loaded: Loaded }) {
                 {facts}
                 {devices}
                 <Tips words={words} />
+                <CompareLink id={meta.id} />
                 <Related ids={lesson.related ?? []} />
             </aside>
         </div>
@@ -394,6 +397,18 @@ function Tips({ words }: { words: Words }) {
                 </ul>
             </CardContent>
         </Card>
+    );
+}
+
+/** For a protocol on the comparison page: the same trip told by the others. */
+function CompareLink({ id }: { id: string }) {
+    const { t } = useI18n();
+    if (!COMPARED.includes(id)) return null;
+    return (
+        <Link to={compareFrom(id)} className="flex items-center gap-2 rounded-xl border bg-card px-3 py-2.5 text-sm font-medium text-primary hover:border-primary">
+            <Columns3 className="size-4 shrink-0" aria-hidden="true" />
+            {t("compare.link")}
+        </Link>
     );
 }
 
