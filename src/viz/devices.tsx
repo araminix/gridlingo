@@ -1153,17 +1153,36 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
             );
         }
         case "car": {
-            const body: Box = { cx, cy, w: size.w, d: size.d, h: 12, z: 5 };
-            const cabin: Box = { cx: cx - 4, cy, w: 32, d: size.d - 4, h: 10, z: 17 };
-            const b = faces(body);
+            // The side profile (x along the car, z up), from the rear's foot to the front's, pulled across the car's
+            // width: trunk, rear window, roof, windshield, hood and nose on top, then the near side with its windows,
+            // round wheels, lights and the charge port (its ring green while charging)
+            const [y0, y1] = [cy - size.d / 2, cy + size.d / 2];
+            const at = (x: number, y: number, z: number) => project(cx + x, y, z);
+            const profile: [number, number][] = [[-31, 5], [-31, 14], [-24, 16], [-14, 25], [6, 25], [16, 16], [29, 13], [31, 10], [31, 5]];
+            const glass = new Set([2, 4]);
+            const tops = profile.slice(1, -1).map(([xa, za], i) => {
+                const [xb, zb] = profile[i + 2]!;
+                const fill = glass.has(i + 1) ? "var(--viz-pv)" : i === 6 ? tone.right : tone.top;
+                return <polygon key={i} points={quad(at(xa, y0, za), at(xb, y0, zb), at(xb, y1, zb), at(xa, y1, za))} fill={fill} stroke={tone.edge} strokeWidth={tone.width} strokeLinejoin="round" />;
+            });
+            const near = (list: [number, number][]) => list.map(([x, z]) => pair(at(x, y1, z))).join(" ");
+            const wheel = (x: number, r: number) => near(Array.from({ length: 16 }, (_, i) => [x + r * Math.cos((i * Math.PI) / 8), 6 + r * Math.sin((i * Math.PI) / 8)]));
+            const [px, py] = at(-26, y1, 14);
             return (
                 <g>
-                    <Solid box={body} active={active} />
-                    <Solid box={cabin} active={active} />
-                    {[0.2, 0.8].map((u) => {
-                        const [x, y] = b.onLeft(u, -0.15);
-                        return <ellipse key={u} cx={round(x)} cy={round(y)} rx={6} ry={5} fill="var(--viz-screen)" />;
-                    })}
+                    {tops}
+                    <polygon points={near(profile)} fill={tone.left} stroke={tone.edge} strokeWidth={tone.width} strokeLinejoin="round" />
+                    <polygon points={near([[-22, 17], [-13, 23.5], [5, 23.5], [13, 17]])} fill="var(--viz-pv)" stroke={tone.edge} strokeWidth={0.6} />
+                    <Lines list={[[at(-4, y1, 17), at(-4, y1, 23.5)], [at(-4, y1, 6), at(-4, y1, 16)]]} width={0.6} />
+                    {[-19, 19].map((x) => (
+                        <g key={x}>
+                            <polygon points={wheel(x, 6)} fill="var(--viz-screen)" />
+                            <polygon points={wheel(x, 3)} fill={tone.top} stroke={tone.edge} strokeWidth={0.5} />
+                        </g>
+                    ))}
+                    <polygon points={near([[-31, 11], [-29, 11], [-29, 13.5], [-31, 13.5]])} fill="var(--destructive)" />
+                    <polygon points={quad(at(31, y1 - 3, 9), at(31, y1 - 9, 9), at(30.4, y1 - 9, 11.2), at(30.4, y1 - 3, 11.2))} fill="var(--viz-token)" />
+                    <circle cx={round(px)} cy={round(py)} r={1.4} fill="var(--viz-screen)" stroke="var(--viz-ok)" strokeWidth={0.8} />
                 </g>
             );
         }
