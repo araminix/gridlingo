@@ -81,7 +81,12 @@
         "rec-alert": { "name": "内容类型", "note": "0x15 = 21：告警，因为握手没有完成，所以是明文。" },
         "rec-2": { "name": "长度", "note": "后面跟 2 个字节。" },
         "fatal": { "name": "级别 2", "note": "致命：连接立即结束。" },
-        "expired": { "name": "描述 45", "note": "0x2D：certificate_expired。如果证书来自 RTU 不信任的 CA，则返回 48（0x30，unknown_ca）。" }
+        "expired": { "name": "描述 45", "note": "0x2D：certificate_expired。如果证书来自 RTU 不信任的 CA，则返回 48（0x30，unknown_ca）。" },
+        "cs-tls": { "name": "TLS", "note": "协议：这个套件是 TLS 1.2 的套件之一。" },
+        "cs-ecdhe": { "name": "ECDHE · 密钥交换", "note": "椭圆曲线 Diffie-Hellman，每次会话都用新密钥：录下的会话以后即使拿到证书的私钥也读不出来。" },
+        "cs-rsa": { "name": "RSA · 谁来证明身份", "note": "作为服务器的 RTU 用其证书的 RSA 密钥签名，证明自己是谁。" },
+        "cs-aes": { "name": "AES_128_GCM · 加密", "note": "每条记录用 AES 和 128 位密钥加密，GCM 还会校验内容没有被改动。" },
+        "cs-sha": { "name": "SHA256 · 哈希", "note": "根据握手推导会话密钥所用的哈希。" }
     },
     "devices": {
         "ca": "电网公司 CA",
@@ -123,5 +128,8 @@
         "client-auth": "它只能由 TLS 客户端使用，不能用于服务器。",
         "crl": "吊销证书列表（CRL）的发布地址。RTU 必须能访问到它，或者持有一份最近的副本。",
         "verify": "openssl 得出的结论与 RTU 相同：错误 10，证书已过期。"
+    },
+    "anatomy": {
+        "suite": "RTU 选定的密码套件名称"
     }
 }

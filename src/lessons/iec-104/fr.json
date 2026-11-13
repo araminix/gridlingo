@@ -61,7 +61,11 @@
         "qds": { "name": "Qualité", "note": "Bonne : aucun indicateur (comme non valide ou bloqué) n'est levé." },
         "diq-on": { "name": "État 2", "note": "ON : le disjoncteur est fermé. 1 vaut OFF ; 0 et 3 signifient « en manœuvre » ou « en défaut »." },
         "diq-off": { "name": "État 1", "note": "OFF : le disjoncteur est ouvert." },
-        "cp56": { "name": "CP56Time2a", "note": "Un horodatage de 7 octets : 7.280 s, 41 min, 10 h, jeudi 12 novembre (20)26. Aucun fuseau horaire n'y figure." }
+        "cp56": { "name": "CP56Time2a", "note": "Un horodatage de 7 octets : 7.280 s, 41 min, 10 h, jeudi 12 novembre (20)26. Aucun fuseau horaire n'y figure." },
+        "n-dir": { "name": "M · sens surveillance", "note": "Du poste vers le centre de conduite. C voudrait dire le sens commande : un ordre venant du centre." },
+        "n-dp": { "name": "DP · double point", "note": "Deux bits pour un organe : 01 ouvert, 10 fermé. 00 et 11 veulent dire entre les deux, ou des contacts en désaccord." },
+        "n-tb": { "name": "TB · horodatage", "note": "Avec horodatage : B, c'est le CP56Time2a sur 7 octets. IEC 101 avait aussi TA, sur 3 octets ; NA veut dire sans heure." },
+        "n-1": { "name": "1", "note": "Tous les noms de type d'IEC 101 et 104 finissent par 1 ; il n'en dit pas plus." }
     },
     "devices": {
         "scada": "Maître SCADA",
@@ -113,5 +117,8 @@
         "f1": "F1 · Ligne aérienne",
         "f2": "F2 · Centrale PV",
         "f3": "F3 · Batterie"
+    },
+    "anatomy": {
+        "type": "Le nom du type du déclenchement"
     }
 }

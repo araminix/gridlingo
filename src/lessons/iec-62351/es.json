@@ -81,7 +81,12 @@
         "rec-alert": { "name": "Tipo de contenido", "note": "0x15 = 21: una alerta, en texto claro porque el handshake nunca terminó." },
         "rec-2": { "name": "Longitud", "note": "Siguen 2 bytes." },
         "fatal": { "name": "Nivel 2", "note": "Fatal: la conexión termina ya." },
-        "expired": { "name": "Descripción 45", "note": "0x2D: certificate_expired. Un certificado de una CA en la que la RTU no confía recibe en su lugar 48 (0x30, unknown_ca)." }
+        "expired": { "name": "Descripción 45", "note": "0x2D: certificate_expired. Un certificado de una CA en la que la RTU no confía recibe en su lugar 48 (0x30, unknown_ca)." },
+        "cs-tls": { "name": "TLS", "note": "El protocolo: este conjunto es uno de los de TLS 1.2." },
+        "cs-ecdhe": { "name": "ECDHE · intercambio de claves", "note": "Diffie-Hellman de curva elíptica con claves nuevas en cada sesión: una sesión grabada no se puede leer después, ni siquiera con la clave del certificado." },
+        "cs-rsa": { "name": "RSA · quién se identifica", "note": "La RTU, el servidor, demuestra quién es firmando con la clave RSA de su certificado." },
+        "cs-aes": { "name": "AES_128_GCM · cifrado", "note": "Cada registro se cifra con AES y una clave de 128 bits, y GCM añade una comprobación de que nada cambió." },
+        "cs-sha": { "name": "SHA256 · hash", "note": "El hash con el que se obtienen las claves de la sesión a partir del handshake." }
     },
     "devices": {
         "ca": "CA de la compañía",
@@ -123,5 +128,8 @@
         "client-auth": "Lo puede usar un cliente TLS, no un servidor.",
         "crl": "Dónde se publica la lista de certificados revocados (la CRL). La RTU debe poder llegar a ella, o tener una copia reciente.",
         "verify": "openssl llega al mismo veredicto que la RTU: error 10, certificate has expired."
+    },
+    "anatomy": {
+        "suite": "El nombre del conjunto de cifrado que eligió la RTU"
     }
 }

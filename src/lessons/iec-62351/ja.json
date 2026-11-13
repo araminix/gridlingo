@@ -81,7 +81,12 @@
         "rec-alert": { "name": "コンテンツタイプ", "note": "0x15 = 21：アラート。ハンドシェイクが完了しなかったので平文です。" },
         "rec-2": { "name": "長さ", "note": "2バイトが続きます。" },
         "fatal": { "name": "レベル 2", "note": "致命的：接続はここで終わります。" },
-        "expired": { "name": "説明 45", "note": "0x2D：certificate_expired。RTUが信頼しないCAの証明書なら、代わりに48（0x30、unknown_ca）になります。" }
+        "expired": { "name": "説明 45", "note": "0x2D：certificate_expired。RTUが信頼しないCAの証明書なら、代わりに48（0x30、unknown_ca）になります。" },
+        "cs-tls": { "name": "TLS", "note": "プロトコル：このスイートはTLS 1.2のものです。" },
+        "cs-ecdhe": { "name": "ECDHE · 鍵交換", "note": "セッションごとに新しい鍵を使う楕円曲線ディフィー・ヘルマン。記録されたセッションは、証明書の鍵があっても後から読めません。" },
+        "cs-rsa": { "name": "RSA · 身元の証明", "note": "サーバであるRTUは、証明書のRSA鍵で署名して自分が誰かを証明します。" },
+        "cs-aes": { "name": "AES_128_GCM · 暗号化", "note": "各レコードはAESと128ビットの鍵で暗号化され、GCMが改ざんのないことを検査します。" },
+        "cs-sha": { "name": "SHA256 · ハッシュ", "note": "ハンドシェイクからセッションの鍵を作るのに使うハッシュです。" }
     },
     "devices": {
         "ca": "電力会社のCA",
@@ -123,5 +128,8 @@
         "client-auth": "TLSクライアントとしては使えますが、サーバとしては使えません。",
         "crl": "失効した証明書のリスト（CRL）が公開される場所。RTUはここにアクセスできるか、最近のコピーを持っている必要があります。",
         "verify": "opensslもRTUと同じ判定を下します：error 10、certificate has expired。"
+    },
+    "anatomy": {
+        "suite": "RTUが選んだ暗号スイートの名前"
     }
 }

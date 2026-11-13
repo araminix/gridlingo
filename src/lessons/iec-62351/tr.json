@@ -81,7 +81,12 @@
         "rec-alert": { "name": "İçerik türü", "note": "0x15 = 21: bir alert; el sıkışma hiç bitmediği için açık metin." },
         "rec-2": { "name": "Uzunluk", "note": "Ardından 2 bayt gelir." },
         "fatal": { "name": "Seviye 2", "note": "Fatal: bağlantı şimdi biter." },
-        "expired": { "name": "Açıklama 45", "note": "0x2D: certificate_expired. RTU'nun güvenmediği bir CA'dan gelen sertifika ise bunun yerine 48 (0x30, unknown_ca) alır." }
+        "expired": { "name": "Açıklama 45", "note": "0x2D: certificate_expired. RTU'nun güvenmediği bir CA'dan gelen sertifika ise bunun yerine 48 (0x30, unknown_ca) alır." },
+        "cs-tls": { "name": "TLS", "note": "Protokol: bu takım TLS 1.2'nin takımlarından biridir." },
+        "cs-ecdhe": { "name": "ECDHE · anahtar değişimi", "note": "Her oturum için yeni anahtarlarla eliptik eğri Diffie-Hellman: kaydedilmiş bir oturum, sertifikanın anahtarıyla bile sonradan okunamaz." },
+        "cs-rsa": { "name": "RSA · kimliğini kim kanıtlar", "note": "Sunucu olan RTU, sertifikasının RSA anahtarıyla imzalayarak kim olduğunu kanıtlar." },
+        "cs-aes": { "name": "AES_128_GCM · şifreleme", "note": "Her kayıt AES ve 128 bitlik bir anahtarla şifrelenir; GCM, hiçbir şeyin değişmediğini de denetler." },
+        "cs-sha": { "name": "SHA256 · özet", "note": "El sıkışmadan oturum anahtarlarını üretmekte kullanılan özet işlevi." }
     },
     "devices": {
         "ca": "Elektrik şirketi CA'sı",
@@ -123,5 +128,8 @@
         "client-auth": "Bir sunucu değil, bir TLS istemcisi kullanabilir.",
         "crl": "İptal edilmiş sertifikalar listesinin (CRL) yayınlandığı yer. RTU ona ulaşabilmeli ya da yakın tarihli bir kopyasını tutmalıdır.",
         "verify": "openssl da RTU ile aynı sonuca varır: hata 10, sertifikanın süresi dolmuş."
+    },
+    "anatomy": {
+        "suite": "RTU'nun seçtiği şifre takımının adı"
     }
 }

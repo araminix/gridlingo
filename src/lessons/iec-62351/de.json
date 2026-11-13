@@ -81,7 +81,12 @@
         "rec-alert": { "name": "Content Type", "note": "0x15 = 21: ein Alert, im Klartext, weil der Handshake nie fertig wurde." },
         "rec-2": { "name": "Länge", "note": "Es folgen 2 Bytes." },
         "fatal": { "name": "Level 2", "note": "Fatal: Die Verbindung endet sofort." },
-        "expired": { "name": "Beschreibung 45", "note": "0x2D: certificate_expired. Ein Zertifikat von einer CA, der die RTU nicht vertraut, bekommt stattdessen 48 (0x30, unknown_ca)." }
+        "expired": { "name": "Beschreibung 45", "note": "0x2D: certificate_expired. Ein Zertifikat von einer CA, der die RTU nicht vertraut, bekommt stattdessen 48 (0x30, unknown_ca)." },
+        "cs-tls": { "name": "TLS", "note": "Das Protokoll: Diese Suite gehört zu TLS 1.2." },
+        "cs-ecdhe": { "name": "ECDHE · Schlüsselaustausch", "note": "Diffie-Hellman über elliptische Kurven mit neuen Schlüsseln für jede Sitzung: Eine mitgeschnittene Sitzung lässt sich später nicht lesen, auch nicht mit dem Schlüssel des Zertifikats." },
+        "cs-rsa": { "name": "RSA · wer sich ausweist", "note": "Die RTU, der Server, weist sich aus, indem sie mit dem RSA-Schlüssel ihres Zertifikats signiert." },
+        "cs-aes": { "name": "AES_128_GCM · Verschlüsselung", "note": "Jeder Record wird mit AES und einem 128-Bit-Schlüssel verschlüsselt; GCM prüft zusätzlich, dass nichts verändert wurde." },
+        "cs-sha": { "name": "SHA256 · Hash", "note": "Der Hash, mit dem aus dem Handshake die Schlüssel der Sitzung entstehen." }
     },
     "devices": {
         "ca": "CA des Netzbetreibers",
@@ -123,5 +128,8 @@
         "client-auth": "Es darf von einem TLS-Client verwendet werden, nicht von einem Server.",
         "crl": "Wo die Liste der widerrufenen Zertifikate (die CRL) veröffentlicht wird. Die RTU muss sie erreichen oder eine aktuelle Kopie haben.",
         "verify": "openssl kommt zum selben Urteil wie die RTU: error 10, certificate has expired."
+    },
+    "anatomy": {
+        "suite": "Der Name der Cipher Suite, die die RTU gewählt hat"
     }
 }

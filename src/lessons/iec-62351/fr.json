@@ -81,7 +81,12 @@
         "rec-alert": { "name": "Type de contenu", "note": "0x15 = 21 : une alerte, en clair car la négociation n'a jamais abouti." },
         "rec-2": { "name": "Longueur", "note": "2 octets suivent." },
         "fatal": { "name": "Niveau 2", "note": "Fatal : la connexion se termine immédiatement." },
-        "expired": { "name": "Description 45", "note": "0x2D : certificate_expired. Un certificat émis par une CA en laquelle le RTU n'a pas confiance reçoit plutôt 48 (0x30, unknown_ca)." }
+        "expired": { "name": "Description 45", "note": "0x2D : certificate_expired. Un certificat émis par une CA en laquelle le RTU n'a pas confiance reçoit plutôt 48 (0x30, unknown_ca)." },
+        "cs-tls": { "name": "TLS", "note": "Le protocole : cette suite fait partie de TLS 1.2." },
+        "cs-ecdhe": { "name": "ECDHE · échange de clés", "note": "Diffie-Hellman sur courbes elliptiques avec des clés neuves à chaque session : une session enregistrée ne peut pas être lue plus tard, même avec la clé du certificat." },
+        "cs-rsa": { "name": "RSA · qui prouve son identité", "note": "La RTU, le serveur, prouve qui elle est en signant avec la clé RSA de son certificat." },
+        "cs-aes": { "name": "AES_128_GCM · chiffrement", "note": "Chaque enregistrement est chiffré en AES avec une clé de 128 bits, et GCM ajoute un contrôle que rien n'a été modifié." },
+        "cs-sha": { "name": "SHA256 · hachage", "note": "Le hachage qui sert à tirer les clés de la session du handshake." }
     },
     "devices": {
         "ca": "CA du gestionnaire",
@@ -123,5 +128,8 @@
         "client-auth": "Il peut être utilisé par un client TLS, pas par un serveur.",
         "crl": "L'endroit où est publiée la liste des certificats révoqués (la CRL). Le RTU doit pouvoir l'atteindre, ou en détenir une copie récente.",
         "verify": "openssl arrive au même verdict que le RTU : erreur 10, certificate has expired."
+    },
+    "anatomy": {
+        "suite": "Le nom de la suite cryptographique choisie par la RTU"
     }
 }

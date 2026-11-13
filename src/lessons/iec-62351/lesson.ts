@@ -131,6 +131,19 @@ export const lesson: Lesson = {
             { id: "cb", address: "IOA 2001", values: [["connect", "~closed", "–"], ["data", "~open", "~open"]] },
         ],
     },
+    anatomy: [
+        {
+            id: "suite",
+            parts: [
+                ["TLS", "frame", "cs-tls"],
+                ["ECDHE", "security", "cs-ecdhe"],
+                ["RSA", "security", "cs-rsa"],
+                ["AES_128_GCM", "security", "cs-aes"],
+                ["SHA256", "security", "cs-sha"],
+            ],
+            also: "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 = 0xC02F, in this lesson's ServerHello  ·  0xC02B is the same with ECDSA",
+        },
+    ],
     playground: [{ kind: "file", sample: "eng-laptop-03.txt", file: certificate, notes: { 1: "command", 7: "issuer", 10: "not-after", 11: "subject", 13: "key-usage", 16: "client-auth", 19: "crl", 27: "verify" } }],
     related: ["iec-104", "iec-61850-mms", "iec-61850-goose", "dnp3-sa"],
 };

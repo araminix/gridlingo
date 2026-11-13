@@ -38,7 +38,9 @@
         "voltage": { "name": "Registro 30002", "note": "0x0900 = 2304: tensione di rete a passi di 0.1 V, quindi 230.4 V." },
         "meter-power": { "name": "Registri 30013–30014", "note": "0x45337800: un float a 32 bit, prima la word alta (ABCD). Vale 2871.5 (W)." },
         "limit-60": { "name": "Valore", "note": "0x003C = 60: 60 % della potenza nominale, il massimo che l'inverter può dare." },
-        "crc": { "name": "CRC", "note": "Un valore di controllo CRC-16 calcolato su tutti i byte precedenti, inviato con il byte meno significativo per primo. Chi riceve lo ricalcola. Uno slave scarta un frame il cui CRC non coincide e resta in silenzio." }
+        "crc": { "name": "CRC", "note": "Un valore di controllo CRC-16 calcolato su tutti i byte precedenti, inviato con il byte meno significativo per primo. Chi riceve lo ricalcola. Uno slave scarta un frame il cui CRC non coincide e resta in silenzio." },
+        "r-table": { "name": "3 · registri di input", "note": "La tabella: 3 vuol dire registri di input, solo in lettura, con FC 04. Un 4 vorrebbe dire holding register, letti con FC 03." },
+        "r-number": { "name": "0013 · registro 13", "note": "Nel manuale si conta da 1. Sulla linea si conta da 0, quindi l'indirizzo inviato è 12." }
     },
     "devices": {
         "logger": "Datalogger",
@@ -87,5 +89,8 @@
         "values": "Il registro 30001 contiene watt. Il 30002 contiene decimi di volt: 2304 sono 230.4 V.",
         "limit": "Il limite di potenza, un holding register. Il broadcast lo scrive su entrambi gli inverter.",
         "float": "La potenza del contatore: un float a 32 bit in due registri, prima la word alta."
+    },
+    "anatomy": {
+        "register": "Il registro 30013 nel manuale del contatore"
     }
 }

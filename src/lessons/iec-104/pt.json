@@ -61,7 +61,11 @@
         "qds": { "name": "Qualidade", "note": "Boa: nenhuma flag (como inválido ou bloqueado) está ativa." },
         "diq-on": { "name": "Estado 2", "note": "Ligado: o disjuntor está fechado. 1 é desligado; 0 e 3 indicam em movimento ou com defeito." },
         "diq-off": { "name": "Estado 1", "note": "Desligado: o disjuntor está aberto." },
-        "cp56": { "name": "CP56Time2a", "note": "Uma estampa de tempo de 7 bytes: 7.280 s, 41 min, 10 h, quinta-feira, 12 de novembro de (20)26. Não há fuso horário nela." }
+        "cp56": { "name": "CP56Time2a", "note": "Uma estampa de tempo de 7 bytes: 7.280 s, 41 min, 10 h, quinta-feira, 12 de novembro de (20)26. Não há fuso horário nela." },
+        "n-dir": { "name": "M · sentido de supervisão", "note": "Da estação para o centro de controle. C seria o sentido de comando: uma ordem do centro de controle." },
+        "n-dp": { "name": "DP · ponto duplo", "note": "Dois bits para uma chave: 01 aberta, 10 fechada. 00 e 11 indicam que está entre os dois ou que os contatos discordam." },
+        "n-tb": { "name": "TB · etiqueta de tempo", "note": "Com etiqueta de tempo: B é a CP56Time2a de 7 bytes. A IEC 101 tinha também TA, de 3 bytes; NA quer dizer sem tempo." },
+        "n-1": { "name": "1", "note": "Todo nome de tipo da IEC 101 e 104 termina em 1; ele não diz mais nada." }
     },
     "devices": {
         "scada": "Mestre SCADA",
@@ -113,5 +117,8 @@
         "f1": "F1 · Linha aérea",
         "f2": "F2 · Usina FV",
         "f3": "F3 · Bateria"
+    },
+    "anatomy": {
+        "type": "O nome do tipo do disparo"
     }
 }

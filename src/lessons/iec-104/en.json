@@ -61,7 +61,11 @@
         "qds": { "name": "Quality", "note": "Good: no flag (such as invalid or blocked) is set." },
         "diq-on": { "name": "State 2", "note": "On: the breaker is closed. 1 is off; 0 and 3 mean moving or faulty." },
         "diq-off": { "name": "State 1", "note": "Off: the breaker is open." },
-        "cp56": { "name": "CP56Time2a", "note": "A 7-byte time stamp: 7.280 s, 41 min, 10 h, Thursday 12 November (20)26. There is no time zone in it." }
+        "cp56": { "name": "CP56Time2a", "note": "A 7-byte time stamp: 7.280 s, 41 min, 10 h, Thursday 12 November (20)26. There is no time zone in it." },
+        "n-dir": { "name": "M · monitor direction", "note": "From the station to the control room. C would mean the control direction: a command from the control room." },
+        "n-dp": { "name": "DP · double point", "note": "Two bits for a switch: 01 open, 10 closed. 00 and 11 mean it is between the two, or its contacts disagree." },
+        "n-tb": { "name": "TB · time tag", "note": "With a time tag: B is the 7-byte CP56Time2a. IEC 101 also had TA, a 3-byte time; NA means no time." },
+        "n-1": { "name": "1", "note": "Every type name in IEC 101 and 104 ends with 1; it tells nothing more." }
     },
     "devices": {
         "scada": "SCADA master",
@@ -113,5 +117,8 @@
         "f1": "F1 · Overhead line",
         "f2": "F2 · PV plant",
         "f3": "F3 · Battery"
+    },
+    "anatomy": {
+        "type": "The name of the trip's type"
     }
 }

@@ -61,7 +61,11 @@
         "qds": { "name": "Qualität", "note": "Gut: Es ist kein Flag (etwa ungültig oder blockiert) gesetzt." },
         "diq-on": { "name": "Zustand 2", "note": "Ein: Der Leistungsschalter ist geschlossen. 1 ist Aus; 0 und 3 bedeuten Zwischen- oder Störstellung." },
         "diq-off": { "name": "Zustand 1", "note": "Aus: Der Leistungsschalter ist offen." },
-        "cp56": { "name": "CP56Time2a", "note": "Ein Zeitstempel mit 7 Bytes: 7.280 s, 41 min, 10 h, Donnerstag, 12. November (20)26. Eine Zeitzone ist nicht enthalten." }
+        "cp56": { "name": "CP56Time2a", "note": "Ein Zeitstempel mit 7 Bytes: 7.280 s, 41 min, 10 h, Donnerstag, 12. November (20)26. Eine Zeitzone ist nicht enthalten." },
+        "n-dir": { "name": "M · Überwachungsrichtung", "note": "Von der Station zur Leitstelle. C hieße Steuerrichtung: ein Befehl aus der Leitstelle." },
+        "n-dp": { "name": "DP · Doppelmeldung", "note": "Zwei Bits für einen Schalter: 01 aus, 10 ein. 00 und 11 heißen: dazwischen, oder die Kontakte widersprechen sich." },
+        "n-tb": { "name": "TB · Zeitstempel", "note": "Mit Zeitstempel: B ist die 7-Byte-Zeit CP56Time2a. IEC 101 kannte auch TA, eine 3-Byte-Zeit; NA heißt ohne Zeit." },
+        "n-1": { "name": "1", "note": "Jeder Typname in IEC 101 und 104 endet auf 1; mehr sagt sie nicht." }
     },
     "devices": {
         "scada": "SCADA-Master",
@@ -113,5 +117,8 @@
         "f1": "F1 · Freileitung",
         "f2": "F2 · PV-Anlage",
         "f3": "F3 · Batterie"
+    },
+    "anatomy": {
+        "type": "Der Name des Typs der Auslösung"
     }
 }

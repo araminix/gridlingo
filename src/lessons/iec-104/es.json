@@ -61,7 +61,11 @@
         "qds": { "name": "Calidad", "note": "Buena: no hay ningún indicador activo (como inválido o bloqueado)." },
         "diq-on": { "name": "Estado 2", "note": "On: el interruptor está cerrado. 1 es off; 0 y 3 significan en movimiento o en falla." },
         "diq-off": { "name": "Estado 1", "note": "Off: el interruptor está abierto." },
-        "cp56": { "name": "CP56Time2a", "note": "Una marca de tiempo de 7 bytes: 7.280 s, 41 min, 10 h, jueves 12 de noviembre de (20)26. No lleva zona horaria." }
+        "cp56": { "name": "CP56Time2a", "note": "Una marca de tiempo de 7 bytes: 7.280 s, 41 min, 10 h, jueves 12 de noviembre de (20)26. No lleva zona horaria." },
+        "n-dir": { "name": "M · dirección de supervisión", "note": "De la estación al centro de control. C sería la dirección de control: una orden desde el centro de control." },
+        "n-dp": { "name": "DP · doble punto", "note": "Dos bits para un interruptor: 01 abierto, 10 cerrado. 00 y 11 quieren decir que está entre ambos o que sus contactos no coinciden." },
+        "n-tb": { "name": "TB · marca de tiempo", "note": "Con marca de tiempo: B es la CP56Time2a de 7 bytes. IEC 101 tenía también TA, de 3 bytes; NA quiere decir sin tiempo." },
+        "n-1": { "name": "1", "note": "Todos los nombres de tipo de IEC 101 y 104 terminan en 1; no dice nada más." }
     },
     "devices": {
         "scada": "Maestro SCADA",
@@ -113,5 +117,8 @@
         "f1": "F1 · Línea aérea",
         "f2": "F2 · Planta FV",
         "f3": "F3 · Batería"
+    },
+    "anatomy": {
+        "type": "El nombre del tipo del disparo"
     }
 }

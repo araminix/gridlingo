@@ -61,7 +61,11 @@
         "qds": { "name": "Qualità", "note": "Buona: nessun flag (come invalid o blocked) è attivo." },
         "diq-on": { "name": "Stato 2", "note": "On: l'interruttore è chiuso. 1 è off; 0 e 3 indicano in movimento o guasto." },
         "diq-off": { "name": "Stato 1", "note": "Off: l'interruttore è aperto." },
-        "cp56": { "name": "CP56Time2a", "note": "Un'etichetta temporale di 7 byte: 7.280 s, 41 min, 10 h, giovedì 12 novembre (20)26. Non contiene il fuso orario." }
+        "cp56": { "name": "CP56Time2a", "note": "Un'etichetta temporale di 7 byte: 7.280 s, 41 min, 10 h, giovedì 12 novembre (20)26. Non contiene il fuso orario." },
+        "n-dir": { "name": "M · direzione di controllo", "note": "Dalla stazione alla sala controllo. C vorrebbe dire la direzione di comando: un comando dalla sala controllo." },
+        "n-dp": { "name": "DP · doppio punto", "note": "Due bit per un interruttore: 01 aperto, 10 chiuso. 00 e 11 vogliono dire in mezzo, o contatti in disaccordo." },
+        "n-tb": { "name": "TB · marca temporale", "note": "Con marca temporale: B è la CP56Time2a da 7 byte. IEC 101 aveva anche TA, da 3 byte; NA vuol dire senza tempo." },
+        "n-1": { "name": "1", "note": "Ogni nome di tipo in IEC 101 e 104 finisce con 1; non dice altro." }
     },
     "devices": {
         "scada": "Master SCADA",
@@ -113,5 +117,8 @@
         "f1": "F1 · Linea aerea",
         "f2": "F2 · Impianto FV",
         "f3": "F3 · Batteria"
+    },
+    "anatomy": {
+        "type": "Il nome del tipo dello scatto"
     }
 }

@@ -38,7 +38,9 @@
         "voltage": { "name": "Registre 30002", "note": "0x0900 = 2304 : tension du réseau par pas de 0.1 V, soit 230.4 V." },
         "meter-power": { "name": "Registres 30013–30014", "note": "0x45337800 : un flottant 32 bits, mot de poids fort en premier (ABCD). Il vaut 2871.5 (W)." },
         "limit-60": { "name": "Valeur", "note": "0x003C = 60 : 60 % de la puissance nominale, le maximum que peut fournir l'onduleur." },
-        "crc": { "name": "CRC", "note": "Une valeur de contrôle CRC-16 calculée à partir de tous les octets qui précèdent, envoyée octet de poids faible en premier. Le récepteur la recalcule. Un esclave jette une trame dont le CRC ne correspond pas, et reste muet." }
+        "crc": { "name": "CRC", "note": "Une valeur de contrôle CRC-16 calculée à partir de tous les octets qui précèdent, envoyée octet de poids faible en premier. Le récepteur la recalcule. Un esclave jette une trame dont le CRC ne correspond pas, et reste muet." },
+        "r-table": { "name": "3 · registres d'entrée", "note": "La table : 3 veut dire registres d'entrée, en lecture seule, avec FC 04. Un 4 voudrait dire registres de maintien, lus avec FC 03." },
+        "r-number": { "name": "0013 · registre 13", "note": "Compté à partir de 1 dans la notice. Sur la ligne, on compte à partir de 0 : l'adresse envoyée est 12." }
     },
     "devices": {
         "logger": "Enregistreur",
@@ -87,5 +89,8 @@
         "values": "Le registre 30001 contient des watts. Le 30002 contient des dixièmes de volt : 2304 vaut 230.4 V.",
         "limit": "La limite de puissance, un holding register. La diffusion l'écrit sur les deux onduleurs.",
         "float": "La puissance du compteur : un flottant 32 bits sur deux registres, mot de poids fort en premier."
+    },
+    "anatomy": {
+        "register": "Le registre 30013 dans la notice du compteur"
     }
 }

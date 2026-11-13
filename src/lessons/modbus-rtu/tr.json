@@ -38,7 +38,9 @@
         "voltage": { "name": "Register 30002", "note": "0x0900 = 2304: 0.1 V'luk adımlarla şebeke gerilimi, yani 230.4 V." },
         "meter-power": { "name": "Register 30013–30014", "note": "0x45337800: 32 bitlik bir float, önce yüksek word (ABCD). Değeri 2871.5 (W)." },
         "limit-60": { "name": "Değer", "note": "0x003C = 60: anma gücünün, yani inverterin verebileceği en yüksek gücün %60'ı." },
-        "crc": { "name": "CRC", "note": "Kendinden önceki tüm baytlardan hesaplanan bir CRC-16 denetim değeri, düşük bayt önce gönderilir. Alıcı onu yeniden hesaplar. Bir slave CRC'si tutmayan çerçeveyi atar ve sessiz kalır." }
+        "crc": { "name": "CRC", "note": "Kendinden önceki tüm baytlardan hesaplanan bir CRC-16 denetim değeri, düşük bayt önce gönderilir. Alıcı onu yeniden hesaplar. Bir slave CRC'si tutmayan çerçeveyi atar ve sessiz kalır." },
+        "r-table": { "name": "3 · giriş yazmaçları", "note": "Tablo: 3, yalnızca okunabilen giriş yazmaçlarıdır, FC 04 ile. 4 olsaydı, FC 03 ile okunan tutma yazmaçları olurdu." },
+        "r-number": { "name": "0013 · yazmaç 13", "note": "Kılavuzda 1'den sayılır. Hatta sayım 0'dan başlar, bu yüzden gönderilen adres 12'dir." }
     },
     "devices": {
         "logger": "Veri kaydedici",
@@ -87,5 +89,8 @@
         "values": "30001 numaralı register watt tutar. 30002 voltun onda birlerini tutar: 2304, 230.4 V demektir.",
         "limit": "Güç sınırı, bir holding register. Broadcast bunu iki invertere de yazar.",
         "float": "Sayacın gücü: iki register'da tek bir 32 bit float, önce yüksek word."
+    },
+    "anatomy": {
+        "register": "Sayacın kılavuzundaki 30013 yazmacı"
     }
 }

@@ -61,7 +61,11 @@
         "qds": { "name": "Kalite", "note": "İyi: hiçbir bayrak (örneğin geçersiz ya da bloke) işaretli değil." },
         "diq-on": { "name": "Durum 2", "note": "Devrede (on): kesici kapalı. 1 devre dışı (off) demektir; 0 ve 3 ara konum ya da arıza anlamına gelir." },
         "diq-off": { "name": "Durum 1", "note": "Devre dışı (off): kesici açık." },
-        "cp56": { "name": "CP56Time2a", "note": "7 baytlık bir zaman damgası: 7.280 s, 41 dk, 10 sa, Perşembe 12 Kasım (20)26. İçinde saat dilimi yok." }
+        "cp56": { "name": "CP56Time2a", "note": "7 baytlık bir zaman damgası: 7.280 s, 41 dk, 10 sa, Perşembe 12 Kasım (20)26. İçinde saat dilimi yok." },
+        "n-dir": { "name": "M · izleme yönü", "note": "Merkezden kontrol merkezine. C, kontrol yönü olurdu: kontrol merkezinden gelen bir komut." },
+        "n-dp": { "name": "DP · çift nokta", "note": "Bir şalter için iki bit: 01 açık, 10 kapalı. 00 ve 11, arada olduğu ya da kontaklarının çeliştiği anlamına gelir." },
+        "n-tb": { "name": "TB · zaman etiketi", "note": "Zaman etiketli: B, 7 baytlık CP56Time2a'dır. IEC 101'de 3 baytlık TA da vardı; NA zamansız demektir." },
+        "n-1": { "name": "1", "note": "IEC 101 ve 104'teki her tip adı 1 ile biter; başka bir şey söylemez." }
     },
     "devices": {
         "scada": "SCADA ana istasyonu",
@@ -113,5 +117,8 @@
         "f1": "F1 · Havai hat",
         "f2": "F2 · GES",
         "f3": "F3 · Batarya"
+    },
+    "anatomy": {
+        "type": "Açma mesajının tipinin adı"
     }
 }

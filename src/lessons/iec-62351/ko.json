@@ -81,7 +81,12 @@
         "rec-alert": { "name": "콘텐츠 유형", "note": "0x15 = 21: 경고(alert). 핸드셰이크가 끝나지 않았으니 평문이에요." },
         "rec-2": { "name": "길이", "note": "2바이트가 이어져요." },
         "fatal": { "name": "레벨 2", "note": "치명적: 연결이 바로 끝나요." },
-        "expired": { "name": "설명 45", "note": "0x2D: certificate_expired. RTU가 신뢰하지 않는 CA의 인증서라면 대신 48(0x30, unknown_ca)을 받아요." }
+        "expired": { "name": "설명 45", "note": "0x2D: certificate_expired. RTU가 신뢰하지 않는 CA의 인증서라면 대신 48(0x30, unknown_ca)을 받아요." },
+        "cs-tls": { "name": "TLS", "note": "프로토콜: 이 스위트는 TLS 1.2의 스위트 중 하나예요." },
+        "cs-ecdhe": { "name": "ECDHE · 키 교환", "note": "세션마다 새 키를 쓰는 타원 곡선 디피-헬만이에요. 녹화된 세션은 인증서의 키가 있어도 나중에 읽을 수 없어요." },
+        "cs-rsa": { "name": "RSA · 누가 신원을 증명하나", "note": "서버인 RTU가 인증서의 RSA 키로 서명해 자신이 누구인지 증명해요." },
+        "cs-aes": { "name": "AES_128_GCM · 암호화", "note": "각 레코드는 AES와 128비트 키로 암호화되고, GCM이 아무것도 바뀌지 않았는지 검사해요." },
+        "cs-sha": { "name": "SHA256 · 해시", "note": "핸드셰이크에서 세션 키를 만드는 데 쓰는 해시예요." }
     },
     "devices": {
         "ca": "전력 회사 CA",
@@ -123,5 +128,8 @@
         "client-auth": "TLS 클라이언트용이고, 서버용으로는 쓸 수 없어요.",
         "crl": "폐기된 인증서 목록(CRL)이 공개되는 곳이에요. RTU가 여기에 접속할 수 있거나, 최근 사본을 가지고 있어야 해요.",
         "verify": "openssl도 RTU와 같은 결론을 내려요: 오류 10, certificate has expired."
+    },
+    "anatomy": {
+        "suite": "RTU가 고른 암호 스위트의 이름"
     }
 }

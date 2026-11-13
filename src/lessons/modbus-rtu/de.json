@@ -38,7 +38,9 @@
         "voltage": { "name": "Register 30002", "note": "0x0900 = 2304: Netzspannung in Schritten von 0.1 V, also 230.4 V." },
         "meter-power": { "name": "Register 30013–30014", "note": "0x45337800: eine 32-Bit-Gleitkommazahl, höherwertiges Wort zuerst (ABCD). Das ergibt 2871.5 (W)." },
         "limit-60": { "name": "Wert", "note": "0x003C = 60: 60 % der Nennleistung, des Höchsten, was der Wechselrichter liefern kann." },
-        "crc": { "name": "CRC", "note": "Ein CRC-16-Prüfwert, berechnet aus allen Bytes davor, niederwertiges Byte zuerst gesendet. Der Empfänger berechnet ihn erneut. Ein Slave verwirft ein Telegramm, dessen CRC nicht passt, und schweigt." }
+        "crc": { "name": "CRC", "note": "Ein CRC-16-Prüfwert, berechnet aus allen Bytes davor, niederwertiges Byte zuerst gesendet. Der Empfänger berechnet ihn erneut. Ein Slave verwirft ein Telegramm, dessen CRC nicht passt, und schweigt." },
+        "r-table": { "name": "3 · Input-Register", "note": "Die Tabelle: 3 heißt Input-Register, die man nur lesen kann, mit FC 04. Eine 4 hieße Holding-Register, gelesen mit FC 03." },
+        "r-number": { "name": "0013 · Register 13", "note": "Im Handbuch ab 1 gezählt. Auf der Leitung beginnt die Zählung bei 0, also wird die Adresse 12 gesendet." }
     },
     "devices": {
         "logger": "Datenlogger",
@@ -87,5 +89,8 @@
         "values": "Register 30001 enthält Watt. 30002 enthält Zehntel Volt: 2304 sind 230.4 V.",
         "limit": "Die Leistungsbegrenzung, ein Holding Register. Der Broadcast schreibt sie in beide Wechselrichter.",
         "float": "Die Leistung des Zählers: eine 32-Bit-Gleitkommazahl in zwei Registern, höherwertiges Wort zuerst."
+    },
+    "anatomy": {
+        "register": "Register 30013 im Handbuch des Zählers"
     }
 }

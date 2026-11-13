@@ -162,6 +162,16 @@ export const lesson: Lesson = {
             },
         ],
     },
+    anatomy: [
+        {
+            id: "register",
+            parts: [
+                ["3", "type", "r-table"],
+                ["0013", "address", "r-number"],
+            ],
+            also: "30013 = FC 04, address 0x000C = 12 on the wire  ·  40013 would be FC 03",
+        },
+    ],
     playground: [{ kind: "file", sample: "line1.yaml", file: line, notes: { 3: "baud", 4: "parity", 6: "timeout", 7: "retries", 8: "after-broadcast", 10: "address", 12: "read", 13: "values", 14: "limit", 18: "float" } }],
     related: ["modbus-tcp", "sunspec", "iec-101"],
 };

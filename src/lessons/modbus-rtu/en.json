@@ -38,7 +38,9 @@
         "voltage": { "name": "Register 30002", "note": "0x0900 = 2304: grid voltage in steps of 0.1 V, so 230.4 V." },
         "meter-power": { "name": "Registers 30013–30014", "note": "0x45337800: a 32-bit float, high word first (ABCD). It is 2871.5 (W)." },
         "limit-60": { "name": "Value", "note": "0x003C = 60: 60 % of rated power, the most the inverter can give." },
-        "crc": { "name": "CRC", "note": "A CRC-16 check value computed from all bytes before it, sent low byte first. The receiver computes it again. A slave drops a frame whose CRC does not match, and stays silent." }
+        "crc": { "name": "CRC", "note": "A CRC-16 check value computed from all bytes before it, sent low byte first. The receiver computes it again. A slave drops a frame whose CRC does not match, and stays silent." },
+        "r-table": { "name": "3 · input registers", "note": "The table: 3 means input registers, which can only be read, with FC 04. A 4 means holding registers, read with FC 03." },
+        "r-number": { "name": "0013 · register 13", "note": "Counted from 1 in the manual. On the wire the count starts at 0, so the address sent is 12." }
     },
     "devices": {
         "logger": "Data logger",
@@ -87,5 +89,8 @@
         "values": "Register 30001 holds watts. 30002 holds tenths of a volt: 2304 is 230.4 V.",
         "limit": "The power limit, a holding register. The broadcast writes it on both inverters.",
         "float": "The meter's power: one 32-bit float in two registers, high word first."
+    },
+    "anatomy": {
+        "register": "Register 30013 in the meter's manual"
     }
 }

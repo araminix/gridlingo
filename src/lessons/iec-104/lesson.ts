@@ -122,6 +122,18 @@ export const lesson: Lesson = {
             { id: "cb", address: "2001", values: [["connect", "~closed", "–"], ["values", "~closed", "~closed"], ["trip", "~open", "~open"]] },
         ],
     },
+    anatomy: [
+        {
+            id: "type",
+            parts: [
+                ["M", "control", "n-dir"],
+                ["DP", "type", "n-dp"],
+                ["TB", "time", "n-tb"],
+                ["1", "frame", "n-1"],
+            ],
+            also: "M_DP_TB_1 = type 31 = 0x1F  ·  without the time: M_DP_NA_1 = type 3",
+        },
+    ],
     playground: [
         { kind: "encoder", type: "float32", order: "DCBA", value: 4.82 },
         { kind: "file", sample: "points.json", file: points, notes: { 2: "common-address", 5: "ioa", 6: "type", 9: "scale", 20: "double", 22: "spontaneous", 23: "time" } },

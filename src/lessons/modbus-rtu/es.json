@@ -38,7 +38,9 @@
         "voltage": { "name": "Registro 30002", "note": "0x0900 = 2304: tensión de red en pasos de 0.1 V, es decir, 230.4 V." },
         "meter-power": { "name": "Registros 30013–30014", "note": "0x45337800: un float de 32 bits, con la palabra alta primero (ABCD). Vale 2871.5 (W)." },
         "limit-60": { "name": "Valor", "note": "0x003C = 60: el 60 % de la potencia nominal, lo máximo que puede dar el inversor." },
-        "crc": { "name": "CRC", "note": "Un valor de comprobación CRC-16 calculado a partir de todos los bytes anteriores, enviado con el byte bajo primero. El receptor lo vuelve a calcular. Un esclavo descarta la trama cuyo CRC no coincide y se queda callado." }
+        "crc": { "name": "CRC", "note": "Un valor de comprobación CRC-16 calculado a partir de todos los bytes anteriores, enviado con el byte bajo primero. El receptor lo vuelve a calcular. Un esclavo descarta la trama cuyo CRC no coincide y se queda callado." },
+        "r-table": { "name": "3 · registros de entrada", "note": "La tabla: 3 significa registros de entrada, que solo se leen, con FC 04. Un 4 serían registros de retención, que se leen con FC 03." },
+        "r-number": { "name": "0013 · registro 13", "note": "En el manual se cuenta desde 1. En la línea se cuenta desde 0, así que la dirección enviada es 12." }
     },
     "devices": {
         "logger": "Registrador de datos",
@@ -87,5 +89,8 @@
         "values": "El registro 30001 guarda vatios. El 30002 guarda décimas de voltio: 2304 es 230.4 V.",
         "limit": "El límite de potencia, un holding register. La difusión lo escribe en los dos inversores.",
         "float": "La potencia del medidor: un float de 32 bits en dos registros, con la palabra alta primero."
+    },
+    "anatomy": {
+        "register": "El registro 30013 del manual del medidor"
     }
 }
