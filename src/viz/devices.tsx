@@ -26,7 +26,7 @@ const SIZE: Record<DeviceKind, { w: number; d: number; h: number }> = {
     sensor: { w: 8, d: 8, h: 40 },
     laptop: { w: 30, d: 22, h: 16 },
     transformer: { w: 44, d: 30, h: 48 },
-    controller: { w: 30, d: 22, h: 46 },
+    controller: { w: 30, d: 22, h: 49 },
     radio: { w: 8, d: 8, h: 110 },
     firewall: { w: 36, d: 22, h: 30 },
 };
@@ -130,6 +130,12 @@ function gatewayParts(cx: number, cy: number) {
     return { plinth: { cx, cy, w: SIZE.gateway.w, d: SIZE.gateway.d, h: 3 } satisfies Box, body: { cx, cy, w: 26, d: 18, h: 13, z: 3 } satisfies Box };
 }
 
+/** A controller's cabinet on a plinth, with a stack light (green, amber, red) standing on its roof. */
+function controllerParts(cx: number, cy: number) {
+    const { w, d } = SIZE.controller;
+    return { plinth: { cx, cy, w, d, h: 3 } satisfies Box, body: { cx, cy, w, d, h: 36, z: 3 } satisfies Box, light: [cx + 9, cy - 6, 39] as const };
+}
+
 /** A battery container on its concrete pad. */
 function batteryParts(cx: number, cy: number) {
     const { w, d, h } = SIZE.battery;
@@ -147,6 +153,10 @@ export function bodyOf(kind: DeviceKind, cx: number, cy: number): Box[] {
         return [desk, ...screens];
     }
     if (kind === "pv") return pvParts(cx, cy);
+    if (kind === "controller") {
+        const { plinth, body } = controllerParts(cx, cy);
+        return [plinth, body];
+    }
     if (kind === "gateway") {
         const { plinth, body } = gatewayParts(cx, cy);
         return [plinth, body];
@@ -388,7 +398,44 @@ export function DeviceShape({ kind, cx, cy, active = false }: { kind: DeviceKind
                 </g>
             );
         }
-        case "controller":
+        case "controller": {
+            // On its door a touch screen (a small chart), the emergency stop on its yellow plate, two selector switches
+            // and the handle; a filter fan on its side
+            const { plinth, body, light } = controllerParts(cx, cy);
+            const door = faces(body).onLeft;
+            const side = faces(body).onRight;
+            const dot = ([x, y]: [number, number], r: number, fill: string, key: string) => <circle key={key} cx={round(x)} cy={round(y)} r={r} fill={fill} stroke={tone.edge} strokeWidth={0.4} />;
+            const [lx, ly] = project(...light);
+            return (
+                <g>
+                    <Solid box={plinth} active={active} fine />
+                    <Solid box={body} active={active} />
+                    <Lines list={[[door(0.06, 0.04), door(0.94, 0.04), door(0.94, 0.96), door(0.06, 0.96), door(0.06, 0.04)]]} width={0.6} />
+                    <Panel on={door} u0={0.2} v0={0.56} u1={0.8} v1={0.86} fill="var(--viz-screen)" />
+                    <Lines list={[[door(0.26, 0.8), door(0.74, 0.8)]]} stroke="var(--viz-pv)" width={0.7} />
+                    <Lines
+                        list={[
+                            [door(0.34, 0.6), door(0.34, 0.7)],
+                            [door(0.48, 0.6), door(0.48, 0.75)],
+                            [door(0.62, 0.6), door(0.62, 0.68)],
+                        ]}
+                        stroke="var(--viz-ok)"
+                        width={2}
+                    />
+                    <Panel on={door} u0={0.18} v0={0.28} u1={0.36} v1={0.42} fill="var(--viz-token)" />
+                    {dot(door(0.27, 0.35), 1.6, "var(--destructive)", "stop")}
+                    {dot(door(0.52, 0.35), 1.1, tone.top, "a")}
+                    {dot(door(0.66, 0.35), 1.1, tone.top, "b")}
+                    <Lines list={[[door(0.86, 0.42), door(0.86, 0.52)]]} width={1.4} />
+                    <Panel on={side} u0={0.3} v0={0.14} u1={0.7} v1={0.38} fill={tone.left} />
+                    <Lines list={[0.2, 0.26, 0.32].map((v) => [side(0.34, v), side(0.66, v)])} width={0.5} />
+                    {["var(--viz-ok)", "var(--viz-token)", "var(--destructive)"].map((fill, i) => (
+                        <rect key={fill} x={round(lx - 1.6)} y={round(ly - 3.2 * (i + 1))} width={3.2} height={3.2} fill={fill} stroke={tone.edge} strokeWidth={0.4} />
+                    ))}
+                    <rect x={round(lx - 1.8)} y={round(ly - 10.6)} width={3.6} height={1} fill={tone.top} stroke={tone.edge} strokeWidth={0.4} />
+                </g>
+            );
+        }
         case "pmu":
         case "merging-unit":
             detail = (
