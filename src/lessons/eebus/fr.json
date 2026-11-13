@@ -1,0 +1,95 @@
+{
+    "intro": "EEBus permet aux équipements d'une maison ou d'un bâtiment de s'entendre sur l'énergie : un gestionnaire d'énergie, une borne murale, une pompe à chaleur, une batterie, un onduleur photovoltaïque. Il a deux couches. SHIP (Smart Home IP) trouve les équipements avec mDNS, les relie par TLS et WebSocket et décide qui fait confiance à qui. SPINE décrit ce que chaque équipement sait faire, sous forme d'entités et de fonctions (une gestion de charge, une mesure, une configuration), en JSON. Au-dessus viennent les cas d'usage. En Allemagne, le §14a de la loi sur l'énergie permet au gestionnaire de réseau de brider bornes et pompes à chaleur quand le réseau local est près de la surcharge, à pas moins de 4,2 kW chacune. Le boîtier de commande derrière la passerelle du compteur communicant envoie cette limite avec le cas d'usage EEBus LPC, Limitation of Power Consumption.",
+    "plain": "Une maison a aujourd'hui des machines qui tirent beaucoup de puissance d'un coup : une borne pour la voiture, une pompe à chaleur. EEBus est une langue commune qu'elles parlent entre elles et avec le réseau. Quand les câbles de la rue sont près de la surcharge, le gestionnaire de réseau peut demander, par un petit boîtier dans le tableau électrique, que la borne ralentisse un moment. La borne obéit, et si elle n'entend plus le boîtier, elle reste prudente d'elle-même.",
+    "steps": {
+        "discover": { "title": "Se trouver", "text": "La borne s'annonce sur le réseau de la maison avec mDNS (DNS multicast) : un service SHIP, son adresse et son SKI (subject key identifier), une empreinte de son certificat. Le boîtier de commande l'entend." },
+        "pair": { "title": "Se faire confiance", "text": "Ils ouvrent une connexion TLS, chacun avec son propre certificat auto-signé. Il n'y a pas d'autorité de certification : chaque côté ne fait confiance à l'autre que si son SKI a été saisi ou confirmé à l'installation. L'installateur les a comparés une fois." },
+        "handshake": { "title": "Se serrer la main", "text": "Dans TLS, un WebSocket transporte des messages SHIP : un octet pour le type de message, puis du JSON. Ils commencent par 00 00, se saluent, s'accordent sur la version du protocole et le format, et se disent comment se joindre." },
+        "discovery": { "title": "Demander ce qu'elle sait faire", "text": "Avec SPINE, le boîtier lit les données de découverte détaillée de la borne : ses entités et ses fonctions. L'entité 1 est la station de recharge ; sa fonction 7 est un serveur LoadControl, qui accepte des limites. Il y a aussi DeviceConfiguration, pour les valeurs de repli, et DeviceDiagnosis, pour le battement de cœur." },
+        "limit": { "title": "Fixer une limite", "text": "Le gestionnaire de réseau signale un risque de surcharge. Le boîtier écrit une limite à la borne : 4200 W pendant 2 heures. La borne confirme et dit à la voiture, par le signal pilote de l'IEC 61851, de tirer au plus 6 A par phase : environ 4,1 kW sur trois phases." },
+        "failsafe": { "title": "Perdre le boîtier", "text": "Le boîtier perd son alimentation et son battement de cœur s'arrête. Après 120 s sans lui, la borne passe en mode de repli : elle applique sa limite de repli, 4,2 kW aussi, au moins pendant sa durée de repli de 2 heures, sauf si le boîtier revient." }
+    },
+    "frames": {
+        "mdns": "Je suis une borne, voici l'empreinte de ma clé",
+        "tls": "Montre-moi ton certificat : je connais ton SKI",
+        "init": "Commençons SHIP",
+        "hello": "Je suis prête, et j'attends jusqu'à 60 s",
+        "protocol": "Version 1.0, en JSON",
+        "detailed": "Que sais-tu faire ?",
+        "features": "J'accepte des limites de puissance : voici mes fonctions",
+        "write": "Au plus 4200 W pendant les 2 prochaines heures",
+        "result": "C'est fait",
+        "pwm": "Tire au plus 6 A par phase",
+        "heartbeat": "Je suis toujours là",
+        "fallback": "Toujours 6 A au plus : mode de repli"
+    },
+    "notes": {
+        "mdns": "Un enregistrement DNS-SD de type _ship._tcp, envoyé en multicast sur le réseau local. Ses entrées TXT donnent le chemin du WebSocket, un ID, le SKI, la marque et le modèle.",
+        "tls": "TLS 1.2 avec un certificat de chaque côté. Chaque côté compare le SKI du certificat de l'autre à celui auquel il fait confiance ; s'ils diffèrent, la connexion s'arrête là.",
+        "protocol": "Les deux côtés annoncent la plus haute version de SHIP qu'ils parlent (1.0) et le format (JSON en UTF-8). Puis chacun dit à l'autre comment le joindre.",
+        "detailed": "Une lecture SPINE de nodeManagementDetailedDiscoveryData : la liste des entités et fonctions de la borne, chacune avec son type et son rôle, client ou serveur.",
+        "features": "L'entité 1 de la borne, la station de recharge, avec des serveurs LoadControl, DeviceConfiguration, DeviceDiagnosis et ElectricalConnection. Le boîtier sait maintenant où envoyer une limite.",
+        "write": "Une écriture SPINE qui demande un acquittement : limite 0, active, 4200 W (nombre 4200, échelle 0), qui se termine après PT2H, 2 heures. Le bac à sable montre ce message.",
+        "result": "Un résultat SPINE pour le numéro de message de l'écriture, errorNumber 0 : acceptée. Un équipement qui ne peut pas suivre répond avec un autre numéro d'erreur.",
+        "pwm": "Pas de l'EEBus : la borne baisse le rapport cyclique du signal pilote à 10 %, ce qu'une voiture lit comme 6 A (voir la leçon IEC 61851).",
+        "heartbeat": "Un battement de cœur DeviceDiagnosis, envoyé régulièrement tant que tout va bien. C'est le dernier : ensuite le boîtier perd son alimentation.",
+        "fallback": "Pas de battement de cœur depuis 120 s : la borne applique sa limite de repli, lue plus tôt dans DeviceConfiguration, et garde la voiture à 6 A."
+    },
+    "fields": {
+        "type-init": { "name": "Type de message", "note": "0x00 : init, le premier message de SHIP." },
+        "cmi": { "name": "CMI", "note": "0x00 : connection mode initialisation. Les deux côtés envoient 00 00 avant toute autre chose." },
+        "type-control": { "name": "Type de message", "note": "0x01 : un message de contrôle. 0x02 serait des données, 0x03 la fin." },
+        "hello-name": { "name": "connectionHello", "note": "Le texte JSON, en UTF-8, commence par : {\"connectionHello\":" },
+        "phase": { "name": "phase", "note": "[{\"phase\":\"ready\"} : ce côté est prêt à continuer. SHIP écrit un objet comme une liste d'objets à une seule clé." },
+        "waiting": { "name": "waiting", "note": ",{\"waiting\":60000} : il attend jusqu'à 60000 ms, 60 s, le salut de l'autre côté." },
+        "close": { "name": "Fin", "note": "]} : la fin de la liste et du JSON." },
+        "a-device": { "name": "d:", "note": "Une adresse d'équipement SPINE." },
+        "a-pen": { "name": "_i:32473", "note": "Le fabricant, par son numéro d'entreprise IANA. 32473 est le numéro réservé aux exemples." },
+        "a-name": { "name": "_Wallbox-0042", "note": "Le nom propre que le fabricant donne à cet équipement, unique parmi ses produits." }
+    },
+    "devices": {
+        "dso": "Gestionnaire de réseau (GRD)",
+        "box": "Boîtier de commande (§14a)",
+        "wallbox": "Borne murale 11 kW",
+        "car": "Voiture électrique"
+    },
+    "facts": {
+        "standard": "EEBus SHIP 1.0 (transport) et SPINE 1.3 (modèle de données), avec des cas d'usage comme LPC, Limitation of Power Consumption ; en Allemagne, le VDE FNN spécifie le boîtier de commande du §14a",
+        "between": "Un gestionnaire d'énergie ou le boîtier de commande d'un gestionnaire de réseau, et des équipements qui consomment ou produisent : bornes, pompes à chaleur, batteries, onduleurs photovoltaïques",
+        "transport": "WebSocket sur TLS dans le réseau local, trouvé avec mDNS (_ship._tcp) ; messages en JSON",
+        "security": "TLS 1.2 avec des certificats auto-signés des deux côtés ; chacun fait confiance au SKI de l'autre, saisi ou confirmé une fois à l'installation",
+        "speed": "Une commande prend bien moins d'une seconde ; repli après 120 s sans battement de cœur"
+    },
+    "tips": [
+        "L'appairage se fait par le SKI, pas par mot de passe. Comparez le SKI affiché sur chaque équipement avant de lui faire confiance : un mauvais vous appaire avec un autre équipement.",
+        "Réglez la limite et la durée de repli sur chaque équipement. Quand le boîtier disparaît, l'équipement revient à elles, pas à la pleine puissance.",
+        "mDNS ne fonctionne qu'à l'intérieur d'un segment de réseau. Un VLAN ou un wifi invités entre le boîtier et la borne les cache l'un de l'autre.",
+        "Selon le §14a, le gestionnaire de réseau peut brider chaque équipement à pas moins de 4,2 kW. La voiture continue de charger, seulement plus lentement."
+    ],
+    "points": {
+        "trust": "Confiance",
+        "limit": "Limite de puissance",
+        "power": "Puissance de charge"
+    },
+    "values": {
+        "trusted": "de confiance",
+        "failsafe": "4,2 kW (repli)"
+    },
+    "anatomy": {
+        "device": "L'adresse d'équipement SPINE de la borne"
+    },
+    "playground": {
+        "file": "Essayez : la limite que le boîtier écrit, sous forme de message SPINE. Sur la ligne, SHIP écrit chaque objet comme une liste d'objets à une seule clé ; ici, il est montré en JSON simple, plus facile à lire.",
+        "version": "La version de SPINE que suit ce message.",
+        "source": "Du boîtier : son adresse d'équipement, entité 1, fonction 3 (son client LoadControl).",
+        "destination": "Vers la borne : entité 1, fonction 7, son serveur LoadControl.",
+        "counter": "Le numéro du message. Le résultat le citera, pour que le boîtier sache à quoi on a répondu.",
+        "write": "write : modifier des données de l'autre côté. Les autres types sont read, reply, notify, call et result.",
+        "ack": "Demander un message de résultat, pour que le boîtier sache que la limite a été acceptée.",
+        "function": "Ce qui est écrit : la liste des limites de gestion de charge.",
+        "id": "Limite 0 : la limite de consommation que propose cette borne.",
+        "active": "Activer la limite. false la lèverait.",
+        "duration": "Pendant 2 heures à partir de maintenant (PT2H, une durée ISO 8601). Ensuite, la limite prend fin d'elle-même.",
+        "value": "4200 × 10^0 = 4200 W. SPINE écrit chaque nombre comme un nombre et une puissance de dix."
+    }
+}

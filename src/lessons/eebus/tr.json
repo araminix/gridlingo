@@ -1,0 +1,95 @@
+{
+    "intro": "EEBus, bir evin ya da binanın cihazlarının enerji konusunda anlaşmasını sağlar: bir enerji yöneticisi, bir duvar tipi şarj cihazı, bir ısı pompası, bir batarya, bir güneş eviricisi. İki katmanı vardır. SHIP (Smart Home IP) cihazları mDNS ile bulur, TLS ve WebSocket üzerinden bağlar ve kimin kime güvendiğine karar verir. SPINE her cihazın neler yapabildiğini varlıklar ve özellikler (bir yük kontrolü, bir ölçüm, bir yapılandırma) olarak, JSON ile tanımlar. Üstte kullanım senaryoları yer alır. Almanya'da Enerji Kanunu'nun §14a maddesi, yerel şebeke aşırı yüke yaklaştığında şebeke işletmecisinin şarj cihazlarını ve ısı pompalarını kısmasına izin verir; her biri en az 4,2 kW'ta kalır. Akıllı sayaç ağ geçidinin arkasındaki kontrol kutusu bu sınırı EEBus'ın LPC (Limitation of Power Consumption) senaryosuyla gönderir.",
+    "plain": "Bir evde bugün aynı anda çok güç çeken makineler var: bir araba şarj cihazı, bir ısı pompası. EEBus, bunların birbirleriyle ve şebekeyle konuştuğu ortak bir dildir. Sokağın kabloları aşırı yüke yaklaştığında şebeke işletmecisi, sayaç panosundaki küçük bir kutu aracılığıyla şarj cihazından bir süre yavaşlamasını isteyebilir. Şarj cihazı uyar ve kutudan ses gelmezse kendi başına dikkatli kalır.",
+    "steps": {
+        "discover": { "title": "Birbirini bul", "text": "Şarj cihazı ev ağında kendini mDNS (çok noktaya yayın DNS) ile duyurur: bir SHIP hizmeti, adresi ve sertifikasının bir parmak izi olan SKI'si (subject key identifier). Kontrol kutusu bunu duyar." },
+        "pair": { "title": "Birbirine güven", "text": "Her biri kendi öz imzalı sertifikasıyla bir TLS bağlantısı açar. Sertifika makamı yoktur: her taraf ötekine ancak SKI'si kurulumda girilmiş ya da onaylanmışsa güvenir. Kurulumcu bunları bir kez karşılaştırdı." },
+        "handshake": { "title": "El sıkış", "text": "TLS'in içinde bir WebSocket, SHIP mesajları taşır: mesaj türü için bir bayt, ardından JSON. 00 00 ile başlarlar, merhaba derler, protokol sürümü ve biçim üzerinde anlaşırlar ve birbirlerine nasıl ulaşılacaklarını söylerler." },
+        "discovery": { "title": "Neler yapabildiğini sor", "text": "Kutu, SPINE ile şarj cihazının ayrıntılı keşif verisini okur: varlıklarını ve özelliklerini. Varlık 1 şarj istasyonudur; onun 7 numaralı özelliği sınır kabul eden bir LoadControl sunucusudur. Ayrıca güvenli mod değerleri için DeviceConfiguration ve kalp atışı için DeviceDiagnosis vardır." },
+        "limit": { "title": "Bir sınır koy", "text": "Şebeke işletmecisi aşırı yük riski bildirir. Kutu şarj cihazına bir sınır yazar: 2 saat boyunca 4200 W. Şarj cihazı onaylar ve IEC 61851 pilot sinyaliyle arabaya faz başına en çok 6 A çekmesini söyler: üç fazda yaklaşık 4,1 kW." },
+        "failsafe": { "title": "Kutuyu kaybet", "text": "Kutunun enerjisi kesilir ve kalp atışı durur. 120 s kalp atışı gelmezse şarj cihazı güvenli moda geçer: yine 4,2 kW olan güvenli mod sınırını, kutu geri gelmezse en az 2 saatlik güvenli mod süresi boyunca uygular." }
+    },
+    "frames": {
+        "mdns": "Ben bir şarj cihazıyım, işte anahtarımın parmak izi",
+        "tls": "Sertifikanı göster: SKI'ni biliyorum",
+        "init": "SHIP'e başlayalım",
+        "hello": "Hazırım ve 60 s'ye kadar beklerim",
+        "protocol": "Sürüm 1.0, JSON ile",
+        "detailed": "Neler yapabilirsin?",
+        "features": "Güç sınırı kabul ederim: işte özelliklerim",
+        "write": "Önümüzdeki 2 saat en çok 4200 W",
+        "result": "Tamam",
+        "pwm": "Faz başına en çok 6 A çek",
+        "heartbeat": "Hâlâ buradayım",
+        "fallback": "Hâlâ en çok 6 A: güvenli mod"
+    },
+    "notes": {
+        "mdns": "Yerel ağda çok noktaya yayınla gönderilen, _ship._tcp türünde bir DNS-SD kaydı. TXT girdileri WebSocket yolunu, bir ID'yi, SKI'yi, markayı ve modeli verir.",
+        "tls": "Her tarafta bir sertifikayla TLS 1.2. Her taraf ötekinin sertifikasının SKI'sini güvendiği SKI ile karşılaştırır; farklıysa bağlantı burada biter.",
+        "protocol": "İki taraf da konuştuğu en yüksek SHIP sürümünü (1.0) ve biçimi (UTF-8 JSON) bildirir. Sonra her biri ötekine kendisine nasıl ulaşılacağını söyler.",
+        "detailed": "nodeManagementDetailedDiscoveryData'nın SPINE ile okunması: şarj cihazının varlıklarının ve özelliklerinin listesi, her biri türü ve rolüyle, istemci ya da sunucu.",
+        "features": "Şarj cihazının 1 numaralı varlığı olan şarj istasyonu; LoadControl, DeviceConfiguration, DeviceDiagnosis ve ElectricalConnection sunucularıyla. Kutu artık sınırı nereye göndereceğini biliyor.",
+        "write": "Onay isteyen bir SPINE yazması: sınır 0, etkin, 4200 W (sayı 4200, ölçek 0), PT2H yani 2 saat sonra biter. Deneme alanı bu mesajı gösterir.",
+        "result": "Yazmanın mesaj numarası için bir SPINE sonucu, errorNumber 0: kabul edildi. Uyamayan bir cihaz başka bir hata numarasıyla yanıt verir.",
+        "pwm": "EEBus değil: şarj cihazı pilot sinyalinin görev oranını %10'a düşürür, bir araba bunu 6 A olarak okur (IEC 61851 dersine bakın).",
+        "heartbeat": "Her şey yolundayken düzenli gönderilen bir DeviceDiagnosis kalp atışı. Bu sonuncusu: ardından kutunun enerjisi kesilir.",
+        "fallback": "120 s kalp atışı yok: şarj cihazı daha önce DeviceConfiguration'dan okuduğu güvenli mod sınırını uygular ve arabayı 6 A'da tutar."
+    },
+    "fields": {
+        "type-init": { "name": "Mesaj türü", "note": "0x00: init, SHIP'in ilk mesajı." },
+        "cmi": { "name": "CMI", "note": "0x00: connection mode initialisation. İki taraf da her şeyden önce 00 00 gönderir." },
+        "type-control": { "name": "Mesaj türü", "note": "0x01: bir kontrol mesajı. 0x02 veri, 0x03 son olurdu." },
+        "hello-name": { "name": "connectionHello", "note": "UTF-8 JSON metni şöyle başlar: {\"connectionHello\":" },
+        "phase": { "name": "phase", "note": "[{\"phase\":\"ready\"}: bu taraf devam etmeye hazır. SHIP bir nesneyi tek anahtarlı nesnelerden oluşan bir liste olarak yazar." },
+        "waiting": { "name": "waiting", "note": ",{\"waiting\":60000}: öteki tarafın merhabasını 60000 ms'ye, 60 s'ye kadar bekler." },
+        "close": { "name": "Son", "note": "]}: listenin ve JSON'ın sonu." },
+        "a-device": { "name": "d:", "note": "Bir SPINE cihaz adresi." },
+        "a-pen": { "name": "_i:32473", "note": "Üretici, IANA kuruluş numarasıyla. 32473 örnekler için ayrılmış numaradır." },
+        "a-name": { "name": "_Wallbox-0042", "note": "Üreticinin bu cihaza verdiği, ürünleri arasında tek olan ad." }
+    },
+    "devices": {
+        "dso": "Şebeke işletmecisi (DSO)",
+        "box": "Kontrol kutusu (§14a)",
+        "wallbox": "Duvar tipi şarj cihazı 11 kW",
+        "car": "Elektrikli araba"
+    },
+    "facts": {
+        "standard": "EEBus SHIP 1.0 (taşıma) ve SPINE 1.3 (veri modeli), LPC (Limitation of Power Consumption) gibi kullanım senaryolarıyla; Almanya'da §14a için kontrol kutusunu VDE FNN tanımlar",
+        "between": "Bir enerji yöneticisi ya da şebeke işletmecisinin kontrol kutusu ile enerji tüketen ya da üreten cihazlar: şarj cihazları, ısı pompaları, bataryalar, güneş eviricileri",
+        "transport": "Yerel ağda TLS üzerinden WebSocket, mDNS ile bulunur (_ship._tcp); mesajlar JSON",
+        "security": "İki tarafta da öz imzalı sertifikalarla TLS 1.2; her biri ötekinin, kurulumda bir kez girilen ya da onaylanan SKI'sine güvenir",
+        "speed": "Bir komut bir saniyeden çok daha kısa sürer; 120 s kalp atışı gelmezse güvenli mod"
+    },
+    "tips": [
+        "Eşleştirme parolayla değil SKI ile yapılır. Güvenmeden önce her cihazda gösterilen SKI'yi karşılaştırın: yanlış biri sizi başka bir cihazla eşleştirir.",
+        "Her cihazda güvenli mod sınırını ve süresini ayarlayın. Kutu yokken cihaz tam güce değil, bunlara döner.",
+        "mDNS yalnızca tek bir ağ bölümünün içinde çalışır. Kutu ile şarj cihazı arasında bir VLAN ya da misafir Wi-Fi'ı onları birbirinden gizler.",
+        "§14a'ya göre şebeke işletmecisi her cihazı en az 4,2 kW'a kadar kısabilir. Araba şarj olmaya devam eder, yalnızca daha yavaş."
+    ],
+    "points": {
+        "trust": "Güven",
+        "limit": "Güç sınırı",
+        "power": "Şarj gücü"
+    },
+    "values": {
+        "trusted": "güvenilir",
+        "failsafe": "4,2 kW (güvenli mod)"
+    },
+    "anatomy": {
+        "device": "Şarj cihazının SPINE cihaz adresi"
+    },
+    "playground": {
+        "file": "Deneyin: kutunun yazdığı sınır, bir SPINE mesajı olarak. Hatta SHIP her nesneyi tek anahtarlı nesnelerden oluşan bir liste olarak yazar; burada daha kolay okunsun diye düz JSON olarak gösteriliyor.",
+        "version": "Bu mesajın izlediği SPINE sürümü.",
+        "source": "Kutudan: cihaz adresi, varlık 1, özellik 3 (LoadControl istemcisi).",
+        "destination": "Şarj cihazına: varlık 1, özellik 7, LoadControl sunucusu.",
+        "counter": "Mesaj numarası. Sonuç bunu anar; böylece kutu neye yanıt verildiğini bilir.",
+        "write": "write: karşı taraftaki veriyi değiştir. Diğer türler read, reply, notify, call ve result'tır.",
+        "ack": "Bir sonuç mesajı iste; böylece kutu sınırın kabul edildiğini bilir.",
+        "function": "Yazılan şey: yük kontrol sınırlarının listesi.",
+        "id": "Sınır 0: bu şarj cihazının sunduğu tüketim sınırı.",
+        "active": "Sınırı aç. false onu kaldırırdı.",
+        "duration": "Şimdiden itibaren 2 saat (PT2H, ISO 8601 süresi). Sonra sınır kendiliğinden biter.",
+        "value": "4200 × 10^0 = 4200 W. SPINE her sayıyı bir sayı ve ona ait bir on kuvveti olarak yazar."
+    }
+}

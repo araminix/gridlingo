@@ -1,0 +1,95 @@
+{
+    "intro": "EEBus lets the devices of a home or building agree on energy: an energy manager, a wallbox, a heat pump, a battery, a PV inverter. It has two layers. SHIP (Smart Home IP) finds devices with mDNS, connects them over TLS and WebSocket, and decides who trusts whom. SPINE describes what each device can do, as entities and features (a load control, a measurement, a configuration), in JSON. On top sit use cases. In Germany, §14a of the Energy Industry Act lets the grid operator dim wallboxes and heat pumps when the local grid is close to overload, to no less than 4.2 kW each. The control box behind the smart meter gateway sends that limit with the EEBus use case LPC, Limitation of Power Consumption.",
+    "plain": "A home now has machines that draw a lot of power at once: a car charger, a heat pump. EEBus is a common language they speak with each other and with the grid. When the street's cables are close to overload, the grid operator can ask, through a small box in the meter cabinet, for the charger to slow down for a while. The charger obeys, and if it stops hearing from the box, it stays careful on its own.",
+    "steps": {
+        "discover": { "title": "Find each other", "text": "The wallbox announces itself on the home network with mDNS (multicast DNS): a SHIP service, its address and its SKI (subject key identifier), a fingerprint of its certificate. The control box hears it." },
+        "pair": { "title": "Trust each other", "text": "They open a TLS connection, each with its own self-signed certificate. There is no certificate authority: each side trusts the other only if its SKI was entered or confirmed at installation. The installer compared them once." },
+        "handshake": { "title": "Shake hands", "text": "Inside TLS, a WebSocket carries SHIP messages: one byte for the kind of message, then JSON. They start with 00 00, say hello, agree on the protocol version and the format, and tell each other how they can be reached." },
+        "discovery": { "title": "Ask what it can do", "text": "With SPINE the box reads the wallbox's detailed discovery data: its entities and features. Entity 1 is the charging station; its feature 7 is a LoadControl server, which takes limits. There are also DeviceConfiguration, for the failsafe values, and DeviceDiagnosis, for the heartbeat." },
+        "limit": { "title": "Set a limit", "text": "The grid operator signals a risk of overload. The box writes a limit to the wallbox: 4200 W for 2 hours. The wallbox confirms it and tells the car, through the pilot signal of IEC 61851, to draw at most 6 A per phase: about 4.1 kW on three phases." },
+        "failsafe": { "title": "Lose the box", "text": "The box loses power and its heartbeat stops. After 120 s without one, the wallbox enters the failsafe state: it applies its failsafe limit, also 4.2 kW, for at least its failsafe duration of 2 hours, unless the box comes back." }
+    },
+    "frames": {
+        "mdns": "I am a wallbox, here is my key's fingerprint",
+        "tls": "Show me your certificate: I know your SKI",
+        "init": "Let us start SHIP",
+        "hello": "I am ready, and I wait up to 60 s",
+        "protocol": "Version 1.0, in JSON",
+        "detailed": "What can you do?",
+        "features": "I take power limits: here are my features",
+        "write": "At most 4200 W for the next 2 hours",
+        "result": "Done",
+        "pwm": "Draw at most 6 A per phase",
+        "heartbeat": "I am still here",
+        "fallback": "Still at most 6 A: failsafe"
+    },
+    "notes": {
+        "mdns": "A DNS-SD record of type _ship._tcp, sent by multicast on the local network. Its TXT entries give the path of the WebSocket, an ID, the SKI, the brand and the model.",
+        "tls": "TLS 1.2 with a certificate on each side. Each side compares the SKI of the other's certificate with the one it trusts; if they differ, the connection ends here.",
+        "protocol": "Both sides announce the highest SHIP version they speak (1.0) and the format (JSON in UTF-8). Then each tells the other how it can be reached.",
+        "detailed": "A SPINE read of nodeManagementDetailedDiscoveryData: the list of the wallbox's entities and features, each with its type and its role, client or server.",
+        "features": "The wallbox's entity 1, the charging station, with LoadControl, DeviceConfiguration, DeviceDiagnosis and ElectricalConnection servers. The box now knows where to send a limit.",
+        "write": "A SPINE write that asks for an acknowledgement: limit 0, active, 4200 W (number 4200, scale 0), ending after PT2H, 2 hours. The playground shows this message.",
+        "result": "A SPINE result for the write's message number, errorNumber 0: accepted. A device that cannot follow answers with another error number.",
+        "pwm": "Not EEBus: the wallbox lowers the pilot signal's duty cycle to 10 %, which a car reads as 6 A (see the IEC 61851 lesson).",
+        "heartbeat": "A DeviceDiagnosis heartbeat, sent regularly while all is well. This is the last one: then the box loses power.",
+        "fallback": "No heartbeat for 120 s: the wallbox applies its failsafe limit, read earlier from DeviceConfiguration, and keeps the car at 6 A."
+    },
+    "fields": {
+        "type-init": { "name": "Message type", "note": "0x00: init, the first message of SHIP." },
+        "cmi": { "name": "CMI", "note": "0x00: connection mode initialisation. Both sides send 00 00 before anything else." },
+        "type-control": { "name": "Message type", "note": "0x01: a control message. 0x02 would be data, 0x03 the end." },
+        "hello-name": { "name": "connectionHello", "note": "The JSON text, in UTF-8, begins: {\"connectionHello\":" },
+        "phase": { "name": "phase", "note": "[{\"phase\":\"ready\"}: this side is ready to go on. SHIP writes an object as a list of one-key objects." },
+        "waiting": { "name": "waiting", "note": ",{\"waiting\":60000}: it waits up to 60000 ms, 60 s, for the other side's hello." },
+        "close": { "name": "End", "note": "]}: the end of the list and of the JSON." },
+        "a-device": { "name": "d:", "note": "A SPINE device address." },
+        "a-pen": { "name": "_i:32473", "note": "The maker, by its IANA enterprise number. 32473 is the number kept for examples." },
+        "a-name": { "name": "_Wallbox-0042", "note": "The maker's own name for this device, unique among its products." }
+    },
+    "devices": {
+        "dso": "Grid operator (DSO)",
+        "box": "Control box (§14a)",
+        "wallbox": "Wallbox 11 kW",
+        "car": "Electric car"
+    },
+    "facts": {
+        "standard": "EEBus SHIP 1.0 (transport) and SPINE 1.3 (data model), with use cases such as LPC, Limitation of Power Consumption; in Germany VDE FNN specifies the control box for §14a",
+        "between": "An energy manager or a grid operator's control box, and devices that use or make power: wallboxes, heat pumps, batteries, PV inverters",
+        "transport": "WebSocket over TLS on the local network, found with mDNS (_ship._tcp); messages in JSON",
+        "security": "TLS 1.2 with self-signed certificates on both sides; each trusts the other's SKI, entered or confirmed once at installation",
+        "speed": "A command takes well under a second; failsafe after 120 s without a heartbeat"
+    },
+    "tips": [
+        "Pairing is by SKI, not by password. Compare the SKI shown on each device before you trust it: a wrong one pairs you with another device.",
+        "Set the failsafe limit and duration on every device. When the box is gone, the device falls back to them, not to full power.",
+        "mDNS only works inside one network segment. A VLAN or a guest Wi-Fi between the box and the wallbox hides them from each other.",
+        "Under §14a the grid operator may dim each device to no less than 4.2 kW. The car still charges, only more slowly."
+    ],
+    "points": {
+        "trust": "Trust",
+        "limit": "Power limit",
+        "power": "Charging power"
+    },
+    "values": {
+        "trusted": "trusted",
+        "failsafe": "4.2 kW (failsafe)"
+    },
+    "anatomy": {
+        "device": "The wallbox's SPINE device address"
+    },
+    "playground": {
+        "file": "Try it: the limit the box writes, as a SPINE message. On the wire, SHIP writes each object as a list of one-key objects; here it is shown as plain JSON, easier to read.",
+        "version": "The SPINE version this message follows.",
+        "source": "From the box: its device address, entity 1, feature 3 (its LoadControl client).",
+        "destination": "To the wallbox: entity 1, feature 7, its LoadControl server.",
+        "counter": "The message number. The result will name it, so the box knows what was answered.",
+        "write": "write: change data on the other side. The other classifiers are read, reply, notify, call and result.",
+        "ack": "Ask for a result message, so the box knows the limit was accepted.",
+        "function": "What is written: the list of load control limits.",
+        "id": "Limit 0: the consumption limit this wallbox offers.",
+        "active": "Switch the limit on. false would lift it.",
+        "duration": "For 2 hours from now (PT2H, an ISO 8601 duration). Then the limit ends by itself.",
+        "value": "4200 × 10^0 = 4200 W. SPINE writes every number as a number and a power of ten."
+    }
+}

@@ -241,6 +241,8 @@
     "lesson.ieee-2030-5.where": "Inversores, agregadores, concessionárias",
     "lesson.openadr.summary": "Sinais de resposta da demanda vindos da concessionária",
     "lesson.openadr.where": "Concessionárias, agregadores, edifícios",
+    "lesson.eebus.summary": "Os equipamentos de energia da casa se entendem",
+    "lesson.eebus.where": "Carregadores, bombas de calor, gerenciadores de energia",
     "lesson.dlms-cosem.summary": "O modelo de dados dos medidores inteligentes",
     "lesson.dlms-cosem.where": "Medidores de energia elétrica, gás e água",
     "lesson.iec-62056-21.summary": "A leitura de um medidor pela porta óptica",

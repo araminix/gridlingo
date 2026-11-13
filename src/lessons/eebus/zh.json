@@ -1,0 +1,95 @@
+{
+    "intro": "EEBus 让家庭或楼宇里的设备就能源达成一致：能量管理器、壁挂充电桩、热泵、电池、光伏逆变器。它分两层。SHIP（Smart Home IP）用 mDNS 发现设备，经 TLS 和 WebSocket 把它们连起来，并决定谁信任谁。SPINE 用 JSON 把每台设备能做的事描述为实体和功能（负荷控制、测量、配置）。再往上是用例。在德国，《能源经济法》§14a 允许配电运营商在本地电网接近过载时调低充电桩和热泵的功率，但每台不得低于 4.2 kW。智能电表网关后面的控制盒用 EEBus 用例 LPC（Limitation of Power Consumption）发送这个限值。",
+    "plain": "如今家里有一下子耗电很多的机器：汽车充电桩、热泵。EEBus 是它们彼此之间、以及与电网交流的共同语言。当街上的电缆快要过载时，配电运营商可以通过电表箱里的一个小盒子，请充电桩放慢一会儿。充电桩会照办；要是听不到小盒子的声音了，它自己也会保持谨慎。",
+    "steps": {
+        "discover": { "title": "互相找到", "text": "充电桩用 mDNS（组播 DNS）在家庭网络上宣告自己：一个 SHIP 服务、它的地址和它的 SKI（subject key identifier），即证书的指纹。控制盒听到了它。" },
+        "pair": { "title": "互相信任", "text": "双方各用自己的自签名证书建立 TLS 连接。没有证书颁发机构：只有在安装时输入或确认过对方的 SKI，一方才信任另一方。安装人员已核对过一次。" },
+        "handshake": { "title": "握手", "text": "在 TLS 里，一个 WebSocket 承载 SHIP 消息：一个字节表示消息类型，后面是 JSON。它们以 00 00 开始，打招呼，商定协议版本和格式，并告诉对方如何联系自己。" },
+        "discovery": { "title": "问它能做什么", "text": "控制盒用 SPINE 读取充电桩的详细发现数据：它的实体和功能。实体 1 是充电站；它的功能 7 是接受限值的 LoadControl 服务器。另外还有存放失效保护值的 DeviceConfiguration，以及负责心跳的 DeviceDiagnosis。" },
+        "limit": { "title": "设定限值", "text": "配电运营商发出过载风险信号。控制盒给充电桩写入限值：2 小时内 4200 W。充电桩确认后，通过 IEC 61851 的控制导引信号告诉汽车每相最多取 6 A：三相约 4.1 kW。" },
+        "failsafe": { "title": "失去控制盒", "text": "控制盒断电，心跳停止。120 s 收不到心跳后，充电桩进入失效保护状态：在控制盒恢复之前，至少在 2 小时的失效保护时长内，执行同样是 4.2 kW 的失效保护限值。" }
+    },
+    "frames": {
+        "mdns": "我是充电桩，这是我密钥的指纹",
+        "tls": "出示你的证书：我知道你的 SKI",
+        "init": "开始 SHIP 吧",
+        "hello": "我准备好了，最多等 60 s",
+        "protocol": "版本 1.0，用 JSON",
+        "detailed": "你能做什么？",
+        "features": "我接受功率限值：这是我的功能",
+        "write": "接下来 2 小时最多 4200 W",
+        "result": "好了",
+        "pwm": "每相最多取 6 A",
+        "heartbeat": "我还在",
+        "fallback": "仍然最多 6 A：失效保护"
+    },
+    "notes": {
+        "mdns": "一条类型为 _ship._tcp 的 DNS-SD 记录，在本地网络上组播发送。它的 TXT 条目给出 WebSocket 路径、ID、SKI、品牌和型号。",
+        "tls": "双方各带一张证书的 TLS 1.2。每一方把对方证书的 SKI 与自己信任的 SKI 比较；不一致，连接就到此为止。",
+        "protocol": "双方宣布自己支持的最高 SHIP 版本（1.0）和格式（UTF-8 的 JSON）。然后各自告诉对方如何联系自己。",
+        "detailed": "对 nodeManagementDetailedDiscoveryData 的 SPINE 读取：充电桩的实体和功能列表，每项带有类型和角色（客户端或服务器）。",
+        "features": "充电桩的实体 1（充电站），带 LoadControl、DeviceConfiguration、DeviceDiagnosis 和 ElectricalConnection 服务器。控制盒现在知道限值该发往哪里。",
+        "write": "要求确认的 SPINE 写入：限值 0，启用，4200 W（数值 4200，量级 0），在 PT2H 即 2 小时后结束。练习区展示了这条消息。",
+        "result": "针对写入消息编号的 SPINE 结果，errorNumber 0：已接受。无法执行的设备会回复别的错误号。",
+        "pwm": "这不是 EEBus：充电桩把控制导引信号的占空比降到 10 %，汽车把它读作 6 A（见 IEC 61851 课）。",
+        "heartbeat": "一切正常时定期发送的 DeviceDiagnosis 心跳。这是最后一个：随后控制盒断电。",
+        "fallback": "120 s 没有心跳：充电桩执行先前从 DeviceConfiguration 读到的失效保护限值，让汽车保持在 6 A。"
+    },
+    "fields": {
+        "type-init": { "name": "消息类型", "note": "0x00：init，SHIP 的第一条消息。" },
+        "cmi": { "name": "CMI", "note": "0x00：connection mode initialisation。双方在一切之前先发送 00 00。" },
+        "type-control": { "name": "消息类型", "note": "0x01：控制消息。0x02 是数据，0x03 是结束。" },
+        "hello-name": { "name": "connectionHello", "note": "UTF-8 的 JSON 文本这样开头：{\"connectionHello\":" },
+        "phase": { "name": "phase", "note": "[{\"phase\":\"ready\"}：这一方准备好继续。SHIP 把对象写成由单键对象组成的列表。" },
+        "waiting": { "name": "waiting", "note": ",{\"waiting\":60000}：最多等待对方的问候 60000 ms，即 60 s。" },
+        "close": { "name": "结束", "note": "]}：列表和 JSON 的结尾。" },
+        "a-device": { "name": "d:", "note": "SPINE 设备地址。" },
+        "a-pen": { "name": "_i:32473", "note": "制造商，用其 IANA 企业编号表示。32473 是留给示例用的编号。" },
+        "a-name": { "name": "_Wallbox-0042", "note": "制造商给这台设备起的名称，在其产品中唯一。" }
+    },
+    "devices": {
+        "dso": "配电运营商（DSO）",
+        "box": "控制盒（§14a）",
+        "wallbox": "壁挂充电桩 11 kW",
+        "car": "电动汽车"
+    },
+    "facts": {
+        "standard": "EEBus SHIP 1.0（传输）和 SPINE 1.3（数据模型），带 LPC（Limitation of Power Consumption）等用例；在德国，§14a 控制盒由 VDE FNN 规定",
+        "between": "能量管理器或配电运营商的控制盒，与用电或发电的设备：充电桩、热泵、电池、光伏逆变器",
+        "transport": "本地网络中基于 TLS 的 WebSocket，通过 mDNS（_ship._tcp）发现；消息为 JSON",
+        "security": "双方都用自签名证书的 TLS 1.2；各自信任对方在安装时输入或确认过一次的 SKI",
+        "speed": "一条命令远不到一秒；120 s 没有心跳即进入失效保护"
+    },
+    "tips": [
+        "配对靠 SKI，不靠密码。信任之前先核对每台设备显示的 SKI：SKI 错了，你就和别的设备配对了。",
+        "在每台设备上设置失效保护限值和时长。控制盒不在时，设备会回到这些值，而不是满功率。",
+        "mDNS 只在一个网段内有效。控制盒和充电桩之间隔着 VLAN 或访客 Wi-Fi，就会彼此看不见。",
+        "按照 §14a，配电运营商可以把每台设备调低，但不能低于 4.2 kW。汽车仍在充电，只是慢一些。"
+    ],
+    "points": {
+        "trust": "信任",
+        "limit": "功率限值",
+        "power": "充电功率"
+    },
+    "values": {
+        "trusted": "已信任",
+        "failsafe": "4.2 kW（失效保护）"
+    },
+    "anatomy": {
+        "device": "充电桩的 SPINE 设备地址"
+    },
+    "playground": {
+        "file": "试一试：控制盒写入的限值，表示为一条 SPINE 消息。在线路上，SHIP 把每个对象写成单键对象的列表；这里为了易读，显示为普通 JSON。",
+        "version": "这条消息遵循的 SPINE 版本。",
+        "source": "来自控制盒：它的设备地址、实体 1、功能 3（它的 LoadControl 客户端）。",
+        "destination": "发往充电桩：实体 1、功能 7，它的 LoadControl 服务器。",
+        "counter": "消息编号。结果会引用它，让控制盒知道回复的是哪条。",
+        "write": "write：修改对方的数据。其他类型有 read、reply、notify、call 和 result。",
+        "ack": "要求一条结果消息，让控制盒知道限值已被接受。",
+        "function": "写入的内容：负荷控制限值列表。",
+        "id": "限值 0：这台充电桩提供的用电限值。",
+        "active": "启用限值。false 则取消它。",
+        "duration": "从现在起 2 小时（PT2H，ISO 8601 时长）。之后限值自行结束。",
+        "value": "4200 × 10^0 = 4200 W。SPINE 把每个数写成一个数值加 10 的幂。"
+    }
+}

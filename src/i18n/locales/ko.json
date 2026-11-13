@@ -241,6 +241,8 @@
     "lesson.ieee-2030-5.where": "인버터, 애그리게이터, 전력 회사",
     "lesson.openadr.summary": "전력 회사가 보내는 수요 반응 신호",
     "lesson.openadr.where": "전력 회사, 애그리게이터, 건물",
+    "lesson.eebus.summary": "집 안의 에너지 기기가 전력을 맞추기",
+    "lesson.eebus.where": "월박스, 히트펌프, 에너지 관리기",
     "lesson.dlms-cosem.summary": "스마트 미터의 데이터 모델",
     "lesson.dlms-cosem.where": "전기, 가스, 수도 계량기",
     "lesson.iec-62056-21.summary": "광 포트로 계량기 읽기",

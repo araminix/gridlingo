@@ -1,0 +1,95 @@
+{
+    "intro": "EEBus lässt die Geräte eines Hauses oder Gebäudes sich über Energie einigen: einen Energiemanager, eine Wallbox, eine Wärmepumpe, einen Speicher, einen PV-Wechselrichter. Es hat zwei Schichten. SHIP (Smart Home IP) findet Geräte mit mDNS, verbindet sie über TLS und WebSocket und regelt, wer wem vertraut. SPINE beschreibt, was jedes Gerät kann, als Entitäten und Features (eine Laststeuerung, eine Messung, eine Konfiguration), in JSON. Darüber liegen Anwendungsfälle. In Deutschland erlaubt §14a des Energiewirtschaftsgesetzes dem Netzbetreiber, Wallboxen und Wärmepumpen zu dimmen, wenn das örtliche Netz kurz vor der Überlastung steht, auf nicht weniger als 4,2 kW je Gerät. Die Steuerbox hinter dem Smart-Meter-Gateway sendet diese Grenze mit dem EEBus-Anwendungsfall LPC, Limitation of Power Consumption.",
+    "plain": "Ein Haus hat heute Maschinen, die auf einmal viel Strom ziehen: eine Ladestation fürs Auto, eine Wärmepumpe. EEBus ist eine gemeinsame Sprache, die sie miteinander und mit dem Netz sprechen. Wenn die Kabel der Straße kurz vor der Überlastung stehen, kann der Netzbetreiber über einen kleinen Kasten im Zählerschrank bitten, dass die Ladestation eine Weile langsamer lädt. Die Ladestation gehorcht, und wenn sie nichts mehr vom Kasten hört, bleibt sie von sich aus vorsichtig.",
+    "steps": {
+        "discover": { "title": "Einander finden", "text": "Die Wallbox meldet sich im Heimnetz mit mDNS (Multicast-DNS): ein SHIP-Dienst, ihre Adresse und ihre SKI (Subject Key Identifier), ein Fingerabdruck ihres Zertifikats. Die Steuerbox hört sie." },
+        "pair": { "title": "Einander vertrauen", "text": "Sie öffnen eine TLS-Verbindung, jede Seite mit ihrem eigenen selbst signierten Zertifikat. Es gibt keine Zertifizierungsstelle: Jede Seite vertraut der anderen nur, wenn deren SKI bei der Installation eingetragen oder bestätigt wurde. Der Installateur hat sie einmal verglichen." },
+        "handshake": { "title": "Hände schütteln", "text": "Innerhalb von TLS trägt ein WebSocket SHIP-Nachrichten: ein Byte für die Art der Nachricht, dann JSON. Sie beginnen mit 00 00, sagen Hallo, einigen sich auf Protokollversion und Format und sagen einander, wie sie erreichbar sind." },
+        "discovery": { "title": "Fragen, was sie kann", "text": "Mit SPINE liest die Box die Detailed-Discovery-Daten der Wallbox: ihre Entitäten und Features. Entität 1 ist die Ladestation; ihr Feature 7 ist ein LoadControl-Server, der Grenzen annimmt. Dazu kommen DeviceConfiguration für die Failsafe-Werte und DeviceDiagnosis für den Heartbeat." },
+        "limit": { "title": "Eine Grenze setzen", "text": "Der Netzbetreiber meldet eine Überlastungsgefahr. Die Box schreibt der Wallbox eine Grenze: 4200 W für 2 Stunden. Die Wallbox bestätigt und sagt dem Auto über das Pilotsignal nach IEC 61851, höchstens 6 A pro Phase zu ziehen: etwa 4,1 kW auf drei Phasen." },
+        "failsafe": { "title": "Die Box verlieren", "text": "Die Box verliert den Strom, ihr Heartbeat bleibt aus. Nach 120 s ohne Heartbeat geht die Wallbox in den Failsafe-Zustand: Sie wendet ihre Failsafe-Grenze an, ebenfalls 4,2 kW, mindestens für ihre Failsafe-Dauer von 2 Stunden, sofern die Box nicht zurückkommt." }
+    },
+    "frames": {
+        "mdns": "Ich bin eine Wallbox, hier ist der Fingerabdruck meines Schlüssels",
+        "tls": "Zeig mir dein Zertifikat: Ich kenne deine SKI",
+        "init": "Lass uns SHIP beginnen",
+        "hello": "Ich bin bereit und warte bis zu 60 s",
+        "protocol": "Version 1.0, in JSON",
+        "detailed": "Was kannst du?",
+        "features": "Ich nehme Leistungsgrenzen an: hier meine Features",
+        "write": "Höchstens 4200 W für die nächsten 2 Stunden",
+        "result": "Erledigt",
+        "pwm": "Zieh höchstens 6 A pro Phase",
+        "heartbeat": "Ich bin noch da",
+        "fallback": "Weiter höchstens 6 A: Failsafe"
+    },
+    "notes": {
+        "mdns": "Ein DNS-SD-Eintrag vom Typ _ship._tcp, per Multicast im lokalen Netz gesendet. Seine TXT-Einträge nennen den Pfad des WebSockets, eine ID, die SKI, die Marke und das Modell.",
+        "tls": "TLS 1.2 mit einem Zertifikat auf jeder Seite. Jede Seite vergleicht die SKI des fremden Zertifikats mit der, der sie vertraut; weichen sie ab, endet die Verbindung hier.",
+        "protocol": "Beide Seiten nennen die höchste SHIP-Version, die sie sprechen (1.0), und das Format (JSON in UTF-8). Dann sagt jede der anderen, wie sie erreichbar ist.",
+        "detailed": "Ein SPINE-Lesen von nodeManagementDetailedDiscoveryData: die Liste der Entitäten und Features der Wallbox, jedes mit seinem Typ und seiner Rolle, Client oder Server.",
+        "features": "Entität 1 der Wallbox, die Ladestation, mit den Servern LoadControl, DeviceConfiguration, DeviceDiagnosis und ElectricalConnection. Die Box weiß jetzt, wohin sie eine Grenze schicken muss.",
+        "write": "Ein SPINE-Schreiben, das eine Bestätigung verlangt: Grenze 0, aktiv, 4200 W (Zahl 4200, Skala 0), endet nach PT2H, 2 Stunden. Die Spielwiese zeigt diese Nachricht.",
+        "result": "Ein SPINE-Ergebnis zur Nachrichtennummer des Schreibens, errorNumber 0: angenommen. Ein Gerät, das nicht folgen kann, antwortet mit einer anderen Fehlernummer.",
+        "pwm": "Kein EEBus: Die Wallbox senkt das Tastverhältnis des Pilotsignals auf 10 %, was ein Auto als 6 A liest (siehe die Lektion IEC 61851).",
+        "heartbeat": "Ein DeviceDiagnosis-Heartbeat, regelmäßig gesendet, solange alles in Ordnung ist. Dies ist der letzte: Danach verliert die Box den Strom.",
+        "fallback": "Kein Heartbeat seit 120 s: Die Wallbox wendet ihre Failsafe-Grenze an, die sie zuvor aus DeviceConfiguration gelesen hat, und hält das Auto bei 6 A."
+    },
+    "fields": {
+        "type-init": { "name": "Nachrichtentyp", "note": "0x00: init, die erste Nachricht von SHIP." },
+        "cmi": { "name": "CMI", "note": "0x00: Connection Mode Initialisation. Beide Seiten senden 00 00 vor allem anderen." },
+        "type-control": { "name": "Nachrichtentyp", "note": "0x01: eine Steuernachricht. 0x02 wären Daten, 0x03 das Ende." },
+        "hello-name": { "name": "connectionHello", "note": "Der JSON-Text in UTF-8 beginnt: {\"connectionHello\":" },
+        "phase": { "name": "phase", "note": "[{\"phase\":\"ready\"}: Diese Seite ist bereit weiterzumachen. SHIP schreibt ein Objekt als Liste von Objekten mit je einem Schlüssel." },
+        "waiting": { "name": "waiting", "note": ",{\"waiting\":60000}: Sie wartet bis zu 60000 ms, 60 s, auf das Hallo der anderen Seite." },
+        "close": { "name": "Ende", "note": "]}: das Ende der Liste und des JSON." },
+        "a-device": { "name": "d:", "note": "Eine SPINE-Geräteadresse." },
+        "a-pen": { "name": "_i:32473", "note": "Der Hersteller, über seine IANA Enterprise Number. 32473 ist die Nummer für Beispiele." },
+        "a-name": { "name": "_Wallbox-0042", "note": "Der eigene Name des Herstellers für dieses Gerät, eindeutig unter seinen Produkten." }
+    },
+    "devices": {
+        "dso": "Netzbetreiber (VNB)",
+        "box": "Steuerbox (§14a)",
+        "wallbox": "Wallbox 11 kW",
+        "car": "Elektroauto"
+    },
+    "facts": {
+        "standard": "EEBus SHIP 1.0 (Transport) und SPINE 1.3 (Datenmodell), mit Anwendungsfällen wie LPC, Limitation of Power Consumption; in Deutschland legt VDE FNN die Steuerbox für §14a fest",
+        "between": "Ein Energiemanager oder die Steuerbox eines Netzbetreibers und Geräte, die Strom verbrauchen oder erzeugen: Wallboxen, Wärmepumpen, Speicher, PV-Wechselrichter",
+        "transport": "WebSocket über TLS im lokalen Netz, gefunden mit mDNS (_ship._tcp); Nachrichten in JSON",
+        "security": "TLS 1.2 mit selbst signierten Zertifikaten auf beiden Seiten; jede vertraut der SKI der anderen, einmal bei der Installation eingetragen oder bestätigt",
+        "speed": "Ein Befehl braucht weit unter einer Sekunde; Failsafe nach 120 s ohne Heartbeat"
+    },
+    "tips": [
+        "Gekoppelt wird über die SKI, nicht über ein Passwort. Vergleichen Sie die auf jedem Gerät angezeigte SKI, bevor Sie ihm vertrauen: Eine falsche koppelt Sie mit einem anderen Gerät.",
+        "Stellen Sie Failsafe-Grenze und -Dauer an jedem Gerät ein. Ist die Box weg, fällt das Gerät auf sie zurück, nicht auf volle Leistung.",
+        "mDNS funktioniert nur innerhalb eines Netzsegments. Ein VLAN oder ein Gäste-WLAN zwischen Box und Wallbox verbirgt sie voreinander.",
+        "Nach §14a darf der Netzbetreiber jedes Gerät auf nicht weniger als 4,2 kW dimmen. Das Auto lädt weiter, nur langsamer."
+    ],
+    "points": {
+        "trust": "Vertrauen",
+        "limit": "Leistungsgrenze",
+        "power": "Ladeleistung"
+    },
+    "values": {
+        "trusted": "vertraut",
+        "failsafe": "4,2 kW (Failsafe)"
+    },
+    "anatomy": {
+        "device": "Die SPINE-Geräteadresse der Wallbox"
+    },
+    "playground": {
+        "file": "Probieren Sie es aus: die Grenze, die die Box schreibt, als SPINE-Nachricht. Auf der Leitung schreibt SHIP jedes Objekt als Liste von Objekten mit je einem Schlüssel; hier steht es als einfaches JSON, leichter zu lesen.",
+        "version": "Die SPINE-Version, der diese Nachricht folgt.",
+        "source": "Von der Box: ihre Geräteadresse, Entität 1, Feature 3 (ihr LoadControl-Client).",
+        "destination": "An die Wallbox: Entität 1, Feature 7, ihr LoadControl-Server.",
+        "counter": "Die Nachrichtennummer. Das Ergebnis nennt sie, damit die Box weiß, was beantwortet wurde.",
+        "write": "write: Daten auf der anderen Seite ändern. Die anderen Klassen sind read, reply, notify, call und result.",
+        "ack": "Eine Ergebnisnachricht verlangen, damit die Box weiß, dass die Grenze angenommen wurde.",
+        "function": "Was geschrieben wird: die Liste der Laststeuerungsgrenzen.",
+        "id": "Grenze 0: die Verbrauchsgrenze, die diese Wallbox anbietet.",
+        "active": "Die Grenze einschalten. false würde sie aufheben.",
+        "duration": "Für 2 Stunden ab jetzt (PT2H, eine Dauer nach ISO 8601). Dann endet die Grenze von selbst.",
+        "value": "4200 × 10^0 = 4200 W. SPINE schreibt jede Zahl als Zahl und Zehnerpotenz."
+    }
+}

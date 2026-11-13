@@ -241,6 +241,8 @@
     "lesson.ieee-2030-5.where": "Inverter, aggregatori, aziende elettriche",
     "lesson.openadr.summary": "Segnali di demand response dall'azienda elettrica",
     "lesson.openadr.where": "Aziende elettriche, aggregatori, edifici",
+    "lesson.eebus.summary": "I dispositivi energetici di casa si accordano",
+    "lesson.eebus.where": "Wallbox, pompe di calore, gestori dell'energia",
     "lesson.dlms-cosem.summary": "Il modello dati dei contatori intelligenti",
     "lesson.dlms-cosem.where": "Contatori di elettricità, gas e acqua",
     "lesson.iec-62056-21.summary": "Leggere un contatore dalla sua porta ottica",

@@ -241,6 +241,8 @@
     "lesson.ieee-2030-5.where": "इन्वर्टर, एग्रीगेटर, यूटिलिटी",
     "lesson.openadr.summary": "यूटिलिटी से आने वाले डिमांड रिस्पॉन्स सिग्नल",
     "lesson.openadr.where": "यूटिलिटी, एग्रीगेटर, बिल्डिंग",
+    "lesson.eebus.summary": "घर के ऊर्जा डिवाइस बिजली पर सहमत होते हैं",
+    "lesson.eebus.where": "वॉलबॉक्स, हीट पंप, ऊर्जा प्रबंधक",
     "lesson.dlms-cosem.summary": "स्मार्ट मीटर का डेटा मॉडल",
     "lesson.dlms-cosem.where": "बिजली, गैस और पानी के मीटर",
     "lesson.iec-62056-21.summary": "ऑप्टिकल पोर्ट से मीटर रीड करना",

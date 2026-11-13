@@ -241,6 +241,8 @@
     "lesson.ieee-2030-5.where": "Inverters, aggregators, utilities",
     "lesson.openadr.summary": "Demand response signals from the utility",
     "lesson.openadr.where": "Utilities, aggregators, buildings",
+    "lesson.eebus.summary": "Home energy devices agreeing on power",
+    "lesson.eebus.where": "Wallboxes, heat pumps, energy managers",
     "lesson.dlms-cosem.summary": "The data model of smart meters",
     "lesson.dlms-cosem.where": "Electricity, gas and water meters",
     "lesson.iec-62056-21.summary": "Reading a meter through its optical port",

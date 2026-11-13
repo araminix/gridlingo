@@ -1,0 +1,95 @@
+{
+    "intro": "EEBus permette ai dispositivi di una casa o di un edificio di accordarsi sull'energia: un gestore energetico, una wallbox, una pompa di calore, una batteria, un inverter fotovoltaico. Ha due livelli. SHIP (Smart Home IP) trova i dispositivi con mDNS, li collega via TLS e WebSocket e decide chi si fida di chi. SPINE descrive che cosa sa fare ogni dispositivo, come entità e funzioni (un controllo del carico, una misura, una configurazione), in JSON. Sopra ci sono i casi d'uso. In Germania, il §14a della legge sull'energia permette al gestore di rete di ridurre la potenza di wallbox e pompe di calore quando la rete locale è vicina al sovraccarico, a non meno di 4,2 kW ciascuna. La scatola di controllo dietro il gateway del contatore intelligente invia quel limite con il caso d'uso EEBus LPC, Limitation of Power Consumption.",
+    "plain": "Una casa oggi ha macchine che assorbono molta potenza tutta insieme: una colonnina per l'auto, una pompa di calore. EEBus è una lingua comune che parlano tra loro e con la rete. Quando i cavi della strada sono vicini al sovraccarico, il gestore di rete può chiedere, tramite una piccola scatola nel quadro dei contatori, che la colonnina rallenti per un po'. La colonnina obbedisce, e se smette di sentire la scatola, resta prudente da sola.",
+    "steps": {
+        "discover": { "title": "Trovarsi", "text": "La wallbox si annuncia sulla rete di casa con mDNS (DNS multicast): un servizio SHIP, il suo indirizzo e il suo SKI (subject key identifier), un'impronta del suo certificato. La scatola di controllo la sente." },
+        "pair": { "title": "Fidarsi l'uno dell'altro", "text": "Aprono una connessione TLS, ognuno con il proprio certificato autofirmato. Non c'è un'autorità di certificazione: ogni lato si fida dell'altro solo se il suo SKI è stato inserito o confermato all'installazione. L'installatore li ha confrontati una volta." },
+        "handshake": { "title": "Stringersi la mano", "text": "Dentro TLS, un WebSocket porta messaggi SHIP: un byte per il tipo di messaggio, poi JSON. Cominciano con 00 00, si salutano, si accordano su versione del protocollo e formato, e si dicono come raggiungersi." },
+        "discovery": { "title": "Chiedere che cosa sa fare", "text": "Con SPINE la scatola legge i dati di scoperta dettagliata della wallbox: le sue entità e funzioni. L'entità 1 è la stazione di ricarica; la sua funzione 7 è un server LoadControl, che accetta limiti. Ci sono anche DeviceConfiguration, per i valori di sicurezza, e DeviceDiagnosis, per il battito." },
+        "limit": { "title": "Fissare un limite", "text": "Il gestore di rete segnala un rischio di sovraccarico. La scatola scrive un limite alla wallbox: 4200 W per 2 ore. La wallbox conferma e dice all'auto, tramite il segnale pilota della IEC 61851, di assorbire al massimo 6 A per fase: circa 4,1 kW su tre fasi." },
+        "failsafe": { "title": "Perdere la scatola", "text": "La scatola resta senza alimentazione e il suo battito si ferma. Dopo 120 s senza battito, la wallbox entra nello stato di sicurezza: applica il suo limite di sicurezza, anch'esso 4,2 kW, almeno per la sua durata di sicurezza di 2 ore, a meno che la scatola non torni." }
+    },
+    "frames": {
+        "mdns": "Sono una wallbox, ecco l'impronta della mia chiave",
+        "tls": "Mostrami il tuo certificato: conosco il tuo SKI",
+        "init": "Cominciamo SHIP",
+        "hello": "Sono pronta, e aspetto fino a 60 s",
+        "protocol": "Versione 1.0, in JSON",
+        "detailed": "Che cosa sai fare?",
+        "features": "Accetto limiti di potenza: ecco le mie funzioni",
+        "write": "Al massimo 4200 W per le prossime 2 ore",
+        "result": "Fatto",
+        "pwm": "Assorbi al massimo 6 A per fase",
+        "heartbeat": "Ci sono ancora",
+        "fallback": "Sempre al massimo 6 A: sicurezza"
+    },
+    "notes": {
+        "mdns": "Un record DNS-SD di tipo _ship._tcp, inviato in multicast sulla rete locale. Le sue voci TXT indicano il percorso del WebSocket, un ID, lo SKI, la marca e il modello.",
+        "tls": "TLS 1.2 con un certificato su ogni lato. Ogni lato confronta lo SKI del certificato dell'altro con quello di cui si fida; se differiscono, la connessione finisce qui.",
+        "protocol": "Entrambi i lati annunciano la versione più alta di SHIP che parlano (1.0) e il formato (JSON in UTF-8). Poi ognuno dice all'altro come raggiungerlo.",
+        "detailed": "Una lettura SPINE di nodeManagementDetailedDiscoveryData: l'elenco delle entità e delle funzioni della wallbox, ognuna con il suo tipo e il suo ruolo, client o server.",
+        "features": "L'entità 1 della wallbox, la stazione di ricarica, con server LoadControl, DeviceConfiguration, DeviceDiagnosis ed ElectricalConnection. Ora la scatola sa dove inviare un limite.",
+        "write": "Una scrittura SPINE che chiede una conferma: limite 0, attivo, 4200 W (numero 4200, scala 0), che termina dopo PT2H, 2 ore. L'area di prova mostra questo messaggio.",
+        "result": "Un risultato SPINE per il numero di messaggio della scrittura, errorNumber 0: accettato. Un dispositivo che non può seguirlo risponde con un altro numero di errore.",
+        "pwm": "Non è EEBus: la wallbox abbassa il duty cycle del segnale pilota al 10 %, che un'auto legge come 6 A (vedi la lezione IEC 61851).",
+        "heartbeat": "Un battito di DeviceDiagnosis, inviato regolarmente finché tutto va bene. È l'ultimo: poi la scatola resta senza alimentazione.",
+        "fallback": "Nessun battito per 120 s: la wallbox applica il suo limite di sicurezza, letto prima da DeviceConfiguration, e tiene l'auto a 6 A."
+    },
+    "fields": {
+        "type-init": { "name": "Tipo di messaggio", "note": "0x00: init, il primo messaggio di SHIP." },
+        "cmi": { "name": "CMI", "note": "0x00: connection mode initialisation. Entrambi i lati inviano 00 00 prima di tutto." },
+        "type-control": { "name": "Tipo di messaggio", "note": "0x01: un messaggio di controllo. 0x02 sarebbero dati, 0x03 la fine." },
+        "hello-name": { "name": "connectionHello", "note": "Il testo JSON, in UTF-8, comincia: {\"connectionHello\":" },
+        "phase": { "name": "phase", "note": "[{\"phase\":\"ready\"}: questo lato è pronto a proseguire. SHIP scrive un oggetto come elenco di oggetti con una sola chiave." },
+        "waiting": { "name": "waiting", "note": ",{\"waiting\":60000}: aspetta fino a 60000 ms, 60 s, il saluto dell'altro lato." },
+        "close": { "name": "Fine", "note": "]}: la fine dell'elenco e del JSON." },
+        "a-device": { "name": "d:", "note": "Un indirizzo di dispositivo SPINE." },
+        "a-pen": { "name": "_i:32473", "note": "Il produttore, tramite il suo numero d'impresa IANA. 32473 è il numero riservato agli esempi." },
+        "a-name": { "name": "_Wallbox-0042", "note": "Il nome che il produttore dà a questo dispositivo, unico tra i suoi prodotti." }
+    },
+    "devices": {
+        "dso": "Gestore di rete (DSO)",
+        "box": "Scatola di controllo (§14a)",
+        "wallbox": "Wallbox 11 kW",
+        "car": "Auto elettrica"
+    },
+    "facts": {
+        "standard": "EEBus SHIP 1.0 (trasporto) e SPINE 1.3 (modello dati), con casi d'uso come LPC, Limitation of Power Consumption; in Germania il VDE FNN specifica la scatola di controllo per il §14a",
+        "between": "Un gestore energetico o la scatola di controllo di un gestore di rete, e dispositivi che consumano o producono energia: wallbox, pompe di calore, batterie, inverter fotovoltaici",
+        "transport": "WebSocket su TLS nella rete locale, trovato con mDNS (_ship._tcp); messaggi in JSON",
+        "security": "TLS 1.2 con certificati autofirmati su entrambi i lati; ognuno si fida dello SKI dell'altro, inserito o confermato una volta all'installazione",
+        "speed": "Un comando richiede molto meno di un secondo; sicurezza dopo 120 s senza battito"
+    },
+    "tips": [
+        "L'abbinamento avviene tramite SKI, non con una password. Confrontate lo SKI mostrato su ogni dispositivo prima di fidarvi: uno sbagliato vi abbina a un altro dispositivo.",
+        "Impostate limite e durata di sicurezza su ogni dispositivo. Quando la scatola manca, il dispositivo torna a quelli, non alla piena potenza.",
+        "mDNS funziona solo all'interno di un segmento di rete. Una VLAN o un wifi ospiti tra la scatola e la wallbox li nasconde l'uno all'altra.",
+        "Secondo il §14a, il gestore di rete può ridurre ogni dispositivo a non meno di 4,2 kW. L'auto continua a caricare, solo più lentamente."
+    ],
+    "points": {
+        "trust": "Fiducia",
+        "limit": "Limite di potenza",
+        "power": "Potenza di ricarica"
+    },
+    "values": {
+        "trusted": "fidato",
+        "failsafe": "4,2 kW (sicurezza)"
+    },
+    "anatomy": {
+        "device": "L'indirizzo di dispositivo SPINE della wallbox"
+    },
+    "playground": {
+        "file": "Provate: il limite che la scatola scrive, come messaggio SPINE. Sulla linea, SHIP scrive ogni oggetto come elenco di oggetti con una sola chiave; qui è mostrato come JSON semplice, più facile da leggere.",
+        "version": "La versione di SPINE che questo messaggio segue.",
+        "source": "Dalla scatola: il suo indirizzo di dispositivo, entità 1, funzione 3 (il suo client LoadControl).",
+        "destination": "Alla wallbox: entità 1, funzione 7, il suo server LoadControl.",
+        "counter": "Il numero del messaggio. Il risultato lo citerà, così la scatola sa a che cosa si è risposto.",
+        "write": "write: modificare dati dall'altra parte. Gli altri tipi sono read, reply, notify, call e result.",
+        "ack": "Chiedere un messaggio di risultato, così la scatola sa che il limite è stato accettato.",
+        "function": "Che cosa si scrive: l'elenco dei limiti di controllo del carico.",
+        "id": "Limite 0: il limite di consumo che offre questa wallbox.",
+        "active": "Attivare il limite. false lo toglierebbe.",
+        "duration": "Per 2 ore da adesso (PT2H, una durata ISO 8601). Poi il limite finisce da solo.",
+        "value": "4200 × 10^0 = 4200 W. SPINE scrive ogni numero come numero e potenza di dieci."
+    }
+}

@@ -241,6 +241,8 @@
     "lesson.ieee-2030-5.where": "Wechselrichter, Aggregatoren, Netzbetreiber",
     "lesson.openadr.summary": "Demand-Response-Signale vom Versorger",
     "lesson.openadr.where": "Versorger, Aggregatoren, Gebäude",
+    "lesson.eebus.summary": "Energiegeräte im Haus stimmen sich ab",
+    "lesson.eebus.where": "Wallboxen, Wärmepumpen, Energiemanager",
     "lesson.dlms-cosem.summary": "Das Datenmodell intelligenter Zähler",
     "lesson.dlms-cosem.where": "Strom-, Gas- und Wasserzähler",
     "lesson.iec-62056-21.summary": "Einen Zähler über seine optische Schnittstelle auslesen",

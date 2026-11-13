@@ -241,6 +241,8 @@
     "lesson.ieee-2030-5.where": "İnverterler, toplayıcılar, elektrik şirketleri",
     "lesson.openadr.summary": "Elektrik şirketinden gelen talep yanıtı sinyalleri",
     "lesson.openadr.where": "Elektrik şirketleri, toplayıcılar, binalar",
+    "lesson.eebus.summary": "Evdeki enerji cihazları güç üzerinde anlaşır",
+    "lesson.eebus.where": "Duvar şarj cihazları, ısı pompaları, enerji yöneticileri",
     "lesson.dlms-cosem.summary": "Akıllı sayaçların veri modeli",
     "lesson.dlms-cosem.where": "Elektrik, gaz ve su sayaçları",
     "lesson.iec-62056-21.summary": "Bir sayacı optik portundan okumak",

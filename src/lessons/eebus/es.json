@@ -1,0 +1,95 @@
+{
+    "intro": "EEBus permite que los equipos de una casa o un edificio se pongan de acuerdo sobre la energía: un gestor energético, un cargador de pared, una bomba de calor, una batería, un inversor fotovoltaico. Tiene dos capas. SHIP (Smart Home IP) encuentra los equipos con mDNS, los conecta por TLS y WebSocket y decide quién confía en quién. SPINE describe lo que puede hacer cada equipo, como entidades y funciones (un control de carga, una medida, una configuración), en JSON. Encima van los casos de uso. En Alemania, el §14a de la Ley de la Energía permite al operador de red atenuar cargadores y bombas de calor cuando la red local está cerca de sobrecargarse, a no menos de 4,2 kW cada uno. La caja de control tras la pasarela del contador inteligente envía ese límite con el caso de uso de EEBus LPC, Limitation of Power Consumption.",
+    "plain": "Una casa tiene hoy máquinas que consumen mucha potencia de golpe: un cargador para el coche, una bomba de calor. EEBus es un idioma común que hablan entre ellas y con la red. Cuando los cables de la calle están a punto de sobrecargarse, el operador de red puede pedir, a través de una cajita en el cuarto de contadores, que el cargador vaya más despacio durante un rato. El cargador obedece, y si deja de oír a la caja, sigue siendo prudente por su cuenta.",
+    "steps": {
+        "discover": { "title": "Encontrarse", "text": "El cargador se anuncia en la red de casa con mDNS (DNS multidifusión): un servicio SHIP, su dirección y su SKI (subject key identifier), una huella de su certificado. La caja de control lo oye." },
+        "pair": { "title": "Confiar el uno en el otro", "text": "Abren una conexión TLS, cada uno con su propio certificado autofirmado. No hay autoridad de certificación: cada lado confía en el otro solo si su SKI se introdujo o confirmó en la instalación. El instalador los comparó una vez." },
+        "handshake": { "title": "Darse la mano", "text": "Dentro de TLS, un WebSocket lleva mensajes SHIP: un byte para el tipo de mensaje y luego JSON. Empiezan con 00 00, se saludan, acuerdan la versión del protocolo y el formato, y se dicen cómo se les puede contactar." },
+        "discovery": { "title": "Preguntar qué sabe hacer", "text": "Con SPINE la caja lee los datos de descubrimiento detallado del cargador: sus entidades y funciones. La entidad 1 es la estación de carga; su función 7 es un servidor LoadControl, que acepta límites. Hay además DeviceConfiguration, para los valores de seguridad, y DeviceDiagnosis, para el latido." },
+        "limit": { "title": "Fijar un límite", "text": "El operador de red avisa de un riesgo de sobrecarga. La caja escribe un límite al cargador: 4200 W durante 2 horas. El cargador lo confirma y le dice al coche, mediante la señal piloto de IEC 61851, que tome como máximo 6 A por fase: unos 4,1 kW en tres fases." },
+        "failsafe": { "title": "Perder la caja", "text": "La caja se queda sin corriente y su latido se detiene. Tras 120 s sin él, el cargador entra en el estado de seguridad: aplica su límite de seguridad, también 4,2 kW, al menos durante su duración de seguridad de 2 horas, salvo que vuelva la caja." }
+    },
+    "frames": {
+        "mdns": "Soy un cargador, esta es la huella de mi clave",
+        "tls": "Enséñame tu certificado: conozco tu SKI",
+        "init": "Empecemos SHIP",
+        "hello": "Estoy listo y espero hasta 60 s",
+        "protocol": "Versión 1.0, en JSON",
+        "detailed": "¿Qué sabes hacer?",
+        "features": "Acepto límites de potencia: estas son mis funciones",
+        "write": "Como máximo 4200 W durante las próximas 2 horas",
+        "result": "Hecho",
+        "pwm": "Toma como máximo 6 A por fase",
+        "heartbeat": "Sigo aquí",
+        "fallback": "Sigue en 6 A como máximo: modo seguro"
+    },
+    "notes": {
+        "mdns": "Un registro DNS-SD de tipo _ship._tcp, enviado por multidifusión en la red local. Sus entradas TXT dan la ruta del WebSocket, un ID, el SKI, la marca y el modelo.",
+        "tls": "TLS 1.2 con un certificado en cada lado. Cada lado compara el SKI del certificado del otro con el que tiene por fiable; si no coinciden, la conexión termina aquí.",
+        "protocol": "Ambos lados anuncian la versión más alta de SHIP que hablan (1.0) y el formato (JSON en UTF-8). Luego cada uno le dice al otro cómo contactarle.",
+        "detailed": "Una lectura SPINE de nodeManagementDetailedDiscoveryData: la lista de entidades y funciones del cargador, cada una con su tipo y su papel, cliente o servidor.",
+        "features": "La entidad 1 del cargador, la estación de carga, con servidores LoadControl, DeviceConfiguration, DeviceDiagnosis y ElectricalConnection. La caja ya sabe adónde enviar un límite.",
+        "write": "Una escritura SPINE que pide confirmación: límite 0, activo, 4200 W (número 4200, escala 0), termina tras PT2H, 2 horas. El área de pruebas muestra este mensaje.",
+        "result": "Un resultado SPINE para el número de mensaje de la escritura, errorNumber 0: aceptado. Un equipo que no puede cumplirlo responde con otro número de error.",
+        "pwm": "No es EEBus: el cargador baja el ciclo de trabajo de la señal piloto al 10 %, que un coche lee como 6 A (vea la lección IEC 61851).",
+        "heartbeat": "Un latido de DeviceDiagnosis, enviado con regularidad mientras todo va bien. Es el último: luego la caja se queda sin corriente.",
+        "fallback": "Sin latido durante 120 s: el cargador aplica su límite de seguridad, leído antes de DeviceConfiguration, y mantiene el coche en 6 A."
+    },
+    "fields": {
+        "type-init": { "name": "Tipo de mensaje", "note": "0x00: init, el primer mensaje de SHIP." },
+        "cmi": { "name": "CMI", "note": "0x00: connection mode initialisation. Ambos lados envían 00 00 antes que nada." },
+        "type-control": { "name": "Tipo de mensaje", "note": "0x01: un mensaje de control. 0x02 serían datos, 0x03 el final." },
+        "hello-name": { "name": "connectionHello", "note": "El texto JSON, en UTF-8, empieza: {\"connectionHello\":" },
+        "phase": { "name": "phase", "note": "[{\"phase\":\"ready\"}: este lado está listo para seguir. SHIP escribe un objeto como una lista de objetos de una sola clave." },
+        "waiting": { "name": "waiting", "note": ",{\"waiting\":60000}: espera hasta 60000 ms, 60 s, el saludo del otro lado." },
+        "close": { "name": "Fin", "note": "]}: el final de la lista y del JSON." },
+        "a-device": { "name": "d:", "note": "Una dirección de equipo SPINE." },
+        "a-pen": { "name": "_i:32473", "note": "El fabricante, por su número de empresa de IANA. 32473 es el número reservado para ejemplos." },
+        "a-name": { "name": "_Wallbox-0042", "note": "El nombre propio que el fabricante da a este equipo, único entre sus productos." }
+    },
+    "devices": {
+        "dso": "Operador de red (DSO)",
+        "box": "Caja de control (§14a)",
+        "wallbox": "Cargador de pared 11 kW",
+        "car": "Coche eléctrico"
+    },
+    "facts": {
+        "standard": "EEBus SHIP 1.0 (transporte) y SPINE 1.3 (modelo de datos), con casos de uso como LPC, Limitation of Power Consumption; en Alemania VDE FNN define la caja de control para el §14a",
+        "between": "Un gestor energético o la caja de control de un operador de red, y equipos que consumen o producen energía: cargadores, bombas de calor, baterías, inversores fotovoltaicos",
+        "transport": "WebSocket sobre TLS en la red local, encontrado con mDNS (_ship._tcp); mensajes en JSON",
+        "security": "TLS 1.2 con certificados autofirmados en ambos lados; cada uno confía en el SKI del otro, introducido o confirmado una vez en la instalación",
+        "speed": "Una orden tarda mucho menos de un segundo; modo seguro tras 120 s sin latido"
+    },
+    "tips": [
+        "El emparejamiento es por SKI, no por contraseña. Compare el SKI que muestra cada equipo antes de confiar en él: uno equivocado le empareja con otro equipo.",
+        "Configure el límite y la duración de seguridad en cada equipo. Cuando la caja falta, el equipo vuelve a ellos, no a la potencia máxima.",
+        "mDNS solo funciona dentro de un segmento de red. Una VLAN o un wifi de invitados entre la caja y el cargador los esconde el uno del otro.",
+        "Según el §14a, el operador de red puede atenuar cada equipo a no menos de 4,2 kW. El coche sigue cargando, solo que más despacio."
+    ],
+    "points": {
+        "trust": "Confianza",
+        "limit": "Límite de potencia",
+        "power": "Potencia de carga"
+    },
+    "values": {
+        "trusted": "de confianza",
+        "failsafe": "4,2 kW (seguridad)"
+    },
+    "anatomy": {
+        "device": "La dirección de equipo SPINE del cargador"
+    },
+    "playground": {
+        "file": "Pruébelo: el límite que escribe la caja, como mensaje SPINE. En la línea, SHIP escribe cada objeto como una lista de objetos de una sola clave; aquí se muestra como JSON normal, más fácil de leer.",
+        "version": "La versión de SPINE que sigue este mensaje.",
+        "source": "Desde la caja: su dirección de equipo, entidad 1, función 3 (su cliente LoadControl).",
+        "destination": "Al cargador: entidad 1, función 7, su servidor LoadControl.",
+        "counter": "El número del mensaje. El resultado lo citará, para que la caja sepa qué se ha respondido.",
+        "write": "write: cambiar datos en el otro lado. Los demás tipos son read, reply, notify, call y result.",
+        "ack": "Pedir un mensaje de resultado, para que la caja sepa que el límite fue aceptado.",
+        "function": "Lo que se escribe: la lista de límites de control de carga.",
+        "id": "Límite 0: el límite de consumo que ofrece este cargador.",
+        "active": "Activar el límite. false lo quitaría.",
+        "duration": "Durante 2 horas desde ahora (PT2H, una duración ISO 8601). Luego el límite termina solo.",
+        "value": "4200 × 10^0 = 4200 W. SPINE escribe cada número como un número y una potencia de diez."
+    }
+}

@@ -1,0 +1,95 @@
+{
+    "intro": "EEBus는 집이나 건물의 기기들이 에너지에 대해 합의하게 해 줘요. 에너지 관리기, 벽걸이 충전기, 히트펌프, 배터리, 태양광 인버터 같은 기기요. 계층이 둘 있어요. SHIP(Smart Home IP)은 mDNS로 기기를 찾고, TLS와 WebSocket으로 잇고, 누가 누구를 신뢰할지 정해요. SPINE은 각 기기가 할 수 있는 일을 엔티티와 기능(부하 제어, 측정, 설정)으로, JSON으로 설명해요. 그 위에 사용 사례가 있어요. 독일에서는 에너지산업법 §14a에 따라, 지역 배전망이 과부하에 가까우면 배전 사업자가 충전기와 히트펌프의 출력을 줄일 수 있어요. 단, 기기마다 4.2 kW 밑으로는 안 돼요. 스마트 계량기 게이트웨이 뒤의 제어 상자가 EEBus 사용 사례 LPC(Limitation of Power Consumption)로 이 한도를 보내요.",
+    "plain": "요즘 집에는 한꺼번에 전력을 많이 쓰는 기계가 있어요. 자동차 충전기, 히트펌프 같은 것들이요. EEBus는 이 기계들이 서로, 그리고 전력망과 이야기하는 공통 언어예요. 거리의 케이블이 과부하에 가까워지면 배전 사업자는 계량기 함 안의 작은 상자를 통해 충전기에게 잠시 천천히 충전하라고 부탁할 수 있어요. 충전기는 따르고, 상자의 말이 끊겨도 스스로 조심스럽게 지내요.",
+    "steps": {
+        "discover": { "title": "서로 찾기", "text": "충전기가 mDNS(멀티캐스트 DNS)로 집 네트워크에 자기를 알려요. SHIP 서비스, 주소, 그리고 인증서의 지문인 SKI(subject key identifier)요. 제어 상자가 그것을 들어요." },
+        "pair": { "title": "서로 신뢰하기", "text": "각자 자체 서명 인증서로 TLS 연결을 열어요. 인증 기관은 없어요. 설치할 때 SKI를 입력하거나 확인한 상대만 신뢰해요. 설치 기사가 한 번 대조했어요." },
+        "handshake": { "title": "악수하기", "text": "TLS 안에서 WebSocket이 SHIP 메시지를 날라요. 메시지 종류를 나타내는 1바이트 뒤에 JSON이 와요. 00 00으로 시작해 인사하고, 프로토콜 버전과 형식을 정하고, 서로 연락 방법을 알려 줘요." },
+        "discovery": { "title": "할 수 있는 일 묻기", "text": "상자는 SPINE으로 충전기의 상세 탐색 데이터, 곧 엔티티와 기능을 읽어요. 엔티티 1이 충전 스테이션이고, 그 기능 7이 한도를 받는 LoadControl 서버예요. 페일세이프 값을 위한 DeviceConfiguration, 하트비트를 위한 DeviceDiagnosis도 있어요." },
+        "limit": { "title": "한도 걸기", "text": "배전 사업자가 과부하 위험을 알려요. 상자는 충전기에 한도를 써요. 2시간 동안 4200 W. 충전기는 확인하고, IEC 61851의 파일럿 신호로 차에게 상당 최대 6 A만 쓰라고 알려요. 삼상으로 약 4.1 kW예요." },
+        "failsafe": { "title": "상자 잃기", "text": "상자의 전원이 꺼져 하트비트가 멈춰요. 120 s 동안 없으면 충전기는 페일세이프 상태로 들어가요. 상자가 돌아오지 않는 한, 최소 페일세이프 시간인 2시간 동안 역시 4.2 kW인 페일세이프 한도를 적용해요." }
+    },
+    "frames": {
+        "mdns": "충전기예요. 이게 제 키의 지문이에요",
+        "tls": "인증서를 보여 줘요. 당신의 SKI를 알아요",
+        "init": "SHIP을 시작하죠",
+        "hello": "준비됐어요. 60 s까지 기다려요",
+        "protocol": "버전 1.0, JSON으로",
+        "detailed": "무엇을 할 수 있나요?",
+        "features": "전력 한도를 받아요. 제 기능은 이래요",
+        "write": "앞으로 2시간, 최대 4200 W",
+        "result": "완료",
+        "pwm": "상당 최대 6 A만 써요",
+        "heartbeat": "아직 여기 있어요",
+        "fallback": "계속 최대 6 A: 페일세이프"
+    },
+    "notes": {
+        "mdns": "_ship._tcp 형식의 DNS-SD 레코드로, 로컬 네트워크에 멀티캐스트로 보내요. TXT 항목은 WebSocket 경로, ID, SKI, 브랜드와 모델을 알려 줘요.",
+        "tls": "양쪽에 인증서가 있는 TLS 1.2예요. 각 쪽은 상대 인증서의 SKI를 자기가 신뢰하는 SKI와 비교하고, 다르면 연결은 여기서 끝나요.",
+        "protocol": "양쪽이 말할 수 있는 가장 높은 SHIP 버전(1.0)과 형식(UTF-8 JSON)을 알려요. 그다음 서로 연락 방법을 알려 줘요.",
+        "detailed": "nodeManagementDetailedDiscoveryData의 SPINE 읽기예요. 충전기의 엔티티와 기능 목록으로, 각각 종류와 역할(클라이언트 또는 서버)이 있어요.",
+        "features": "충전기의 엔티티 1(충전 스테이션)과 LoadControl, DeviceConfiguration, DeviceDiagnosis, ElectricalConnection 서버예요. 이제 상자는 한도를 어디로 보낼지 알아요.",
+        "write": "확인을 요청하는 SPINE 쓰기예요. 한도 0, 활성, 4200 W(숫자 4200, 스케일 0), PT2H(2시간) 뒤 종료. 플레이그라운드에 이 메시지가 있어요.",
+        "result": "쓰기의 메시지 번호에 대한 SPINE 결과, errorNumber 0: 수락. 따를 수 없는 기기는 다른 오류 번호로 답해요.",
+        "pwm": "EEBus가 아니에요. 충전기가 파일럿 신호의 듀티비를 10 %로 낮추면 차는 이를 6 A로 읽어요(IEC 61851 레슨 참고).",
+        "heartbeat": "모든 게 괜찮은 동안 주기적으로 보내는 DeviceDiagnosis 하트비트예요. 이게 마지막이고, 이후 상자의 전원이 꺼져요.",
+        "fallback": "120 s 동안 하트비트가 없어요. 충전기는 앞서 DeviceConfiguration에서 읽은 페일세이프 한도를 적용해 차를 6 A로 유지해요."
+    },
+    "fields": {
+        "type-init": { "name": "메시지 종류", "note": "0x00: init, SHIP의 첫 메시지." },
+        "cmi": { "name": "CMI", "note": "0x00: connection mode initialisation. 양쪽 모두 무엇보다 먼저 00 00을 보내요." },
+        "type-control": { "name": "메시지 종류", "note": "0x01: 제어 메시지. 0x02는 데이터, 0x03은 종료예요." },
+        "hello-name": { "name": "connectionHello", "note": "UTF-8 JSON 텍스트의 시작: {\"connectionHello\":" },
+        "phase": { "name": "phase", "note": "[{\"phase\":\"ready\"}: 이쪽은 계속할 준비가 됐어요. SHIP은 객체를 키가 하나씩인 객체들의 목록으로 써요." },
+        "waiting": { "name": "waiting", "note": ",{\"waiting\":60000}: 상대의 인사를 최대 60000 ms, 곧 60 s 기다려요." },
+        "close": { "name": "끝", "note": "]}: 목록과 JSON의 끝." },
+        "a-device": { "name": "d:", "note": "SPINE 기기 주소." },
+        "a-pen": { "name": "_i:32473", "note": "IANA 기업 번호로 나타낸 제조사. 32473은 예시용으로 남겨 둔 번호예요." },
+        "a-name": { "name": "_Wallbox-0042", "note": "제조사가 이 기기에 붙인 이름으로, 그 제품들 사이에서 고유해요." }
+    },
+    "devices": {
+        "dso": "배전 사업자(DSO)",
+        "box": "제어 상자(§14a)",
+        "wallbox": "벽걸이 충전기 11 kW",
+        "car": "전기차"
+    },
+    "facts": {
+        "standard": "EEBus SHIP 1.0(전송)과 SPINE 1.3(데이터 모델), LPC(Limitation of Power Consumption) 같은 사용 사례. 독일에서는 §14a 제어 상자를 VDE FNN이 규정",
+        "between": "에너지 관리기 또는 배전 사업자의 제어 상자와, 전력을 쓰거나 만드는 기기: 충전기, 히트펌프, 배터리, 태양광 인버터",
+        "transport": "로컬 네트워크의 TLS 위 WebSocket, mDNS(_ship._tcp)로 찾아요. 메시지는 JSON",
+        "security": "양쪽 모두 자체 서명 인증서를 쓰는 TLS 1.2. 설치할 때 한 번 입력하거나 확인한 상대 SKI를 신뢰해요",
+        "speed": "명령은 1초보다 훨씬 짧아요. 하트비트가 120 s 없으면 페일세이프"
+    },
+    "tips": [
+        "페어링은 비밀번호가 아니라 SKI로 해요. 신뢰하기 전에 기기마다 표시된 SKI를 대조하세요. 틀린 SKI면 다른 기기와 짝지어져요.",
+        "기기마다 페일세이프 한도와 시간을 설정하세요. 상자가 없어지면 기기는 최대 출력이 아니라 그 값으로 돌아가요.",
+        "mDNS는 한 네트워크 구간 안에서만 동작해요. 상자와 충전기 사이에 VLAN이나 게스트 Wi-Fi가 있으면 서로 보이지 않아요.",
+        "§14a에 따라 배전 사업자는 기기마다 4.2 kW 밑으로는 줄일 수 없어요. 차는 계속 충전되고, 다만 느려질 뿐이에요."
+    ],
+    "points": {
+        "trust": "신뢰",
+        "limit": "전력 한도",
+        "power": "충전 전력"
+    },
+    "values": {
+        "trusted": "신뢰함",
+        "failsafe": "4.2 kW(페일세이프)"
+    },
+    "anatomy": {
+        "device": "충전기의 SPINE 기기 주소"
+    },
+    "playground": {
+        "file": "해 보세요: 상자가 쓰는 한도를 SPINE 메시지로 봐요. 회선에서 SHIP은 각 객체를 키가 하나씩인 객체 목록으로 쓰지만, 여기서는 읽기 쉬운 보통 JSON으로 보여 줘요.",
+        "version": "이 메시지가 따르는 SPINE 버전.",
+        "source": "상자에서: 기기 주소, 엔티티 1, 기능 3(그 LoadControl 클라이언트).",
+        "destination": "충전기로: 엔티티 1, 기능 7, 그 LoadControl 서버.",
+        "counter": "메시지 번호. 결과가 이 번호를 가리켜서 상자는 무엇에 대한 답인지 알아요.",
+        "write": "write: 상대 쪽 데이터를 바꿔요. 다른 종류로 read, reply, notify, call, result가 있어요.",
+        "ack": "결과 메시지를 요청해서, 상자가 한도가 수락됐음을 알게 해요.",
+        "function": "쓰는 내용: 부하 제어 한도 목록.",
+        "id": "한도 0: 이 충전기가 제공하는 소비 한도.",
+        "active": "한도를 켜요. false면 해제해요.",
+        "duration": "지금부터 2시간(PT2H, ISO 8601 기간). 그 뒤 한도는 저절로 끝나요.",
+        "value": "4200 × 10^0 = 4200 W. SPINE은 모든 수를 숫자와 10의 거듭제곱으로 써요."
+    }
+}
