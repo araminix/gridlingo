@@ -17,6 +17,8 @@ messages between them, every byte of each frame and what it means, and what each
 
 **[Open it](https://araminix.github.io/gridlingo/)**: no account, no server, nothing to install.
 
+![Gridlingo in 15 seconds: the IEC 60870-5-104 lesson is opened and played, the frames travel between SCADA and the RTU, and one frame is taken apart byte by byte](docs/images/demo.gif)
+
 ![The IEC 60870-5-104 lesson: an RTU reports a breaker trip to SCADA](docs/images/lesson-light.png)
 
 ## What a lesson shows
